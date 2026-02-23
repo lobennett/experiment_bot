@@ -1,0 +1,91 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "object",
+  "required": ["task", "stimuli", "response_distributions", "performance", "navigation"],
+  "properties": {
+    "task": {
+      "type": "object",
+      "required": ["name", "platform", "constructs", "reference_literature"],
+      "properties": {
+        "name": {"type": "string"},
+        "platform": {"type": "string", "enum": ["expfactory", "psytoolkit"]},
+        "constructs": {"type": "array", "items": {"type": "string"}},
+        "reference_literature": {"type": "array", "items": {"type": "string"}}
+      }
+    },
+    "stimuli": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "detection", "response"],
+        "properties": {
+          "id": {"type": "string"},
+          "description": {"type": "string"},
+          "detection": {
+            "type": "object",
+            "required": ["method", "selector"],
+            "properties": {
+              "method": {"type": "string", "enum": ["dom_query", "js_eval", "text_content", "canvas_state"]},
+              "selector": {"type": "string"},
+              "alt_method": {"type": "string"},
+              "pattern": {"type": "string"}
+            }
+          },
+          "response": {
+            "type": "object",
+            "required": ["condition"],
+            "properties": {
+              "key": {"type": ["string", "null"]},
+              "condition": {"type": "string"}
+            }
+          }
+        }
+      }
+    },
+    "response_distributions": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "object",
+        "required": ["distribution", "params"],
+        "properties": {
+          "distribution": {"type": "string"},
+          "params": {"type": "object"},
+          "unit": {"type": "string", "default": "ms"}
+        }
+      }
+    },
+    "performance": {
+      "type": "object",
+      "required": ["go_accuracy", "stop_accuracy", "omission_rate", "practice_accuracy"],
+      "properties": {
+        "go_accuracy": {"type": "number", "minimum": 0, "maximum": 1},
+        "stop_accuracy": {"type": "number", "minimum": 0, "maximum": 1},
+        "omission_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "practice_accuracy": {"type": "number", "minimum": 0, "maximum": 1}
+      }
+    },
+    "navigation": {
+      "type": "object",
+      "required": ["phases"],
+      "properties": {
+        "phases": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "phase": {"type": "string"},
+              "action": {"type": "string"},
+              "target": {"type": "string"},
+              "key": {"type": "string"},
+              "steps": {"type": "array"},
+              "duration_ms": {"type": "integer"}
+            }
+          }
+        }
+      }
+    },
+    "task_specific": {
+      "type": "object"
+    }
+  }
+}

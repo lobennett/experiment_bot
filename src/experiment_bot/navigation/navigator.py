@@ -24,7 +24,7 @@ class InstructionNavigator:
 
         if phase.action == "click":
             await self._do_click(page, phase.target)
-        elif phase.action == "press":
+        elif phase.action in ("press", "keypress"):
             await self._do_press(page, phase.key)
         elif phase.action == "wait":
             await self._do_wait(phase.duration_ms)
@@ -41,6 +41,8 @@ class InstructionNavigator:
                         await self.execute_phase(page, sub_phase)
                 except Exception:
                     break
+        else:
+            logger.info(f"Skipping unknown/meta action: {phase.action}")
 
     async def _do_click(self, page: Page, target: str) -> None:
         await self._inject_reading_delay()
@@ -49,8 +51,7 @@ class InstructionNavigator:
             await locator.wait_for(state="visible", timeout=10000)
             await locator.click()
         except Exception as e:
-            logger.warning(f"Click target not found: {target} ({e})")
-            raise
+            logger.warning(f"Click target not found, skipping: {target} ({e})")
 
     async def _do_press(self, page: Page, key: str) -> None:
         await self._inject_reading_delay()

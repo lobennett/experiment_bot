@@ -41,6 +41,34 @@ class TaskExecutor:
         self._writer = OutputWriter()
         self._trial_count = 0
 
+        # Resolve dynamic key mappings from task_specific
+        self._key_map = self._resolve_key_mapping(config)
+
+    @staticmethod
+    def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
+        """Resolve dynamic_mapping keys from task_specific.key_mapping."""
+        key_map: dict[str, str] = {}
+        ts = config.task_specific
+        if "key_mapping" not in ts:
+            return key_map
+        km = ts["key_mapping"]
+        group = km.get("default_group_index", 0)
+        if group <= 4:
+            mapping = km.get("group_0_to_4", {})
+        else:
+            mapping = km.get("group_5_to_14", {})
+        # Map stimulus condition to resolved key: go_circle -> ","
+        for shape, key in mapping.items():
+            key_map[f"go_{shape}"] = key
+        return key_map
+
+    def _resolve_response_key(self, match: StimulusMatch) -> str | None:
+        """Resolve the actual key to press for a stimulus match."""
+        if match.response_key and match.response_key != "dynamic_mapping":
+            return match.response_key
+        # Look up from dynamic key map
+        return self._key_map.get(match.condition)
+
     def _should_respond_correctly(self, condition: str) -> bool:
         """Decide whether to give the correct response based on accuracy targets."""
         if condition == "stop":
@@ -127,12 +155,46 @@ class TaskExecutor:
 
             consecutive_misses = 0
             stuck_detector.heartbeat()
-            self._trial_count += 1
 
+            # Skip non-trial stimuli
+            if match.condition == "no_response":
+                await asyncio.sleep(0.05)
+                continue
+
+            # Handle navigation stimuli (press Enter on feedback screens)
+            if match.condition == "navigation":
+                key = match.response_key or "Enter"
+                logger.info(f"Navigation stimulus detected, pressing {key}")
+                await asyncio.sleep(1.0)
+                await page.keyboard.press(key)
+                continue
+
+            # Handle attention checks
+            if match.condition == "attention_check":
+                logger.info("Attention check detected")
+                await self._handle_attention_check(page)
+                continue
+
+            self._trial_count += 1
             await self._execute_trial(page, match)
 
+    def _get_stop_signal_selector(self) -> str | None:
+        """Get the stop signal detection selector from config stimuli."""
+        for stim in self._config.stimuli:
+            if stim.response.condition == "stop":
+                return stim.detection.selector
+        return None
+
+    async def _check_stop_signal(self, page: Page, selector: str) -> bool:
+        """Check if the stop signal element is currently present."""
+        try:
+            result = await page.evaluate(selector)
+            return bool(result)
+        except Exception:
+            return False
+
     async def _execute_trial(self, page: Page, match: StimulusMatch) -> None:
-        """Execute a single trial: decide response, wait RT, press key."""
+        """Execute a single trial with independent race model for stop signals."""
         trial_start = time.monotonic()
         condition = match.condition
 
@@ -149,44 +211,109 @@ class TaskExecutor:
             await asyncio.sleep(2.0)
             return
 
-        if condition == "stop":
-            if self._should_respond_correctly("stop"):
-                self._writer.log_trial({
-                    "trial": self._trial_count,
-                    "stimulus_id": match.stimulus_id,
-                    "condition": "stop_success",
-                    "response_key": None,
-                    "sampled_rt_ms": None,
-                    "actual_rt_ms": None,
-                    "omission": False,
-                })
-                await asyncio.sleep(2.0)
-                return
-            else:
-                rt_condition = "stop_failure" if "stop_failure" in self._sampler._samplers else "go_correct"
-        else:
-            rt_condition = "go_correct" if self._should_respond_correctly("go") else "go_error"
-
+        # For go trials: sample RT, but poll for stop signal during the wait
+        rt_condition = "go_correct" if self._should_respond_correctly("go") else "go_error"
         try:
             rt_ms = self._sampler.sample_rt(rt_condition)
         except KeyError:
             rt_ms = self._sampler.sample_rt(list(self._sampler._samplers.keys())[0])
 
-        await asyncio.sleep(rt_ms / 1000.0)
-        actual_rt = (time.monotonic() - trial_start) * 1000
+        stop_selector = self._get_stop_signal_selector()
+        stop_detected = False
 
-        if match.response_key:
-            await page.keyboard.press(match.response_key)
+        if stop_selector:
+            # Independent race model: poll for stop signal during RT wait
+            poll_interval = 0.02  # 20ms
+            elapsed = 0.0
+            while elapsed < rt_ms / 1000.0:
+                if await self._check_stop_signal(page, stop_selector):
+                    stop_detected = True
+                    break
+                await asyncio.sleep(poll_interval)
+                elapsed = (time.monotonic() - trial_start)
+        else:
+            await asyncio.sleep(rt_ms / 1000.0)
+
+        if stop_detected:
+            # Stop signal appeared before go RT finished — chance to inhibit
+            if self._should_respond_correctly("stop"):
+                # Successful inhibition
+                self._writer.log_trial({
+                    "trial": self._trial_count,
+                    "stimulus_id": match.stimulus_id,
+                    "condition": "stop_success",
+                    "response_key": None,
+                    "sampled_rt_ms": round(rt_ms, 1),
+                    "actual_rt_ms": None,
+                    "omission": False,
+                })
+                await asyncio.sleep(1.5)  # Wait for trial to advance
+                return
+            else:
+                # Failed stop — respond anyway
+                actual_rt = (time.monotonic() - trial_start) * 1000
+                resolved_key = self._resolve_response_key(match)
+                if resolved_key:
+                    await page.keyboard.press(resolved_key)
+                self._writer.log_trial({
+                    "trial": self._trial_count,
+                    "stimulus_id": match.stimulus_id,
+                    "condition": "stop_failure",
+                    "response_key": resolved_key,
+                    "sampled_rt_ms": round(rt_ms, 1),
+                    "actual_rt_ms": round(actual_rt, 1),
+                    "omission": False,
+                })
+                return
+
+        # No stop signal — normal go trial response
+        if not stop_detected and not stop_selector:
+            actual_rt = (time.monotonic() - trial_start) * 1000
+        else:
+            # Wait remaining RT time if we were polling
+            remaining = (rt_ms / 1000.0) - (time.monotonic() - trial_start)
+            if remaining > 0:
+                await asyncio.sleep(remaining)
+            actual_rt = (time.monotonic() - trial_start) * 1000
+
+        resolved_key = self._resolve_response_key(match)
+        if resolved_key:
+            await page.keyboard.press(resolved_key)
 
         self._writer.log_trial({
             "trial": self._trial_count,
             "stimulus_id": match.stimulus_id,
             "condition": condition,
-            "response_key": match.response_key,
+            "response_key": resolved_key,
             "sampled_rt_ms": round(rt_ms, 1),
             "actual_rt_ms": round(actual_rt, 1),
             "omission": False,
         })
+
+    async def _handle_attention_check(self, page: Page) -> None:
+        """Handle attention check by reading the prompt and pressing the requested key."""
+        await asyncio.sleep(1.5)
+        try:
+            text = await page.evaluate("""
+                () => {
+                    const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus') ||
+                               document.querySelector('.jspsych-display-element');
+                    return el ? el.textContent : '';
+                }
+            """)
+            # Look for "Press the X key" pattern
+            import re
+            match = re.search(r'[Pp]ress the (\w+) key', text)
+            if match:
+                key = match.group(1).lower()
+                logger.info(f"Attention check: pressing '{key}'")
+                await page.keyboard.press(key)
+            else:
+                logger.warning(f"Could not parse attention check text: {text[:100]}")
+                await page.keyboard.press("Enter")
+        except Exception as e:
+            logger.warning(f"Attention check handling failed: {e}")
+            await page.keyboard.press("Enter")
 
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback and attention checks."""

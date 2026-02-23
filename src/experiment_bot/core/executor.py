@@ -14,6 +14,7 @@ from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
+from experiment_bot.output.summary import summarize_run
 from experiment_bot.platforms.base import Platform
 
 logger = logging.getLogger(__name__)
@@ -120,6 +121,10 @@ class TaskExecutor:
                     "headless": self._headless,
                 })
                 self._writer.finalize()
+                if self._writer.run_dir:
+                    summary = summarize_run(self._writer.run_dir)
+                    if summary:
+                        logger.info(f"Run summary: {summary.get('total_trials', 0)} trials")
                 await browser.close()
 
     async def _trial_loop(self, page: Page, platform: Platform) -> None:
@@ -235,9 +240,16 @@ class TaskExecutor:
             await asyncio.sleep(rt_ms / 1000.0)
 
         if stop_detected:
-            # Stop signal appeared before go RT finished — chance to inhibit
-            if self._should_respond_correctly("stop"):
-                # Successful inhibition
+            # Independent race model: compare remaining go time vs SSRT
+            # SSD ≈ time from trial start to stop signal appearance
+            ssd_s = time.monotonic() - trial_start
+            remaining_go_s = (rt_ms / 1000.0) - ssd_s
+            ssrt_s = self._config.task_specific.get(
+                "stop_signal_parameters", {}
+            ).get("target_SSRT_ms", 250) / 1000.0
+
+            if remaining_go_s > ssrt_s:
+                # Go process hasn't finished; stop process wins → inhibit
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
@@ -250,7 +262,10 @@ class TaskExecutor:
                 await asyncio.sleep(1.5)  # Wait for trial to advance
                 return
             else:
-                # Failed stop — respond anyway
+                # Go process finishes before stop can catch up → failed stop
+                # Wait the remaining go RT then respond
+                if remaining_go_s > 0:
+                    await asyncio.sleep(remaining_go_s)
                 actual_rt = (time.monotonic() - trial_start) * 1000
                 resolved_key = self._resolve_response_key(match)
                 if resolved_key:

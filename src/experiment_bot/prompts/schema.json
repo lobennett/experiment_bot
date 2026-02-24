@@ -86,6 +86,58 @@
     },
     "task_specific": {
       "type": "object"
+    },
+    "runtime": {
+      "type": "object",
+      "description": "Runtime configuration for the bot executor. Controls phase detection, timing, advance behavior, and paradigm-specific settings.",
+      "properties": {
+        "phase_detection": {
+          "type": "object",
+          "description": "JavaScript expressions evaluated to detect the current task phase.",
+          "properties": {
+            "method": {"type": "string", "enum": ["dom_query", "js_eval"], "description": "Detection method: dom_query for jsPsych/HTML tasks, js_eval for PsyToolkit/canvas tasks"},
+            "complete": {"type": "string", "description": "JS expression returning true when the task is finished"},
+            "loading": {"type": "string", "description": "JS expression returning true when on a loading/start screen"},
+            "instructions": {"type": "string", "description": "JS expression returning true when on an instruction page"},
+            "attention_check": {"type": "string", "description": "JS expression returning true when an attention check is displayed"},
+            "feedback": {"type": "string", "description": "JS expression returning true when a feedback screen is displayed"},
+            "practice": {"type": "string", "description": "JS expression returning true during practice trials"},
+            "test": {"type": "string", "description": "JS expression returning true during test trials (used as fallback)"}
+          }
+        },
+        "timing": {
+          "type": "object",
+          "description": "Timing parameters for the executor polling and waiting behavior.",
+          "properties": {
+            "poll_interval_ms": {"type": "integer", "default": 20, "description": "Milliseconds between stimulus detection polls"},
+            "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. PsyToolkit tasks need ~2000, jsPsych tasks ~500."},
+            "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. jsPsych tasks need ~35000 (server upload), PsyToolkit ~5000."},
+            "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap go RTs at"}
+          }
+        },
+        "advance_behavior": {
+          "type": "object",
+          "description": "How to advance through instruction/feedback screens between blocks.",
+          "properties": {
+            "pre_keypress_js": {"type": "string", "default": "", "description": "JS to execute before keypresses (e.g., 'psy_expect_keyboard()' for PsyToolkit)"},
+            "advance_keys": {"type": "array", "items": {"type": "string"}, "default": [" "], "description": "Keys to press to advance between blocks"},
+            "exit_pager_key": {"type": "string", "default": "", "description": "Key to exit pager mode (e.g., 'q' for PsyToolkit)"},
+            "advance_interval_polls": {"type": "integer", "default": 100, "description": "Press advance keys every N polls with no stimulus"},
+            "feedback_selectors": {"type": "array", "items": {"type": "string"}, "description": "CSS selectors for feedback/advance buttons to click"},
+            "feedback_fallback_keys": {"type": "array", "items": {"type": "string"}, "description": "Keys to press if no feedback button is found"}
+          }
+        },
+        "paradigm": {
+          "type": "object",
+          "description": "Paradigm-specific settings for the executor.",
+          "properties": {
+            "type": {"type": "string", "enum": ["simple", "stop_signal", "go_nogo"], "description": "Task paradigm type"},
+            "stop_condition": {"type": "string", "default": "stop", "description": "Stimulus condition name that indicates a stop/inhibit trial"},
+            "stop_failure_rt_key": {"type": "string", "default": "stop_failure", "description": "Response distribution key for stop failure RTs"},
+            "stop_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap stop failure RTs"}
+          }
+        }
+      }
     }
   }
 }

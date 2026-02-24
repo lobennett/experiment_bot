@@ -18,6 +18,12 @@ Given the source code and description of a web-based cognitive experiment, produ
 
 6. **Task-specific parameters**: For stop signal tasks, specify the independent race model parameters (SSRT target). For task switching, specify expected switch costs and congruency effects.
 
+7. **Runtime configuration**: Provide a `runtime` section that tells the bot executor HOW to run this specific task:
+   - **phase_detection**: JavaScript expressions the bot evaluates to detect the current task phase (complete, loading, instructions, attention_check, test). For jsPsych tasks, use DOM queries. For PsyToolkit tasks, use JS global variables.
+   - **timing**: Polling and wait parameters. PsyToolkit tasks need `max_no_stimulus_polls: 2000` (canvas rendering is slower) and `completion_wait_ms: 5000`. jsPsych tasks need `max_no_stimulus_polls: 500` and `completion_wait_ms: 35000` (server data upload).
+   - **advance_behavior**: How to advance through instruction/feedback screens. PsyToolkit tasks need `pre_keypress_js: "psy_expect_keyboard()"` and `exit_pager_key: "q"`. jsPsych tasks use button selectors like `["button", "#jspsych-instructions-next", ".jspsych-btn"]`.
+   - **paradigm**: Set `type` to `"simple"`, `"stop_signal"`, or `"go_nogo"`. For stop signal tasks, also set `stop_condition` (the stimulus condition name for stop trials), `stop_failure_rt_key` (distribution key for failed stop RTs), and `stop_rt_cap_fraction`.
+
 ## Response Format
 
 Return ONLY valid JSON conforming to the schema provided. No markdown, no explanation, just the JSON object.

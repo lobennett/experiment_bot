@@ -244,10 +244,7 @@ class TaskExecutor:
 
         # For go trials: sample RT, but poll for stop signal during the wait
         rt_condition = "go_correct" if self._should_respond_correctly("go") else "go_error"
-        try:
-            rt_ms = self._sampler.sample_rt(rt_condition)
-        except KeyError:
-            rt_ms = self._sampler.sample_rt(list(self._sampler._samplers.keys())[0])
+        rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
 
         stop_selector = self._get_stop_signal_selector()
         stop_detected = False

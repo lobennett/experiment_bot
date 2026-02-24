@@ -41,3 +41,13 @@ class ResponseSampler:
             raise KeyError(f"Unknown condition: {condition}")
         rt = self._samplers[condition].sample()
         return max(rt, self._floor_ms)
+
+    def sample_rt_with_fallback(self, condition: str) -> float:
+        """Sample RT for condition, falling back to first available distribution."""
+        if condition in self._samplers:
+            rt = self._samplers[condition].sample()
+        elif self._samplers:
+            rt = next(iter(self._samplers.values())).sample()
+        else:
+            rt = 500.0
+        return max(rt, self._floor_ms)

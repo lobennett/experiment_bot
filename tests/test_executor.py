@@ -172,3 +172,15 @@ def test_resolve_response_key_static():
 
     resolved_key = executor._resolve_response_key(stimulus_match)
     assert resolved_key == "z"
+
+
+def test_sampler_fallback_to_first_distribution():
+    """When requested condition doesn't exist, sampler falls back to first available."""
+    from experiment_bot.core.distributions import ResponseSampler
+    from experiment_bot.core.config import DistributionConfig
+    dists = {
+        "task_switch": DistributionConfig(distribution="ex_gaussian", params={"mu": 580, "sigma": 70, "tau": 100}),
+    }
+    sampler = ResponseSampler(dists, seed=42)
+    rt = sampler.sample_rt_with_fallback("go_correct")
+    assert 150 < rt < 2000

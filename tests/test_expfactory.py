@@ -30,3 +30,14 @@ def test_build_download_url():
     path = "/deployment/repo/expfactory-experiments-rdoc/abc123/stop_signal_rdoc/experiment.js"
     url = platform.build_download_url(path)
     assert url == "https://deploy.expfactory.org/deployment/repo/expfactory-experiments-rdoc/abc123/stop_signal_rdoc/experiment.js"
+
+
+@pytest.mark.asyncio
+async def test_detect_task_phase_context_destroyed_returns_complete():
+    """When page navigation destroys context, detect_task_phase returns COMPLETE."""
+    from experiment_bot.core.config import TaskPhase
+    platform = ExpFactoryPlatform()
+    page = AsyncMock()
+    page.query_selector = AsyncMock(side_effect=Exception("Execution context was destroyed"))
+    result = await platform.detect_task_phase(page)
+    assert result == TaskPhase.COMPLETE

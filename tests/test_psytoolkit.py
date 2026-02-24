@@ -25,3 +25,15 @@ def test_get_library_url():
     platform = PsyToolkitPlatform()
     url = platform.get_library_url("taskswitching_cued")
     assert url == "https://www.psytoolkit.org/experiment-library/taskswitching_cued.html"
+
+
+def test_get_demo_url():
+    platform = PsyToolkitPlatform()
+    url = platform.get_demo_url("stopsignal")
+    assert url == "https://www.psytoolkit.org/experiment-library/experiment_stopsignal.html"
+
+
+def test_get_task_url_returns_demo_url():
+    platform = PsyToolkitPlatform()
+    url = asyncio.run(platform.get_task_url("stopsignal"))
+    assert url == "https://www.psytoolkit.org/experiment-library/experiment_stopsignal.html"

@@ -123,6 +123,7 @@ class NavigationPhase:
     key: str = ""
     steps: list[dict] = field(default_factory=list)
     duration_ms: int = 0
+    pre_js: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> NavigationPhase:
@@ -133,12 +134,16 @@ class NavigationPhase:
             key=d.get("key", ""),
             steps=d.get("steps", []),
             duration_ms=d.get("duration_ms", 0),
+            pre_js=d.get("pre_js", ""),
         )
 
     def to_dict(self) -> dict:
-        return {"phase": self.phase, "action": self.action,
-                "target": self.target, "key": self.key,
-                "steps": self.steps, "duration_ms": self.duration_ms}
+        d = {"phase": self.phase, "action": self.action,
+             "target": self.target, "key": self.key,
+             "steps": self.steps, "duration_ms": self.duration_ms}
+        if self.pre_js:
+            d["pre_js"] = self.pre_js
+        return d
 
 
 @dataclass

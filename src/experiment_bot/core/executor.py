@@ -151,7 +151,8 @@ class TaskExecutor:
     async def _trial_loop(self, page: Page, platform: Platform) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""
         stuck_detector = StuckDetector(timeout_seconds=10.0)
-        max_no_stimulus_polls = 500
+        # PsyToolkit trials have long fixation/feedback periods with no detectable stimulus
+        max_no_stimulus_polls = 2000 if self._platform_name == "psytoolkit" else 500
 
         consecutive_misses = 0
         while True:
@@ -181,6 +182,20 @@ class TaskExecutor:
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     break
+                # Try pressing Space/Q periodically to advance between-block screens
+                # (PsyToolkit renders these on canvas, not detectable via phase detection)
+                if consecutive_misses % 100 == 0 and consecutive_misses < max_no_stimulus_polls:
+                    logger.info(f"No stimulus for {consecutive_misses} polls, pressing Space to advance")
+                    if self._platform_name == "psytoolkit":
+                        await self._psytoolkit_reenable_keyboard(page)
+                    await page.keyboard.press(" ")
+                    # Also try Q to exit PsyToolkit pager last page
+                    if self._platform_name == "psytoolkit" and consecutive_misses % 200 == 0:
+                        await asyncio.sleep(0.5)
+                        await self._psytoolkit_reenable_keyboard(page)
+                        await page.keyboard.press("q")
+                if consecutive_misses == 1:
+                    logger.debug("No stimulus match on poll")
                 await asyncio.sleep(0.02)
                 continue
 
@@ -207,7 +222,15 @@ class TaskExecutor:
                 continue
 
             self._trial_count += 1
+            logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition})")
             await self._execute_trial(page, match)
+
+    async def _psytoolkit_reenable_keyboard(self, page: Page) -> None:
+        """Re-enable PsyToolkit keyboard listening (pager disables it after each press)."""
+        try:
+            await page.evaluate("psy_expect_keyboard()")
+        except Exception:
+            pass
 
     def _get_stop_signal_selector(self) -> str | None:
         """Get the stop signal detection selector from config stimuli."""
@@ -225,7 +248,13 @@ class TaskExecutor:
             return False
 
     async def _execute_trial(self, page: Page, match: StimulusMatch) -> None:
-        """Execute a single trial with independent race model for stop signals."""
+        """Execute a single trial with probabilistic stop signal handling.
+
+        For stop signal tasks, polls for the stop signal during the go RT wait.
+        If detected, uses configured stop_accuracy to decide success/failure
+        probabilistically, which produces race-model-valid behavior:
+        stop_failure RTs are sampled from a faster distribution than go RTs.
+        """
         trial_start = time.monotonic()
         condition = match.condition
 
@@ -242,37 +271,35 @@ class TaskExecutor:
             await asyncio.sleep(2.0)
             return
 
-        # For go trials: sample RT, but poll for stop signal during the wait
+        # Sample go RT
         rt_condition = "go_correct" if self._should_respond_correctly("go") else "go_error"
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
+
+        # Cap RT at the task's max response window (prevents late keypresses)
+        max_response_ms = self._config.task_specific.get(
+            "trial_timing", {}
+        ).get("max_response_time_ms", 0)
+        if max_response_ms > 0:
+            rt_ms = min(rt_ms, max_response_ms * 0.90)  # 10% margin for overhead
 
         stop_selector = self._get_stop_signal_selector()
         stop_detected = False
 
         if stop_selector:
-            # Independent race model: poll for stop signal during RT wait
+            # Poll for stop signal during go RT wait
             poll_interval = 0.02  # 20ms
-            elapsed = 0.0
-            while elapsed < rt_ms / 1000.0:
+            while (time.monotonic() - trial_start) < rt_ms / 1000.0:
                 if await self._check_stop_signal(page, stop_selector):
                     stop_detected = True
                     break
                 await asyncio.sleep(poll_interval)
-                elapsed = (time.monotonic() - trial_start)
         else:
             await asyncio.sleep(rt_ms / 1000.0)
 
         if stop_detected:
-            # Independent race model: compare remaining go time vs SSRT
-            # SSD ≈ time from trial start to stop signal appearance
-            ssd_s = time.monotonic() - trial_start
-            remaining_go_s = (rt_ms / 1000.0) - ssd_s
-            ssrt_s = self._config.task_specific.get(
-                "stop_signal_parameters", {}
-            ).get("target_SSRT_ms", 250) / 1000.0
-
-            if remaining_go_s > ssrt_s:
-                # Go process hasn't finished; stop process wins → inhibit
+            # Decide stop outcome probabilistically based on configured accuracy
+            if self._should_respond_correctly("stop"):
+                # Successful inhibition — withhold response
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
@@ -285,10 +312,18 @@ class TaskExecutor:
                 await asyncio.sleep(1.5)  # Wait for trial to advance
                 return
             else:
-                # Go process finishes before stop can catch up → failed stop
-                # Wait the remaining go RT then respond
-                if remaining_go_s > 0:
-                    await asyncio.sleep(remaining_go_s)
+                # Failed stop — sample from stop_failure distribution
+                # (faster than go RTs, satisfying independent race model)
+                sf_rt_ms = self._sampler.sample_rt_with_fallback("stop_failure")
+                if max_response_ms > 0:
+                    sf_rt_ms = min(sf_rt_ms, max_response_ms * 0.85)
+
+                # Wait until stop_failure RT has elapsed from trial start
+                elapsed_s = time.monotonic() - trial_start
+                remaining_s = (sf_rt_ms / 1000.0) - elapsed_s
+                if remaining_s > 0:
+                    await asyncio.sleep(remaining_s)
+
                 actual_rt = (time.monotonic() - trial_start) * 1000
                 resolved_key = self._resolve_response_key(match)
                 if resolved_key:
@@ -298,14 +333,14 @@ class TaskExecutor:
                     "stimulus_id": match.stimulus_id,
                     "condition": "stop_failure",
                     "response_key": resolved_key,
-                    "sampled_rt_ms": round(rt_ms, 1),
+                    "sampled_rt_ms": round(sf_rt_ms, 1),
                     "actual_rt_ms": round(actual_rt, 1),
                     "omission": False,
                 })
                 return
 
         # No stop signal — normal go trial response
-        if not stop_detected and not stop_selector:
+        if not stop_selector:
             actual_rt = (time.monotonic() - trial_start) * 1000
         else:
             # Wait remaining RT time if we were polling
@@ -380,8 +415,8 @@ class TaskExecutor:
         return None
 
     async def _handle_feedback(self, page: Page) -> None:
-        """Handle inter-block feedback and attention checks."""
-        logger.info("Handling feedback/attention screen")
+        """Handle inter-block feedback screens."""
+        logger.info("Handling feedback screen")
         await asyncio.sleep(2.0)
 
         for selector in ["button", "#jspsych-instructions-next", ".jspsych-btn"]:
@@ -393,6 +428,9 @@ class TaskExecutor:
             except Exception:
                 continue
 
+        # Try Space first (PsyToolkit uses Space to advance), then Enter
+        await page.keyboard.press(" ")
+        await asyncio.sleep(0.5)
         await page.keyboard.press("Enter")
 
     async def _wait_for_completion(self, page: Page, platform: Platform) -> None:

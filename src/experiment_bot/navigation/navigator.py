@@ -25,6 +25,8 @@ class InstructionNavigator:
         if phase.action == "click":
             await self._do_click(page, phase.target)
         elif phase.action in ("press", "keypress"):
+            if phase.pre_js:
+                await self._exec_pre_js(page, phase.pre_js)
             await self._do_press(page, phase.key)
         elif phase.action == "wait":
             await self._do_wait(phase.duration_ms)
@@ -59,6 +61,13 @@ class InstructionNavigator:
 
     async def _do_wait(self, duration_ms: int) -> None:
         await asyncio.sleep(duration_ms / 1000.0)
+
+    async def _exec_pre_js(self, page: Page, js: str) -> None:
+        """Execute JavaScript before a navigation action (e.g. re-enable keyboard)."""
+        try:
+            await page.evaluate(js)
+        except Exception as e:
+            logger.debug(f"pre_js execution failed: {e}")
 
     async def _inject_reading_delay(self) -> None:
         lo, hi = self._reading_delay_range

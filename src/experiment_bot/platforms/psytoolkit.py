@@ -72,11 +72,21 @@ class PsyToolkitPlatform(Platform):
             phase_info = await page.evaluate(
                 """
                 () => {
+                    // Once PsyToolkit canvas experiment is running, use JS state
+                    const canvas = document.querySelector('canvas#exp');
+                    const experimentStarted = typeof general_trial_counter !== 'undefined';
+
+                    if (canvas && experimentStarted) {
+                        // Check completion
+                        if (typeof psy_experiment_done !== 'undefined' && psy_experiment_done) return 'complete';
+                        if (typeof current_task !== 'undefined' && current_task === ''
+                            && general_trial_counter > 0) return 'complete';
+                        return 'test';
+                    }
+
+                    // Pre-experiment: check DOM text
                     const body = document.body.textContent || '';
                     if (body.includes('Click to start')) return 'loading';
-                    if (body.includes('instruction') || body.includes('Instruction')) return 'instructions';
-                    if (body.includes('practice') || body.includes('Practice')) return 'practice';
-                    if (body.includes('ready') || body.includes('Ready')) return 'feedback';
                     if (body.includes('finished') || body.includes('Finished') || body.includes('Thank you')) return 'complete';
                     return 'test';
                 }

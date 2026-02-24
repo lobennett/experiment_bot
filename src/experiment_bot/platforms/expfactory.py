@@ -84,6 +84,13 @@ class ExpFactoryPlatform(Platform):
         )
 
     async def detect_task_phase(self, page: Page) -> TaskPhase:
+        try:
+            return await self._detect_task_phase_inner(page)
+        except Exception:
+            # Page navigation (e.g., ExpFactory data download) destroys context
+            return TaskPhase.COMPLETE
+
+    async def _detect_task_phase_inner(self, page: Page) -> TaskPhase:
         completion_el = await page.query_selector("#completion_msg")
         if completion_el and await completion_el.is_visible():
             return TaskPhase.COMPLETE
@@ -96,6 +103,10 @@ class ExpFactoryPlatform(Platform):
         if next_btn:
             return TaskPhase.INSTRUCTIONS
 
+        attention_el = await page.query_selector("#jspsych-attention-check-rdoc-stimulus")
+        if attention_el:
+            return TaskPhase.ATTENTION_CHECK
+
         phase_text = await page.evaluate("""
             () => {
                 const el = document.querySelector('.jspsych-display-element');
@@ -105,9 +116,9 @@ class ExpFactoryPlatform(Platform):
 
         if "practice" in phase_text.lower():
             return TaskPhase.PRACTICE
-        if "feedback" in phase_text.lower() or "block" in phase_text.lower():
-            return TaskPhase.FEEDBACK
         if "attention" in phase_text.lower():
             return TaskPhase.ATTENTION_CHECK
+        if "feedback" in phase_text.lower() or "block" in phase_text.lower():
+            return TaskPhase.FEEDBACK
 
         return TaskPhase.TEST

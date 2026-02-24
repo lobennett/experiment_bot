@@ -47,25 +47,46 @@ class TaskExecutor:
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
-        """Resolve dynamic_mapping keys from task_specific.key_mapping."""
+        """Resolve dynamic keys from task_specific config."""
         key_map: dict[str, str] = {}
         ts = config.task_specific
-        if "key_mapping" not in ts:
-            return key_map
-        km = ts["key_mapping"]
-        group = km.get("default_group_index", 0)
-        if group <= 4:
-            mapping = km.get("group_0_to_4", {})
-        else:
-            mapping = km.get("group_5_to_14", {})
-        # Map stimulus condition to resolved key: go_circle -> ","
-        for shape, key in mapping.items():
-            key_map[f"go_{shape}"] = key
+        group = ts.get("default_group_index", 0)
+
+        # Stop signal format: task_specific.key_mapping
+        if "key_mapping" in ts:
+            km = ts["key_mapping"]
+            group = km.get("default_group_index", group)
+            if group <= 4:
+                mapping = km.get("group_0_to_4", {})
+            else:
+                mapping = km.get("group_5_to_14", {})
+            for shape, key in mapping.items():
+                key_map[f"go_{shape}"] = key
+
+        # Task switching format: task_specific.group_index_mappings
+        if "group_index_mappings" in ts:
+            gim = ts["group_index_mappings"]
+            if group <= 4:
+                mapping = gim.get("0_to_4", {})
+            elif group <= 9:
+                mapping = gim.get("5_to_9", {})
+            else:
+                mapping = gim.get("10_to_14", {})
+            # Map condition names to keys
+            if "even" in mapping:
+                key_map["parity_even"] = mapping["even"]
+            if "odd" in mapping:
+                key_map["parity_odd"] = mapping["odd"]
+            if "higher" in mapping:
+                key_map["magnitude_high"] = mapping["higher"]
+            if "lower" in mapping:
+                key_map["magnitude_low"] = mapping["lower"]
+
         return key_map
 
     def _resolve_response_key(self, match: StimulusMatch) -> str | None:
         """Resolve the actual key to press for a stimulus match."""
-        if match.response_key and match.response_key != "dynamic_mapping":
+        if match.response_key and match.response_key not in ("dynamic_mapping", "dynamic"):
             return match.response_key
         # Look up from dynamic key map
         return self._key_map.get(match.condition)
@@ -139,7 +160,12 @@ class TaskExecutor:
                 logger.info("Task complete detected")
                 break
 
-            if phase in (TaskPhase.FEEDBACK, TaskPhase.ATTENTION_CHECK):
+            if phase == TaskPhase.ATTENTION_CHECK:
+                await self._handle_attention_check(page)
+                consecutive_misses = 0
+                continue
+
+            if phase == TaskPhase.FEEDBACK:
                 await self._handle_feedback(page)
                 consecutive_misses = 0
                 continue
@@ -175,7 +201,7 @@ class TaskExecutor:
                 continue
 
             # Handle attention checks
-            if match.condition == "attention_check":
+            if match.condition in ("attention_check", "attention_check_response"):
                 logger.info("Attention check detected")
                 await self._handle_attention_check(page)
                 continue
@@ -305,8 +331,19 @@ class TaskExecutor:
             "omission": False,
         })
 
+    _ORDINAL_MAP = {
+        "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,
+        "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,
+        "eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14,
+        "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18,
+        "nineteenth": 19, "twentieth": 20, "twenty-first": 21, "twenty-second": 22,
+        "twenty-third": 23, "twenty-fourth": 24, "twenty-fifth": 25, "twenty-sixth": 26,
+        "last": 26,
+    }
+
     async def _handle_attention_check(self, page: Page) -> None:
         """Handle attention check by reading the prompt and pressing the requested key."""
+        import re
         await asyncio.sleep(1.5)
         try:
             text = await page.evaluate("""
@@ -316,11 +353,8 @@ class TaskExecutor:
                     return el ? el.textContent : '';
                 }
             """)
-            # Look for "Press the X key" pattern
-            import re
-            match = re.search(r'[Pp]ress the (\w+) key', text)
-            if match:
-                key = match.group(1).lower()
+            key = self._parse_attention_check_key(text)
+            if key:
                 logger.info(f"Attention check: pressing '{key}'")
                 await page.keyboard.press(key)
             else:
@@ -329,6 +363,24 @@ class TaskExecutor:
         except Exception as e:
             logger.warning(f"Attention check handling failed: {e}")
             await page.keyboard.press("Enter")
+
+    def _parse_attention_check_key(self, text: str) -> str | None:
+        """Parse attention check text to determine which key to press."""
+        import re
+        # "Press the X key"
+        m = re.search(r'[Pp]ress the (\w) key', text)
+        if m:
+            return m.group(1).lower()
+
+        # "Press the key for the Nth letter of the English alphabet"
+        m = re.search(r'[Pp]ress the key for the (\w+(?:-\w+)?)\s+letter', text)
+        if m:
+            ordinal = m.group(1).lower()
+            n = self._ORDINAL_MAP.get(ordinal)
+            if n and 1 <= n <= 26:
+                return chr(ord('a') + n - 1)
+
+        return None
 
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback and attention checks."""

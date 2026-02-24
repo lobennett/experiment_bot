@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import io
+import logging
 import zipfile
 from pathlib import Path
 
@@ -9,6 +10,8 @@ from playwright.async_api import Page
 
 from experiment_bot.core.config import SourceBundle, TaskPhase
 from experiment_bot.platforms.base import Platform
+
+logger = logging.getLogger(__name__)
 
 
 class PsyToolkitPlatform(Platform):
@@ -20,25 +23,36 @@ class PsyToolkitPlatform(Platform):
     def get_library_url(self, task_id: str) -> str:
         return f"https://www.psytoolkit.org/experiment-library/{task_id}.html"
 
+    def get_demo_url(self, task_id: str) -> str:
+        return f"https://www.psytoolkit.org/experiment-library/experiment_{task_id}.html"
+
     async def get_task_url(self, task_id: str) -> str:
-        return self.get_library_url(task_id)
+        return self.get_demo_url(task_id)
 
     async def download_source(self, task_id: str, output_dir: Path) -> SourceBundle:
         source_files: dict[str, str] = {}
 
         async with httpx.AsyncClient(follow_redirects=True) as client:
-            zip_url = self.get_zip_url(task_id)
-            resp = await client.get(zip_url)
-            resp.raise_for_status()
-            with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
-                for name in zf.namelist():
-                    if not name.endswith("/"):
-                        try:
-                            source_files[name] = zf.read(name).decode(
-                                "utf-8", errors="replace"
-                            )
-                        except Exception:
-                            pass
+            # Try zip download first; fall back to demo page HTML
+            try:
+                zip_url = self.get_zip_url(task_id)
+                resp = await client.get(zip_url)
+                resp.raise_for_status()
+                with zipfile.ZipFile(io.BytesIO(resp.content)) as zf:
+                    for name in zf.namelist():
+                        if not name.endswith("/"):
+                            try:
+                                source_files[name] = zf.read(name).decode(
+                                    "utf-8", errors="replace"
+                                )
+                            except Exception:
+                                pass
+            except Exception as e:
+                logger.info(f"Zip download unavailable ({e}), using demo page as source")
+                demo_url = self.get_demo_url(task_id)
+                resp = await client.get(demo_url)
+                resp.raise_for_status()
+                source_files[f"experiment_{task_id}.html"] = resp.text
 
             lib_url = self.get_library_url(task_id)
             resp = await client.get(lib_url)
@@ -50,7 +64,7 @@ class PsyToolkitPlatform(Platform):
             task_id=task_id,
             source_files=source_files,
             description_text=description_text,
-            metadata={"zip_url": self.get_zip_url(task_id)},
+            metadata={"demo_url": self.get_demo_url(task_id)},
         )
 
     async def detect_task_phase(self, page: Page) -> TaskPhase:

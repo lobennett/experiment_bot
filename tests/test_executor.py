@@ -223,6 +223,16 @@ def test_executor_uses_runtime_timing():
     assert executor._config.runtime.timing.rt_floor_ms == 200.0
 
 
+def test_feedback_uses_config_selectors():
+    """_handle_feedback uses config selectors, not hardcoded jsPsych ones."""
+    import inspect
+    from experiment_bot.core.executor import TaskExecutor
+    source = inspect.getsource(TaskExecutor._handle_feedback)
+    # Should not contain hardcoded jsPsych selectors
+    assert '"#jspsych-instructions-next"' not in source
+    assert '".jspsych-btn"' not in source
+
+
 def test_executor_no_platform_name_dependency():
     """Executor should not branch on platform name."""
     import inspect

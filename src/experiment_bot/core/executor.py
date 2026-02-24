@@ -431,9 +431,10 @@ class TaskExecutor:
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback screens."""
         logger.info("Handling feedback screen")
+        ab = self._config.runtime.advance_behavior
         await asyncio.sleep(self._config.runtime.timing.feedback_delay_ms / 1000.0)
 
-        for selector in ["button", "#jspsych-instructions-next", ".jspsych-btn"]:
+        for selector in ab.feedback_selectors:
             try:
                 btn = page.locator(selector).first
                 if await btn.is_visible():
@@ -442,10 +443,9 @@ class TaskExecutor:
             except Exception:
                 continue
 
-        # Try Space first (PsyToolkit uses Space to advance), then Enter
-        await page.keyboard.press(" ")
-        await asyncio.sleep(0.5)
-        await page.keyboard.press("Enter")
+        for key in ab.feedback_fallback_keys:
+            await page.keyboard.press(key)
+            await asyncio.sleep(0.5)
 
     async def _wait_for_completion(self, page: Page, platform: Platform) -> None:
         """Wait for the task to fully complete and data to be available."""

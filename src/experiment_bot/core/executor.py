@@ -51,7 +51,17 @@ class TaskExecutor:
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
-        """Resolve dynamic keys from task_specific config."""
+        """Resolve key mappings from config."""
+        ts = config.task_specific
+        # Prefer direct key_map if provided
+        if "key_map" in ts:
+            return dict(ts["key_map"])
+        # Legacy: resolve from group-based mappings (backward compat)
+        return TaskExecutor._resolve_key_mapping_legacy(config)
+
+    @staticmethod
+    def _resolve_key_mapping_legacy(config: TaskConfig) -> dict[str, str]:
+        """Legacy key mapping resolution for older configs."""
         key_map: dict[str, str] = {}
         ts = config.task_specific
         group = ts.get("default_group_index", 0)
@@ -76,7 +86,6 @@ class TaskExecutor:
                 mapping = gim.get("5_to_9", {})
             else:
                 mapping = gim.get("10_to_14", {})
-            # Map condition names to keys
             if "even" in mapping:
                 key_map["parity_even"] = mapping["even"]
             if "odd" in mapping:

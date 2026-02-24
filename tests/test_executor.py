@@ -174,6 +174,35 @@ def test_resolve_response_key_static():
     assert resolved_key == "z"
 
 
+def test_direct_key_map_from_config():
+    """Key map uses task_specific.key_map directly when present."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["task_specific"] = {
+        "key_map": {
+            "go_left": "b",
+            "go_right": "n",
+            "parity_even": "z",
+            "parity_odd": "m",
+        }
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test")
+    assert executor._key_map == config.task_specific["key_map"]
+
+
+def test_direct_key_map_overrides_legacy():
+    """When key_map is present, legacy group_index_mappings are ignored."""
+    config_data = dict(TASK_SWITCHING_CONFIG)
+    config_data["task_specific"]["key_map"] = {
+        "parity_even": "a",
+        "parity_odd": "s",
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test")
+    assert executor._key_map["parity_even"] == "a"
+    assert executor._key_map["parity_odd"] == "s"
+
+
 def test_executor_uses_runtime_timing():
     """Executor reads timing from runtime config, not hardcoded values."""
     config_data = dict(SAMPLE_CONFIG)

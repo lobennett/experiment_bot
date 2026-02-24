@@ -37,7 +37,11 @@ class TaskExecutor:
         self._py_rng = random.Random(seed)
 
         self._lookup = StimulusLookup(config)
-        self._sampler = ResponseSampler(config.response_distributions, seed=seed)
+        self._sampler = ResponseSampler(
+            config.response_distributions,
+            floor_ms=config.runtime.timing.rt_floor_ms,
+            seed=seed,
+        )
         self._navigator = InstructionNavigator()
         self._writer = OutputWriter()
         self._trial_count = 0
@@ -108,7 +112,7 @@ class TaskExecutor:
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=self._headless)
             context = await browser.new_context(
-                viewport={"width": 1280, "height": 800},
+                viewport=self._config.runtime.timing.viewport,
             )
             page = await context.new_page()
 
@@ -150,9 +154,9 @@ class TaskExecutor:
 
     async def _trial_loop(self, page: Page, platform: Platform) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""
-        stuck_detector = StuckDetector(timeout_seconds=10.0)
-        # PsyToolkit trials have long fixation/feedback periods with no detectable stimulus
-        max_no_stimulus_polls = 2000 if self._platform_name == "psytoolkit" else 500
+        timing = self._config.runtime.timing
+        stuck_detector = StuckDetector(timeout_seconds=timing.stuck_timeout_s)
+        max_no_stimulus_polls = timing.max_no_stimulus_polls
 
         consecutive_misses = 0
         while True:
@@ -196,7 +200,7 @@ class TaskExecutor:
                         await page.keyboard.press("q")
                 if consecutive_misses == 1:
                     logger.debug("No stimulus match on poll")
-                await asyncio.sleep(0.02)
+                await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                 continue
 
             consecutive_misses = 0
@@ -268,7 +272,7 @@ class TaskExecutor:
                 "actual_rt_ms": None,
                 "omission": True,
             })
-            await asyncio.sleep(2.0)
+            await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
             return
 
         # Sample go RT
@@ -280,14 +284,14 @@ class TaskExecutor:
             "trial_timing", {}
         ).get("max_response_time_ms", 0)
         if max_response_ms > 0:
-            rt_ms = min(rt_ms, max_response_ms * 0.90)  # 10% margin for overhead
+            rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
 
         stop_selector = self._get_stop_signal_selector()
         stop_detected = False
 
         if stop_selector:
             # Poll for stop signal during go RT wait
-            poll_interval = 0.02  # 20ms
+            poll_interval = self._config.runtime.timing.poll_interval_ms / 1000.0
             while (time.monotonic() - trial_start) < rt_ms / 1000.0:
                 if await self._check_stop_signal(page, stop_selector):
                     stop_detected = True
@@ -309,14 +313,14 @@ class TaskExecutor:
                     "actual_rt_ms": None,
                     "omission": False,
                 })
-                await asyncio.sleep(1.5)  # Wait for trial to advance
+                await asyncio.sleep(self._config.runtime.timing.stop_success_wait_ms / 1000.0)
                 return
             else:
                 # Failed stop — sample from stop_failure distribution
                 # (faster than go RTs, satisfying independent race model)
                 sf_rt_ms = self._sampler.sample_rt_with_fallback("stop_failure")
                 if max_response_ms > 0:
-                    sf_rt_ms = min(sf_rt_ms, max_response_ms * 0.85)
+                    sf_rt_ms = min(sf_rt_ms, max_response_ms * self._config.runtime.paradigm.stop_rt_cap_fraction)
 
                 # Wait until stop_failure RT has elapsed from trial start
                 elapsed_s = time.monotonic() - trial_start
@@ -417,7 +421,7 @@ class TaskExecutor:
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback screens."""
         logger.info("Handling feedback screen")
-        await asyncio.sleep(2.0)
+        await asyncio.sleep(self._config.runtime.timing.feedback_delay_ms / 1000.0)
 
         for selector in ["button", "#jspsych-instructions-next", ".jspsych-btn"]:
             try:
@@ -435,8 +439,6 @@ class TaskExecutor:
 
     async def _wait_for_completion(self, page: Page, platform: Platform) -> None:
         """Wait for the task to fully complete and data to be available."""
-        if self._platform_name == "expfactory":
-            logger.info("Waiting 35 seconds for ExpFactory data download...")
-            await asyncio.sleep(35)
-        else:
-            await asyncio.sleep(5)
+        wait_s = self._config.runtime.timing.completion_wait_ms / 1000.0
+        logger.info(f"Waiting {wait_s:.1f}s for task completion...")
+        await asyncio.sleep(wait_s)

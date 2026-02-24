@@ -174,6 +174,36 @@ def test_resolve_response_key_static():
     assert resolved_key == "z"
 
 
+def test_executor_uses_runtime_timing():
+    """Executor reads timing from runtime config, not hardcoded values."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "timing": {
+            "poll_interval_ms": 50,
+            "max_no_stimulus_polls": 1000,
+            "stuck_timeout_s": 15.0,
+            "completion_wait_ms": 10000,
+            "rt_floor_ms": 200.0,
+        }
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test")
+    assert executor._config.runtime.timing.poll_interval_ms == 50
+    assert executor._config.runtime.timing.max_no_stimulus_polls == 1000
+    assert executor._config.runtime.timing.stuck_timeout_s == 15.0
+    assert executor._config.runtime.timing.rt_floor_ms == 200.0
+
+
+def test_executor_sampler_uses_config_floor():
+    """ResponseSampler receives floor_ms from runtime config."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {"timing": {"rt_floor_ms": 200.0}}
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test", seed=42)
+    # The sampler should use 200.0 as floor, not the default 150.0
+    assert executor._sampler._floor_ms == 200.0
+
+
 def test_sampler_fallback_to_first_distribution():
     """When requested condition doesn't exist, sampler falls back to first available."""
     from experiment_bot.core.distributions import ResponseSampler

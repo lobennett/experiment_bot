@@ -61,7 +61,12 @@ class TaskExecutor:
 
     @staticmethod
     def _resolve_key_mapping_legacy(config: TaskConfig) -> dict[str, str]:
-        """Legacy key mapping resolution for older configs."""
+        """Legacy key mapping resolution for older configs without key_map.
+
+        Deprecated: new configs should use task_specific.key_map directly.
+        Kept for backward compatibility with configs generated before the
+        runtime config refactor.
+        """
         key_map: dict[str, str] = {}
         ts = config.task_specific
         group = ts.get("default_group_index", 0)

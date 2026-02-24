@@ -75,3 +75,68 @@ def test_executor_constructs_from_config():
     # Verify sampler has all distributions
     assert "go_correct" in executor._sampler._samplers
     assert "stop_failure" in executor._sampler._samplers
+
+
+def test_executor_works_with_runtime_config_only():
+    """Executor works purely from config — no platform-specific code needed."""
+    config_dict = {
+        "task": {
+            "name": "Generic Task",
+            "platform": "generic",
+            "constructs": ["attention"],
+            "reference_literature": [],
+        },
+        "stimuli": [
+            {
+                "id": "target",
+                "description": "Target stimulus",
+                "detection": {"method": "js_eval", "selector": "true"},
+                "response": {"key": "a", "condition": "go"},
+            }
+        ],
+        "response_distributions": {
+            "go_correct": {
+                "distribution": "ex_gaussian",
+                "params": {"mu": 400, "sigma": 50, "tau": 60},
+            }
+        },
+        "performance": {
+            "go_accuracy": 0.95,
+            "stop_accuracy": 0.5,
+            "omission_rate": 0.02,
+            "practice_accuracy": 0.9,
+        },
+        "navigation": {"phases": []},
+        "task_specific": {"key_map": {"go": "a"}},
+        "runtime": {
+            "phase_detection": {
+                "method": "js_eval",
+                "complete": "document.title === 'Done'",
+                "test": "true",
+            },
+            "timing": {
+                "max_no_stimulus_polls": 100,
+                "completion_wait_ms": 1000,
+                "poll_interval_ms": 50,
+            },
+            "advance_behavior": {
+                "advance_keys": [" "],
+                "feedback_selectors": ["button"],
+                "feedback_fallback_keys": ["Enter"],
+            },
+            "paradigm": {"type": "simple"},
+        },
+    }
+    config = TaskConfig.from_dict(config_dict)
+    executor = TaskExecutor(config, platform_name="generic", seed=42)
+    # Verify all runtime config values are accessible
+    assert executor._config.runtime.timing.max_no_stimulus_polls == 100
+    assert executor._config.runtime.timing.completion_wait_ms == 1000
+    assert executor._config.runtime.timing.poll_interval_ms == 50
+    assert executor._config.runtime.advance_behavior.advance_keys == [" "]
+    assert executor._config.runtime.paradigm.type == "simple"
+    # Verify key_map works
+    assert executor._key_map == {"go": "a"}
+    # Verify sampler is functional
+    rt = executor._sampler.sample_rt_with_fallback("go_correct")
+    assert 150 < rt < 2000

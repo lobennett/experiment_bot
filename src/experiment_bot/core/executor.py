@@ -49,14 +49,6 @@ class TaskExecutor:
         self._trial_count = 0
         self._prev_trial_error = False
 
-        # Apply PsyToolkit response window default if not already set
-        if platform_name == "psytoolkit" and not config.runtime.timing.response_window_js:
-            config.runtime.timing.response_window_js = (
-                "(() => { try { return psy_readkey.expect_keyboard === true"
-                " && psy_readkey.possiblekeys.length > 0; }"
-                " catch(e) { return false; } })()"
-            )
-
         # Resolve dynamic key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
 

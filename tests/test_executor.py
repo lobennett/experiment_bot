@@ -233,6 +233,54 @@ def test_feedback_uses_config_selectors():
     assert '".jspsych-btn"' not in source
 
 
+def test_paradigm_config_controls_stop_handling():
+    """Stop signal condition names come from paradigm config."""
+    config_data = dict(SAMPLE_CONFIG)
+    # Override paradigm to use "inhibit" instead of "stop"
+    config_data["runtime"] = {
+        "paradigm": {
+            "type": "stop_signal",
+            "stop_condition": "inhibit",
+            "stop_failure_rt_key": "inhibit_failure",
+            "stop_rt_cap_fraction": 0.80,
+        }
+    }
+    # Add a stimulus with condition="inhibit"
+    config_data["stimuli"] = [
+        {
+            "id": "go_left",
+            "description": "Left arrow",
+            "detection": {"method": "dom_query", "selector": ".arrow-left"},
+            "response": {"key": "z", "condition": "go"},
+        },
+        {
+            "id": "inhibit_trial",
+            "description": "Inhibition signal",
+            "detection": {"method": "js_eval", "selector": "checkInhibit()"},
+            "response": {"key": None, "condition": "inhibit"},
+        },
+    ]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test")
+    # _get_stop_signal_selector should find "inhibit" not "stop"
+    selector = executor._get_stop_signal_selector()
+    assert selector == "checkInhibit()"
+
+
+def test_should_respond_correctly_uses_paradigm_config():
+    """_should_respond_correctly uses paradigm.stop_condition, not hardcoded 'stop'."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "paradigm": {"type": "stop_signal", "stop_condition": "inhibit"}
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, platform_name="test", seed=42)
+    # "inhibit" should use stop_accuracy, not go_accuracy
+    results = [executor._should_respond_correctly("inhibit") for _ in range(100)]
+    # stop_accuracy is 0.50, so roughly 50% should be True
+    assert 30 < sum(results) < 70
+
+
 def test_executor_no_platform_name_dependency():
     """Executor should not branch on platform name."""
     import inspect

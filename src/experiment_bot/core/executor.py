@@ -106,7 +106,8 @@ class TaskExecutor:
 
     def _should_respond_correctly(self, condition: str) -> bool:
         """Decide whether to give the correct response based on accuracy targets."""
-        if condition == "stop":
+        stop_cond = self._config.runtime.paradigm.stop_condition
+        if condition == stop_cond:
             return self._py_rng.random() < self._config.performance.stop_accuracy
         return self._py_rng.random() < self._config.performance.go_accuracy
 
@@ -248,8 +249,9 @@ class TaskExecutor:
 
     def _get_stop_signal_selector(self) -> str | None:
         """Get the stop signal detection selector from config stimuli."""
+        stop_cond = self._config.runtime.paradigm.stop_condition
         for stim in self._config.stimuli:
-            if stim.response.condition == "stop":
+            if stim.response.condition == stop_cond:
                 return stim.detection.selector
         return None
 
@@ -310,9 +312,10 @@ class TaskExecutor:
         else:
             await asyncio.sleep(rt_ms / 1000.0)
 
+        paradigm = self._config.runtime.paradigm
         if stop_detected:
             # Decide stop outcome probabilistically based on configured accuracy
-            if self._should_respond_correctly("stop"):
+            if self._should_respond_correctly(paradigm.stop_condition):
                 # Successful inhibition — withhold response
                 self._writer.log_trial({
                     "trial": self._trial_count,
@@ -328,7 +331,7 @@ class TaskExecutor:
             else:
                 # Failed stop — sample from stop_failure distribution
                 # (faster than go RTs, satisfying independent race model)
-                sf_rt_ms = self._sampler.sample_rt_with_fallback("stop_failure")
+                sf_rt_ms = self._sampler.sample_rt_with_fallback(paradigm.stop_failure_rt_key)
                 if max_response_ms > 0:
                     sf_rt_ms = min(sf_rt_ms, max_response_ms * self._config.runtime.paradigm.stop_rt_cap_fraction)
 

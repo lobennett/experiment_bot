@@ -1,8 +1,10 @@
 from __future__ import annotations
 
+import copy
+
 import numpy as np
 
-from experiment_bot.core.config import DistributionConfig
+from experiment_bot.core.config import DistributionConfig, TaskConfig
 
 
 class ExGaussianSampler:
@@ -23,9 +25,15 @@ class ResponseSampler:
         self,
         distributions: dict[str, DistributionConfig],
         floor_ms: float = 150.0,
+        phi: float = 0.25,
+        drift_rate: float = 0.15,
         seed: int | None = None,
     ):
         self._floor_ms = floor_ms
+        self._phi = phi
+        self._drift_rate = drift_rate
+        self._prev_rt: float | None = None
+        self._trial_index: int = 0
         self._samplers: dict[str, ExGaussianSampler] = {}
         for condition, dist_config in distributions.items():
             if dist_config.distribution == "ex_gaussian":
@@ -36,18 +44,66 @@ class ResponseSampler:
                     seed=seed,
                 )
 
+    def _apply_temporal_effects(self, raw_rt: float, sampler: ExGaussianSampler) -> float:
+        """Apply AR(1) autocorrelation and fatigue drift to a raw RT sample."""
+        rt = raw_rt
+
+        # AR(1): pull current RT toward previous RT
+        if self._prev_rt is not None and self._phi > 0:
+            mean_rt = sampler.mu + sampler.tau
+            deviation = self._prev_rt - mean_rt
+            rt += self._phi * deviation
+
+        # Fatigue drift: slow upward trend across experiment
+        rt += self._trial_index * self._drift_rate
+
+        rt = max(rt, self._floor_ms)
+        self._prev_rt = rt
+        self._trial_index += 1
+        return rt
+
     def sample_rt(self, condition: str) -> float:
         if condition not in self._samplers:
             raise KeyError(f"Unknown condition: {condition}")
-        rt = self._samplers[condition].sample()
-        return max(rt, self._floor_ms)
+        sampler = self._samplers[condition]
+        raw_rt = sampler.sample()
+        return self._apply_temporal_effects(raw_rt, sampler)
 
     def sample_rt_with_fallback(self, condition: str) -> float:
         """Sample RT for condition, falling back to first available distribution."""
         if condition in self._samplers:
-            rt = self._samplers[condition].sample()
+            sampler = self._samplers[condition]
         elif self._samplers:
-            rt = next(iter(self._samplers.values())).sample()
+            sampler = next(iter(self._samplers.values()))
         else:
-            rt = 500.0
-        return max(rt, self._floor_ms)
+            # No samplers — return fixed value with drift only
+            rt = 500.0 + self._trial_index * self._drift_rate
+            self._trial_index += 1
+            return max(rt, self._floor_ms)
+        raw_rt = sampler.sample()
+        return self._apply_temporal_effects(raw_rt, sampler)
+
+
+def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskConfig:
+    """Apply between-subject jitter to distribution params and performance targets.
+
+    Creates a deep copy of the config so the original (cached) config is not mutated.
+    Each session gets slightly different parameters, mimicking natural between-subject
+    variability (human SD of mean RT ≈ 50-80ms).
+    """
+    config = copy.deepcopy(config)
+
+    for dist in config.response_distributions.values():
+        if dist.distribution == "ex_gaussian":
+            dist.params["mu"] += rng.normal(0, 50)
+            dist.params["sigma"] *= rng.uniform(0.8, 1.2)
+            dist.params["tau"] *= rng.uniform(0.8, 1.2)
+
+    config.performance.go_accuracy = float(
+        np.clip(config.performance.go_accuracy + rng.normal(0, 0.03), 0.85, 0.99)
+    )
+    config.performance.omission_rate = float(
+        np.clip(config.performance.omission_rate + rng.normal(0, 0.02), 0.01, 0.10)
+    )
+
+    return config

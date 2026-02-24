@@ -40,11 +40,22 @@ class TaskExecutor:
         self._sampler = ResponseSampler(
             config.response_distributions,
             floor_ms=config.runtime.timing.rt_floor_ms,
+            phi=config.runtime.timing.autocorrelation_phi,
+            drift_rate=config.runtime.timing.fatigue_drift_per_trial,
             seed=seed,
         )
         self._navigator = InstructionNavigator()
         self._writer = OutputWriter()
         self._trial_count = 0
+        self._prev_trial_error = False
+
+        # Apply PsyToolkit response window default if not already set
+        if platform_name == "psytoolkit" and not config.runtime.timing.response_window_js:
+            config.runtime.timing.response_window_js = (
+                "(() => { try { return psy_readkey.expect_keyboard === true"
+                " && psy_readkey.possiblekeys.length > 0; }"
+                " catch(e) { return false; } })()"
+            )
 
         # Resolve dynamic key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
@@ -118,6 +129,14 @@ class TaskExecutor:
 
     def _should_omit(self) -> bool:
         return self._py_rng.random() < self._config.performance.omission_rate
+
+    def _pick_wrong_key(self, correct_key: str) -> str:
+        """Return a random incorrect key from the key map."""
+        all_keys = list(set(self._key_map.values()))
+        wrong_keys = [k for k in all_keys if k != correct_key]
+        if not wrong_keys:
+            return correct_key  # Only one key available; can't press wrong one
+        return self._py_rng.choice(wrong_keys)
 
     async def run(self, task_url: str, platform: Platform) -> None:
         """Execute the full task."""
@@ -264,6 +283,27 @@ class TaskExecutor:
         except Exception:
             return False
 
+    async def _wait_for_response_window(self, page: Page, js_expr: str) -> None:
+        """Poll until the platform's response window is open.
+
+        For PsyToolkit task switching, the cue appears ~750ms before the target.
+        The bot detects the cue but PsyToolkit only starts its RT clock when the
+        target appears and the keyboard becomes active. This method synchronizes
+        the bot's timing to the actual response window.
+        """
+        poll_s = self._config.runtime.timing.poll_interval_ms / 1000.0
+        timeout = 5.0  # Max wait to avoid hanging
+        start = time.monotonic()
+        while (time.monotonic() - start) < timeout:
+            try:
+                ready = await page.evaluate(js_expr)
+                if ready:
+                    return
+            except Exception:
+                pass
+            await asyncio.sleep(poll_s)
+        logger.warning("Response window poll timed out after 5s, proceeding anyway")
+
     async def _execute_trial(self, page: Page, match: StimulusMatch) -> None:
         """Execute a single trial with probabilistic stop signal handling.
 
@@ -285,12 +325,25 @@ class TaskExecutor:
                 "actual_rt_ms": None,
                 "omission": True,
             })
+            self._prev_trial_error = True
             await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
             return
 
-        # Sample go RT
-        rt_condition = "go_correct" if self._should_respond_correctly("go") else "go_error"
+        # Synchronize with platform's response window (e.g., PsyToolkit task switching)
+        timing = self._config.runtime.timing
+        if timing.response_window_js:
+            await self._wait_for_response_window(page, timing.response_window_js)
+            trial_start = time.monotonic()  # Reset timer to response window onset
+
+        # Sample go RT — track whether this is an intentional error trial
+        is_correct = self._should_respond_correctly("go")
+        rt_condition = "go_correct" if is_correct else "go_error"
+        is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
+
+        # Post-error slowing: humans slow ~30-60ms after making a mistake
+        if self._prev_trial_error:
+            rt_ms += self._rng.uniform(20, 60)
 
         # Cap RT at the task's max response window (prevents late keypresses)
         max_response_ms = self._config.task_specific.get(
@@ -327,6 +380,7 @@ class TaskExecutor:
                     "actual_rt_ms": None,
                     "omission": False,
                 })
+                self._prev_trial_error = False
                 await asyncio.sleep(self._config.runtime.timing.stop_success_wait_ms / 1000.0)
                 return
             else:
@@ -355,6 +409,7 @@ class TaskExecutor:
                     "actual_rt_ms": round(actual_rt, 1),
                     "omission": False,
                 })
+                self._prev_trial_error = True
                 return
 
         # No stop signal — normal go trial response
@@ -368,6 +423,8 @@ class TaskExecutor:
             actual_rt = (time.monotonic() - trial_start) * 1000
 
         resolved_key = self._resolve_response_key(match)
+        if is_error and resolved_key:
+            resolved_key = self._pick_wrong_key(resolved_key)
         if resolved_key:
             await page.keyboard.press(resolved_key)
 
@@ -379,7 +436,9 @@ class TaskExecutor:
             "sampled_rt_ms": round(rt_ms, 1),
             "actual_rt_ms": round(actual_rt, 1),
             "omission": False,
+            "intended_error": is_error,
         })
+        self._prev_trial_error = is_error
 
     _ORDINAL_MAP = {
         "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,

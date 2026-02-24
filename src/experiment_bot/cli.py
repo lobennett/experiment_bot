@@ -71,6 +71,12 @@ async def _run_task(
         if accuracy is not None:
             config.performance.go_accuracy = accuracy
 
+    # Apply between-subject jitter (fresh random seed per session)
+    import numpy as np
+    from experiment_bot.core.distributions import jitter_distributions
+    config = jitter_distributions(config, np.random.default_rng())
+    click.echo("Applied between-subject parameter jitter")
+
     # Run
     task_url = await platform.get_task_url(task_id)
     click.echo(f"Running task at {task_url}")

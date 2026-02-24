@@ -114,11 +114,20 @@ class ExpFactoryPlatform(Platform):
             }
         """)
 
-        if "practice" in phase_text.lower():
+        lower_text = phase_text.lower()
+
+        # Check for completion text (jsPsych end screen, data download page)
+        if any(w in lower_text for w in (
+            "finished", "complete", "done", "thank you", "the end",
+            "experiment over", "data has been saved",
+        )):
+            return TaskPhase.COMPLETE
+
+        if "practice" in lower_text:
             return TaskPhase.PRACTICE
-        if "attention" in phase_text.lower():
+        if "attention" in lower_text:
             return TaskPhase.ATTENTION_CHECK
-        if "feedback" in phase_text.lower() or "block" in phase_text.lower():
+        if "feedback" in lower_text or "block" in lower_text:
             return TaskPhase.FEEDBACK
 
         return TaskPhase.TEST

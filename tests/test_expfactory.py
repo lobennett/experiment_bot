@@ -41,3 +41,17 @@ async def test_detect_task_phase_context_destroyed_returns_complete():
     page.query_selector = AsyncMock(side_effect=Exception("Execution context was destroyed"))
     result = await platform.detect_task_phase(page)
     assert result == TaskPhase.COMPLETE
+
+
+@pytest.mark.asyncio
+async def test_detect_task_phase_completion_text():
+    """When display element contains completion keywords, returns COMPLETE."""
+    from experiment_bot.core.config import TaskPhase
+    platform = ExpFactoryPlatform()
+
+    for keyword in ["finished", "complete", "done", "thank you", "the end"]:
+        page = AsyncMock()
+        page.query_selector = AsyncMock(return_value=None)
+        page.evaluate = AsyncMock(return_value=f"The experiment is {keyword}.")
+        result = await platform.detect_task_phase(page)
+        assert result == TaskPhase.COMPLETE, f"Failed for keyword '{keyword}'"

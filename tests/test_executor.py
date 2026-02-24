@@ -194,6 +194,15 @@ def test_executor_uses_runtime_timing():
     assert executor._config.runtime.timing.rt_floor_ms == 200.0
 
 
+def test_executor_no_platform_name_dependency():
+    """Executor should not branch on platform name."""
+    import inspect
+    from experiment_bot.core.executor import TaskExecutor
+    source = inspect.getsource(TaskExecutor)
+    assert 'platform_name == "psytoolkit"' not in source
+    assert 'platform_name == "expfactory"' not in source
+
+
 def test_executor_sampler_uses_config_floor():
     """ResponseSampler receives floor_ms from runtime config."""
     config_data = dict(SAMPLE_CONFIG)

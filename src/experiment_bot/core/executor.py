@@ -186,18 +186,26 @@ class TaskExecutor:
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     break
-                # Try pressing Space/Q periodically to advance between-block screens
-                # (PsyToolkit renders these on canvas, not detectable via phase detection)
-                if consecutive_misses % 100 == 0 and consecutive_misses < max_no_stimulus_polls:
-                    logger.info(f"No stimulus for {consecutive_misses} polls, pressing Space to advance")
-                    if self._platform_name == "psytoolkit":
-                        await self._psytoolkit_reenable_keyboard(page)
-                    await page.keyboard.press(" ")
-                    # Also try Q to exit PsyToolkit pager last page
-                    if self._platform_name == "psytoolkit" and consecutive_misses % 200 == 0:
+                # Try pressing advance keys periodically to advance between-block screens
+                ab = self._config.runtime.advance_behavior
+                if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                    logger.info(f"No stimulus for {consecutive_misses} polls, pressing advance keys")
+                    if ab.pre_keypress_js:
+                        try:
+                            await page.evaluate(ab.pre_keypress_js)
+                        except Exception:
+                            pass
+                    for key in ab.advance_keys:
+                        await page.keyboard.press(key)
+                    # Also try exit pager key at double the interval
+                    if ab.exit_pager_key and consecutive_misses % (ab.advance_interval_polls * 2) == 0:
                         await asyncio.sleep(0.5)
-                        await self._psytoolkit_reenable_keyboard(page)
-                        await page.keyboard.press("q")
+                        if ab.pre_keypress_js:
+                            try:
+                                await page.evaluate(ab.pre_keypress_js)
+                            except Exception:
+                                pass
+                        await page.keyboard.press(ab.exit_pager_key)
                 if consecutive_misses == 1:
                     logger.debug("No stimulus match on poll")
                 await asyncio.sleep(timing.poll_interval_ms / 1000.0)
@@ -228,13 +236,6 @@ class TaskExecutor:
             self._trial_count += 1
             logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition})")
             await self._execute_trial(page, match)
-
-    async def _psytoolkit_reenable_keyboard(self, page: Page) -> None:
-        """Re-enable PsyToolkit keyboard listening (pager disables it after each press)."""
-        try:
-            await page.evaluate("psy_expect_keyboard()")
-        except Exception:
-            pass
 
     def _get_stop_signal_selector(self) -> str | None:
         """Get the stop signal detection selector from config stimuli."""

@@ -179,6 +179,103 @@ class TaskMetadata:
 
 
 @dataclass
+class PhaseDetectionConfig:
+    method: str = "js_eval"
+    complete: str = ""
+    test: str = "true"
+    loading: str = ""
+    instructions: str = ""
+    practice: str = ""
+    feedback: str = ""
+    attention_check: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PhaseDetectionConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return {k: v for k, v in asdict(self).items() if v}
+
+
+@dataclass
+class TimingConfig:
+    poll_interval_ms: int = 20
+    max_no_stimulus_polls: int = 500
+    stuck_timeout_s: float = 10.0
+    completion_wait_ms: int = 5000
+    feedback_delay_ms: int = 2000
+    omission_wait_ms: int = 2000
+    stop_success_wait_ms: int = 1500
+    rt_floor_ms: float = 150.0
+    rt_cap_fraction: float = 0.90
+    viewport: dict = field(default_factory=lambda: {"width": 1280, "height": 800})
+
+    @classmethod
+    def from_dict(cls, d: dict) -> TimingConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class AdvanceBehaviorConfig:
+    pre_keypress_js: str = ""
+    advance_keys: list[str] = field(default_factory=lambda: [" "])
+    exit_pager_key: str = ""
+    advance_interval_polls: int = 100
+    feedback_selectors: list[str] = field(default_factory=lambda: ["button"])
+    feedback_fallback_keys: list[str] = field(default_factory=lambda: ["Enter"])
+
+    @classmethod
+    def from_dict(cls, d: dict) -> AdvanceBehaviorConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class ParadigmConfig:
+    type: str = "simple"
+    stop_condition: str = "stop"
+    stop_failure_rt_key: str = "stop_failure"
+    stop_rt_cap_fraction: float = 0.85
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ParadigmConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class RuntimeConfig:
+    phase_detection: PhaseDetectionConfig = field(default_factory=PhaseDetectionConfig)
+    timing: TimingConfig = field(default_factory=TimingConfig)
+    advance_behavior: AdvanceBehaviorConfig = field(default_factory=AdvanceBehaviorConfig)
+    paradigm: ParadigmConfig = field(default_factory=ParadigmConfig)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> RuntimeConfig:
+        return cls(
+            phase_detection=PhaseDetectionConfig.from_dict(d.get("phase_detection", {})),
+            timing=TimingConfig.from_dict(d.get("timing", {})),
+            advance_behavior=AdvanceBehaviorConfig.from_dict(d.get("advance_behavior", {})),
+            paradigm=ParadigmConfig.from_dict(d.get("paradigm", {})),
+        )
+
+    def to_dict(self) -> dict:
+        return {
+            "phase_detection": self.phase_detection.to_dict(),
+            "timing": self.timing.to_dict(),
+            "advance_behavior": self.advance_behavior.to_dict(),
+            "paradigm": self.paradigm.to_dict(),
+        }
+
+
+@dataclass
 class TaskConfig:
     task: TaskMetadata
     stimuli: list[StimulusConfig]
@@ -186,6 +283,7 @@ class TaskConfig:
     performance: PerformanceConfig
     navigation: NavigationConfig
     task_specific: dict = field(default_factory=dict)
+    runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
     @classmethod
     def from_dict(cls, d: dict) -> TaskConfig:
@@ -199,10 +297,11 @@ class TaskConfig:
             performance=PerformanceConfig.from_dict(d["performance"]),
             navigation=NavigationConfig.from_dict(d.get("navigation", {"phases": []})),
             task_specific=d.get("task_specific", {}),
+            runtime=RuntimeConfig.from_dict(d.get("runtime", {})),
         )
 
     def to_dict(self) -> dict:
-        return {
+        result = {
             "task": self.task.to_dict(),
             "stimuli": [s.to_dict() for s in self.stimuli],
             "response_distributions": {
@@ -212,3 +311,7 @@ class TaskConfig:
             "navigation": self.navigation.to_dict(),
             "task_specific": self.task_specific,
         }
+        runtime_dict = self.runtime.to_dict()
+        if any(v for v in runtime_dict.values()):
+            result["runtime"] = runtime_dict
+        return result

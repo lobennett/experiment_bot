@@ -83,8 +83,14 @@ class ExpFactoryPlatform(Platform):
             metadata={"url": url, "task_name": task_name},
         )
 
-    async def detect_task_phase(self, page: Page) -> TaskPhase:
+    async def detect_task_phase(self, page: Page, runtime_config=None) -> TaskPhase:
         try:
+            if runtime_config and runtime_config.phase_detection.complete:
+                result = await self.detect_task_phase_from_config(
+                    page, runtime_config.phase_detection
+                )
+                if result:
+                    return result
             return await self._detect_task_phase_inner(page)
         except Exception:
             # Page navigation (e.g., ExpFactory data download) destroys context

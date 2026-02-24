@@ -67,31 +67,41 @@ class PsyToolkitPlatform(Platform):
             metadata={"demo_url": self.get_demo_url(task_id)},
         )
 
-    async def detect_task_phase(self, page: Page) -> TaskPhase:
+    async def detect_task_phase(self, page: Page, runtime_config=None) -> TaskPhase:
         try:
-            phase_info = await page.evaluate(
-                """
-                () => {
-                    // Once PsyToolkit canvas experiment is running, use JS state
-                    const canvas = document.querySelector('canvas#exp');
-                    const experimentStarted = typeof general_trial_counter !== 'undefined';
-
-                    if (canvas && experimentStarted) {
-                        // Check completion
-                        if (typeof psy_experiment_done !== 'undefined' && psy_experiment_done) return 'complete';
-                        if (typeof current_task !== 'undefined' && current_task === ''
-                            && general_trial_counter > 0) return 'complete';
-                        return 'test';
-                    }
-
-                    // Pre-experiment: check DOM text
-                    const body = document.body.textContent || '';
-                    if (body.includes('Click to start')) return 'loading';
-                    if (body.includes('finished') || body.includes('Finished') || body.includes('Thank you')) return 'complete';
-                    return 'test';
-                }
-            """
-            )
-            return TaskPhase(phase_info)
+            if runtime_config and runtime_config.phase_detection.complete:
+                result = await self.detect_task_phase_from_config(
+                    page, runtime_config.phase_detection
+                )
+                if result:
+                    return result
+            return await self._detect_task_phase_legacy(page)
         except Exception:
             return TaskPhase.TEST
+
+    async def _detect_task_phase_legacy(self, page: Page) -> TaskPhase:
+        """Legacy hardcoded phase detection for backward compatibility."""
+        phase_info = await page.evaluate(
+            """
+            () => {
+                // Once PsyToolkit canvas experiment is running, use JS state
+                const canvas = document.querySelector('canvas#exp');
+                const experimentStarted = typeof general_trial_counter !== 'undefined';
+
+                if (canvas && experimentStarted) {
+                    // Check completion
+                    if (typeof psy_experiment_done !== 'undefined' && psy_experiment_done) return 'complete';
+                    if (typeof current_task !== 'undefined' && current_task === ''
+                        && general_trial_counter > 0) return 'complete';
+                    return 'test';
+                }
+
+                // Pre-experiment: check DOM text
+                const body = document.body.textContent || '';
+                if (body.includes('Click to start')) return 'loading';
+                if (body.includes('finished') || body.includes('Finished') || body.includes('Thank you')) return 'complete';
+                return 'test';
+            }
+        """
+        )
+        return TaskPhase(phase_info)

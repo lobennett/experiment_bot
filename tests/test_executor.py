@@ -96,3 +96,79 @@ def test_parse_attention_check_unknown():
 
     # Empty string
     assert executor._parse_attention_check_key("") is None
+
+
+TASK_SWITCHING_CONFIG = {
+    "task": {"name": "Cued Task Switching", "platform": "expfactory", "constructs": [], "reference_literature": []},
+    "stimuli": [
+        {
+            "id": "parity_even",
+            "description": "Even number with parity cue",
+            "detection": {"method": "js_eval", "selector": "window.currTask === 'parity' && window.currStim.number % 2 === 0"},
+            "response": {"key": "dynamic", "condition": "parity_even"},
+        },
+        {
+            "id": "magnitude_high",
+            "description": "Number > 5 with magnitude cue",
+            "detection": {"method": "js_eval", "selector": "window.currTask === 'magnitude' && window.currStim.number > 5"},
+            "response": {"key": "dynamic", "condition": "magnitude_high"},
+        },
+    ],
+    "response_distributions": {
+        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 580, "sigma": 70, "tau": 100}},
+    },
+    "performance": {"go_accuracy": 0.88, "stop_accuracy": 0, "omission_rate": 0.03, "practice_accuracy": 0.85},
+    "navigation": {"phases": []},
+    "task_specific": {
+        "default_group_index": 1,
+        "group_index_mappings": {
+            "0_to_4": {"higher": ",", "lower": ".", "odd": ",", "even": "."},
+            "5_to_9": {"higher": ",", "lower": ".", "odd": ".", "even": ","},
+        },
+    },
+}
+
+
+def test_resolve_key_mapping_task_switching():
+    """Verify key_map has correct mappings for group_index 1 (0_to_4 mapping)."""
+    config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
+    executor = TaskExecutor(config, platform_name="expfactory")
+    key_map = executor._resolve_key_mapping(config)
+
+    # For group_index 1, uses 0_to_4 mapping
+    assert key_map["parity_even"] == "."
+    assert key_map["parity_odd"] == ","
+    assert key_map["magnitude_high"] == ","
+    assert key_map["magnitude_low"] == "."
+
+
+def test_resolve_response_key_dynamic():
+    """Create a StimulusMatch with response_key='dynamic' and condition='parity_even', verify _resolve_response_key returns '.'."""
+    config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
+    executor = TaskExecutor(config, platform_name="expfactory")
+
+    # Create a StimulusMatch with dynamic key
+    stimulus_match = StimulusMatch(
+        stimulus_id="parity_even",
+        response_key="dynamic",
+        condition="parity_even"
+    )
+
+    resolved_key = executor._resolve_response_key(stimulus_match)
+    assert resolved_key == "."
+
+
+def test_resolve_response_key_static():
+    """Create a StimulusMatch with response_key='z', verify it returns 'z' unchanged."""
+    config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
+    executor = TaskExecutor(config, platform_name="expfactory")
+
+    # Create a StimulusMatch with static key
+    stimulus_match = StimulusMatch(
+        stimulus_id="go_left",
+        response_key="z",
+        condition="go"
+    )
+
+    resolved_key = executor._resolve_response_key(stimulus_match)
+    assert resolved_key == "z"

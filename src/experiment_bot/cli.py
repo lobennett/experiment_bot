@@ -27,14 +27,9 @@ async def _run_task(
     from experiment_bot.core.analyzer import Analyzer
     from experiment_bot.core.cache import ConfigCache
     from experiment_bot.core.executor import TaskExecutor
-    from experiment_bot.platforms.expfactory import ExpFactoryPlatform
-    from experiment_bot.platforms.psytoolkit import PsyToolkitPlatform
+    from experiment_bot.platforms.registry import get_platform
 
-    # Select platform
-    if platform_name == "expfactory":
-        platform = ExpFactoryPlatform()
-    else:
-        platform = PsyToolkitPlatform()
+    platform = get_platform(platform_name)
 
     # Check cache
     cache = ConfigCache()

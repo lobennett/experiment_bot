@@ -46,6 +46,21 @@ async def test_config_driven_phase_detection_fallthrough():
     assert result is None
 
 
+def test_platform_registry():
+    from experiment_bot.platforms.registry import get_platform
+    from experiment_bot.platforms.expfactory import ExpFactoryPlatform
+    from experiment_bot.platforms.psytoolkit import PsyToolkitPlatform
+
+    platform = get_platform("expfactory")
+    assert isinstance(platform, ExpFactoryPlatform)
+
+    platform = get_platform("psytoolkit")
+    assert isinstance(platform, PsyToolkitPlatform)
+
+    with pytest.raises(KeyError):
+        get_platform("unknown_platform")
+
+
 @pytest.mark.asyncio
 async def test_config_driven_phase_detection_test_default():
     """When complete/loading don't match, falls through to TEST if test expression set."""

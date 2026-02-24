@@ -14,7 +14,7 @@ from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
-from experiment_bot.output.summary import summarize_run
+from experiment_bot.output.data_capture import get_data_capture
 from experiment_bot.platforms.base import Platform
 
 logger = logging.getLogger(__name__)
@@ -161,10 +161,6 @@ class TaskExecutor:
                     "headless": self._headless,
                 })
                 self._writer.finalize()
-                if self._writer.run_dir:
-                    summary = summarize_run(self._writer.run_dir)
-                    if summary:
-                        logger.info(f"Run summary: {summary.get('total_trials', 0)} trials")
                 await browser.close()
 
     async def _trial_loop(self, page: Page, platform: Platform) -> None:
@@ -456,7 +452,20 @@ class TaskExecutor:
             await asyncio.sleep(0.5)
 
     async def _wait_for_completion(self, page: Page, platform: Platform) -> None:
-        """Wait for the task to fully complete and data to be available."""
-        wait_s = self._config.runtime.timing.completion_wait_ms / 1000.0
-        logger.info(f"Waiting {wait_s:.1f}s for task completion...")
-        await asyncio.sleep(wait_s)
+        """Wait for task completion and capture experiment data."""
+        await asyncio.sleep(2.0)  # Brief settle time
+
+        capturer = get_data_capture(self._platform_name)
+        if capturer:
+            logger.info(f"Capturing experiment data for {self._platform_name}...")
+            data = await capturer.capture(page)
+            if data:
+                ext = "tsv" if self._platform_name == "psytoolkit" else "csv"
+                self._writer.save_task_data(data, f"experiment_data.{ext}")
+                logger.info("Experiment data saved")
+            else:
+                logger.warning("No experiment data captured")
+        else:
+            wait_s = self._config.runtime.timing.completion_wait_ms / 1000.0
+            logger.info(f"No data capturer for {self._platform_name}, waiting {wait_s:.1f}s")
+            await asyncio.sleep(wait_s)

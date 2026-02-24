@@ -36,3 +36,21 @@ def test_writer_logs_trial(tmp_path):
     data = json.loads(log_path.read_text())
     assert len(data) == 1
     assert data[0]["trial"] == 1
+
+
+def test_save_task_data_writes_csv(tmp_path):
+    config = TaskConfig.from_dict(SAMPLE_CONFIG_DICT)
+    writer = OutputWriter(base_dir=tmp_path)
+    writer.create_run("expfactory", "test_task", config)
+    writer.save_task_data("col1,col2\nval1,val2\n", "experiment_data.csv")
+    saved = (writer.run_dir / "experiment_data.csv").read_text()
+    assert "col1,col2" in saved
+
+
+def test_save_task_data_writes_tsv(tmp_path):
+    config = TaskConfig.from_dict(SAMPLE_CONFIG_DICT)
+    writer = OutputWriter(base_dir=tmp_path)
+    writer.create_run("psytoolkit", "stopsignal", config)
+    writer.save_task_data("go\tleft\t423\n", "experiment_data.tsv")
+    saved = (writer.run_dir / "experiment_data.tsv").read_text()
+    assert "go\tleft\t423" in saved

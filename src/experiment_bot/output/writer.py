@@ -34,7 +34,9 @@ class OutputWriter:
 
     def save_task_data(self, data: str, filename: str = "task_data.csv") -> None:
         if self._run_dir:
-            (self._run_dir / filename).write_text(data)
+            path = self._run_dir / filename
+            path.write_text(data)
+            logger.info(f"Saved experiment data to {path}")
 
     def save_screenshot(self, data: bytes, name: str) -> None:
         if self._run_dir:

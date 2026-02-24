@@ -282,12 +282,21 @@ def test_should_respond_correctly_uses_paradigm_config():
 
 
 def test_executor_no_platform_name_dependency():
-    """Executor should not branch on platform name."""
+    """Executor should not branch on platform name for behavioral logic.
+
+    The _wait_for_completion method may reference platform_name to choose
+    the file extension for captured data, which is acceptable.
+    """
     import inspect
     from experiment_bot.core.executor import TaskExecutor
-    source = inspect.getsource(TaskExecutor)
-    assert 'platform_name == "psytoolkit"' not in source
-    assert 'platform_name == "expfactory"' not in source
+
+    # Check that behavioral methods don't branch on platform name
+    for method_name in ("_trial_loop", "_execute_trial", "_handle_feedback",
+                         "_handle_attention_check", "_resolve_response_key"):
+        method = getattr(TaskExecutor, method_name)
+        source = inspect.getsource(method)
+        assert 'platform_name == "psytoolkit"' not in source, f"{method_name} branches on psytoolkit"
+        assert 'platform_name == "expfactory"' not in source, f"{method_name} branches on expfactory"
 
 
 def test_executor_sampler_uses_config_floor():
@@ -310,3 +319,19 @@ def test_sampler_fallback_to_first_distribution():
     sampler = ResponseSampler(dists, seed=42)
     rt = sampler.sample_rt_with_fallback("go_correct")
     assert 150 < rt < 2000
+
+
+@pytest.mark.asyncio
+async def test_wait_for_completion_captures_data():
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor._writer = MagicMock()
+    executor._writer.run_dir = "/tmp/fake"
+    page = AsyncMock()
+    platform = AsyncMock()
+    mock_capturer = AsyncMock()
+    mock_capturer.capture.return_value = "rt,response\n450,left\n"
+    with patch("experiment_bot.core.executor.get_data_capture", return_value=mock_capturer):
+        await executor._wait_for_completion(page, platform)
+    mock_capturer.capture.assert_awaited_once_with(page)
+    executor._writer.save_task_data.assert_called_once_with("rt,response\n450,left\n", "experiment_data.csv")

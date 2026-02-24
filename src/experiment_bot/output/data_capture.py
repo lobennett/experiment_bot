@@ -3,7 +3,6 @@ from __future__ import annotations
 import abc
 import logging
 from html.parser import HTMLParser
-from pathlib import Path
 
 from playwright.async_api import Page
 
@@ -105,20 +104,33 @@ class PsyToolkitDataCapture(DataCapture):
 
 
 class ExpFactoryDataCapture(DataCapture):
-    """Intercept the automatic CSV download triggered at experiment end."""
+    """Extract jsPsych trial data directly from the in-memory data store.
 
-    def __init__(self, timeout_ms: int = 60_000) -> None:
-        self._timeout_ms = timeout_ms
+    jsPsych keeps all trial data in ``jsPsych.data``.  After the experiment
+    completes we call ``jsPsych.data.get().csv()`` to retrieve the CSV string.
+    This is more reliable than intercepting the file download because the
+    download event fires during trial-loop completion (before our capture call).
+    """
 
     async def capture(self, page: Page) -> str | None:
         try:
-            async with page.expect_download(timeout=self._timeout_ms) as download_info:
-                pass
-            download = download_info.value
-            path = await download.path()
-            return Path(path).read_text()
-        except TimeoutError:
-            logger.warning("ExpFactory download timed out after %d ms", self._timeout_ms)
+            csv_data: str | None = await page.evaluate(
+                """() => {
+                    try {
+                        if (typeof jsPsych !== 'undefined' && jsPsych.data) {
+                            return jsPsych.data.get().csv();
+                        }
+                    } catch(e) {}
+                    return null;
+                }"""
+            )
+            if csv_data:
+                logger.info(
+                    "Captured ExpFactory CSV (%d rows)",
+                    csv_data.count("\n"),
+                )
+                return csv_data
+            logger.warning("jsPsych data store not available or empty")
             return None
         except Exception:
             logger.warning("ExpFactory data capture failed", exc_info=True)

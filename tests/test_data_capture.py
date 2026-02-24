@@ -1,8 +1,6 @@
 from __future__ import annotations
 
-import asyncio
-from pathlib import Path
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 import pytest
 
@@ -120,48 +118,23 @@ def test_parse_showdata_html_handles_whitespace_in_cells():
 # ---------------------------------------------------------------------------
 
 
-async def test_expfactory_capture_intercepts_download(tmp_path: Path):
-    """Mock download event, verify CSV content returned."""
+async def test_expfactory_capture_extracts_jspsych_data():
+    """jsPsych.data.get().csv() returns CSV string."""
     csv_content = "trial,rt,correct\n1,450,1\n2,523,0\n"
-
-    # Write a temp CSV file to simulate the download
-    csv_file = tmp_path / "data.csv"
-    csv_file.write_text(csv_content)
-
     page = AsyncMock()
-
-    # Build the async context manager that expect_download returns.
-    # Playwright's expect_download() is a sync method returning an async CM,
-    # so we use MagicMock for the method itself (not AsyncMock).
-    download = AsyncMock()
-    download.path.return_value = csv_file
-
-    download_info = AsyncMock()
-    download_info.value = download
-
-    ctx_manager = AsyncMock()
-    ctx_manager.__aenter__ = AsyncMock(return_value=download_info)
-    ctx_manager.__aexit__ = AsyncMock(return_value=False)
-
-    page.expect_download = MagicMock(return_value=ctx_manager)
+    page.evaluate.return_value = csv_content
 
     cap = ExpFactoryDataCapture()
     result = await cap.capture(page)
 
     assert result == csv_content
+    page.evaluate.assert_awaited_once()
 
 
-async def test_expfactory_capture_returns_none_on_timeout():
-    """TimeoutError -> returns None."""
+async def test_expfactory_capture_returns_none_when_no_jspsych():
+    """Returns None if jsPsych data store is not available."""
     page = AsyncMock()
-
-    ctx_manager = AsyncMock()
-    ctx_manager.__aenter__ = AsyncMock(
-        side_effect=TimeoutError("Download timed out")
-    )
-    ctx_manager.__aexit__ = AsyncMock(return_value=False)
-
-    page.expect_download = MagicMock(return_value=ctx_manager)
+    page.evaluate.return_value = None
 
     cap = ExpFactoryDataCapture()
     result = await cap.capture(page)
@@ -169,15 +142,10 @@ async def test_expfactory_capture_returns_none_on_timeout():
     assert result is None
 
 
-async def test_expfactory_capture_returns_none_on_other_error():
+async def test_expfactory_capture_returns_none_on_error():
     """Other exceptions -> returns None."""
     page = AsyncMock()
-
-    ctx_manager = AsyncMock()
-    ctx_manager.__aenter__ = AsyncMock(side_effect=RuntimeError("Unexpected"))
-    ctx_manager.__aexit__ = AsyncMock(return_value=False)
-
-    page.expect_download = MagicMock(return_value=ctx_manager)
+    page.evaluate.side_effect = RuntimeError("Unexpected")
 
     cap = ExpFactoryDataCapture()
     result = await cap.capture(page)

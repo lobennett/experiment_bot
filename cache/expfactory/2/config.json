@@ -395,5 +395,11 @@
     ],
     "correct_response_determination": "Use js_eval to access window.correctResponse which is set by setStims() before each trial. The correct key is stored there. Alternatively, determine from window.currTask and window.currStim.number using the responseMappings object.",
     "attention_check_handling": "Read the question text to determine which key to press. Questions ask to press specific letter keys (q,p,r,s,t,j,k,e,m,i,u) or positional alphabet keys (a,b,c,x,y,z)."
+  },
+  "runtime": {
+    "timing": {
+      "response_window_js": "(() => { try { var lb = document.querySelector('.lowerbox'); if (!lb) return true; return lb.querySelector('.fixation') === null; } catch(e) { return true; } })()",
+      "completion_wait_ms": 35000
+    }
   }
 }

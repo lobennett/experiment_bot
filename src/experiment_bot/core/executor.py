@@ -48,6 +48,7 @@ class TaskExecutor:
         self._writer = OutputWriter()
         self._trial_count = 0
         self._prev_trial_error = False
+        self._prev_task_type: str | None = None  # For task switching: "parity" or "magnitude"
 
         # Resolve dynamic key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
@@ -129,6 +130,33 @@ class TaskExecutor:
         if not wrong_keys:
             return correct_key  # Only one key available; can't press wrong one
         return self._py_rng.choice(wrong_keys)
+
+    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
+        """Determine which RT distribution to sample from.
+
+        For configs with go_correct/go_error distributions (stop signal, simple tasks),
+        uses the legacy behavior. For configs with task-switching distributions
+        (task_repeat_cue_repeat, task_switch, etc.), derives the key from trial history.
+        """
+        dists = self._config.response_distributions
+
+        # Legacy path: config has go_correct/go_error keys (stop signal, simple tasks)
+        if "go_correct" in dists or "go_error" in dists:
+            return "go_correct" if is_correct else "go_error"
+
+        # Task switching path: derive from trial history
+        # Extract task type from condition prefix (e.g., "parity_even" -> "parity")
+        task_type = condition.rsplit("_", 1)[0] if "_" in condition else condition
+
+        if self._prev_task_type is None:
+            rt_key = "first_trial"
+        elif task_type != self._prev_task_type:
+            rt_key = "task_switch"
+        else:
+            rt_key = "task_repeat_cue_repeat"
+
+        self._prev_task_type = task_type
+        return rt_key
 
     async def run(self, task_url: str, platform: Platform) -> None:
         """Execute the full task."""
@@ -329,7 +357,7 @@ class TaskExecutor:
 
         # Sample go RT — track whether this is an intentional error trial
         is_correct = self._should_respond_correctly("go")
-        rt_condition = "go_correct" if is_correct else "go_error"
+        rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
         is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
 

@@ -309,6 +309,59 @@ def test_executor_sampler_uses_config_floor():
     assert executor._sampler._floor_ms == 200.0
 
 
+def test_resolve_rt_distribution_key_legacy():
+    """Configs with go_correct distributions use legacy go_correct/go_error keys."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    assert executor._resolve_rt_distribution_key("go_circle", True) == "go_correct"
+    assert executor._resolve_rt_distribution_key("go_circle", False) == "go_error"
+
+
+TASK_SWITCHING_CONFIG_FULL = {
+    "task": {"name": "Cued Task Switching", "platform": "expfactory", "constructs": [], "reference_literature": []},
+    "stimuli": [
+        {
+            "id": "parity_even",
+            "description": "Even number",
+            "detection": {"method": "js_eval", "selector": "true"},
+            "response": {"key": ",", "condition": "parity_even"},
+        },
+        {
+            "id": "magnitude_high",
+            "description": "Number > 5",
+            "detection": {"method": "js_eval", "selector": "true"},
+            "response": {"key": ".", "condition": "magnitude_high"},
+        },
+    ],
+    "response_distributions": {
+        "task_repeat_cue_repeat": {"distribution": "ex_gaussian", "params": {"mu": 480, "sigma": 60, "tau": 80}},
+        "task_repeat_cue_switch": {"distribution": "ex_gaussian", "params": {"mu": 530, "sigma": 65, "tau": 90}},
+        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 580, "sigma": 70, "tau": 100}},
+        "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 550, "sigma": 70, "tau": 100}},
+    },
+    "performance": {"go_accuracy": 0.88, "stop_accuracy": 0, "omission_rate": 0.03, "practice_accuracy": 0.85},
+    "navigation": {"phases": []},
+    "task_specific": {},
+}
+
+
+def test_resolve_rt_distribution_key_task_switching():
+    """Task switching configs derive distribution key from trial history."""
+    config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG_FULL)
+    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+
+    # First trial → first_trial
+    assert executor._resolve_rt_distribution_key("parity_even", True) == "first_trial"
+    # Same task → task_repeat_cue_repeat
+    assert executor._resolve_rt_distribution_key("parity_odd", True) == "task_repeat_cue_repeat"
+    # Different task → task_switch
+    assert executor._resolve_rt_distribution_key("magnitude_high", True) == "task_switch"
+    # Back to same task → task_repeat_cue_repeat
+    assert executor._resolve_rt_distribution_key("magnitude_low", True) == "task_repeat_cue_repeat"
+    # Switch again → task_switch
+    assert executor._resolve_rt_distribution_key("parity_even", True) == "task_switch"
+
+
 def test_sampler_fallback_to_first_distribution():
     """When requested condition doesn't exist, sampler falls back to first available."""
     from experiment_bot.core.distributions import ResponseSampler

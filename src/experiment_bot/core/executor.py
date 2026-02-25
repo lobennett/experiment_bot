@@ -49,6 +49,8 @@ class TaskExecutor:
         self._trial_count = 0
         self._prev_trial_error = False
         self._prev_task_type: str | None = None  # For task switching: "parity" or "magnitude"
+        self._prev_cue: str | None = None  # For cue switch tracking
+        self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
 
         # Resolve dynamic key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
@@ -131,12 +133,13 @@ class TaskExecutor:
             return correct_key  # Only one key available; can't press wrong one
         return self._py_rng.choice(wrong_keys)
 
-    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
+    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool, cue: str | None = None) -> str:
         """Determine which RT distribution to sample from.
 
         For configs with go_correct/go_error distributions (stop signal, simple tasks),
         uses the legacy behavior. For configs with task-switching distributions
-        (task_repeat_cue_repeat, task_switch, etc.), derives the key from trial history.
+        (task_repeat_cue_repeat, task_switch, etc.), derives the key from trial history
+        including cue switch tracking.
         """
         dists = self._config.response_distributions
 
@@ -152,10 +155,14 @@ class TaskExecutor:
             rt_key = "first_trial"
         elif task_type != self._prev_task_type:
             rt_key = "task_switch"
+        elif cue and self._prev_cue and cue != self._prev_cue and "task_repeat_cue_switch" in dists:
+            rt_key = "task_repeat_cue_switch"
         else:
             rt_key = "task_repeat_cue_repeat"
 
         self._prev_task_type = task_type
+        if cue:
+            self._prev_cue = cue
         return rt_key
 
     async def run(self, task_url: str, platform: Platform) -> None:
@@ -232,12 +239,14 @@ class TaskExecutor:
 
             # Gate stimulus detection on response window — prevents detecting
             # stale JS globals during fixation, cue display, or feedback phases
+            self._response_window_confirmed = False
             if timing.response_window_js:
                 try:
                     ready = await page.evaluate(timing.response_window_js)
                     if not ready:
                         await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                         continue
+                    self._response_window_confirmed = True
                 except Exception:
                     pass
 
@@ -295,8 +304,19 @@ class TaskExecutor:
                 continue
 
             self._trial_count += 1
-            logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition})")
-            await self._execute_trial(page, match)
+
+            # Read cue text for cue-switch tracking (task switching paradigms)
+            cue = None
+            if timing.cue_selector_js:
+                try:
+                    raw_cue = await page.evaluate(timing.cue_selector_js)
+                    if raw_cue:  # Ignore empty strings from non-stimulus phases
+                        cue = raw_cue
+                except Exception:
+                    pass
+
+            logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition}) cue={cue!r}")
+            await self._execute_trial(page, match, cue=cue)
 
             # After responding, wait for the response window to close (next trial's
             # fixation) to avoid re-detecting the same stimulus and pressing into
@@ -356,7 +376,7 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
-    async def _execute_trial(self, page: Page, match: StimulusMatch) -> None:
+    async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
         """Execute a single trial with probabilistic stop signal handling.
 
         For stop signal tasks, polls for the stop signal during the go RT wait.
@@ -381,15 +401,16 @@ class TaskExecutor:
             await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
             return
 
-        # Synchronize with platform's response window (e.g., PsyToolkit task switching)
+        # Synchronize with platform's response window when the trial loop hasn't
+        # already confirmed it (e.g., PsyToolkit where the gate isn't in the loop)
         timing = self._config.runtime.timing
-        if timing.response_window_js:
+        if timing.response_window_js and not self._response_window_confirmed:
             await self._wait_for_response_window(page, timing.response_window_js)
-            trial_start = time.monotonic()  # Reset timer to response window onset
+        trial_start = time.monotonic()
 
         # Sample go RT — track whether this is an intentional error trial
         is_correct = self._should_respond_correctly("go")
-        rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
+        rt_condition = self._resolve_rt_distribution_key(condition, is_correct, cue=cue)
         is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
 
@@ -489,6 +510,8 @@ class TaskExecutor:
             "actual_rt_ms": round(actual_rt, 1),
             "omission": False,
             "intended_error": is_error,
+            "rt_distribution": rt_condition,
+            "cue": cue,
         })
         self._prev_trial_error = is_error
 

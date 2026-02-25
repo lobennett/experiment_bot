@@ -103,7 +103,7 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
             dist.params["tau"] *= rng.uniform(0.85, 1.15)
 
     config.performance.go_accuracy = float(
-        np.clip(config.performance.go_accuracy + rng.normal(0, 0.03), 0.85, 0.99)
+        np.clip(config.performance.go_accuracy + rng.normal(0, 0.03), 0.85, 0.995)
     )
     config.performance.omission_rate = float(
         np.clip(config.performance.omission_rate + rng.normal(0, 0.01), 0.0, 0.08)

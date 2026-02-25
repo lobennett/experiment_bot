@@ -161,7 +161,7 @@
     "task_repeat_cue_repeat": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 505,
+        "mu": 490,
         "sigma": 55,
         "tau": 85
       },
@@ -170,7 +170,7 @@
     "task_repeat_cue_switch": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 525,
+        "mu": 510,
         "sigma": 55,
         "tau": 90
       },
@@ -179,7 +179,7 @@
     "task_switch": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 530,
+        "mu": 515,
         "sigma": 60,
         "tau": 95
       },
@@ -188,7 +188,7 @@
     "first_trial": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 530,
+        "mu": 515,
         "sigma": 65,
         "tau": 95
       },
@@ -399,6 +399,7 @@
   "runtime": {
     "timing": {
       "response_window_js": "(() => { try { var lb = document.querySelector('.lowerbox'); if (!lb) return true; return lb.querySelector('.fixation') === null; } catch(e) { return true; } })()",
+      "cue_selector_js": "(() => { try { var el = document.querySelector('.upperbox .center-text'); return el ? el.textContent.trim() : ''; } catch(e) { return ''; } })()",
       "completion_wait_ms": 35000
     }
   }

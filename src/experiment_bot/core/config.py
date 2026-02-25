@@ -209,6 +209,7 @@ class TimingConfig:
     rt_floor_ms: float = 150.0
     rt_cap_fraction: float = 0.90
     response_window_js: str = ""
+    cue_selector_js: str = ""
     autocorrelation_phi: float = 0.25
     fatigue_drift_per_trial: float = 0.15
     viewport: dict = field(default_factory=lambda: {"width": 1280, "height": 800})

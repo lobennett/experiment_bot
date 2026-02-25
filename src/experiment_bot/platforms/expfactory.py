@@ -122,18 +122,21 @@ class ExpFactoryPlatform(Platform):
 
         lower_text = phase_text.lower()
 
-        # Check for completion text (jsPsych end screen, data download page)
+        # Check for between-block screens BEFORE completion keywords.
+        # Between-block feedback often says "You have completed 1 out of 3 blocks"
+        # which contains "completed" and would falsely trigger completion.
+        if "block" in lower_text or "feedback" in lower_text:
+            return TaskPhase.FEEDBACK
+        if "practice" in lower_text:
+            return TaskPhase.PRACTICE
+        if "attention" in lower_text:
+            return TaskPhase.ATTENTION_CHECK
+
+        # Completion text — only reached if no block/feedback/practice/attention indicators
         if any(w in lower_text for w in (
             "finished", "complete", "done", "thank you", "the end",
             "experiment over", "data has been saved",
         )):
             return TaskPhase.COMPLETE
-
-        if "practice" in lower_text:
-            return TaskPhase.PRACTICE
-        if "attention" in lower_text:
-            return TaskPhase.ATTENTION_CHECK
-        if "feedback" in lower_text or "block" in lower_text:
-            return TaskPhase.FEEDBACK
 
         return TaskPhase.TEST

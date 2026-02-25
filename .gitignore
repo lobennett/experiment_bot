@@ -1,9 +1,11 @@
 __pycache__/
 *.pyc
 .venv/
-cache/
+cache/*
+!cache/expfactory/
 /output/
 dist/
 *.egg-info/
 .env
 .worktrees/
+archive/

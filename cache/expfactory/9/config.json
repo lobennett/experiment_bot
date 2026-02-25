@@ -1,0 +1,357 @@
+{
+  "task": {
+    "name": "Stop Signal Task (RDoC)",
+    "platform": "expfactory",
+    "constructs": [
+      "response inhibition",
+      "cognitive control",
+      "impulsivity",
+      "executive function"
+    ],
+    "reference_literature": [
+      "Verbruggen, F., & Logan, G. D. (2008). Response inhibition in the stop-signal paradigm. Trends in Cognitive Sciences, 12(11), 418-424.",
+      "Verbruggen, F., & Logan, G. D. (2009). Models of response inhibition in the stop-signal and stop-change paradigms. Neuroscience & Biobehavioral Reviews, 33(5), 647-661.",
+      "Logan, G. D., & Cowan, W. B. (1984). On the ability to inhibit thought and action: A theory of an act of control. Psychological Review, 91(3), 295-327.",
+      "Congdon, E., et al. (2012). Measurement and reliability of response inhibition. Frontiers in Psychology, 3, 37."
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "go_circle",
+      "description": "Circle shape on go trial - respond with mapped key",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-stimulus img') && document.querySelector('#jspsych-stop-signal-stimulus img').src.includes('circle')",
+        "alt_method": "dom_query",
+        "pattern": "circle"
+      },
+      "response": {
+        "key": "dynamic_mapping",
+        "condition": "go_circle"
+      }
+    },
+    {
+      "id": "go_square",
+      "description": "Square shape on go trial - respond with mapped key",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-stimulus img') && document.querySelector('#jspsych-stop-signal-stimulus img').src.includes('square')",
+        "alt_method": "dom_query",
+        "pattern": "square"
+      },
+      "response": {
+        "key": "dynamic_mapping",
+        "condition": "go_square"
+      }
+    },
+    {
+      "id": "stop_circle",
+      "description": "Circle shape on stop trial - withhold response",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-SS')",
+        "alt_method": "dom_query",
+        "pattern": "stopSignal"
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "stop_square",
+      "description": "Square shape on stop trial - withhold response",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-SS')",
+        "alt_method": "dom_query",
+        "pattern": "stopSignal"
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "fixation",
+      "description": "Fixation cross displayed between trials",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".fixation",
+        "alt_method": "",
+        "pattern": "+"
+      },
+      "response": {
+        "key": null,
+        "condition": "no_response"
+      }
+    },
+    {
+      "id": "feedback_screen",
+      "description": "Feedback screen between blocks requiring Enter key",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".picture_box, .block-text",
+        "alt_method": "",
+        "pattern": "enter"
+      },
+      "response": {
+        "key": "Enter",
+        "condition": "navigation"
+      }
+    },
+    {
+      "id": "practice_feedback",
+      "description": "Trial-level practice feedback (Correct/Incorrect/Respond Faster/star)",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".center-text",
+        "alt_method": "",
+        "pattern": "Correct|Incorrect|Respond Faster|star"
+      },
+      "response": {
+        "key": null,
+        "condition": "no_response"
+      }
+    },
+    {
+      "id": "attention_check",
+      "description": "Attention check question between test blocks",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-attention-check-rdoc-stimulus",
+        "alt_method": "",
+        "pattern": "Press the"
+      },
+      "response": {
+        "key": "dynamic",
+        "condition": "attention_check"
+      }
+    }
+  ],
+  "response_distributions": {
+    "go_correct": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 450,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "go_error": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 70,
+        "tau": 90
+      },
+      "unit": "ms"
+    },
+    "stop_failure": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 380,
+        "sigma": 55,
+        "tau": 60
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "go_accuracy": 0.92,
+    "stop_accuracy": 0.5,
+    "omission_rate": 0.05,
+    "practice_accuracy": 0.85
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "instruction_feedback",
+        "action": "keypress",
+        "target": ".jspsych-display-element",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "instructions_page_1",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 8000
+      },
+      {
+        "phase": "instructions_page_2",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 8000
+      },
+      {
+        "phase": "instructions_page_3",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 8000
+      },
+      {
+        "phase": "post_instructions_feedback",
+        "action": "keypress",
+        "target": ".jspsych-display-element",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "practice_feedback_block",
+        "action": "keypress",
+        "target": ".jspsych-display-element",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "practice_trials",
+        "action": "respond_to_stimuli",
+        "target": "",
+        "key": "",
+        "steps": [
+          "Wait for fixation (500ms, no response)",
+          "Detect stimulus shape (circle or square) in #jspsych-stop-signal-stimulus",
+          "If go trial: press mapped key (comma or period) within RT distribution",
+          "If stop trial (star appears in #jspsych-stop-signal-SS): withhold response ~50% of the time",
+          "Wait for practice feedback (500ms, no response)",
+          "Wait for ITI (variable duration, no response)"
+        ],
+        "duration_ms": 0
+      },
+      {
+        "phase": "test_feedback_block",
+        "action": "keypress",
+        "target": ".jspsych-display-element",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "test_attention_check",
+        "action": "respond_to_attention_check",
+        "target": "",
+        "key": "",
+        "steps": [
+          "Read attention check question in #jspsych-attention-check-rdoc-stimulus",
+          "Press the requested key"
+        ],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "test_trials",
+        "action": "respond_to_stimuli",
+        "target": "",
+        "key": "",
+        "steps": [
+          "Wait for fixation (500ms, no response)",
+          "Detect stimulus shape (circle or square) in #jspsych-stop-signal-stimulus",
+          "If go trial: press mapped key within RT distribution",
+          "If stop trial (star appears after SSD): withhold response ~50% of the time",
+          "Wait for ITI (variable duration, no response)"
+        ],
+        "duration_ms": 0
+      },
+      {
+        "phase": "end_block",
+        "action": "keypress",
+        "target": ".jspsych-display-element",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      }
+    ]
+  },
+  "task_specific": {
+    "stop_signal_parameters": {
+      "initial_SSD_ms": 250,
+      "SSD_step_ms": 50,
+      "min_SSD_ms": 0,
+      "max_SSD_ms": 1000,
+      "target_SSRT_ms": 250,
+      "staircase_method": "one-up-one-down",
+      "description": "SSD increases by 50ms after successful stop, decreases by 50ms after failed stop"
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "SS_duration_ms": 500,
+      "practice_feedback_duration_ms": 500,
+      "ITI_mean_s": 0.5,
+      "ITI_min_s": 0,
+      "ITI_max_s": 5
+    },
+    "block_structure": {
+      "practice_trials_per_block": 6,
+      "test_trials_per_block": 60,
+      "num_test_blocks": 3,
+      "max_practice_repeats": 3,
+      "proportion_stop_trials": 0.333,
+      "shapes": [
+        "circle",
+        "square"
+      ],
+      "conditions": [
+        "go",
+        "go",
+        "stop"
+      ]
+    },
+    "key_mapping": {
+      "description": "Key mapping depends on group_index (default 1, range 0-14). group_index 0-4: circle=comma, square=period. group_index 5-14: circle=period, square=comma.",
+      "default_group_index": 1,
+      "group_0_to_4": {
+        "circle": ",",
+        "square": "."
+      },
+      "group_5_to_14": {
+        "circle": ".",
+        "square": ","
+      },
+      "choices": [
+        ",",
+        "."
+      ]
+    },
+    "stimulus_detection": {
+      "go_trial_detection": "Check that #jspsych-stop-signal-stimulus contains an img with src containing 'circle' or 'square'. No #jspsych-stop-signal-SS element present during go stimulus window.",
+      "stop_trial_detection": "After SSD delay, #jspsych-stop-signal-SS div appears containing stopSignal.png (star image). On stop trials, withhold response.",
+      "shape_detection_from_img_src": "Parse img.src in #jspsych-stop-signal-stimulus for 'circle.png' or 'square.png' to determine which key to press."
+    },
+    "performance_thresholds": {
+      "accuracy_thresh": 0.8,
+      "practice_accuracy_thresh": 0.75,
+      "rt_thresh_ms": 750,
+      "missed_response_thresh": 0.1,
+      "max_stop_correct": 0.75,
+      "min_stop_correct": 0.25
+    },
+    "independent_race_model": {
+      "description": "Per Logan & Cowan (1984), go and stop processes race independently. Staircase targets ~50% stop accuracy, yielding SSRT estimate around 200-280ms.",
+      "target_stop_accuracy": 0.5,
+      "expected_SSRT_range_ms": [
+        200,
+        280
+      ]
+    }
+  }
+}

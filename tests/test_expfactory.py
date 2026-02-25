@@ -55,3 +55,31 @@ async def test_detect_task_phase_completion_text():
         page.evaluate = AsyncMock(return_value=f"The experiment is {keyword}.")
         result = await platform.detect_task_phase(page)
         assert result == TaskPhase.COMPLETE, f"Failed for keyword '{keyword}'"
+
+
+@pytest.mark.asyncio
+async def test_detect_task_phase_between_block_feedback():
+    """Between-block text with 'complete' should return FEEDBACK, not COMPLETE."""
+    from experiment_bot.core.config import TaskPhase
+    platform = ExpFactoryPlatform()
+    page = AsyncMock()
+    page.query_selector = AsyncMock(return_value=None)
+    page.evaluate = AsyncMock(
+        return_value="You have completed 1 out of 3 blocks. Take a break!"
+    )
+    result = await platform.detect_task_phase(page)
+    assert result == TaskPhase.FEEDBACK
+
+
+@pytest.mark.asyncio
+async def test_detect_task_phase_block_feedback():
+    """Text containing 'block' should return FEEDBACK."""
+    from experiment_bot.core.config import TaskPhase
+    platform = ExpFactoryPlatform()
+    page = AsyncMock()
+    page.query_selector = AsyncMock(return_value=None)
+    page.evaluate = AsyncMock(
+        return_value="End of block 1. Press Enter to continue."
+    )
+    result = await platform.detect_task_phase(page)
+    assert result == TaskPhase.FEEDBACK

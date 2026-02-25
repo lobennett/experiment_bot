@@ -15,13 +15,12 @@ import pandas as pd
 from scipy import stats
 
 print("=" * 70)
-print("VERIFICATION: Post-Implementation Sessions Only (15-47-*)")
+print("VERIFICATION: Post-Implementation Sessions Only")
 print("=" * 70)
 
 # ---- STOP SIGNAL ----
 print("\n## STOP SIGNAL")
-ss_dirs = sorted(Path("output/psytoolkit/stop_signal_task").glob("2026-02-24_15-47-*")) + \
-    sorted(Path("output/psytoolkit/stop_signal_task").glob("2026-02-24_17-*"))
+ss_dirs = sorted(Path("output/psytoolkit/stop_signal_task").glob("2026-02-24_17-*"))
 ss_mean_rts: list[float] = []
 ss_all_rts: list[float] = []
 ss_autocorrs: list[float] = []

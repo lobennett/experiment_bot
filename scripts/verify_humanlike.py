@@ -20,7 +20,7 @@ print("=" * 70)
 
 # ---- STOP SIGNAL ----
 print("\n## STOP SIGNAL")
-ss_dirs = sorted(Path("output/psytoolkit/stop_signal_task").glob("2026-02-24_17-*"))
+ss_dirs = sorted(Path("output/psytoolkit/stop_signal_task").glob("2026-02-24_18-*"))
 ss_mean_rts: list[float] = []
 ss_all_rts: list[float] = []
 ss_autocorrs: list[float] = []
@@ -49,7 +49,7 @@ print(f"  RTs below 120ms: {sum(1 for r in ss_all_rts if r < 120)}/{len(ss_all_r
 
 # ---- TASK SWITCHING ----
 print("\n## TASK SWITCHING")
-ts_dirs = sorted(Path("output/psytoolkit/cued_task_switching").glob("2026-02-24_17-*"))
+ts_dirs = sorted(Path("output/psytoolkit/cued_task_switching").glob("2026-02-24_18-*"))
 ts_mean_rts: list[float] = []
 ts_all_rts: list[float] = []
 ts_autocorrs: list[float] = []

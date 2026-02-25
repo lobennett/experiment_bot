@@ -1,0 +1,172 @@
+{
+  "task": {
+    "name": "Cued Task Switching",
+    "platform": "psytoolkit",
+    "constructs": [
+      "cognitive flexibility",
+      "task switching",
+      "executive function",
+      "set shifting"
+    ],
+    "reference_literature": [
+      "Monsell, S. (2003). Task switching. Trends in Cognitive Sciences, 7(3), 134-140.",
+      "Meiran, N. (1996). Reconfiguration of processing mode prior to task performance. Journal of Experimental Psychology: Learning, Memory, and Cognition, 22(6), 1423-1442."
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "respond_left",
+      "description": "Stimulus requiring left key (B) - yellow color or circle shape",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { try { return (typeof task_color !== 'undefined' && task_color.step === 5 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 1) || (typeof task_shape !== 'undefined' && task_shape.step === 5 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 1); } catch(e) { return false; } })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "b",
+        "condition": "go_left"
+      }
+    },
+    {
+      "id": "respond_right",
+      "description": "Stimulus requiring right key (N) - blue color or rectangle shape",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { try { return (typeof task_color !== 'undefined' && task_color.step === 5 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 2) || (typeof task_shape !== 'undefined' && task_shape.step === 5 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 2); } catch(e) { return false; } })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "n",
+        "condition": "go_right"
+      }
+    }
+  ],
+  "response_distributions": {
+    "go_correct": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 550,
+        "sigma": 80,
+        "tau": 120
+      },
+      "unit": "ms"
+    },
+    "go_error": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 500,
+        "sigma": 90,
+        "tau": 130
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "go_accuracy": 0.92,
+    "stop_accuracy": 0.5,
+    "omission_rate": 0.03,
+    "practice_accuracy": 0.85
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "click_start",
+        "action": "click",
+        "target": "button",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "wait_for_canvas",
+        "action": "wait",
+        "target": "canvas#exp",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "focus_canvas",
+        "action": "click",
+        "target": "canvas#exp",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "instructions_1",
+        "action": "keypress",
+        "target": "",
+        "key": " ",
+        "steps": [],
+        "duration_ms": 3000,
+        "pre_js": "psy_expect_keyboard()"
+      },
+      {
+        "phase": "instructions_2",
+        "action": "keypress",
+        "target": "",
+        "key": " ",
+        "steps": [],
+        "duration_ms": 3000,
+        "pre_js": "psy_expect_keyboard()"
+      },
+      {
+        "phase": "instructions_3",
+        "action": "keypress",
+        "target": "",
+        "key": " ",
+        "steps": [],
+        "duration_ms": 3000,
+        "pre_js": "psy_expect_keyboard()"
+      },
+      {
+        "phase": "instructions_4",
+        "action": "keypress",
+        "target": "",
+        "key": " ",
+        "steps": [],
+        "duration_ms": 3000,
+        "pre_js": "psy_expect_keyboard()"
+      },
+      {
+        "phase": "start_task",
+        "action": "keypress",
+        "target": "",
+        "key": "q",
+        "steps": [],
+        "duration_ms": 3000,
+        "pre_js": "psy_expect_keyboard()"
+      }
+    ]
+  },
+  "task_specific": {
+    "paradigm": "cued_task_switching",
+    "cue_type": "bitmap",
+    "response_keys": {
+      "left": "b",
+      "right": "n"
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 150,
+      "blank_after_fixation_ms": 500,
+      "cue_display_ms": 350,
+      "cue_stimulus_interval_ms": 750,
+      "max_response_time_ms": 2000,
+      "error_feedback_ms": 500,
+      "inter_trial_interval_ms": 1000
+    },
+    "block_structure": {
+      "practice_trials": 10,
+      "test_trials": 50,
+      "total_trials": 60
+    }
+  },
+  "runtime": {
+    "timing": {
+      "response_window_js": "(() => { try { return typeof psy_readkey !== 'undefined' && psy_readkey.expect_keyboard === true && Array.isArray(psy_readkey.keys) && psy_readkey.keys.includes(66); } catch(e) { return false; } })()"
+    }
+  }
+}

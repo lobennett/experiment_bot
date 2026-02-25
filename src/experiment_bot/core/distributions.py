@@ -103,7 +103,7 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
         np.clip(config.performance.go_accuracy + rng.normal(0, 0.03), 0.85, 0.99)
     )
     config.performance.omission_rate = float(
-        np.clip(config.performance.omission_rate + rng.normal(0, 0.02), 0.01, 0.10)
+        np.clip(config.performance.omission_rate + rng.normal(0, 0.01), 0.0, 0.08)
     )
 
     return config

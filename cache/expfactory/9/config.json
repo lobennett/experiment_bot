@@ -133,17 +133,17 @@
     "go_correct": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 450,
+        "mu": 540,
         "sigma": 60,
-        "tau": 80
+        "tau": 100
       },
       "unit": "ms"
     },
     "go_error": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 420,
-        "sigma": 70,
+        "mu": 490,
+        "sigma": 65,
         "tau": 90
       },
       "unit": "ms"
@@ -151,17 +151,17 @@
     "stop_failure": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 380,
+        "mu": 430,
         "sigma": 55,
-        "tau": 60
+        "tau": 70
       },
       "unit": "ms"
     }
   },
   "performance": {
-    "go_accuracy": 0.92,
+    "go_accuracy": 0.975,
     "stop_accuracy": 0.5,
-    "omission_rate": 0.05,
+    "omission_rate": 0.01,
     "practice_accuracy": 0.85
   },
   "navigation": {

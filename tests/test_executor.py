@@ -334,12 +334,12 @@ TASK_SWITCHING_CONFIG_FULL = {
         },
     ],
     "response_distributions": {
-        "task_repeat_cue_repeat": {"distribution": "ex_gaussian", "params": {"mu": 480, "sigma": 60, "tau": 80}},
-        "task_repeat_cue_switch": {"distribution": "ex_gaussian", "params": {"mu": 530, "sigma": 65, "tau": 90}},
-        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 580, "sigma": 70, "tau": 100}},
-        "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 550, "sigma": 70, "tau": 100}},
+        "task_repeat_cue_repeat": {"distribution": "ex_gaussian", "params": {"mu": 530, "sigma": 55, "tau": 85}},
+        "task_repeat_cue_switch": {"distribution": "ex_gaussian", "params": {"mu": 550, "sigma": 55, "tau": 90}},
+        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 555, "sigma": 60, "tau": 95}},
+        "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 555, "sigma": 65, "tau": 95}},
     },
-    "performance": {"go_accuracy": 0.88, "stop_accuracy": 0, "omission_rate": 0.03, "practice_accuracy": 0.85},
+    "performance": {"go_accuracy": 0.92, "stop_accuracy": 0, "omission_rate": 0.005, "practice_accuracy": 0.90},
     "navigation": {"phases": []},
     "task_specific": {},
 }

@@ -159,7 +159,10 @@ def analyze_task_switching(df: pd.DataFrame, platform: str) -> dict:
             prefix = cond
             metrics[f"{prefix}_mean_rt"] = rt_vals.mean()
             metrics[f"{prefix}_accuracy"] = subset["correct_trial"].mean()
+            metrics[f"{prefix}_omission_rate"] = subset["rt"].isna().mean()
             metrics[f"{prefix}_n"] = len(subset)
+
+        metrics["overall_omission_rate"] = df["rt"].isna().mean()
 
         # Switch cost: switch vs stay (using available conditions)
         switch_rt = df[df["condition"].str.contains("switch", case=False)]["rt"].dropna().mean()
@@ -196,7 +199,10 @@ def analyze_task_switching(df: pd.DataFrame, platform: str) -> dict:
         rt_vals = correct["rt_ms"].dropna()
         metrics[f"{cond}_mean_rt"] = rt_vals.mean()
         metrics[f"{cond}_accuracy"] = (subset["status"] == "correct").mean()
+        metrics[f"{cond}_omission_rate"] = (subset["status"] == "timeout").mean()
         metrics[f"{cond}_n"] = len(subset)
+
+    metrics["overall_omission_rate"] = (df_clean["status"] == "timeout").mean()
 
     switch_rt = df_clean[df_clean["condition"] == "task_switch"]
     switch_rt = switch_rt[switch_rt["status"] == "correct"]["rt_ms"].dropna().mean()

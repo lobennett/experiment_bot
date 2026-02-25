@@ -336,8 +336,8 @@ TASK_SWITCHING_CONFIG_FULL = {
     "response_distributions": {
         "task_repeat_cue_repeat": {"distribution": "ex_gaussian", "params": {"mu": 490, "sigma": 55, "tau": 85}},
         "task_repeat_cue_switch": {"distribution": "ex_gaussian", "params": {"mu": 510, "sigma": 55, "tau": 90}},
-        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 515, "sigma": 60, "tau": 95}},
-        "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 515, "sigma": 65, "tau": 95}},
+        "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 525, "sigma": 60, "tau": 95}},
+        "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 525, "sigma": 65, "tau": 95}},
     },
     "performance": {"go_accuracy": 0.92, "stop_accuracy": 0, "omission_rate": 0.005, "practice_accuracy": 0.90},
     "navigation": {"phases": []},

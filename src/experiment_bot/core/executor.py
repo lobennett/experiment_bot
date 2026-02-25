@@ -230,6 +230,17 @@ class TaskExecutor:
                 consecutive_misses = 0
                 continue
 
+            # Gate stimulus detection on response window — prevents detecting
+            # stale JS globals during fixation, cue display, or feedback phases
+            if timing.response_window_js:
+                try:
+                    ready = await page.evaluate(timing.response_window_js)
+                    if not ready:
+                        await asyncio.sleep(timing.poll_interval_ms / 1000.0)
+                        continue
+                except Exception:
+                    pass
+
             match = await self._lookup.identify(page)
             if match is None:
                 consecutive_misses += 1
@@ -286,6 +297,27 @@ class TaskExecutor:
             self._trial_count += 1
             logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition})")
             await self._execute_trial(page, match)
+
+            # After responding, wait for the response window to close (next trial's
+            # fixation) to avoid re-detecting the same stimulus and pressing into
+            # the wrong trial.
+            if timing.response_window_js:
+                await self._wait_for_trial_end(page, timing.response_window_js)
+
+    async def _wait_for_trial_end(
+        self, page: Page, response_window_js: str, timeout_s: float = 5.0
+    ) -> None:
+        """Wait for the response window to close, indicating the current trial ended."""
+        poll_s = self._config.runtime.timing.poll_interval_ms / 1000.0
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            try:
+                ready = await page.evaluate(response_window_js)
+                if not ready:
+                    return
+            except Exception:
+                return
+            await asyncio.sleep(poll_s)
 
     def _get_stop_signal_selector(self) -> str | None:
         """Get the stop signal detection selector from config stimuli."""

@@ -93,11 +93,14 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
     """
     config = copy.deepcopy(config)
 
+    # Shared between-subject speed shift (a fast person is fast on all conditions)
+    # preserves inter-condition differences like switch cost.
+    shared_mu_shift = rng.normal(0, 40)
     for dist in config.response_distributions.values():
         if dist.distribution == "ex_gaussian":
-            dist.params["mu"] += rng.normal(0, 50)
-            dist.params["sigma"] *= rng.uniform(0.8, 1.2)
-            dist.params["tau"] *= rng.uniform(0.8, 1.2)
+            dist.params["mu"] += shared_mu_shift + rng.normal(0, 15)
+            dist.params["sigma"] *= rng.uniform(0.85, 1.15)
+            dist.params["tau"] *= rng.uniform(0.85, 1.15)
 
     config.performance.go_accuracy = float(
         np.clip(config.performance.go_accuracy + rng.normal(0, 0.03), 0.85, 0.99)

@@ -112,7 +112,8 @@
             "poll_interval_ms": {"type": "integer", "default": 20, "description": "Milliseconds between stimulus detection polls"},
             "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. PsyToolkit tasks need ~2000, jsPsych tasks ~500."},
             "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. jsPsych tasks need ~35000 (server upload), PsyToolkit ~5000."},
-            "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap go RTs at"}
+            "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap go RTs at"},
+            "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the platform's response window is open and RT timer has started. Required for PsyToolkit tasks where stimulus detection fires before the readkey step (e.g., cued task switching detects the cue but the response window opens later with the target). Use psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of one of the task's response keys (e.g., 66 for 'b', 78 for 'n'). Leave empty if stimulus detection already aligns with the response window."}
           }
         },
         "advance_behavior": {

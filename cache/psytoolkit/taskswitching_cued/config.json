@@ -15,59 +15,105 @@
   },
   "stimuli": [
     {
-      "id": "respond_left",
-      "description": "Stimulus requiring left key (B) - yellow color or circle shape",
+      "id": "color_left",
+      "description": "Color task requiring left key (B) - yellow color",
       "detection": {
         "method": "js_eval",
-        "selector": "(() => { try { return (typeof task_color !== 'undefined' && task_color.step === 5 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 1) || (typeof task_shape !== 'undefined' && task_shape.step === 5 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 1); } catch(e) { return false; } })()",
+        "selector": "(() => { try { var cs = typeof task_color !== 'undefined' ? task_color.step : -1; return cs >= 5 && cs <= 8 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 1; } catch(e) { return false; } })()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": "b",
-        "condition": "go_left"
+        "condition": "color_left"
       }
     },
     {
-      "id": "respond_right",
-      "description": "Stimulus requiring right key (N) - blue color or rectangle shape",
+      "id": "color_right",
+      "description": "Color task requiring right key (N) - blue color",
       "detection": {
         "method": "js_eval",
-        "selector": "(() => { try { return (typeof task_color !== 'undefined' && task_color.step === 5 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 2) || (typeof task_shape !== 'undefined' && task_shape.step === 5 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 2); } catch(e) { return false; } })()",
+        "selector": "(() => { try { var cs = typeof task_color !== 'undefined' ? task_color.step : -1; return cs >= 5 && cs <= 8 && typeof tablerow !== 'undefined' && t_colortasktable[tablerow].c3 === 2; } catch(e) { return false; } })()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": "n",
-        "condition": "go_right"
+        "condition": "color_right"
+      }
+    },
+    {
+      "id": "shape_left",
+      "description": "Shape task requiring left key (B) - circle shape",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { try { var cs = typeof task_shape !== 'undefined' ? task_shape.step : -1; return cs >= 5 && cs <= 8 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 1; } catch(e) { return false; } })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "b",
+        "condition": "shape_left"
+      }
+    },
+    {
+      "id": "shape_right",
+      "description": "Shape task requiring right key (N) - rectangle shape",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { try { var cs = typeof task_shape !== 'undefined' ? task_shape.step : -1; return cs >= 5 && cs <= 8 && typeof tablerow !== 'undefined' && t_shapetasktable[tablerow].c3 === 2; } catch(e) { return false; } })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "n",
+        "condition": "shape_right"
       }
     }
   ],
   "response_distributions": {
-    "go_correct": {
+    "task_repeat_cue_repeat": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 550,
-        "sigma": 80,
-        "tau": 120
+        "mu": 490,
+        "sigma": 55,
+        "tau": 85
       },
       "unit": "ms"
     },
-    "go_error": {
+    "task_repeat_cue_switch": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 500,
-        "sigma": 90,
-        "tau": 130
+        "mu": 510,
+        "sigma": 55,
+        "tau": 90
+      },
+      "unit": "ms"
+    },
+    "task_switch": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 525,
+        "sigma": 60,
+        "tau": 95
+      },
+      "unit": "ms"
+    },
+    "first_trial": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 525,
+        "sigma": 65,
+        "tau": 95
       },
       "unit": "ms"
     }
   },
   "performance": {
     "go_accuracy": 0.92,
-    "stop_accuracy": 0.5,
-    "omission_rate": 0.03,
-    "practice_accuracy": 0.85
+    "stop_accuracy": 0,
+    "omission_rate": 0.005,
+    "practice_accuracy": 0.90
   },
   "navigation": {
     "phases": [
@@ -149,6 +195,12 @@
       "left": "b",
       "right": "n"
     },
+    "key_map": {
+      "color_left": "b",
+      "color_right": "n",
+      "shape_left": "b",
+      "shape_right": "n"
+    },
     "trial_timing": {
       "fixation_duration_ms": 150,
       "blank_after_fixation_ms": 500,
@@ -166,7 +218,7 @@
   },
   "runtime": {
     "timing": {
-      "response_window_js": "(() => { try { return typeof psy_readkey !== 'undefined' && psy_readkey.expect_keyboard === true && Array.isArray(psy_readkey.keys) && psy_readkey.keys.includes(66); } catch(e) { return false; } })()"
+      "cue_selector_js": "(() => { try { return typeof current_task !== 'undefined' ? current_task : ''; } catch(e) { return ''; } })()"
     }
   }
 }

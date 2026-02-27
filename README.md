@@ -17,53 +17,51 @@ uv run playwright install chromium
 
 ## Usage
 
-The bot has two platform subcommands: `expfactory` and `psytoolkit`. Each takes a `--task` ID.
-
-### ExpFactory
+Point the bot at any experiment URL. On first run it scrapes the page, sends it to Claude for analysis, and caches the resulting config. Subsequent runs use the cache.
 
 ```bash
-# Stop Signal Task (task ID: 9)
-uv run experiment-bot expfactory --task 9
+# Any experiment URL
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/"
 
-# Cued Task Switching (task ID: 2)
-uv run experiment-bot expfactory --task 2
-```
+# With a hint to help Claude identify the task
+uv run experiment-bot "https://www.psytoolkit.org/experiment-library/experiment_stopsignal.html" --hint "stop signal task"
 
-### PsyToolkit
-
-```bash
-# Stop Signal Task
-uv run experiment-bot psytoolkit --task stopsignal
-
-# Cued Task Switching
-uv run experiment-bot psytoolkit --task taskswitching_cued
+# Cache under a custom label for easy reuse
+uv run experiment-bot "https://example.com/my-experiment/" --label my_experiment --headless
 ```
 
 ### Options
 
 | Flag | Description |
 |------|-------------|
+| `--hint TEXT` | Hint about the task (e.g., "stop signal task") |
+| `--label TEXT` | Cache label (default: URL hash) |
 | `--headless` | Run browser without visible window |
 | `--regenerate-config` | Force re-analysis via Claude API (ignores cache) |
 | `--rt-mean FLOAT` | Override mean reaction time in ms |
 | `--accuracy FLOAT` | Override go-trial accuracy (0–1) |
 | `-v, --verbose` | Enable debug logging |
 
-### Example
+### Batch Launching
 
 ```bash
-# Run stop signal task headlessly with faster responses
-uv run experiment-bot expfactory --task 9 --headless --rt-mean 350
+# Run all registered tasks
+./scripts/launch.sh --headless --count 2
+
+# Filter by label
+./scripts/launch.sh --label expfactory_stop_signal --count 5
+
+# Single URL mode
+./scripts/launch.sh --url "https://deploy.expfactory.org/preview/9/" --count 3 --headless
 ```
 
 ## Output
 
-Each run saves to `output/<platform>/<task_name>/<timestamp>/`:
+Each run saves to `output/<task_name>/<timestamp>/`:
 
 | File | Contents |
 |------|----------|
-| `experiment_data.tsv` | Raw experiment data (PsyToolkit) |
-| `experiment_data.csv` | Raw jsPsych trial data (ExpFactory) |
+| `experiment_data.*` | Raw experiment data (format depends on task) |
 | `bot_log.json` | Per-trial bot decision log |
 | `config.json` | Task config used for the run |
 | `screenshots/` | Screenshots captured during execution |

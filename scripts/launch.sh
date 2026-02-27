@@ -2,26 +2,26 @@
 set -euo pipefail
 
 # ---------------------------------------------------------------------------
-# Batch launcher for experiment-bot
+# Batch launcher for experiment-bot (URL-based)
 # ---------------------------------------------------------------------------
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
 cd "$PROJECT_ROOT"
 
-# Task registry: platform:task_id:canonical_name
+# Task registry: url|hint|label
 TASKS=(
-    "expfactory:9:stop_signal"
-    "expfactory:2:task_switching"
-    "psytoolkit:stopsignal:stop_signal"
-    "psytoolkit:taskswitching_cued:task_switching"
+    "https://deploy.expfactory.org/preview/9/|stop signal task|expfactory_stop_signal"
+    "https://deploy.expfactory.org/preview/2/|cued task switching|expfactory_task_switching"
+    "https://www.psytoolkit.org/experiment-library/experiment_stopsignal.html|stop signal task|psytoolkit_stop_signal"
+    "https://www.psytoolkit.org/experiment-library/experiment_taskswitching_cued.html|cued task switching|psytoolkit_task_switching"
 )
 
 # ---------------------------------------------------------------------------
 # Defaults
 # ---------------------------------------------------------------------------
-FILTER_PLATFORM=""
-FILTER_TASK=""
+FILTER_URL=""
+FILTER_LABEL=""
 COUNT=1
 HEADLESS=""
 STAGGER=2
@@ -37,14 +37,19 @@ Usage: $(basename "$0") [OPTIONS]
 Launch experiment-bot runs in parallel.
 
 Options:
-  --platform PLATFORM   Filter: expfactory, psytoolkit
-  --task TASK           Filter by canonical name (stop_signal, task_switching)
-                        or platform ID (9, 2, stopsignal, taskswitching_cued)
+  --url URL             Run a single URL (bypasses registry)
+  --hint HINT           Hint for the single URL
+  --label LABEL         Filter registry by label, or label for --url
   --count N             Instances per task (default: 1)
   --headless            Run browsers in headless mode
   --stagger SECS        Delay between launches (default: 2)
   --dry-run             Print commands without executing
   -h, --help            Show this help
+
+Examples:
+  $(basename "$0") --url "https://deploy.expfactory.org/preview/9/" --count 3 --headless
+  $(basename "$0") --label expfactory_stop_signal --count 5
+  $(basename "$0") --headless --count 2
 EOF
     exit 0
 }
@@ -52,52 +57,47 @@ EOF
 # ---------------------------------------------------------------------------
 # Parse args
 # ---------------------------------------------------------------------------
+HINT=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --platform)  FILTER_PLATFORM="$2"; shift 2 ;;
-        --task)      FILTER_TASK="$2";     shift 2 ;;
-        --count)     COUNT="$2";           shift 2 ;;
+        --url)       FILTER_URL="$2";   shift 2 ;;
+        --hint)      HINT="$2";         shift 2 ;;
+        --label)     FILTER_LABEL="$2"; shift 2 ;;
+        --count)     COUNT="$2";        shift 2 ;;
         --headless)  HEADLESS="--headless"; shift ;;
-        --stagger)   STAGGER="$2";         shift 2 ;;
-        --dry-run)   DRY_RUN=true;         shift ;;
+        --stagger)   STAGGER="$2";      shift 2 ;;
+        --dry-run)   DRY_RUN=true;      shift ;;
         -h|--help)   usage ;;
         *)           echo "Unknown option: $1"; usage ;;
     esac
 done
 
 # ---------------------------------------------------------------------------
-# Filter tasks
-# ---------------------------------------------------------------------------
-matches_filter() {
-    local platform="$1" task_id="$2" canonical="$3"
-
-    if [[ -n "$FILTER_PLATFORM" && "$platform" != "$FILTER_PLATFORM" ]]; then
-        return 1
-    fi
-
-    if [[ -n "$FILTER_TASK" ]]; then
-        # Match against canonical name OR platform-specific task ID
-        if [[ "$canonical" != "$FILTER_TASK" && "$task_id" != "$FILTER_TASK" ]]; then
-            return 1
-        fi
-    fi
-
-    return 0
-}
-
-# ---------------------------------------------------------------------------
 # Build command list
 # ---------------------------------------------------------------------------
 COMMANDS=()
-for entry in "${TASKS[@]}"; do
-    IFS=":" read -r platform task_id canonical <<< "$entry"
-    if ! matches_filter "$platform" "$task_id" "$canonical"; then
-        continue
-    fi
+
+if [[ -n "$FILTER_URL" ]]; then
+    # Single URL mode
+    LABEL_FLAG=""
+    HINT_FLAG=""
+    [[ -n "$FILTER_LABEL" ]] && LABEL_FLAG="--label $FILTER_LABEL"
+    [[ -n "$HINT" ]] && HINT_FLAG="--hint \"$HINT\""
     for (( i=1; i<=COUNT; i++ )); do
-        COMMANDS+=("uv run experiment-bot $platform --task $task_id $HEADLESS")
+        COMMANDS+=("uv run experiment-bot \"$FILTER_URL\" $HINT_FLAG $LABEL_FLAG $HEADLESS")
     done
-done
+else
+    # Registry mode
+    for entry in "${TASKS[@]}"; do
+        IFS="|" read -r url hint label <<< "$entry"
+        if [[ -n "$FILTER_LABEL" && "$label" != "$FILTER_LABEL" ]]; then
+            continue
+        fi
+        for (( i=1; i<=COUNT; i++ )); do
+            COMMANDS+=("uv run experiment-bot \"$url\" --hint \"$hint\" --label \"$label\" $HEADLESS")
+        done
+    done
+fi
 
 if [[ ${#COMMANDS[@]} -eq 0 ]]; then
     echo "No tasks matched the given filters."

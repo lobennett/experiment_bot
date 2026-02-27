@@ -9,21 +9,21 @@ def test_cli_help():
     assert "experiment-bot" in result.output.lower() or "usage" in result.output.lower()
 
 
-def test_expfactory_help():
+def test_cli_shows_url_argument():
     runner = CliRunner()
-    result = runner.invoke(main, ["expfactory", "--help"])
+    result = runner.invoke(main, ["--help"])
     assert result.exit_code == 0
-    assert "--task" in result.output
+    assert "url" in result.output.lower()
 
 
-def test_psytoolkit_help():
+def test_cli_shows_hint_option():
     runner = CliRunner()
-    result = runner.invoke(main, ["psytoolkit", "--help"])
+    result = runner.invoke(main, ["--help"])
     assert result.exit_code == 0
-    assert "--task" in result.output
+    assert "--hint" in result.output
 
 
-def test_missing_task_flag():
+def test_cli_missing_url():
     runner = CliRunner()
-    result = runner.invoke(main, ["expfactory"])
-    assert result.exit_code != 0  # Should fail without --task
+    result = runner.invoke(main, [])
+    assert result.exit_code != 0  # Should fail without URL

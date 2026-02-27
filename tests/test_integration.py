@@ -60,8 +60,9 @@ def test_full_config_parses():
 def test_config_cache_round_trip(tmp_path):
     config = TaskConfig.from_dict(FULL_CONFIG)
     cache = ConfigCache(cache_dir=tmp_path)
-    cache.save("expfactory", "9", config)
-    loaded = cache.load("expfactory", "9")
+    url = "https://example.com/experiment/9"
+    cache.save(url, config)
+    loaded = cache.load(url)
     assert loaded.task.name == "Stop Signal Task"
     assert len(loaded.stimuli) == 3
     assert loaded.response_distributions["go_correct"].params["mu"] == 450

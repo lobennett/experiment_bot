@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 from pathlib import Path
@@ -15,11 +16,16 @@ class ConfigCache:
     def __init__(self, cache_dir: Path = DEFAULT_CACHE_DIR):
         self._cache_dir = cache_dir
 
-    def _config_path(self, platform: str, task_id: str) -> Path:
-        return self._cache_dir / platform / task_id / "config.json"
+    @staticmethod
+    def _url_hash(url: str) -> str:
+        return hashlib.sha256(url.encode()).hexdigest()[:16]
 
-    def load(self, platform: str, task_id: str) -> TaskConfig | None:
-        path = self._config_path(platform, task_id)
+    def _config_path(self, url: str, label: str = "") -> Path:
+        key = label if label else self._url_hash(url)
+        return self._cache_dir / key / "config.json"
+
+    def load(self, url: str, label: str = "") -> TaskConfig | None:
+        path = self._config_path(url, label)
         if not path.exists():
             return None
         try:
@@ -29,8 +35,8 @@ class ConfigCache:
             logger.warning(f"Failed to load cached config: {e}")
             return None
 
-    def save(self, platform: str, task_id: str, config: TaskConfig) -> None:
-        path = self._config_path(platform, task_id)
+    def save(self, url: str, config: TaskConfig, label: str = "") -> None:
+        path = self._config_path(url, label)
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(json.dumps(config.to_dict(), indent=2))
         logger.info(f"Cached config to {path}")

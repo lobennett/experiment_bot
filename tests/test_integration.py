@@ -69,7 +69,7 @@ def test_config_cache_round_trip(tmp_path):
 
 def test_executor_constructs_from_config():
     config = TaskConfig.from_dict(FULL_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
     # Verify the lookup has all stimulus rules
     assert len(executor._lookup._rules) == 3
     # Verify sampler has all distributions
@@ -128,7 +128,7 @@ def test_executor_works_with_runtime_config_only():
         },
     }
     config = TaskConfig.from_dict(config_dict)
-    executor = TaskExecutor(config, platform_name="generic", seed=42)
+    executor = TaskExecutor(config, seed=42)
     # Verify all runtime config values are accessible
     assert executor._config.runtime.timing.max_no_stimulus_polls == 100
     assert executor._config.runtime.timing.completion_wait_ms == 1000

@@ -26,12 +26,10 @@ class TaskExecutor:
     def __init__(
         self,
         config: TaskConfig,
-        platform_name: str,
         seed: int | None = None,
         headless: bool = False,
     ):
         self._config = config
-        self._platform_name = platform_name
         self._headless = headless
         self._rng = np.random.default_rng(seed)
         self._py_rng = random.Random(seed)
@@ -57,56 +55,11 @@ class TaskExecutor:
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
-        """Resolve key mappings from config."""
+        """Resolve key mappings from config.task_specific.key_map."""
         ts = config.task_specific
-        # Prefer direct key_map if provided
         if "key_map" in ts:
             return dict(ts["key_map"])
-        # Legacy: resolve from group-based mappings (backward compat)
-        return TaskExecutor._resolve_key_mapping_legacy(config)
-
-    @staticmethod
-    def _resolve_key_mapping_legacy(config: TaskConfig) -> dict[str, str]:
-        """Legacy key mapping resolution for older configs without key_map.
-
-        Deprecated: new configs should use task_specific.key_map directly.
-        Kept for backward compatibility with configs generated before the
-        runtime config refactor.
-        """
-        key_map: dict[str, str] = {}
-        ts = config.task_specific
-        group = ts.get("default_group_index", 0)
-
-        # Stop signal format: task_specific.key_mapping
-        if "key_mapping" in ts:
-            km = ts["key_mapping"]
-            group = km.get("default_group_index", group)
-            if group <= 4:
-                mapping = km.get("group_0_to_4", {})
-            else:
-                mapping = km.get("group_5_to_14", {})
-            for shape, key in mapping.items():
-                key_map[f"go_{shape}"] = key
-
-        # Task switching format: task_specific.group_index_mappings
-        if "group_index_mappings" in ts:
-            gim = ts["group_index_mappings"]
-            if group <= 4:
-                mapping = gim.get("0_to_4", {})
-            elif group <= 9:
-                mapping = gim.get("5_to_9", {})
-            else:
-                mapping = gim.get("10_to_14", {})
-            if "even" in mapping:
-                key_map["parity_even"] = mapping["even"]
-            if "odd" in mapping:
-                key_map["parity_odd"] = mapping["odd"]
-            if "higher" in mapping:
-                key_map["magnitude_high"] = mapping["higher"]
-            if "lower" in mapping:
-                key_map["magnitude_low"] = mapping["lower"]
-
-        return key_map
+        return {}
 
     def _resolve_response_key(self, match: StimulusMatch) -> str | None:
         """Resolve the actual key to press for a stimulus match."""
@@ -168,7 +121,7 @@ class TaskExecutor:
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
         task_name = self._config.task.name.replace(" ", "_").lower()
-        run_dir = self._writer.create_run(self._platform_name, task_name, self._config)
+        run_dir = self._writer.create_run(task_name, self._config)
 
         async with async_playwright() as p:
             browser = await p.chromium.launch(headless=self._headless)
@@ -200,7 +153,6 @@ class TaskExecutor:
                 raise
             finally:
                 self._writer.save_metadata({
-                    "platform": self._platform_name,
                     "task_name": task_name,
                     "task_url": task_url,
                     "total_trials": self._trial_count,
@@ -527,16 +479,14 @@ class TaskExecutor:
 
     async def _handle_attention_check(self, page: Page) -> None:
         """Handle attention check by reading the prompt and pressing the requested key."""
-        import re
         await asyncio.sleep(1.5)
+        ac = self._config.runtime.attention_check
         try:
-            text = await page.evaluate("""
-                () => {
-                    const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus') ||
-                               document.querySelector('.jspsych-display-element');
-                    return el ? el.textContent : '';
-                }
-            """)
+            # Use config selectors, fall back to generic body text
+            selector_js = ac.text_selector or "body"
+            text = await page.evaluate(
+                f"(() => {{ var el = document.querySelector('{selector_js}'); return el ? el.textContent : ''; }})()"
+            )
             key = self._parse_attention_check_key(text)
             if key:
                 logger.info(f"Attention check: pressing '{key}'")

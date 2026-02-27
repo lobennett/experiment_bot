@@ -32,21 +32,21 @@ SAMPLE_CONFIG = {
 
 def test_executor_init():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
     assert executor._config.task.name == "Stop Signal"
 
 
 def test_should_respond_correctly_on_go():
     """On go trials with high accuracy, bot should usually respond correctly."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
     correct_count = sum(1 for _ in range(100) if executor._should_respond_correctly("go"))
     assert 85 < correct_count < 100
 
 
 def test_should_omit_rarely():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
     omit_count = sum(1 for _ in range(1000) if executor._should_omit())
     assert 5 < omit_count < 50
 
@@ -54,7 +54,7 @@ def test_should_omit_rarely():
 def test_parse_attention_check_direct_key():
     """Test 'Press the X key' format returns the letter lowercased."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     assert executor._parse_attention_check_key("Press the Q key") == "q"
     assert executor._parse_attention_check_key("press the A key") == "a"
@@ -64,7 +64,7 @@ def test_parse_attention_check_direct_key():
 def test_parse_attention_check_ordinal():
     """Test 'Press the key for the Nth letter' format returns correct letter."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     # Test "third" → "c"
     assert executor._parse_attention_check_key("Press the key for the third letter of the English alphabet") == "c"
@@ -80,7 +80,7 @@ def test_parse_attention_check_ordinal():
 def test_parse_attention_check_last():
     """Test 'last letter' maps to 'z'."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     assert executor._parse_attention_check_key("Press the key for the last letter of the English alphabet") == "z"
 
@@ -88,7 +88,7 @@ def test_parse_attention_check_last():
 def test_parse_attention_check_unknown():
     """Test unrecognized format and empty string return None."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     # Unrecognized format
     assert executor._parse_attention_check_key("Click the button to continue") is None
@@ -120,22 +120,22 @@ TASK_SWITCHING_CONFIG = {
     "performance": {"go_accuracy": 0.88, "stop_accuracy": 0, "omission_rate": 0.03, "practice_accuracy": 0.85},
     "navigation": {"phases": []},
     "task_specific": {
-        "default_group_index": 1,
-        "group_index_mappings": {
-            "0_to_4": {"higher": ",", "lower": ".", "odd": ",", "even": "."},
-            "5_to_9": {"higher": ",", "lower": ".", "odd": ".", "even": ","},
+        "key_map": {
+            "parity_even": ".",
+            "parity_odd": ",",
+            "magnitude_high": ",",
+            "magnitude_low": ".",
         },
     },
 }
 
 
 def test_resolve_key_mapping_task_switching():
-    """Verify key_map has correct mappings for group_index 1 (0_to_4 mapping)."""
+    """Verify key_map is read directly from task_specific.key_map."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
     key_map = executor._resolve_key_mapping(config)
 
-    # For group_index 1, uses 0_to_4 mapping
     assert key_map["parity_even"] == "."
     assert key_map["parity_odd"] == ","
     assert key_map["magnitude_high"] == ","
@@ -145,7 +145,7 @@ def test_resolve_key_mapping_task_switching():
 def test_resolve_response_key_dynamic():
     """Create a StimulusMatch with response_key='dynamic' and condition='parity_even', verify _resolve_response_key returns '.'."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     # Create a StimulusMatch with dynamic key
     stimulus_match = StimulusMatch(
@@ -161,7 +161,7 @@ def test_resolve_response_key_dynamic():
 def test_resolve_response_key_static():
     """Create a StimulusMatch with response_key='z', verify it returns 'z' unchanged."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory")
+    executor = TaskExecutor(config)
 
     # Create a StimulusMatch with static key
     stimulus_match = StimulusMatch(
@@ -186,7 +186,7 @@ def test_direct_key_map_from_config():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test")
+    executor = TaskExecutor(config)
     assert executor._key_map == config.task_specific["key_map"]
 
 
@@ -198,7 +198,7 @@ def test_direct_key_map_overrides_legacy():
         "parity_odd": "s",
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test")
+    executor = TaskExecutor(config)
     assert executor._key_map["parity_even"] == "a"
     assert executor._key_map["parity_odd"] == "s"
 
@@ -216,7 +216,7 @@ def test_executor_uses_runtime_timing():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test")
+    executor = TaskExecutor(config)
     assert executor._config.runtime.timing.poll_interval_ms == 50
     assert executor._config.runtime.timing.max_no_stimulus_polls == 1000
     assert executor._config.runtime.timing.stuck_timeout_s == 15.0
@@ -261,7 +261,7 @@ def test_paradigm_config_controls_stop_handling():
         },
     ]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test")
+    executor = TaskExecutor(config)
     # _get_stop_signal_selector should find "inhibit" not "stop"
     selector = executor._get_stop_signal_selector()
     assert selector == "checkInhibit()"
@@ -274,7 +274,7 @@ def test_should_respond_correctly_uses_paradigm_config():
         "paradigm": {"type": "stop_signal", "stop_condition": "inhibit"}
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test", seed=42)
+    executor = TaskExecutor(config, seed=42)
     # "inhibit" should use stop_accuracy, not go_accuracy
     results = [executor._should_respond_correctly("inhibit") for _ in range(100)]
     # stop_accuracy is 0.50, so roughly 50% should be True
@@ -304,7 +304,7 @@ def test_executor_sampler_uses_config_floor():
     config_data = dict(SAMPLE_CONFIG)
     config_data["runtime"] = {"timing": {"rt_floor_ms": 200.0}}
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="test", seed=42)
+    executor = TaskExecutor(config, seed=42)
     # The sampler should use 200.0 as floor, not the default 150.0
     assert executor._sampler._floor_ms == 200.0
 
@@ -312,7 +312,7 @@ def test_executor_sampler_uses_config_floor():
 def test_resolve_rt_distribution_key_legacy():
     """Configs with go_correct distributions use legacy go_correct/go_error keys."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
     assert executor._resolve_rt_distribution_key("go_circle", True) == "go_correct"
     assert executor._resolve_rt_distribution_key("go_circle", False) == "go_error"
 
@@ -348,7 +348,7 @@ TASK_SWITCHING_CONFIG_FULL = {
 def test_resolve_rt_distribution_key_task_switching():
     """Task switching configs derive distribution key from trial history."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG_FULL)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
 
     # First trial → first_trial
     assert executor._resolve_rt_distribution_key("parity_even", True) == "first_trial"
@@ -365,7 +365,7 @@ def test_resolve_rt_distribution_key_task_switching():
 def test_resolve_rt_distribution_key_cue_switch():
     """Cue switch within same task uses task_repeat_cue_switch distribution."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG_FULL)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
 
     # First trial with cue "Parity"
     assert executor._resolve_rt_distribution_key("parity_even", True, cue="Parity") == "first_trial"
@@ -384,7 +384,7 @@ def test_resolve_rt_distribution_key_cue_switch():
 def test_resolve_rt_distribution_key_no_cue():
     """Without cue info, all task-stay trials use task_repeat_cue_repeat."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG_FULL)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
 
     executor._resolve_rt_distribution_key("parity_even", True)  # first_trial
     # No cue passed → always cue_repeat for same task
@@ -415,7 +415,7 @@ async def test_wait_for_completion_captures_data():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, platform_name="expfactory", seed=42)
+    executor = TaskExecutor(config, seed=42)
     executor._writer = MagicMock()
     executor._writer.run_dir = "/tmp/fake"
     page = AsyncMock()

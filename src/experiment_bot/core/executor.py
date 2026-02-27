@@ -14,8 +14,8 @@ from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
+from experiment_bot.core.phase_detection import detect_phase
 from experiment_bot.output.data_capture import get_data_capture
-from experiment_bot.platforms.base import Platform
 
 logger = logging.getLogger(__name__)
 
@@ -165,7 +165,7 @@ class TaskExecutor:
             self._prev_cue = cue
         return rt_key
 
-    async def run(self, task_url: str, platform: Platform) -> None:
+    async def run(self, task_url: str) -> None:
         """Execute the full task."""
         task_name = self._config.task.name.replace(" ", "_").lower()
         run_dir = self._writer.create_run(self._platform_name, task_name, self._config)
@@ -187,11 +187,11 @@ class TaskExecutor:
 
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
-                await self._trial_loop(page, platform)
+                await self._trial_loop(page)
 
                 # Phase 3: Wait for completion and data
                 logger.info("Waiting for task completion...")
-                await self._wait_for_completion(page, platform)
+                await self._wait_for_completion(page)
 
             except Exception as e:
                 logger.error(f"Task execution failed: {e}")
@@ -209,7 +209,7 @@ class TaskExecutor:
                 self._writer.finalize()
                 await browser.close()
 
-    async def _trial_loop(self, page: Page, platform: Platform) -> None:
+    async def _trial_loop(self, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""
         timing = self._config.runtime.timing
         stuck_detector = StuckDetector(timeout_seconds=timing.stuck_timeout_s)
@@ -217,7 +217,7 @@ class TaskExecutor:
 
         consecutive_misses = 0
         while True:
-            phase = await platform.detect_task_phase(page)
+            phase = await detect_phase(page, self._config.runtime.phase_detection)
             if phase == TaskPhase.COMPLETE:
                 logger.info("Task complete detected")
                 break
@@ -585,7 +585,7 @@ class TaskExecutor:
             await page.keyboard.press(key)
             await asyncio.sleep(0.5)
 
-    async def _wait_for_completion(self, page: Page, platform: Platform) -> None:
+    async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""
         await asyncio.sleep(2.0)  # Brief settle time
 

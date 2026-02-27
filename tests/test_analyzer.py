@@ -42,8 +42,7 @@ MOCK_CONFIG_JSON = json.dumps({
 async def test_analyzer_builds_correct_messages():
     """Analyzer sends system prompt + source code to the API."""
     bundle = SourceBundle(
-        platform="expfactory",
-        task_id="9",
+        url="https://example.com/experiment/9",
         source_files={"experiment.js": "console.log('test');"},
         description_text="A stop signal task.",
         metadata={},
@@ -70,8 +69,7 @@ async def test_analyzer_builds_correct_messages():
 async def test_analyzer_retries_on_invalid_json():
     """Analyzer retries once if Claude returns invalid JSON."""
     bundle = SourceBundle(
-        platform="expfactory",
-        task_id="9",
+        url="https://example.com/experiment/9",
         source_files={"experiment.js": "x"},
         description_text="test",
         metadata={},
@@ -147,8 +145,7 @@ MOCK_CONFIG_WITH_RUNTIME = json.dumps({
 async def test_analyzer_parses_runtime_config():
     """Analyzer correctly parses runtime section from Claude's response."""
     bundle = SourceBundle(
-        platform="expfactory",
-        task_id="9",
+        url="https://example.com/experiment/9",
         source_files={"experiment.js": "console.log('test');"},
         description_text="A stop signal task.",
         metadata={},

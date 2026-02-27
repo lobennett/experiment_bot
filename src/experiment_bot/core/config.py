@@ -16,11 +16,11 @@ class TaskPhase(Enum):
 
 @dataclass
 class SourceBundle:
-    platform: str
-    task_id: str
-    source_files: dict[str, str]
-    description_text: str
+    url: str                          # The experiment URL
+    source_files: dict[str, str]      # filename -> content
+    description_text: str             # Human-readable description or page HTML
     metadata: dict = field(default_factory=dict)
+    hint: str = ""                    # User-provided hint about the task
 
 
 @dataclass
@@ -161,17 +161,17 @@ class NavigationConfig:
 @dataclass
 class TaskMetadata:
     name: str
-    platform: str
     constructs: list[str]
     reference_literature: list[str]
+    platform: str = ""  # Optional — Claude may infer platform or leave blank
 
     @classmethod
     def from_dict(cls, d: dict) -> TaskMetadata:
         return cls(
             name=d["name"],
-            platform=d["platform"],
             constructs=d.get("constructs", []),
             reference_literature=d.get("reference_literature", []),
+            platform=d.get("platform", ""),
         )
 
     def to_dict(self) -> dict:
@@ -255,11 +255,44 @@ class ParadigmConfig:
 
 
 @dataclass
+class DataCaptureConfig:
+    method: str = ""            # "js_expression", "button_click", ""
+    expression: str = ""        # JS expression returning data string (for js_expression)
+    button_selector: str = ""   # CSS selector for data button (for button_click)
+    result_selector: str = ""   # CSS selector for result element (for button_click)
+    format: str = "csv"         # "csv", "tsv", "json"
+    wait_ms: int = 1000         # Wait after button click before reading result
+
+    @classmethod
+    def from_dict(cls, d: dict) -> DataCaptureConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return {k: v for k, v in asdict(self).items() if v}
+
+
+@dataclass
+class AttentionCheckConfig:
+    detection_selector: str = ""  # CSS/JS selector to detect attention check presence
+    text_selector: str = ""       # CSS selector to read attention check text
+    response_js: str = ""         # Optional JS to determine response (overrides regex parsing)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> AttentionCheckConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return {k: v for k, v in asdict(self).items() if v}
+
+
+@dataclass
 class RuntimeConfig:
     phase_detection: PhaseDetectionConfig = field(default_factory=PhaseDetectionConfig)
     timing: TimingConfig = field(default_factory=TimingConfig)
     advance_behavior: AdvanceBehaviorConfig = field(default_factory=AdvanceBehaviorConfig)
     paradigm: ParadigmConfig = field(default_factory=ParadigmConfig)
+    data_capture: DataCaptureConfig = field(default_factory=DataCaptureConfig)
+    attention_check: AttentionCheckConfig = field(default_factory=AttentionCheckConfig)
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -268,6 +301,8 @@ class RuntimeConfig:
             timing=TimingConfig.from_dict(d.get("timing", {})),
             advance_behavior=AdvanceBehaviorConfig.from_dict(d.get("advance_behavior", {})),
             paradigm=ParadigmConfig.from_dict(d.get("paradigm", {})),
+            data_capture=DataCaptureConfig.from_dict(d.get("data_capture", {})),
+            attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
         )
 
     def to_dict(self) -> dict:
@@ -276,6 +311,8 @@ class RuntimeConfig:
             "timing": self.timing.to_dict(),
             "advance_behavior": self.advance_behavior.to_dict(),
             "paradigm": self.paradigm.to_dict(),
+            "data_capture": self.data_capture.to_dict(),
+            "attention_check": self.attention_check.to_dict(),
         }
 
 

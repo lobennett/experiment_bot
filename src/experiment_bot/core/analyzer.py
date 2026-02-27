@@ -23,13 +23,15 @@ class Analyzer:
 
     def _build_user_message(self, bundle: SourceBundle) -> str:
         parts = [
-            f"## Platform: {bundle.platform}",
-            f"## Task ID: {bundle.task_id}",
-            "",
-            "## Task Description",
-            bundle.description_text[:5000],
-            "",
+            f"## Experiment URL: {bundle.url}",
         ]
+        if bundle.hint:
+            parts.append(f"## User Hint: {bundle.hint}")
+        parts.append("")
+        parts.append("## Page HTML")
+        parts.append(bundle.description_text[:5000])
+        parts.append("")
+
         for filename, content in bundle.source_files.items():
             parts.append(f"## File: {filename}")
             parts.append(content[:30000])

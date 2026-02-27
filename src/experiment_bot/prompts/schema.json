@@ -5,10 +5,10 @@
   "properties": {
     "task": {
       "type": "object",
-      "required": ["name", "platform", "constructs", "reference_literature"],
+      "required": ["name", "constructs", "reference_literature"],
       "properties": {
         "name": {"type": "string"},
-        "platform": {"type": "string", "enum": ["expfactory", "psytoolkit"]},
+        "platform": {"type": "string", "description": "Detected platform (e.g., jsPsych, PsyToolkit, lab.js, Gorilla, etc.) or empty if unknown"},
         "constructs": {"type": "array", "items": {"type": "string"}},
         "reference_literature": {"type": "array", "items": {"type": "string"}}
       }
@@ -136,6 +136,27 @@
             "stop_condition": {"type": "string", "default": "stop", "description": "Stimulus condition name that indicates a stop/inhibit trial"},
             "stop_failure_rt_key": {"type": "string", "default": "stop_failure", "description": "Response distribution key for stop failure RTs"},
             "stop_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap stop failure RTs"}
+          }
+        },
+        "data_capture": {
+          "type": "object",
+          "description": "How to extract the experiment's recorded data after completion.",
+          "properties": {
+            "method": {"type": "string", "enum": ["js_expression", "button_click", ""], "description": "Data capture strategy"},
+            "expression": {"type": "string", "description": "JS expression returning data as string (for js_expression method)"},
+            "button_selector": {"type": "string", "description": "CSS selector for data button (for button_click method)"},
+            "result_selector": {"type": "string", "description": "CSS selector for result element (for button_click method)"},
+            "format": {"type": "string", "enum": ["csv", "tsv", "json"], "default": "csv", "description": "Data format"},
+            "wait_ms": {"type": "integer", "default": 1000, "description": "Wait after button click before reading result"}
+          }
+        },
+        "attention_check": {
+          "type": "object",
+          "description": "Attention check detection and response configuration.",
+          "properties": {
+            "detection_selector": {"type": "string", "description": "CSS/JS selector to detect when an attention check is displayed"},
+            "text_selector": {"type": "string", "description": "CSS selector to read attention check prompt text"},
+            "response_js": {"type": "string", "description": "Optional JS to determine response (overrides regex parsing)"}
           }
         }
       }

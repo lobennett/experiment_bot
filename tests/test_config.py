@@ -25,14 +25,15 @@ def test_task_phase_enum():
 
 def test_source_bundle_creation():
     bundle = SourceBundle(
-        platform="expfactory",
-        task_id="9",
+        url="https://example.com/experiment/9",
         source_files={"experiment.js": "var x = 1;"},
         description_text="A stop signal task.",
-        metadata={"url": "https://example.com"},
+        metadata={"fetched_resources": 1},
+        hint="stop signal task",
     )
-    assert bundle.platform == "expfactory"
+    assert bundle.url == "https://example.com/experiment/9"
     assert bundle.source_files["experiment.js"] == "var x = 1;"
+    assert bundle.hint == "stop signal task"
 
 
 def test_task_config_from_json():
@@ -184,3 +185,64 @@ def test_runtime_config_defaults():
     assert rc.timing.max_no_stimulus_polls == 500
     assert rc.advance_behavior.advance_keys == [" "]
     assert rc.paradigm.type == "simple"
+
+
+def test_data_capture_config_from_dict():
+    d = {
+        "method": "js_expression",
+        "expression": "jsPsych.data.get().csv()",
+        "format": "csv",
+    }
+    from experiment_bot.core.config import DataCaptureConfig
+    cfg = DataCaptureConfig.from_dict(d)
+    assert cfg.method == "js_expression"
+    assert cfg.expression == "jsPsych.data.get().csv()"
+    assert cfg.format == "csv"
+
+
+def test_data_capture_config_button_click():
+    d = {
+        "method": "button_click",
+        "button_selector": "input[value='show data']",
+        "result_selector": "#showdata",
+        "format": "tsv",
+    }
+    from experiment_bot.core.config import DataCaptureConfig
+    cfg = DataCaptureConfig.from_dict(d)
+    assert cfg.method == "button_click"
+    assert cfg.button_selector == "input[value='show data']"
+
+
+def test_data_capture_config_defaults():
+    from experiment_bot.core.config import DataCaptureConfig
+    cfg = DataCaptureConfig()
+    assert cfg.method == ""
+    assert cfg.format == "csv"
+
+
+def test_attention_check_config_from_dict():
+    d = {
+        "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+        "text_selector": ".jspsych-display-element",
+    }
+    from experiment_bot.core.config import AttentionCheckConfig
+    cfg = AttentionCheckConfig.from_dict(d)
+    assert cfg.detection_selector == "#jspsych-attention-check-rdoc-stimulus"
+    assert cfg.text_selector == ".jspsych-display-element"
+
+
+def test_runtime_config_with_data_capture():
+    d = {
+        "data_capture": {
+            "method": "js_expression",
+            "expression": "jsPsych.data.get().csv()",
+            "format": "csv",
+        },
+        "attention_check": {
+            "detection_selector": "#attention-check",
+        },
+    }
+    from experiment_bot.core.config import RuntimeConfig
+    cfg = RuntimeConfig.from_dict(d)
+    assert cfg.data_capture.method == "js_expression"
+    assert cfg.attention_check.detection_selector == "#attention-check"

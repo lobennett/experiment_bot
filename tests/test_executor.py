@@ -406,14 +406,19 @@ def test_sampler_fallback_to_first_distribution():
 
 @pytest.mark.asyncio
 async def test_wait_for_completion_captures_data():
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "data_capture": {
+            "method": "js_expression",
+            "expression": "jsPsych.data.get().csv()",
+            "format": "csv",
+        }
+    }
+    config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config, platform_name="expfactory", seed=42)
     executor._writer = MagicMock()
     executor._writer.run_dir = "/tmp/fake"
     page = AsyncMock()
-    mock_capturer = AsyncMock()
-    mock_capturer.capture.return_value = "rt,response\n450,left\n"
-    with patch("experiment_bot.core.executor.get_data_capture", return_value=mock_capturer):
-        await executor._wait_for_completion(page)
-    mock_capturer.capture.assert_awaited_once_with(page)
+    page.evaluate = AsyncMock(return_value="rt,response\n450,left\n")
+    await executor._wait_for_completion(page)
     executor._writer.save_task_data.assert_called_once_with("rt,response\n450,left\n", "experiment_data.csv")

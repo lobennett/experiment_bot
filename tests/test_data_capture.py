@@ -5,12 +5,14 @@ from unittest.mock import AsyncMock, MagicMock
 import pytest
 
 from experiment_bot.output.data_capture import (
+    ConfigDrivenCapture,
     DataCapture,
     ExpFactoryDataCapture,
     PsyToolkitDataCapture,
     get_data_capture,
     parse_showdata_html,
 )
+from experiment_bot.core.config import DataCaptureConfig
 
 
 # ---------------------------------------------------------------------------
@@ -171,3 +173,52 @@ def test_get_data_capture_expfactory():
 def test_get_data_capture_unknown():
     cap = get_data_capture("unknown_platform")
     assert cap is None
+
+
+# ---------------------------------------------------------------------------
+# ConfigDrivenCapture
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_config_driven_js_expression_capture():
+    config = DataCaptureConfig(
+        method="js_expression",
+        expression="jsPsych.data.get().csv()",
+        format="csv",
+    )
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="col1,col2\n1,2\n3,4")
+
+    capturer = ConfigDrivenCapture(config)
+    data = await capturer.capture(page)
+    assert data == "col1,col2\n1,2\n3,4"
+
+
+@pytest.mark.asyncio
+async def test_config_driven_button_click_capture():
+    config = DataCaptureConfig(
+        method="button_click",
+        button_selector="input[value='show data']",
+        result_selector="#showdata",
+        format="tsv",
+        wait_ms=500,
+    )
+    page = AsyncMock()
+    button = AsyncMock()
+    page.query_selector = AsyncMock(return_value=button)
+    page.wait_for_timeout = AsyncMock()
+    page.eval_on_selector = AsyncMock(return_value="<table><tr><td>a</td><td>b</td></tr></table>")
+
+    capturer = ConfigDrivenCapture(config)
+    data = await capturer.capture(page)
+    assert data is not None
+    assert "a\tb" in data
+
+
+@pytest.mark.asyncio
+async def test_config_driven_no_capture_method():
+    config = DataCaptureConfig()  # method=""
+    capturer = ConfigDrivenCapture(config)
+    data = await capturer.capture(AsyncMock())
+    assert data is None

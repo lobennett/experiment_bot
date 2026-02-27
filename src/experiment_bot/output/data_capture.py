@@ -6,6 +6,8 @@ from html.parser import HTMLParser
 
 from playwright.async_api import Page
 
+from experiment_bot.core.config import DataCaptureConfig
+
 logger = logging.getLogger(__name__)
 
 
@@ -151,3 +153,56 @@ def get_data_capture(platform_name: str) -> DataCapture | None:
     """Return a DataCapture instance for the given platform, or None."""
     cls = _CAPTURERS.get(platform_name)
     return cls() if cls else None
+
+
+# ---------------------------------------------------------------------------
+# Config-driven capture (replaces platform-specific classes)
+# ---------------------------------------------------------------------------
+
+
+# Alias for backward compatibility
+parse_html_table = parse_showdata_html
+
+
+class ConfigDrivenCapture:
+    """Captures experiment data using the strategy specified in DataCaptureConfig."""
+
+    def __init__(self, config: DataCaptureConfig):
+        self._config = config
+
+    async def capture(self, page: Page) -> str | None:
+        if not self._config.method:
+            return None
+
+        try:
+            if self._config.method == "js_expression":
+                return await self._capture_js_expression(page)
+            elif self._config.method == "button_click":
+                return await self._capture_button_click(page)
+            else:
+                logger.warning(f"Unknown capture method: {self._config.method}")
+                return None
+        except Exception:
+            logger.warning("Data capture failed", exc_info=True)
+            return None
+
+    async def _capture_js_expression(self, page: Page) -> str | None:
+        expr = self._config.expression
+        result = await page.evaluate(
+            f"(() => {{ try {{ return {expr}; }} catch(e) {{ return null; }} }})()"
+        )
+        return result if isinstance(result, str) else None
+
+    async def _capture_button_click(self, page: Page) -> str | None:
+        button = await page.query_selector(self._config.button_selector)
+        if not button:
+            logger.warning(f"Data button not found: {self._config.button_selector}")
+            return None
+
+        await button.click()
+        await page.wait_for_timeout(self._config.wait_ms)
+
+        html = await page.eval_on_selector(
+            self._config.result_selector, "el => el.innerHTML"
+        )
+        return parse_html_table(html)

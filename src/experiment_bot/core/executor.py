@@ -15,7 +15,7 @@ from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
 from experiment_bot.core.phase_detection import detect_phase
-from experiment_bot.output.data_capture import get_data_capture
+from experiment_bot.output.data_capture import ConfigDrivenCapture
 
 logger = logging.getLogger(__name__)
 
@@ -589,17 +589,13 @@ class TaskExecutor:
         """Wait for task completion and capture experiment data."""
         await asyncio.sleep(2.0)  # Brief settle time
 
-        capturer = get_data_capture(self._platform_name)
-        if capturer:
-            logger.info(f"Capturing experiment data for {self._platform_name}...")
-            data = await capturer.capture(page)
-            if data:
-                ext = "tsv" if self._platform_name == "psytoolkit" else "csv"
-                self._writer.save_task_data(data, f"experiment_data.{ext}")
-                logger.info("Experiment data saved")
-            else:
-                logger.warning("No experiment data captured")
+        capturer = ConfigDrivenCapture(self._config.runtime.data_capture)
+        data = await capturer.capture(page)
+        if data:
+            ext = self._config.runtime.data_capture.format or "csv"
+            self._writer.save_task_data(data, f"experiment_data.{ext}")
+            logger.info("Experiment data saved")
         else:
             wait_s = self._config.runtime.timing.completion_wait_ms / 1000.0
-            logger.info(f"No data capturer for {self._platform_name}, waiting {wait_s:.1f}s")
+            logger.info(f"No data captured, waiting {wait_s:.1f}s for platform data save")
             await asyncio.sleep(wait_s)

@@ -12,9 +12,13 @@ cd "$PROJECT_ROOT"
 # Task registry: url|hint|label
 TASKS=(
     "https://deploy.expfactory.org/preview/9/|stop signal task|expfactory_stop_signal"
+    "https://deploy.expfactory.org/preview/10/|stroop color-word task|expfactory_stroop"
     "https://deploy.expfactory.org/preview/2/|cued task switching|expfactory_task_switching"
     "https://www.psytoolkit.org/experiment-library/experiment_stopsignal.html|stop signal task|psytoolkit_stop_signal"
+    "https://www.psytoolkit.org/experiment-library/experiment_stroop_en.html|stroop color-word task|psytoolkit_stroop"
     "https://www.psytoolkit.org/experiment-library/experiment_taskswitching_cued.html|cued task switching|psytoolkit_task_switching"
+    "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html|stop signal task|stopit_stop_signal"
+    "https://strooptest.cognition.run/|stroop color-word task|cognitionrun_stroop"
 )
 
 # ---------------------------------------------------------------------------
@@ -180,3 +184,12 @@ fi
 if (( FAILURES > 0 )); then
     exit 1
 fi
+
+# ---------------------------------------------------------------------------
+# Quick-run: four validated jsPsych tasks (regenerate configs)
+# ---------------------------------------------------------------------------
+# source .env && export ANTHROPIC_API_KEY
+# uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --hint "stroop color-word task" --label expfactory_stroop --regenerate-config
+# uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task" --label expfactory_stop_signal --regenerate-config
+# uv run experiment-bot "https://strooptest.cognition.run/" --hint "stroop color-word task" --label cognitionrun_stroop --regenerate-config
+# uv run experiment-bot "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html" --hint "stop signal task" --label stopit_stop_signal --regenerate-config

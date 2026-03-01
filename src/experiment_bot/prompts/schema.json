@@ -56,11 +56,18 @@
     },
     "performance": {
       "type": "object",
-      "required": ["go_accuracy", "stop_accuracy", "omission_rate", "practice_accuracy"],
+      "required": ["accuracy", "omission_rate", "practice_accuracy"],
       "properties": {
-        "go_accuracy": {"type": "number", "minimum": 0, "maximum": 1},
-        "stop_accuracy": {"type": "number", "minimum": 0, "maximum": 1},
-        "omission_rate": {"type": "number", "minimum": 0, "maximum": 1},
+        "accuracy": {
+          "type": "object",
+          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
+          "description": "Per-condition accuracy (0-1). Keys are condition names from stimuli."
+        },
+        "omission_rate": {
+          "type": "object",
+          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
+          "description": "Per-condition omission rate (0-1). Keys are condition names."
+        },
         "practice_accuracy": {"type": "number", "minimum": 0, "maximum": 1}
       }
     },

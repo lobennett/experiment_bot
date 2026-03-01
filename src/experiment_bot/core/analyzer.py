@@ -55,6 +55,7 @@ class Analyzer:
             )
 
             raw_text = response.content[0].text.strip()
+            logger.debug("Claude raw response (first 500 chars): %s", raw_text[:500])
 
             # Strip markdown code fences if present
             if raw_text.startswith("```"):
@@ -66,5 +67,6 @@ class Analyzer:
                 return TaskConfig.from_dict(data)
             except (json.JSONDecodeError, KeyError, TypeError) as e:
                 logger.warning(f"Attempt {attempts} failed to parse config: {e}")
+                logger.debug("Full raw text that failed: %s", raw_text[:2000])
                 if attempts > self._max_retries:
                     raise ValueError(f"Failed to get valid config after {attempts} attempts: {e}") from e

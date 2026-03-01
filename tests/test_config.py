@@ -65,9 +65,8 @@ def test_task_config_from_json():
             }
         },
         "performance": {
-            "go_accuracy": 0.95,
-            "stop_accuracy": 0.50,
-            "omission_rate": 0.02,
+            "accuracy": {"go": 0.95, "stop": 0.50},
+            "omission_rate": {"go": 0.02},
             "practice_accuracy": 0.85,
         },
         "navigation": {
@@ -82,7 +81,7 @@ def test_task_config_from_json():
     assert len(config.stimuli) == 1
     assert config.stimuli[0].detection.selector == ".arrow-left"
     assert config.response_distributions["go_correct"].params["mu"] == 450
-    assert config.performance.go_accuracy == 0.95
+    assert config.performance.get_accuracy("go") == 0.95
     assert config.navigation.phases[0].action == "click"
     assert config.task_specific["model"] == "independent_race"
 
@@ -98,9 +97,8 @@ def test_task_config_round_trip_json():
         "stimuli": [],
         "response_distributions": {},
         "performance": {
-            "go_accuracy": 0.9,
-            "stop_accuracy": 0.5,
-            "omission_rate": 0.01,
+            "accuracy": {"go": 0.9, "stop": 0.5},
+            "omission_rate": {"go": 0.01},
             "practice_accuracy": 0.8,
         },
         "navigation": {"phases": []},
@@ -161,7 +159,7 @@ def test_task_config_with_runtime():
         "task": {"name": "Test", "platform": "test", "constructs": [], "reference_literature": []},
         "stimuli": [],
         "response_distributions": {},
-        "performance": {"go_accuracy": 0.9, "stop_accuracy": 0.5, "omission_rate": 0.01, "practice_accuracy": 0.8},
+        "performance": {"accuracy": {"go": 0.9, "stop": 0.5}, "omission_rate": {"go": 0.01}, "practice_accuracy": 0.8},
         "navigation": {"phases": []},
         "task_specific": {},
         "runtime": {

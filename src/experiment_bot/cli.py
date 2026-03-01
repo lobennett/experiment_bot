@@ -51,7 +51,9 @@ async def _run_task(
             for dist in config.response_distributions.values():
                 dist.params["mu"] = rt_mean
         if accuracy is not None:
-            config.performance.go_accuracy = accuracy
+            config.performance.accuracy = {
+                cond: accuracy for cond in config.performance.accuracy
+            } if config.performance.accuracy else {"default": accuracy}
 
         cache.save(url, config, label)
         click.echo("Config generated and cached.")
@@ -61,7 +63,9 @@ async def _run_task(
             for dist in config.response_distributions.values():
                 dist.params["mu"] = rt_mean
         if accuracy is not None:
-            config.performance.go_accuracy = accuracy
+            config.performance.accuracy = {
+                cond: accuracy for cond in config.performance.accuracy
+            } if config.performance.accuracy else {"default": accuracy}
 
     import numpy as np
     from experiment_bot.core.distributions import jitter_distributions

@@ -102,14 +102,17 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
             dist.params["sigma"] *= rng.uniform(0.85, 1.15)
             dist.params["tau"] *= rng.uniform(0.85, 1.15)
 
-    # Scale accuracy jitter: less jitter for high-accuracy tasks (less room to vary)
-    acc_base = config.performance.go_accuracy
-    acc_jitter_sd = 0.015 if acc_base >= 0.95 else 0.03
-    config.performance.go_accuracy = float(
-        np.clip(acc_base + rng.normal(0, acc_jitter_sd), 0.85, 0.995)
-    )
-    config.performance.omission_rate = float(
-        np.clip(config.performance.omission_rate + rng.normal(0, 0.01), 0.0, 0.08)
-    )
+    # Jitter per-condition accuracy values
+    for cond, acc_base in config.performance.accuracy.items():
+        acc_jitter_sd = 0.015 if acc_base >= 0.95 else 0.03
+        config.performance.accuracy[cond] = float(
+            np.clip(acc_base + rng.normal(0, acc_jitter_sd), 0.60, 0.995)
+        )
+
+    # Jitter per-condition omission rates
+    for cond, om_base in config.performance.omission_rate.items():
+        config.performance.omission_rate[cond] = float(
+            np.clip(om_base + rng.normal(0, 0.01), 0.0, 0.08)
+        )
 
     return config

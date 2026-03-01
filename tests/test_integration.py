@@ -41,9 +41,8 @@ FULL_CONFIG = {
         "stop_failure": {"distribution": "ex_gaussian", "params": {"mu": 400, "sigma": 50, "tau": 60}},
     },
     "performance": {
-        "go_accuracy": 0.95,
-        "stop_accuracy": 0.50,
-        "omission_rate": 0.02,
+        "accuracy": {"go": 0.95, "stop": 0.50},
+        "omission_rate": {"go": 0.02},
         "practice_accuracy": 0.85,
     },
     "navigation": {"phases": []},
@@ -102,9 +101,8 @@ def test_executor_works_with_runtime_config_only():
             }
         },
         "performance": {
-            "go_accuracy": 0.95,
-            "stop_accuracy": 0.5,
-            "omission_rate": 0.02,
+            "accuracy": {"go": 0.95, "stop": 0.5},
+            "omission_rate": {"go": 0.02},
             "practice_accuracy": 0.9,
         },
         "navigation": {"phases": []},

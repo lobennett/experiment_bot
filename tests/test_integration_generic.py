@@ -47,9 +47,8 @@ GENERIC_CONFIG = {
         "go_error": {"distribution": "ex_gaussian", "params": {"mu": 380, "sigma": 60, "tau": 90}},
     },
     "performance": {
-        "go_accuracy": 0.92,
-        "stop_accuracy": 0.0,
-        "omission_rate": 0.03,
+        "accuracy": {"go": 0.92},
+        "omission_rate": {"go": 0.03},
         "practice_accuracy": 0.85,
     },
     "navigation": {"phases": []},

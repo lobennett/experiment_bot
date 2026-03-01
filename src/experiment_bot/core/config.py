@@ -97,22 +97,41 @@ class DistributionConfig:
 
 @dataclass
 class PerformanceConfig:
-    go_accuracy: float
-    stop_accuracy: float
-    omission_rate: float
-    practice_accuracy: float
+    accuracy: dict[str, float]           # condition → accuracy (0-1)
+    omission_rate: dict[str, float]      # condition → omission rate (0-1)
+    practice_accuracy: float = 0.85
 
     @classmethod
     def from_dict(cls, d: dict) -> PerformanceConfig:
         return cls(
-            go_accuracy=d["go_accuracy"],
-            stop_accuracy=d["stop_accuracy"],
-            omission_rate=d["omission_rate"],
-            practice_accuracy=d["practice_accuracy"],
+            accuracy=d["accuracy"],
+            omission_rate=d.get("omission_rate", {}),
+            practice_accuracy=d.get("practice_accuracy", 0.85),
         )
 
+    def get_accuracy(self, condition: str) -> float:
+        if condition in self.accuracy:
+            return self.accuracy[condition]
+        if "default" in self.accuracy:
+            return self.accuracy["default"]
+        if self.accuracy:
+            return next(iter(self.accuracy.values()))
+        return 0.90
+
+    def get_omission_rate(self, condition: str) -> float:
+        if condition in self.omission_rate:
+            return self.omission_rate[condition]
+        if "default" in self.omission_rate:
+            return self.omission_rate["default"]
+        if self.omission_rate:
+            return next(iter(self.omission_rate.values()))
+        return 0.02
+
     def to_dict(self) -> dict:
-        return asdict(self)
+        result = {"accuracy": self.accuracy, "practice_accuracy": self.practice_accuracy}
+        if self.omission_rate:
+            result["omission_rate"] = self.omission_rate
+        return result
 
 
 @dataclass

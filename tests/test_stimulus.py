@@ -15,7 +15,7 @@ def _make_config_with_stimuli(stimuli: list[StimulusConfig]) -> TaskConfig:
         "task": {"name": "T", "platform": "test", "constructs": [], "reference_literature": []},
         "stimuli": [s.to_dict() for s in stimuli],
         "response_distributions": {},
-        "performance": {"go_accuracy": 0.9, "stop_accuracy": 0.5, "omission_rate": 0.01, "practice_accuracy": 0.8},
+        "performance": {"accuracy": {"go": 0.9, "stop": 0.5}, "omission_rate": {"go": 0.01}, "practice_accuracy": 0.8},
         "navigation": {"phases": []},
         "task_specific": {},
     })

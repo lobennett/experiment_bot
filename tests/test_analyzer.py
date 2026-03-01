@@ -28,9 +28,8 @@ MOCK_CONFIG_JSON = json.dumps({
         }
     },
     "performance": {
-        "go_accuracy": 0.95,
-        "stop_accuracy": 0.50,
-        "omission_rate": 0.02,
+        "accuracy": {"go": 0.95, "stop": 0.50},
+        "omission_rate": {"go": 0.02},
         "practice_accuracy": 0.85,
     },
     "navigation": {"phases": []},
@@ -110,9 +109,8 @@ MOCK_CONFIG_WITH_RUNTIME = json.dumps({
         }
     },
     "performance": {
-        "go_accuracy": 0.95,
-        "stop_accuracy": 0.50,
-        "omission_rate": 0.02,
+        "accuracy": {"go": 0.95, "stop": 0.50},
+        "omission_rate": {"go": 0.02},
         "practice_accuracy": 0.85,
     },
     "navigation": {"phases": []},

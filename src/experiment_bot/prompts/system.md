@@ -21,19 +21,42 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
    **IMPORTANT**: Identify ALL possible stimulus types. Missing a stimulus type will cause the bot to freeze. Order stimulus rules so that inhibition/stop signals are detected BEFORE go stimuli when both may be simultaneously present.
 
+   **Selector best practices**: Do not assume the stimulus is wrapped in a specific HTML tag (`span`, `p`, `div`). Experiment authors use different tags in their stimulus HTML strings. Prefer tag-agnostic selectors:
+   - Use `firstElementChild` to get the first child of a container (e.g., `document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild`)
+   - Use `children[0]` as an alternative
+   - Only target a specific tag (e.g., `querySelector('span')`) if the experiment source code explicitly defines that tag
+
+   **Do NOT include fixation crosses, inter-trial intervals, or blank screens as stimuli.** Only include stimuli that require a keyboard response from the participant. Fixation/ITI phases are handled by the executor's polling loop and `response_window_js` timing — they do not need stimulus entries.
+
 3. **Response time distributions**: Based on published literature for this task type, provide ex-Gaussian distribution parameters (mu, sigma, tau in milliseconds) for each response condition. These should reflect typical healthy adult performance.
 
-   RT distribution naming conventions (the executor uses these names to select distributions):
-   - **Simple and stop signal tasks**: Use `go_correct`, `go_error`, and `stop_failure` as distribution keys
-   - **Task switching paradigms**: Use `task_repeat_cue_repeat`, `task_repeat_cue_switch`, `task_switch`, and `first_trial` as distribution keys. Name stimulus conditions as `{task_type}_{stimulus}` (e.g., `parity_even`, `color_left`) — the executor extracts the task type from the condition prefix and compares with the previous trial to select the correct distribution
-   - **Other paradigms**: Choose descriptive distribution key names that match the condition labels
+   RT distribution naming: Name distributions after their conditions.
+   Use `{condition}` for the primary distribution, optionally
+   `{condition}_correct` and `{condition}_error` if correct and error
+   responses have different RT profiles. For task switching, use
+   `task_repeat_cue_repeat`, `task_repeat_cue_switch`, `task_switch`,
+   and `first_trial`.
 
    Literature-grounded ranges:
    - Typical healthy adult go RTs: mu=400-500ms, sigma=50-80ms, tau=60-100ms
    - Stop signal: SSRT ~200-280ms (Verbruggen & Logan, 2009)
    - Task switching: switch cost ~50-150ms added to mu (Monsell, 2003)
 
-4. **Performance targets**: Accuracy (0-1), stop accuracy if applicable, omission rate, and practice accuracy.
+4. **Performance targets**: Provide per-condition accuracy and omission rates.
+   Key the `accuracy` and `omission_rate` objects by condition name from your
+   stimulus definitions. For tasks with inhibition conditions (stop signal,
+   go/no-go), include accuracy for both go and stop/no-go conditions. Base
+   all values on published literature for the specific task.
+
+   Example for Stroop:
+   {"accuracy": {"congruent": 0.97, "incongruent": 0.88},
+    "omission_rate": {"congruent": 0.01, "incongruent": 0.03},
+    "practice_accuracy": 0.85}
+
+   Example for stop signal:
+   {"accuracy": {"go": 0.95, "stop": 0.50},
+    "omission_rate": {"go": 0.02, "stop": 0.0},
+    "practice_accuracy": 0.85}
 
 5. **Navigation flow**: How does a participant get from the initial page to the first trial? List every click, keypress, and wait needed. Include CSS selectors for buttons and the exact keys to press. Common patterns:
    - Button clicks (fullscreen, next, start)

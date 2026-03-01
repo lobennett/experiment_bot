@@ -68,15 +68,25 @@ class TaskExecutor:
         # Look up from dynamic key map
         return self._key_map.get(match.condition)
 
+    def _is_trial_stimulus(self, match: StimulusMatch) -> bool:
+        """Whether a stimulus represents a trial requiring RT-distributed response.
+
+        Derived from config: a condition is trial-level if it maps to an RT distribution.
+        """
+        dists = self._config.response_distributions
+        condition = match.condition
+        # Direct match or correct/error variant exists
+        if condition in dists or f"{condition}_correct" in dists or f"{condition}_error" in dists:
+            return True
+        # Has distributions and stimulus has a response key → likely a trial
+        return bool(dists) and match.response_key is not None
+
     def _should_respond_correctly(self, condition: str) -> bool:
         """Decide whether to give the correct response based on accuracy targets."""
-        stop_cond = self._config.runtime.paradigm.stop_condition
-        if condition == stop_cond:
-            return self._py_rng.random() < self._config.performance.stop_accuracy
-        return self._py_rng.random() < self._config.performance.go_accuracy
+        return self._py_rng.random() < self._config.performance.get_accuracy(condition)
 
-    def _should_omit(self) -> bool:
-        return self._py_rng.random() < self._config.performance.omission_rate
+    def _should_omit(self, condition: str = "") -> bool:
+        return self._py_rng.random() < self._config.performance.get_omission_rate(condition)
 
     def _pick_wrong_key(self, correct_key: str) -> str:
         """Return a random incorrect key from the key map."""
@@ -89,19 +99,29 @@ class TaskExecutor:
     def _resolve_rt_distribution_key(self, condition: str, is_correct: bool, cue: str | None = None) -> str:
         """Determine which RT distribution to sample from.
 
-        For configs with go_correct/go_error distributions (stop signal, simple tasks),
-        uses the legacy behavior. For configs with task-switching distributions
-        (task_repeat_cue_repeat, task_switch, etc.), derives the key from trial history
-        including cue switch tracking.
+        Resolution order:
+        1. {condition}_correct / {condition}_error variants
+        2. Direct condition name match
+        3. Task-switching derivation from trial history
+        4. Fallback to first available distribution
         """
         dists = self._config.response_distributions
 
-        # Legacy path: config has go_correct/go_error keys (stop signal, simple tasks)
-        if "go_correct" in dists or "go_error" in dists:
-            return "go_correct" if is_correct else "go_error"
+        # Try condition-specific correct/error variants
+        if not is_correct:
+            error_key = f"{condition}_error"
+            if error_key in dists:
+                return error_key
+        else:
+            correct_key = f"{condition}_correct"
+            if correct_key in dists:
+                return correct_key
+
+        # Direct match: condition name is itself a distribution key
+        if condition in dists:
+            return condition
 
         # Task switching path: derive from trial history
-        # Extract task type from condition prefix (e.g., "parity_even" -> "parity")
         task_type = condition.rsplit("_", 1)[0] if "_" in condition else condition
 
         if self._prev_task_type is None:
@@ -116,7 +136,14 @@ class TaskExecutor:
         self._prev_task_type = task_type
         if cue:
             self._prev_cue = cue
-        return rt_key
+
+        if rt_key in dists:
+            return rt_key
+
+        # Fallback to first available distribution
+        if dists:
+            return next(iter(dists))
+        return condition
 
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
@@ -179,30 +206,51 @@ class TaskExecutor:
                 consecutive_misses = 0
                 continue
 
-            if phase == TaskPhase.FEEDBACK:
-                await self._handle_feedback(page)
-                consecutive_misses = 0
-                continue
-
-            if phase == TaskPhase.INSTRUCTIONS:
-                await self._navigator.execute_all(page, self._config.navigation)
-                consecutive_misses = 0
-                continue
+            if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
+                probe = await self._lookup.identify(page)
+                if probe is None or not self._is_trial_stimulus(probe):
+                    if phase == TaskPhase.FEEDBACK:
+                        await self._handle_feedback(page)
+                    else:
+                        await self._navigator.execute_all(page, self._config.navigation)
+                    consecutive_misses = 0
+                    continue
+                logger.debug("Trial stimulus %s overrides %s phase", probe.stimulus_id, phase.value)
 
             # Gate stimulus detection on response window — prevents detecting
-            # stale JS globals during fixation, cue display, or feedback phases
+            # stale JS globals during fixation, cue display, or feedback phases.
+            # When the window stays closed too long, fall through to advance
+            # behavior so between-block instruction screens still get dismissed.
             self._response_window_confirmed = False
             if timing.response_window_js:
                 try:
                     ready = await page.evaluate(timing.response_window_js)
                     if not ready:
+                        consecutive_misses += 1
+                        ab = self._config.runtime.advance_behavior
+                        if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                            logger.info(f"Response window closed for {consecutive_misses} polls, pressing advance keys")
+                            if ab.pre_keypress_js:
+                                try:
+                                    await page.evaluate(ab.pre_keypress_js)
+                                except Exception:
+                                    pass
+                            for key in ab.advance_keys:
+                                await page.keyboard.press(key)
+                        if consecutive_misses > max_no_stimulus_polls:
+                            logger.warning("Response window closed too long, stopping trial loop")
+                            break
                         await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                         continue
                     self._response_window_confirmed = True
+                    consecutive_misses = 0
                 except Exception:
                     pass
 
-            match = await self._lookup.identify(page)
+            if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
+                match = probe
+            else:
+                match = await self._lookup.identify(page)
             if match is None:
                 consecutive_misses += 1
                 if consecutive_misses > max_no_stimulus_polls:
@@ -233,13 +281,15 @@ class TaskExecutor:
                 await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                 continue
 
-            consecutive_misses = 0
-            stuck_detector.heartbeat()
-
-            # Skip non-trial stimuli
-            if match.condition == "no_response":
+            # Skip non-trial stimuli (fixation, ITI) without resetting miss counter.
+            # Resetting here would prevent advance behavior from triggering when
+            # the executor is stuck detecting fixation on an instruction screen.
+            if not self._is_trial_stimulus(match) and match.response_key is None:
                 await asyncio.sleep(0.05)
                 continue
+
+            consecutive_misses = 0
+            stuck_detector.heartbeat()
 
             # Handle navigation stimuli (press Enter on feedback screens)
             if match.condition == "navigation":
@@ -339,7 +389,7 @@ class TaskExecutor:
         trial_start = time.monotonic()
         condition = match.condition
 
-        if self._should_omit():
+        if self._should_omit(condition):
             self._writer.log_trial({
                 "trial": self._trial_count,
                 "stimulus_id": match.stimulus_id,
@@ -361,7 +411,7 @@ class TaskExecutor:
         trial_start = time.monotonic()
 
         # Sample go RT — track whether this is an intentional error trial
-        is_correct = self._should_respond_correctly("go")
+        is_correct = self._should_respond_correctly(condition)
         rt_condition = self._resolve_rt_distribution_key(condition, is_correct, cue=cue)
         is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)

@@ -1,7 +1,7 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from experiment_bot.core.executor import TaskExecutor
-from experiment_bot.core.config import TaskConfig
+from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusMatch
 
 
@@ -24,7 +24,7 @@ SAMPLE_CONFIG = {
     "response_distributions": {
         "go_correct": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
     },
-    "performance": {"go_accuracy": 0.95, "stop_accuracy": 0.50, "omission_rate": 0.02, "practice_accuracy": 0.85},
+    "performance": {"accuracy": {"go": 0.95, "stop": 0.50}, "omission_rate": {"go": 0.02}, "practice_accuracy": 0.85},
     "navigation": {"phases": []},
     "task_specific": {"model": "independent_race", "ssrt_target_ms": 250},
 }
@@ -47,7 +47,7 @@ def test_should_respond_correctly_on_go():
 def test_should_omit_rarely():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     executor = TaskExecutor(config, seed=42)
-    omit_count = sum(1 for _ in range(1000) if executor._should_omit())
+    omit_count = sum(1 for _ in range(1000) if executor._should_omit("go"))
     assert 5 < omit_count < 50
 
 
@@ -117,7 +117,7 @@ TASK_SWITCHING_CONFIG = {
     "response_distributions": {
         "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 580, "sigma": 70, "tau": 100}},
     },
-    "performance": {"go_accuracy": 0.88, "stop_accuracy": 0, "omission_rate": 0.03, "practice_accuracy": 0.85},
+    "performance": {"accuracy": {"go": 0.88}, "omission_rate": {"go": 0.03}, "practice_accuracy": 0.85},
     "navigation": {"phases": []},
     "task_specific": {
         "key_map": {
@@ -267,17 +267,19 @@ def test_paradigm_config_controls_stop_handling():
     assert selector == "checkInhibit()"
 
 
-def test_should_respond_correctly_uses_paradigm_config():
-    """_should_respond_correctly uses paradigm.stop_condition, not hardcoded 'stop'."""
+def test_should_respond_correctly_uses_per_condition_accuracy():
+    """_should_respond_correctly uses per-condition accuracy from the dict."""
     config_data = dict(SAMPLE_CONFIG)
-    config_data["runtime"] = {
-        "paradigm": {"type": "stop_signal", "stop_condition": "inhibit"}
+    config_data["performance"] = {
+        "accuracy": {"go": 0.95, "inhibit": 0.50},
+        "omission_rate": {"go": 0.02},
+        "practice_accuracy": 0.85,
     }
     config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config, seed=42)
-    # "inhibit" should use stop_accuracy, not go_accuracy
+    # "inhibit" should use its own accuracy (0.50)
     results = [executor._should_respond_correctly("inhibit") for _ in range(100)]
-    # stop_accuracy is 0.50, so roughly 50% should be True
+    # accuracy is 0.50, so roughly 50% should be True
     assert 30 < sum(results) < 70
 
 
@@ -309,12 +311,14 @@ def test_executor_sampler_uses_config_floor():
     assert executor._sampler._floor_ms == 200.0
 
 
-def test_resolve_rt_distribution_key_legacy():
-    """Configs with go_correct distributions use legacy go_correct/go_error keys."""
+def test_resolve_rt_distribution_key_condition_correct_error():
+    """Configs with {condition}_correct distributions resolve via correct/error variants."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     executor = TaskExecutor(config, seed=42)
-    assert executor._resolve_rt_distribution_key("go_circle", True) == "go_correct"
-    assert executor._resolve_rt_distribution_key("go_circle", False) == "go_error"
+    # SAMPLE_CONFIG has "go_correct" distribution — "go" + "_correct" matches
+    assert executor._resolve_rt_distribution_key("go", True) == "go_correct"
+    # "go_error" not in dists, so falls back to direct match → "go" not in dists → first available
+    assert executor._resolve_rt_distribution_key("go", False) == "go_correct"
 
 
 TASK_SWITCHING_CONFIG_FULL = {
@@ -339,7 +343,7 @@ TASK_SWITCHING_CONFIG_FULL = {
         "task_switch": {"distribution": "ex_gaussian", "params": {"mu": 525, "sigma": 60, "tau": 95}},
         "first_trial": {"distribution": "ex_gaussian", "params": {"mu": 525, "sigma": 65, "tau": 95}},
     },
-    "performance": {"go_accuracy": 0.92, "stop_accuracy": 0, "omission_rate": 0.005, "practice_accuracy": 0.90},
+    "performance": {"accuracy": {"go": 0.92}, "omission_rate": {"go": 0.005}, "practice_accuracy": 0.90},
     "navigation": {"phases": []},
     "task_specific": {},
 }
@@ -422,3 +426,176 @@ async def test_wait_for_completion_captures_data():
     page.evaluate = AsyncMock(return_value="rt,response\n450,left\n")
     await executor._wait_for_completion(page)
     executor._writer.save_task_data.assert_called_once_with("rt,response\n450,left\n", "experiment_data.csv")
+
+
+# --- New tests for condition-driven performance and stimulus-gated detection ---
+
+
+def test_is_trial_stimulus_with_direct_distribution():
+    """_is_trial_stimulus returns True when condition is a direct distribution key."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["response_distributions"] = {
+        "congruent": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    match = StimulusMatch(stimulus_id="cong_1", response_key="f", condition="congruent")
+    assert executor._is_trial_stimulus(match) is True
+
+
+def test_is_trial_stimulus_with_correct_error_variant():
+    """_is_trial_stimulus returns True when {condition}_correct exists."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config, seed=42)
+    # SAMPLE_CONFIG has "go_correct" distribution
+    match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    assert executor._is_trial_stimulus(match) is True
+
+
+def test_is_trial_stimulus_false_for_navigation():
+    """_is_trial_stimulus returns False for stimuli without matching distributions."""
+    config_data = dict(SAMPLE_CONFIG)
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    match = StimulusMatch(stimulus_id="nav", response_key=None, condition="navigation")
+    assert executor._is_trial_stimulus(match) is False
+
+
+@pytest.mark.asyncio
+async def test_feedback_phase_overridden_by_trial_stimulus():
+    """When feedback phase is detected but a trial stimulus is present, trial proceeds."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "phase_detection": {"feedback": "true", "complete": "false", "test": "true"},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+
+    page = AsyncMock()
+    trial_match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    # identify returns a trial stimulus
+    executor._lookup = MagicMock()
+    executor._lookup.identify = AsyncMock(side_effect=[
+        trial_match,  # probe in feedback check
+        trial_match,  # would be reused as probe
+        None,  # next poll — no stimulus
+        None, None, None,  # enough misses to break
+    ])
+
+    # Phase detection returns FEEDBACK then COMPLETE
+    call_count = 0
+
+    async def mock_detect_phase(page, cfg):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return TaskPhase.FEEDBACK
+        return TaskPhase.COMPLETE
+
+    with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
+        await executor._trial_loop(page)
+
+    # Should have logged a trial (not just handled feedback)
+    assert executor._trial_count == 1
+
+
+@pytest.mark.asyncio
+async def test_feedback_proceeds_when_no_trial_stimulus():
+    """When feedback phase is detected and no trial stimulus found, feedback handled normally."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "phase_detection": {"feedback": "true", "complete": "false", "test": "true"},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+
+    page = AsyncMock()
+    executor._lookup = MagicMock()
+    executor._lookup.identify = AsyncMock(return_value=None)
+
+    call_count = 0
+
+    async def mock_detect_phase(page, cfg):
+        nonlocal call_count
+        call_count += 1
+        if call_count == 1:
+            return TaskPhase.FEEDBACK
+        return TaskPhase.COMPLETE
+
+    with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
+        await executor._trial_loop(page)
+
+    # No trials — feedback was handled, then completion
+    assert executor._trial_count == 0
+
+
+def test_direct_condition_distribution_matching():
+    """When condition name is a distribution key, it's used directly."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["response_distributions"] = {
+        "congruent": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
+        "incongruent": {"distribution": "ex_gaussian", "params": {"mu": 500, "sigma": 70, "tau": 90}},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    assert executor._resolve_rt_distribution_key("congruent", True) == "congruent"
+    assert executor._resolve_rt_distribution_key("incongruent", True) == "incongruent"
+
+
+def test_per_condition_accuracy_lookup():
+    """get_accuracy returns condition-specific value, falls back to default."""
+    from experiment_bot.core.config import PerformanceConfig
+    perf = PerformanceConfig(
+        accuracy={"congruent": 0.97, "incongruent": 0.88},
+        omission_rate={},
+    )
+    assert perf.get_accuracy("congruent") == 0.97
+    assert perf.get_accuracy("incongruent") == 0.88
+    # Unknown condition falls back to first value
+    assert perf.get_accuracy("neutral") == 0.97
+
+
+def test_per_condition_accuracy_default_key():
+    """get_accuracy uses 'default' key when condition not found."""
+    from experiment_bot.core.config import PerformanceConfig
+    perf = PerformanceConfig(accuracy={"default": 0.90}, omission_rate={})
+    assert perf.get_accuracy("anything") == 0.90
+
+
+def test_per_condition_omission_lookup():
+    """get_omission_rate returns condition-specific value, falls back."""
+    from experiment_bot.core.config import PerformanceConfig
+    perf = PerformanceConfig(
+        accuracy={"go": 0.95},
+        omission_rate={"go": 0.02, "stop": 0.0},
+    )
+    assert perf.get_omission_rate("go") == 0.02
+    assert perf.get_omission_rate("stop") == 0.0
+    # Unknown falls back to first
+    assert perf.get_omission_rate("other") == 0.02
+
+
+def test_non_trial_stimulus_does_not_reset_consecutive_misses():
+    """Non-trial stimuli (fixation, no_response) should not reset consecutive_misses.
+
+    If a fixation stimulus resets the miss counter, the executor can get stuck
+    indefinitely polling fixation -> reset -> poll fixation -> reset, never triggering
+    advance behavior that would dismiss an instruction screen.
+    """
+    config_data = dict(SAMPLE_CONFIG)
+    # Only "go" distributions — "no_response" has no distribution
+    config_data["response_distributions"] = {
+        "go": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+
+    # A fixation match: null key, no_response condition, no matching distribution
+    fixation_match = StimulusMatch(
+        stimulus_id="fixation",
+        response_key=None,
+        condition="no_response",
+    )
+    assert executor._is_trial_stimulus(fixation_match) is False

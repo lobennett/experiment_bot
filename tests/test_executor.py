@@ -262,9 +262,9 @@ def test_paradigm_config_controls_stop_handling():
     ]
     config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config)
-    # _get_stop_signal_selector should find "inhibit" not "stop"
-    selector = executor._get_stop_signal_selector()
-    assert selector == "checkInhibit()"
+    # _build_stop_check_js should find "inhibit" condition, not "stop"
+    js = executor._build_stop_check_js()
+    assert js == "!!(checkInhibit())"
 
 
 def test_should_respond_correctly_uses_per_condition_accuracy():
@@ -599,3 +599,32 @@ def test_non_trial_stimulus_does_not_reset_consecutive_misses():
         condition="no_response",
     )
     assert executor._is_trial_stimulus(fixation_match) is False
+
+
+def test_build_stop_check_js_wraps_dom_query():
+    """dom_query selectors are wrapped in document.querySelector() for JS evaluation."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config, seed=42)
+    js = executor._build_stop_check_js()
+    assert js is not None
+    assert "document.querySelector" in js
+    assert ".stop-signal" in js
+
+
+def test_build_stop_check_js_combines_multiple_stop_stimuli():
+    """Multiple stop stimuli are combined with || into a single JS expression."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["stimuli"] = [
+        {"id": "go", "description": "Go", "detection": {"method": "dom_query", "selector": ".go"},
+         "response": {"key": "z", "condition": "go"}},
+        {"id": "stop_left", "description": "Stop left", "detection": {"method": "dom_query", "selector": "img[src*='stop_left']"},
+         "response": {"key": None, "condition": "stop"}},
+        {"id": "stop_right", "description": "Stop right", "detection": {"method": "dom_query", "selector": "img[src*='stop_right']"},
+         "response": {"key": None, "condition": "stop"}},
+    ]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    js = executor._build_stop_check_js()
+    assert "||" in js
+    assert "stop_left" in js
+    assert "stop_right" in js

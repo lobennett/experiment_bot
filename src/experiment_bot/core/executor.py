@@ -341,18 +341,29 @@ class TaskExecutor:
                 return
             await asyncio.sleep(poll_s)
 
-    def _get_stop_signal_selector(self) -> str | None:
-        """Get the stop signal detection selector from config stimuli."""
+    def _build_stop_check_js(self) -> str | None:
+        """Build a JS expression that detects any stop signal stimulus.
+
+        Combines all stop-condition stimuli into a single JS expression,
+        handling both dom_query (CSS selectors) and js_eval methods.
+        """
         stop_cond = self._config.runtime.paradigm.stop_condition
+        checks = []
         for stim in self._config.stimuli:
             if stim.response.condition == stop_cond:
-                return stim.detection.selector
-        return None
+                if stim.detection.method == "dom_query":
+                    sel = stim.detection.selector.replace("'", "\\'")
+                    checks.append(f"document.querySelector('{sel}') !== null")
+                else:  # js_eval, canvas_state
+                    checks.append(f"!!({stim.detection.selector})")
+        if not checks:
+            return None
+        return " || ".join(checks)
 
-    async def _check_stop_signal(self, page: Page, selector: str) -> bool:
-        """Check if the stop signal element is currently present."""
+    async def _check_stop_signal(self, page: Page, js_expr: str) -> bool:
+        """Check if a stop signal is currently present on page."""
         try:
-            result = await page.evaluate(selector)
+            result = await page.evaluate(js_expr)
             return bool(result)
         except Exception:
             return False
@@ -427,7 +438,7 @@ class TaskExecutor:
         if max_response_ms > 0:
             rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
 
-        stop_selector = self._get_stop_signal_selector()
+        stop_selector = self._build_stop_check_js()
         stop_detected = False
 
         if stop_selector:

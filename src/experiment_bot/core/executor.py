@@ -504,54 +504,26 @@ class TaskExecutor:
         })
         self._prev_trial_error = is_error
 
-    _ORDINAL_MAP = {
-        "first": 1, "second": 2, "third": 3, "fourth": 4, "fifth": 5,
-        "sixth": 6, "seventh": 7, "eighth": 8, "ninth": 9, "tenth": 10,
-        "eleventh": 11, "twelfth": 12, "thirteenth": 13, "fourteenth": 14,
-        "fifteenth": 15, "sixteenth": 16, "seventeenth": 17, "eighteenth": 18,
-        "nineteenth": 19, "twentieth": 20, "twenty-first": 21, "twenty-second": 22,
-        "twenty-third": 23, "twenty-fourth": 24, "twenty-fifth": 25, "twenty-sixth": 26,
-        "last": 26,
-    }
-
     async def _handle_attention_check(self, page: Page) -> None:
-        """Handle attention check by reading the prompt and pressing the requested key."""
+        """Handle attention check using config-driven response logic.
+
+        Claude must provide response_js in the attention_check config —
+        the executor has no built-in knowledge of attention check formats.
+        """
         await asyncio.sleep(1.5)
         ac = self._config.runtime.attention_check
         try:
-            # Use config selectors, fall back to generic body text
-            selector_js = ac.text_selector or "body"
-            text = await page.evaluate(
-                f"(() => {{ var el = document.querySelector('{selector_js}'); return el ? el.textContent : ''; }})()"
-            )
-            key = self._parse_attention_check_key(text)
-            if key:
-                logger.info(f"Attention check: pressing '{key}'")
-                await page.keyboard.press(key)
-            else:
-                logger.warning(f"Could not parse attention check text: {text[:100]}")
-                await page.keyboard.press("Enter")
+            if ac.response_js:
+                key = await page.evaluate(ac.response_js)
+                if key:
+                    logger.info(f"Attention check: pressing '{key}'")
+                    await page.keyboard.press(str(key))
+                    return
+            logger.warning("No response_js configured for attention check, pressing Enter")
+            await page.keyboard.press("Enter")
         except Exception as e:
             logger.warning(f"Attention check handling failed: {e}")
             await page.keyboard.press("Enter")
-
-    def _parse_attention_check_key(self, text: str) -> str | None:
-        """Parse attention check text to determine which key to press."""
-        import re
-        # "Press the X key"
-        m = re.search(r'[Pp]ress the (\w) key', text)
-        if m:
-            return m.group(1).lower()
-
-        # "Press the key for the Nth letter of the English alphabet"
-        m = re.search(r'[Pp]ress the key for the (\w+(?:-\w+)?)\s+letter', text)
-        if m:
-            ordinal = m.group(1).lower()
-            n = self._ORDINAL_MAP.get(ordinal)
-            if n and 1 <= n <= 26:
-                return chr(ord('a') + n - 1)
-
-        return None
 
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback screens."""

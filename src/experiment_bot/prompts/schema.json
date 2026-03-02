@@ -96,7 +96,7 @@
     },
     "runtime": {
       "type": "object",
-      "description": "Runtime configuration for the bot executor. Controls phase detection, timing, advance behavior, and paradigm-specific settings.",
+      "description": "Runtime configuration for the bot executor. Controls phase detection, timing, advance behavior, and trial interrupt settings.",
       "properties": {
         "phase_detection": {
           "type": "object",
@@ -135,14 +135,14 @@
             "feedback_fallback_keys": {"type": "array", "items": {"type": "string"}, "description": "Keys to press if no feedback button is found"}
           }
         },
-        "paradigm": {
+        "trial_interrupt": {
           "type": "object",
-          "description": "Paradigm-specific settings for the executor.",
+          "description": "Trial-level interrupt/inhibition behavior. When detection_condition matches a stimulus condition, the executor polls for that stimulus during the RT wait and probabilistically inhibits the response.",
           "properties": {
-            "type": {"type": "string", "enum": ["simple", "stop_signal", "go_nogo"], "description": "Task paradigm type"},
-            "stop_condition": {"type": "string", "default": "stop", "description": "Stimulus condition name that indicates a stop/inhibit trial"},
-            "stop_failure_rt_key": {"type": "string", "default": "stop_failure", "description": "Response distribution key for stop failure RTs"},
-            "stop_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap stop failure RTs"}
+            "detection_condition": {"type": "string", "default": "", "description": "Stimulus condition name triggering interrupt (e.g. 'stop'). Empty for tasks without interrupts."},
+            "failure_rt_key": {"type": "string", "default": "", "description": "Distribution key for failed-inhibition RTs"},
+            "failure_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap failure RTs"},
+            "inhibit_wait_ms": {"type": "integer", "default": 1500, "description": "Wait after successful inhibition (ms)"}
           }
         },
         "data_capture": {

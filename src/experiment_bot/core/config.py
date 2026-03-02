@@ -224,11 +224,10 @@ class TimingConfig:
     completion_wait_ms: int = 5000
     feedback_delay_ms: int = 2000
     omission_wait_ms: int = 2000
-    stop_success_wait_ms: int = 1500
     rt_floor_ms: float = 150.0
     rt_cap_fraction: float = 0.90
     response_window_js: str = ""
-    cue_selector_js: str = ""
+    trial_context_js: str = ""
     autocorrelation_phi: float = 0.25
     fatigue_drift_per_trial: float = 0.15
     viewport: dict = field(default_factory=lambda: {"width": 1280, "height": 800})
@@ -259,14 +258,14 @@ class AdvanceBehaviorConfig:
 
 
 @dataclass
-class ParadigmConfig:
-    type: str = "simple"
-    stop_condition: str = "stop"
-    stop_failure_rt_key: str = "stop_failure"
-    stop_rt_cap_fraction: float = 0.85
+class TrialInterruptConfig:
+    detection_condition: str = ""
+    failure_rt_key: str = ""
+    failure_rt_cap_fraction: float = 0.85
+    inhibit_wait_ms: int = 1500
 
     @classmethod
-    def from_dict(cls, d: dict) -> ParadigmConfig:
+    def from_dict(cls, d: dict) -> TrialInterruptConfig:
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
 
     def to_dict(self) -> dict:
@@ -309,17 +308,34 @@ class RuntimeConfig:
     phase_detection: PhaseDetectionConfig = field(default_factory=PhaseDetectionConfig)
     timing: TimingConfig = field(default_factory=TimingConfig)
     advance_behavior: AdvanceBehaviorConfig = field(default_factory=AdvanceBehaviorConfig)
-    paradigm: ParadigmConfig = field(default_factory=ParadigmConfig)
+    trial_interrupt: TrialInterruptConfig = field(default_factory=TrialInterruptConfig)
     data_capture: DataCaptureConfig = field(default_factory=DataCaptureConfig)
     attention_check: AttentionCheckConfig = field(default_factory=AttentionCheckConfig)
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
+        # Migrate legacy "paradigm" key → "trial_interrupt"
+        interrupt_raw = dict(d.get("trial_interrupt", {}))
+        if not interrupt_raw and "paradigm" in d:
+            p = d["paradigm"]
+            interrupt_raw = {
+                "detection_condition": p.get("stop_condition", ""),
+                "failure_rt_key": p.get("stop_failure_rt_key", ""),
+                "failure_rt_cap_fraction": p.get("stop_rt_cap_fraction", 0.85),
+            }
+            if "inhibit_wait_ms" in p:
+                interrupt_raw["inhibit_wait_ms"] = p["inhibit_wait_ms"]
+        timing_raw = dict(d.get("timing", {}))
+        if "stop_success_wait_ms" in timing_raw and "inhibit_wait_ms" not in interrupt_raw:
+            interrupt_raw["inhibit_wait_ms"] = timing_raw.pop("stop_success_wait_ms")
+        if "cue_selector_js" in timing_raw and "trial_context_js" not in timing_raw:
+            timing_raw["trial_context_js"] = timing_raw.pop("cue_selector_js")
+
         return cls(
             phase_detection=PhaseDetectionConfig.from_dict(d.get("phase_detection", {})),
-            timing=TimingConfig.from_dict(d.get("timing", {})),
+            timing=TimingConfig.from_dict(timing_raw),
             advance_behavior=AdvanceBehaviorConfig.from_dict(d.get("advance_behavior", {})),
-            paradigm=ParadigmConfig.from_dict(d.get("paradigm", {})),
+            trial_interrupt=TrialInterruptConfig.from_dict(interrupt_raw),
             data_capture=DataCaptureConfig.from_dict(d.get("data_capture", {})),
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
         )
@@ -329,7 +345,7 @@ class RuntimeConfig:
             "phase_detection": self.phase_detection.to_dict(),
             "timing": self.timing.to_dict(),
             "advance_behavior": self.advance_behavior.to_dict(),
-            "paradigm": self.paradigm.to_dict(),
+            "trial_interrupt": self.trial_interrupt.to_dict(),
             "data_capture": self.data_capture.to_dict(),
             "attention_check": self.attention_check.to_dict(),
         }

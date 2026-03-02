@@ -123,7 +123,7 @@ def test_executor_works_with_runtime_config_only():
                 "feedback_selectors": ["button"],
                 "feedback_fallback_keys": ["Enter"],
             },
-            "paradigm": {"type": "simple"},
+            "trial_interrupt": {},
         },
     }
     config = TaskConfig.from_dict(config_dict)
@@ -133,7 +133,7 @@ def test_executor_works_with_runtime_config_only():
     assert executor._config.runtime.timing.completion_wait_ms == 1000
     assert executor._config.runtime.timing.poll_interval_ms == 50
     assert executor._config.runtime.advance_behavior.advance_keys == [" "]
-    assert executor._config.runtime.paradigm.type == "simple"
+    assert executor._config.runtime.trial_interrupt.detection_condition == ""
     # Verify key_map works
     assert executor._key_map == {"go": "a"}
     # Verify sampler is functional

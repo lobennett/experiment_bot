@@ -70,7 +70,7 @@ A `TaskConfig` contains:
 | `navigation` | Ordered steps to navigate from page load to first trial (click buttons, press keys, wait) |
 | `runtime.phase_detection` | JS expressions evaluated each poll cycle to determine experiment phase |
 | `runtime.timing` | Poll interval, response window gating, RT floor, fatigue drift, autocorrelation |
-| `runtime.paradigm` | Task type (`simple`, `stop_signal`, `go_nogo`) and stop condition settings |
+| `runtime.trial_interrupt` | Trial-level interrupt/inhibition config (detection condition, failure RT, wait times) |
 | `runtime.data_capture` | How to extract the experiment's recorded data after completion |
 | `runtime.advance_behavior` | Keys/buttons to press to advance past instruction and feedback screens |
 | `task_specific` | Arbitrary fields like `key_map` (mapping conditions to keyboard keys) |
@@ -128,19 +128,19 @@ A random draw against the per-condition accuracy target (e.g., 95% for congruent
 
 ---
 
-## 6. Stop Signal Inhibition
+## 6. Trial Interrupt / Inhibition
 
-For stop signal tasks (`runtime.paradigm.type = "stop_signal"`), the bot implements the **independent race model** (Logan & Cowan, 1984):
+When `runtime.trial_interrupt.detection_condition` is set (e.g., `"stop"` for a stop signal task), the bot implements a **trial-level interrupt** using the independent race model (Logan & Cowan, 1984):
 
 1. When a go stimulus appears, the bot begins waiting for the sampled go RT.
-2. **During that wait**, the bot polls the DOM for stop signal appearance (e.g., an audio cue element or a colored shape overlaid on the go stimulus).
-3. If a stop signal appears:
-   - A random draw determines whether inhibition succeeds (based on `performance.accuracy.stop`, typically ~50%).
-   - **Successful inhibition**: The bot withholds the response entirely and waits.
-   - **Failed inhibition**: The bot samples an RT from the `stop_failure` distribution (which is faster than go RTs, matching the race model prediction) and presses the go key after that delay.
-4. If no stop signal appears during the go RT wait, the bot responds normally.
+2. **During that wait**, the bot polls the DOM for the interrupt stimulus (e.g., an audio cue element or a colored shape overlaid on the go stimulus).
+3. If the interrupt stimulus appears:
+   - A random draw determines whether inhibition succeeds (based on `performance.accuracy` for the interrupt condition, typically ~50%).
+   - **Successful inhibition**: The bot withholds the response entirely and waits (`inhibit_wait_ms`).
+   - **Failed inhibition**: The bot samples an RT from the `failure_rt_key` distribution (which is faster than go RTs, matching the race model prediction) and presses the go key after that delay.
+4. If no interrupt stimulus appears during the go RT wait, the bot responds normally.
 
-The stop signal check builds a JavaScript expression that combines all stimuli tagged with the stop condition (e.g., `document.querySelector('img[src*="stop_left"]') !== null || document.querySelector('img[src*="stop_right"]') !== null`) and evaluates it via `page.evaluate()`.
+The interrupt check builds a JavaScript expression that combines all stimuli tagged with the detection condition (e.g., `document.querySelector('img[src*="stop_left"]') !== null || document.querySelector('img[src*="stop_right"]') !== null`) and evaluates it via `page.evaluate()`. This mechanism generalizes to any paradigm with trial-level response inhibition (stop signal, go/no-go, etc.).
 
 ---
 

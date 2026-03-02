@@ -126,7 +126,6 @@ def test_runtime_config_from_dict():
             "completion_wait_ms": 5000,
             "feedback_delay_ms": 2000,
             "omission_wait_ms": 2000,
-            "stop_success_wait_ms": 1500,
             "rt_floor_ms": 150,
             "rt_cap_fraction": 0.90,
             "viewport": {"width": 1280, "height": 800}
@@ -139,18 +138,18 @@ def test_runtime_config_from_dict():
             "feedback_selectors": ["button"],
             "feedback_fallback_keys": [" ", "Enter"]
         },
-        "paradigm": {
-            "type": "stop_signal",
-            "stop_condition": "stop",
-            "stop_failure_rt_key": "stop_failure",
-            "stop_rt_cap_fraction": 0.85
+        "trial_interrupt": {
+            "detection_condition": "stop",
+            "failure_rt_key": "stop_failure",
+            "failure_rt_cap_fraction": 0.85,
+            "inhibit_wait_ms": 1500,
         }
     }
     from experiment_bot.core.config import RuntimeConfig
     rc = RuntimeConfig.from_dict(data)
     assert rc.timing.poll_interval_ms == 20
     assert rc.advance_behavior.exit_pager_key == "q"
-    assert rc.paradigm.type == "stop_signal"
+    assert rc.trial_interrupt.detection_condition == "stop"
 
 
 def test_task_config_with_runtime():
@@ -164,12 +163,12 @@ def test_task_config_with_runtime():
         "task_specific": {},
         "runtime": {
             "timing": {"poll_interval_ms": 50},
-            "paradigm": {"type": "stop_signal"},
+            "trial_interrupt": {"detection_condition": "stop"},
         }
     }
     config = TaskConfig.from_dict(raw)
     assert config.runtime.timing.poll_interval_ms == 50
-    assert config.runtime.paradigm.type == "stop_signal"
+    assert config.runtime.trial_interrupt.detection_condition == "stop"
     # Round-trip
     d = config.to_dict()
     assert d["runtime"]["timing"]["poll_interval_ms"] == 50
@@ -182,7 +181,7 @@ def test_runtime_config_defaults():
     assert rc.timing.poll_interval_ms == 20
     assert rc.timing.max_no_stimulus_polls == 500
     assert rc.advance_behavior.advance_keys == [" "]
-    assert rc.paradigm.type == "simple"
+    assert rc.trial_interrupt.detection_condition == ""
 
 
 def test_data_capture_config_from_dict():
@@ -244,3 +243,26 @@ def test_runtime_config_with_data_capture():
     cfg = RuntimeConfig.from_dict(d)
     assert cfg.data_capture.method == "js_expression"
     assert cfg.attention_check.detection_selector == "#attention-check"
+
+
+def test_legacy_paradigm_migrates_to_trial_interrupt():
+    """Legacy 'paradigm' key in cached configs migrates to trial_interrupt."""
+    from experiment_bot.core.config import RuntimeConfig
+    legacy = {
+        "paradigm": {
+            "type": "stop_signal",
+            "stop_condition": "stop",
+            "stop_failure_rt_key": "stop_failure",
+            "stop_rt_cap_fraction": 0.80,
+        },
+        "timing": {
+            "stop_success_wait_ms": 2000,
+            "cue_selector_js": "document.querySelector('#cue').textContent",
+        },
+    }
+    rc = RuntimeConfig.from_dict(legacy)
+    assert rc.trial_interrupt.detection_condition == "stop"
+    assert rc.trial_interrupt.failure_rt_key == "stop_failure"
+    assert rc.trial_interrupt.failure_rt_cap_fraction == 0.80
+    assert rc.trial_interrupt.inhibit_wait_ms == 2000
+    assert rc.timing.trial_context_js == "document.querySelector('#cue').textContent"

@@ -285,11 +285,11 @@ class TaskExecutor:
 
             self._trial_count += 1
 
-            # Read cue text for cue-switch tracking (task switching paradigms)
+            # Read trial context (e.g. cue text)
             cue = None
-            if timing.cue_selector_js:
+            if timing.trial_context_js:
                 try:
-                    raw_cue = await page.evaluate(timing.cue_selector_js)
+                    raw_cue = await page.evaluate(timing.trial_context_js)
                     if raw_cue:  # Ignore empty strings from non-stimulus phases
                         cue = raw_cue
                 except Exception:
@@ -319,13 +319,13 @@ class TaskExecutor:
                 return
             await asyncio.sleep(poll_s)
 
-    def _build_stop_check_js(self) -> str | None:
-        """Build a JS expression that detects any stop signal stimulus.
+    def _build_interrupt_check_js(self) -> str | None:
+        """Build a JS expression that detects any interrupt stimulus.
 
-        Combines all stop-condition stimuli into a single JS expression,
+        Combines all interrupt-condition stimuli into a single JS expression,
         handling both dom_query (CSS selectors) and js_eval methods.
         """
-        stop_cond = self._config.runtime.paradigm.stop_condition
+        stop_cond = self._config.runtime.trial_interrupt.detection_condition
         checks = []
         for stim in self._config.stimuli:
             if stim.response.condition == stop_cond:
@@ -338,8 +338,8 @@ class TaskExecutor:
             return None
         return " || ".join(checks)
 
-    async def _check_stop_signal(self, page: Page, js_expr: str) -> bool:
-        """Check if a stop signal is currently present on page."""
+    async def _check_interrupt(self, page: Page, js_expr: str) -> bool:
+        """Check if an interrupt stimulus is currently present on page."""
         try:
             result = await page.evaluate(js_expr)
             return bool(result)
@@ -366,12 +366,12 @@ class TaskExecutor:
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
     async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
-        """Execute a single trial with probabilistic stop signal handling.
+        """Execute a single trial with probabilistic interrupt handling.
 
-        For stop signal tasks, polls for the stop signal during the go RT wait.
-        If detected, uses configured stop_accuracy to decide success/failure
-        probabilistically, which produces race-model-valid behavior:
-        stop_failure RTs are sampled from a faster distribution than go RTs.
+        For tasks with a trial interrupt (e.g. stop signal), polls for the
+        interrupt stimulus during the RT wait. If detected, uses configured
+        accuracy to decide inhibition success/failure probabilistically,
+        producing race-model-valid behavior.
         """
         trial_start = time.monotonic()
         condition = match.condition
@@ -414,45 +414,45 @@ class TaskExecutor:
         if max_response_ms > 0:
             rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
 
-        stop_selector = self._build_stop_check_js()
-        stop_detected = False
+        interrupt_js = self._build_interrupt_check_js()
+        interrupt_detected = False
 
-        if stop_selector:
-            # Poll for stop signal during go RT wait
+        if interrupt_js:
+            # Poll for interrupt stimulus during RT wait
             poll_interval = self._config.runtime.timing.poll_interval_ms / 1000.0
             while (time.monotonic() - trial_start) < rt_ms / 1000.0:
-                if await self._check_stop_signal(page, stop_selector):
-                    stop_detected = True
+                if await self._check_interrupt(page, interrupt_js):
+                    interrupt_detected = True
                     break
                 await asyncio.sleep(poll_interval)
         else:
             await asyncio.sleep(rt_ms / 1000.0)
 
-        paradigm = self._config.runtime.paradigm
-        if stop_detected:
-            # Decide stop outcome probabilistically based on configured accuracy
-            if self._should_respond_correctly(paradigm.stop_condition):
+        interrupt_cfg = self._config.runtime.trial_interrupt
+        if interrupt_detected:
+            # Decide inhibition outcome probabilistically based on configured accuracy
+            if self._should_respond_correctly(interrupt_cfg.detection_condition):
                 # Successful inhibition — withhold response
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
-                    "condition": "stop_success",
+                    "condition": "inhibit_success",
                     "response_key": None,
                     "sampled_rt_ms": round(rt_ms, 1),
                     "actual_rt_ms": None,
                     "omission": False,
                 })
                 self._prev_trial_error = False
-                await asyncio.sleep(self._config.runtime.timing.stop_success_wait_ms / 1000.0)
+                await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
                 return
             else:
-                # Failed stop — sample from stop_failure distribution
+                # Failed inhibition — sample from failure RT distribution
                 # (faster than go RTs, satisfying independent race model)
-                sf_rt_ms = self._sampler.sample_rt_with_fallback(paradigm.stop_failure_rt_key)
+                sf_rt_ms = self._sampler.sample_rt_with_fallback(interrupt_cfg.failure_rt_key)
                 if max_response_ms > 0:
-                    sf_rt_ms = min(sf_rt_ms, max_response_ms * self._config.runtime.paradigm.stop_rt_cap_fraction)
+                    sf_rt_ms = min(sf_rt_ms, max_response_ms * interrupt_cfg.failure_rt_cap_fraction)
 
-                # Wait until stop_failure RT has elapsed from trial start
+                # Wait until failure RT has elapsed from trial start
                 elapsed_s = time.monotonic() - trial_start
                 remaining_s = (sf_rt_ms / 1000.0) - elapsed_s
                 if remaining_s > 0:
@@ -465,7 +465,7 @@ class TaskExecutor:
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
-                    "condition": "stop_failure",
+                    "condition": "inhibit_failure",
                     "response_key": resolved_key,
                     "sampled_rt_ms": round(sf_rt_ms, 1),
                     "actual_rt_ms": round(actual_rt, 1),
@@ -474,8 +474,8 @@ class TaskExecutor:
                 self._prev_trial_error = True
                 return
 
-        # No stop signal — normal go trial response
-        if not stop_selector:
+        # No interrupt — normal trial response
+        if not interrupt_js:
             actual_rt = (time.monotonic() - trial_start) * 1000
         else:
             # Wait remaining RT time if we were polling

@@ -33,9 +33,7 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
    RT distribution naming: Name distributions after their conditions.
    Use `{condition}` for the primary distribution, optionally
    `{condition}_correct` and `{condition}_error` if correct and error
-   responses have different RT profiles. For task switching, use
-   `task_repeat_cue_repeat`, `task_repeat_cue_switch`, `task_switch`,
-   and `first_trial`.
+   responses have different RT profiles.
 
    Literature-grounded ranges:
    - Typical healthy adult go RTs: mu=400-500ms, sigma=50-80ms, tau=60-100ms
@@ -74,7 +72,7 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
 7. **Timing configuration**: Analyze the source code to determine:
    - `response_window_js`: If stimulus detection can fire BEFORE the experiment's RT timer starts (e.g., during a fixation or cue phase), provide a JS expression that returns true only when the response window is actually open. This prevents impossibly fast recorded RTs. Examine the source for keyboard listener activation timing.
-   - `cue_selector_js`: For task-switching paradigms, a JS expression that returns the current cue text (used for cue-switch tracking)
+   - `trial_context_js`: A JS expression that returns trial context (e.g. cue text for task-switching paradigms)
    - `completion_wait_ms`: How long the experiment takes to save/upload data after the last trial
    - `max_no_stimulus_polls`: How many empty poll cycles before giving up (canvas-based tasks may need more: ~2000)
 

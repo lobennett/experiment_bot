@@ -27,6 +27,13 @@ SAMPLE_CONFIG = {
     "performance": {"accuracy": {"go": 0.95, "stop": 0.50}, "omission_rate": {"go": 0.02}, "practice_accuracy": 0.85},
     "navigation": {"phases": []},
     "task_specific": {"model": "independent_race", "ssrt_target_ms": 250},
+    "runtime": {
+        "trial_interrupt": {
+            "detection_condition": "stop",
+            "failure_rt_key": "stop_failure",
+            "failure_rt_cap_fraction": 0.85,
+        }
+    },
 }
 
 
@@ -233,16 +240,15 @@ def test_feedback_uses_config_selectors():
     assert '".jspsych-btn"' not in source
 
 
-def test_paradigm_config_controls_stop_handling():
-    """Stop signal condition names come from paradigm config."""
+def test_trial_interrupt_config_controls_inhibition():
+    """Interrupt condition names come from trial_interrupt config."""
     config_data = dict(SAMPLE_CONFIG)
-    # Override paradigm to use "inhibit" instead of "stop"
+    # Override trial_interrupt to use "inhibit" instead of "stop"
     config_data["runtime"] = {
-        "paradigm": {
-            "type": "stop_signal",
-            "stop_condition": "inhibit",
-            "stop_failure_rt_key": "inhibit_failure",
-            "stop_rt_cap_fraction": 0.80,
+        "trial_interrupt": {
+            "detection_condition": "inhibit",
+            "failure_rt_key": "inhibit_failure",
+            "failure_rt_cap_fraction": 0.80,
         }
     }
     # Add a stimulus with condition="inhibit"
@@ -262,8 +268,8 @@ def test_paradigm_config_controls_stop_handling():
     ]
     config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config)
-    # _build_stop_check_js should find "inhibit" condition, not "stop"
-    js = executor._build_stop_check_js()
+    # _build_interrupt_check_js should find "inhibit" condition
+    js = executor._build_interrupt_check_js()
     assert js == "!!(checkInhibit())"
 
 
@@ -526,18 +532,18 @@ def test_non_trial_stimulus_does_not_reset_consecutive_misses():
     assert executor._is_trial_stimulus(fixation_match) is False
 
 
-def test_build_stop_check_js_wraps_dom_query():
+def test_build_interrupt_check_js_wraps_dom_query():
     """dom_query selectors are wrapped in document.querySelector() for JS evaluation."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     executor = TaskExecutor(config, seed=42)
-    js = executor._build_stop_check_js()
+    js = executor._build_interrupt_check_js()
     assert js is not None
     assert "document.querySelector" in js
     assert ".stop-signal" in js
 
 
-def test_build_stop_check_js_combines_multiple_stop_stimuli():
-    """Multiple stop stimuli are combined with || into a single JS expression."""
+def test_build_interrupt_check_js_combines_multiple_stimuli():
+    """Multiple interrupt stimuli are combined with || into a single JS expression."""
     config_data = dict(SAMPLE_CONFIG)
     config_data["stimuli"] = [
         {"id": "go", "description": "Go", "detection": {"method": "dom_query", "selector": ".go"},
@@ -549,7 +555,7 @@ def test_build_stop_check_js_combines_multiple_stop_stimuli():
     ]
     config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config, seed=42)
-    js = executor._build_stop_check_js()
+    js = executor._build_interrupt_check_js()
     assert "||" in js
     assert "stop_left" in js
     assert "stop_right" in js

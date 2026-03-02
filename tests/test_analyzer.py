@@ -129,11 +129,11 @@ MOCK_CONFIG_WITH_RUNTIME = json.dumps({
             "feedback_selectors": ["button.next"],
             "feedback_fallback_keys": ["Enter"],
         },
-        "paradigm": {
-            "type": "stop_signal",
-            "stop_condition": "stop",
-            "stop_failure_rt_key": "stop_failure",
-            "stop_rt_cap_fraction": 0.85,
+        "trial_interrupt": {
+            "detection_condition": "stop",
+            "failure_rt_key": "stop_failure",
+            "failure_rt_cap_fraction": 0.85,
+            "inhibit_wait_ms": 1500,
         },
     },
 })
@@ -162,8 +162,8 @@ async def test_analyzer_parses_runtime_config():
     assert config.runtime.timing.max_no_stimulus_polls == 300
     assert config.runtime.timing.completion_wait_ms == 20000
     assert config.runtime.advance_behavior.feedback_selectors == ["button.next"]
-    assert config.runtime.paradigm.type == "stop_signal"
-    assert config.runtime.paradigm.stop_condition == "stop"
+    assert config.runtime.trial_interrupt.detection_condition == "stop"
+    assert config.runtime.trial_interrupt.failure_rt_key == "stop_failure"
 
 
 @pytest.mark.asyncio

@@ -19,7 +19,9 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
    - `text_content`: CSS selector + pattern — truthy if element text contains pattern
    - `canvas_state`: JavaScript expression for canvas-based tasks — same as js_eval
 
-   **IMPORTANT**: Identify ALL possible stimulus types. Missing a stimulus type will cause the bot to freeze. Order stimulus rules so that inhibition/stop signals are detected BEFORE go stimuli when both may be simultaneously present.
+   **IMPORTANT**: Identify ALL possible stimulus types. Missing a stimulus type will cause the bot to freeze. Order stimulus rules by detection priority —
+   stimuli requiring response suppression should be detected BEFORE standard
+   response stimuli when both may be simultaneously present.
 
    **Selector best practices**: Do not assume the stimulus is wrapped in a specific HTML tag (`span`, `p`, `div`). Experiment authors use different tags in their stimulus HTML strings. Prefer tag-agnostic selectors:
    - Use `firstElementChild` to get the first child of a container (e.g., `document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild`)
@@ -35,25 +37,20 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
    `{condition}_correct` and `{condition}_error` if correct and error
    responses have different RT profiles.
 
-   Literature-grounded ranges:
-   - Typical healthy adult go RTs: mu=400-500ms, sigma=50-80ms, tau=60-100ms
-   - Stop signal: SSRT ~200-280ms (Verbruggen & Logan, 2009)
-   - Task switching: switch cost ~50-150ms added to mu (Monsell, 2003)
+   Literature-grounded parameters:
+   - Base your ex-Gaussian parameters (mu, sigma, tau) on published RT data
+     for the specific task you identify. Typical healthy adult RTs fall in
+     mu=350-600ms, sigma=40-100ms, tau=50-150ms, but vary by task demands.
 
 4. **Performance targets**: Provide per-condition accuracy and omission rates.
    Key the `accuracy` and `omission_rate` objects by condition name from your
-   stimulus definitions. For tasks with inhibition conditions (stop signal,
-   go/no-go), include accuracy for both go and stop/no-go conditions. Base
-   all values on published literature for the specific task.
+   stimulus definitions. Include accuracy for all conditions, including any
+   that require response suppression. Base all values on published literature
+   for the specific task you identify.
 
-   Example for Stroop:
-   {"accuracy": {"congruent": 0.97, "incongruent": 0.88},
-    "omission_rate": {"congruent": 0.01, "incongruent": 0.03},
-    "practice_accuracy": 0.85}
-
-   Example for stop signal:
-   {"accuracy": {"go": 0.95, "stop": 0.50},
-    "omission_rate": {"go": 0.02, "stop": 0.0},
+   Example:
+   {"accuracy": {"condition_a": 0.95, "condition_b": 0.88},
+    "omission_rate": {"condition_a": 0.01, "condition_b": 0.03},
     "practice_accuracy": 0.85}
 
 5. **Navigation flow**: How does a participant get from the initial page to the first trial? List every click, keypress, and wait needed. Include CSS selectors for buttons and the exact keys to press. Common patterns:
@@ -72,7 +69,8 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
 7. **Timing configuration**: Analyze the source code to determine:
    - `response_window_js`: If stimulus detection can fire BEFORE the experiment's RT timer starts (e.g., during a fixation or cue phase), provide a JS expression that returns true only when the response window is actually open. This prevents impossibly fast recorded RTs. Examine the source for keyboard listener activation timing.
-   - `trial_context_js`: A JS expression that returns trial context (e.g. cue text for task-switching paradigms)
+   - `trial_context_js`: A JS expression that returns trial context text
+     (e.g., cue identity, block label, or other per-trial metadata for logging)
    - `completion_wait_ms`: How long the experiment takes to save/upload data after the last trial
    - `max_no_stimulus_polls`: How many empty poll cycles before giving up (canvas-based tasks may need more: ~2000)
 
@@ -90,7 +88,8 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
 10. **Attention checks**: If the experiment has attention checks:
     - `detection_selector`: CSS/JS selector that detects when an attention check is displayed
-    - `text_selector`: CSS selector to read the attention check prompt text (the bot parses "Press the X key" patterns)
+    - `text_selector`: CSS selector to read the attention check prompt text
+    - `response_js`: JavaScript expression that reads the attention check prompt and returns the correct key to press as a string. The bot evaluates this expression directly — provide complete logic for determining the response (e.g., parsing ordinal references, reading instructions). This is the primary response mechanism; without it, the bot cannot determine the correct response.
 
 11. **Task-specific parameters**: Include a `key_map` in `task_specific` — a flat dictionary mapping each stimulus condition to its correct keyboard key. Also include `trial_timing.max_response_time_ms` if the experiment enforces a response deadline.
 

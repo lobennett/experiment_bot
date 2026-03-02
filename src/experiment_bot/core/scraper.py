@@ -43,7 +43,7 @@ async def scrape_experiment_source(
 
     Args:
         url: The experiment page URL.
-        hint: Optional user-provided hint about the task (e.g., "stop signal task").
+        hint: Optional user-provided hint about the task type.
         extra_urls: Optional additional resource URLs to fetch.
 
     Returns:

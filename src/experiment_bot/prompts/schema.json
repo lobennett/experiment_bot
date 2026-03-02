@@ -119,7 +119,7 @@
             "poll_interval_ms": {"type": "integer", "default": 20, "description": "Milliseconds between stimulus detection polls"},
             "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. PsyToolkit tasks need ~2000, jsPsych tasks ~500."},
             "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. jsPsych tasks need ~35000 (server upload), PsyToolkit ~5000."},
-            "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap go RTs at"},
+            "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap sampled RTs at"},
             "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the platform's response window is open and RT timer has started. Required for PsyToolkit tasks where stimulus detection fires before the readkey step (e.g., cued task switching detects the cue but the response window opens later with the target). Use psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of one of the task's response keys (e.g., 66 for 'b', 78 for 'n'). Leave empty if stimulus detection already aligns with the response window."}
           }
         },
@@ -137,12 +137,12 @@
         },
         "trial_interrupt": {
           "type": "object",
-          "description": "Trial-level interrupt/inhibition behavior. When detection_condition matches a stimulus condition, the executor polls for that stimulus during the RT wait and probabilistically inhibits the response.",
+          "description": "Trial-level interrupt behavior. When detection_condition matches a stimulus condition, the executor polls for that stimulus during the RT wait and probabilistically suppresses the response.",
           "properties": {
-            "detection_condition": {"type": "string", "default": "", "description": "Stimulus condition name triggering interrupt (e.g. 'stop'). Empty for tasks without interrupts."},
-            "failure_rt_key": {"type": "string", "default": "", "description": "Distribution key for failed-inhibition RTs"},
-            "failure_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap failure RTs"},
-            "inhibit_wait_ms": {"type": "integer", "default": 1500, "description": "Wait after successful inhibition (ms)"}
+            "detection_condition": {"type": "string", "default": "", "description": "Stimulus condition name that triggers mid-trial detection. Empty string for tasks without trial interrupts."},
+            "failure_rt_key": {"type": "string", "default": "", "description": "Distribution key for RTs when suppression fails and a response escapes"},
+            "failure_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap failed-suppression RTs"},
+            "inhibit_wait_ms": {"type": "integer", "default": 1500, "description": "Wait duration (ms) after successful response suppression"}
           }
         },
         "data_capture": {
@@ -163,7 +163,7 @@
           "properties": {
             "detection_selector": {"type": "string", "description": "CSS/JS selector to detect when an attention check is displayed"},
             "text_selector": {"type": "string", "description": "CSS selector to read attention check prompt text"},
-            "response_js": {"type": "string", "description": "Optional JS to determine response (overrides regex parsing)"}
+            "response_js": {"type": "string", "description": "JS expression returning the correct key to press. This is the primary response mechanism — provide complete parsing logic here."}
           }
         }
       }

@@ -80,12 +80,12 @@ async def _run_task(
 
 @click.command()
 @click.argument("url")
-@click.option("--hint", default="", help="Hint about the task (e.g., 'stop signal task')")
+@click.option("--hint", default="", help="Hint about the task type for Claude's analysis")
 @click.option("--label", default="", help="Cache label (default: URL hash)")
 @click.option("--headless", is_flag=True, default=False, help="Run browser in headless mode")
 @click.option("--regenerate-config", is_flag=True, default=False, help="Force regenerate config")
 @click.option("--rt-mean", type=float, default=None, help="Override mean RT (mu) in ms")
-@click.option("--accuracy", type=float, default=None, help="Override go accuracy (0-1)")
+@click.option("--accuracy", type=float, default=None, help="Override primary accuracy target (0-1)")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable debug logging")
 def main(url: str, hint: str, label: str, headless: bool, regenerate_config: bool, rt_mean: float | None, accuracy: float | None, verbose: bool):
     """experiment-bot: Execute human-like behavior on web-based cognitive tasks.

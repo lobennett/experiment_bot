@@ -243,26 +243,3 @@ def test_runtime_config_with_data_capture():
     cfg = RuntimeConfig.from_dict(d)
     assert cfg.data_capture.method == "js_expression"
     assert cfg.attention_check.detection_selector == "#attention-check"
-
-
-def test_legacy_paradigm_migrates_to_trial_interrupt():
-    """Legacy 'paradigm' key in cached configs migrates to trial_interrupt."""
-    from experiment_bot.core.config import RuntimeConfig
-    legacy = {
-        "paradigm": {
-            "type": "stop_signal",
-            "stop_condition": "stop",
-            "stop_failure_rt_key": "stop_failure",
-            "stop_rt_cap_fraction": 0.80,
-        },
-        "timing": {
-            "stop_success_wait_ms": 2000,
-            "cue_selector_js": "document.querySelector('#cue').textContent",
-        },
-    }
-    rc = RuntimeConfig.from_dict(legacy)
-    assert rc.trial_interrupt.detection_condition == "stop"
-    assert rc.trial_interrupt.failure_rt_key == "stop_failure"
-    assert rc.trial_interrupt.failure_rt_cap_fraction == 0.80
-    assert rc.trial_interrupt.inhibit_wait_ms == 2000
-    assert rc.timing.trial_context_js == "document.querySelector('#cue').textContent"

@@ -314,28 +314,11 @@ class RuntimeConfig:
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
-        # Migrate legacy "paradigm" key → "trial_interrupt"
-        interrupt_raw = dict(d.get("trial_interrupt", {}))
-        if not interrupt_raw and "paradigm" in d:
-            p = d["paradigm"]
-            interrupt_raw = {
-                "detection_condition": p.get("stop_condition", ""),
-                "failure_rt_key": p.get("stop_failure_rt_key", ""),
-                "failure_rt_cap_fraction": p.get("stop_rt_cap_fraction", 0.85),
-            }
-            if "inhibit_wait_ms" in p:
-                interrupt_raw["inhibit_wait_ms"] = p["inhibit_wait_ms"]
-        timing_raw = dict(d.get("timing", {}))
-        if "stop_success_wait_ms" in timing_raw and "inhibit_wait_ms" not in interrupt_raw:
-            interrupt_raw["inhibit_wait_ms"] = timing_raw.pop("stop_success_wait_ms")
-        if "cue_selector_js" in timing_raw and "trial_context_js" not in timing_raw:
-            timing_raw["trial_context_js"] = timing_raw.pop("cue_selector_js")
-
         return cls(
             phase_detection=PhaseDetectionConfig.from_dict(d.get("phase_detection", {})),
-            timing=TimingConfig.from_dict(timing_raw),
+            timing=TimingConfig.from_dict(d.get("timing", {})),
             advance_behavior=AdvanceBehaviorConfig.from_dict(d.get("advance_behavior", {})),
-            trial_interrupt=TrialInterruptConfig.from_dict(interrupt_raw),
+            trial_interrupt=TrialInterruptConfig.from_dict(d.get("trial_interrupt", {})),
             data_capture=DataCaptureConfig.from_dict(d.get("data_capture", {})),
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
         )

@@ -58,51 +58,43 @@ def test_should_omit_rarely():
     assert 5 < omit_count < 50
 
 
-def test_parse_attention_check_direct_key():
-    """Test 'Press the X key' format returns the letter lowercased."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
-
-    assert executor._parse_attention_check_key("Press the Q key") == "q"
-    assert executor._parse_attention_check_key("press the A key") == "a"
-    assert executor._parse_attention_check_key("Press the Z key") == "z"
-
-
-def test_parse_attention_check_ordinal():
-    """Test 'Press the key for the Nth letter' format returns correct letter."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
-
-    # Test "third" → "c"
-    assert executor._parse_attention_check_key("Press the key for the third letter of the English alphabet") == "c"
-
-    # Test "twenty-sixth" → "z"
-    assert executor._parse_attention_check_key("Press the key for the twenty-sixth letter of the English alphabet") == "z"
-
-    # Test other ordinals
-    assert executor._parse_attention_check_key("Press the key for the first letter of the English alphabet") == "a"
-    assert executor._parse_attention_check_key("Press the key for the tenth letter of the English alphabet") == "j"
+@pytest.mark.asyncio
+async def test_attention_check_uses_response_js():
+    """When response_js is configured, it's used instead of text parsing."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {
+        "attention_check": {
+            "response_js": "document.querySelector('#ac-key').textContent.trim()",
+        }
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="q")
+    await executor._handle_attention_check(page)
+    page.keyboard.press.assert_called_with("q")
 
 
-def test_parse_attention_check_last():
-    """Test 'last letter' maps to 'z'."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
+@pytest.mark.asyncio
+async def test_attention_check_falls_back_to_enter_without_response_js():
+    """Without response_js, attention check presses Enter as fallback."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["runtime"] = {"attention_check": {}}
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+    page = AsyncMock()
+    await executor._handle_attention_check(page)
+    page.keyboard.press.assert_called_with("Enter")
 
-    assert executor._parse_attention_check_key("Press the key for the last letter of the English alphabet") == "z"
 
-
-def test_parse_attention_check_unknown():
-    """Test unrecognized format and empty string return None."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
-
-    # Unrecognized format
-    assert executor._parse_attention_check_key("Click the button to continue") is None
-    assert executor._parse_attention_check_key("This is just random text") is None
-
-    # Empty string
-    assert executor._parse_attention_check_key("") is None
+def test_interrupt_log_conditions_derive_from_config():
+    """Interrupt log conditions use detection_condition, not hardcoded names."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._execute_trial)
+    assert '"inhibit_success"' not in source
+    assert '"inhibit_failure"' not in source
 
 
 TASK_SWITCHING_CONFIG = {

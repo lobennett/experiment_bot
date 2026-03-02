@@ -6,7 +6,7 @@ import random
 import time
 
 import numpy as np
-from playwright.async_api import Page, Browser, async_playwright
+from playwright.async_api import Page, async_playwright
 
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.distributions import ResponseSampler
@@ -46,8 +46,6 @@ class TaskExecutor:
         self._writer = OutputWriter()
         self._trial_count = 0
         self._prev_trial_error = False
-        self._prev_task_type: str | None = None  # For task switching: "parity" or "magnitude"
-        self._prev_cue: str | None = None  # For cue switch tracking
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
 
         # Resolve dynamic key mappings from task_specific
@@ -96,14 +94,13 @@ class TaskExecutor:
             return correct_key  # Only one key available; can't press wrong one
         return self._py_rng.choice(wrong_keys)
 
-    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool, cue: str | None = None) -> str:
+    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
         """Determine which RT distribution to sample from.
 
         Resolution order:
         1. {condition}_correct / {condition}_error variants
         2. Direct condition name match
-        3. Task-switching derivation from trial history
-        4. Fallback to first available distribution
+        3. Fallback to first available distribution
         """
         dists = self._config.response_distributions
 
@@ -120,25 +117,6 @@ class TaskExecutor:
         # Direct match: condition name is itself a distribution key
         if condition in dists:
             return condition
-
-        # Task switching path: derive from trial history
-        task_type = condition.rsplit("_", 1)[0] if "_" in condition else condition
-
-        if self._prev_task_type is None:
-            rt_key = "first_trial"
-        elif task_type != self._prev_task_type:
-            rt_key = "task_switch"
-        elif cue and self._prev_cue and cue != self._prev_cue and "task_repeat_cue_switch" in dists:
-            rt_key = "task_repeat_cue_switch"
-        else:
-            rt_key = "task_repeat_cue_repeat"
-
-        self._prev_task_type = task_type
-        if cue:
-            self._prev_cue = cue
-
-        if rt_key in dists:
-            return rt_key
 
         # Fallback to first available distribution
         if dists:
@@ -371,10 +349,8 @@ class TaskExecutor:
     async def _wait_for_response_window(self, page: Page, js_expr: str) -> None:
         """Poll until the platform's response window is open.
 
-        For PsyToolkit task switching, the cue appears ~750ms before the target.
-        The bot detects the cue but PsyToolkit only starts its RT clock when the
-        target appears and the keyboard becomes active. This method synchronizes
-        the bot's timing to the actual response window.
+        Some experiments display a cue or fixation before the response window
+        opens. This method synchronizes the bot's timing to the actual window.
         """
         poll_s = self._config.runtime.timing.poll_interval_ms / 1000.0
         timeout = 5.0  # Max wait to avoid hanging
@@ -423,7 +399,7 @@ class TaskExecutor:
 
         # Sample go RT — track whether this is an intentional error trial
         is_correct = self._should_respond_correctly(condition)
-        rt_condition = self._resolve_rt_distribution_key(condition, is_correct, cue=cue)
+        rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
         is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
 

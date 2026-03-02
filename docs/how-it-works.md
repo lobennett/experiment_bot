@@ -152,7 +152,7 @@ The core execution is a continuous polling loop (`_trial_loop`) that runs until 
 while not complete:
     1. Detect current phase (JS expressions)
        - COMPLETE -> exit loop
-       - ATTENTION_CHECK -> parse prompt, press correct key
+       - ATTENTION_CHECK -> evaluate response_js from config, press returned key (fallback: Enter)
        - FEEDBACK -> click continue button or press advance key
        - INSTRUCTIONS -> re-run navigation steps
 

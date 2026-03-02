@@ -436,7 +436,7 @@ class TaskExecutor:
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
-                    "condition": "inhibit_success",
+                    "condition": f"{interrupt_cfg.detection_condition}_withheld",
                     "response_key": None,
                     "sampled_rt_ms": round(rt_ms, 1),
                     "actual_rt_ms": None,
@@ -465,7 +465,7 @@ class TaskExecutor:
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
-                    "condition": "inhibit_failure",
+                    "condition": f"{interrupt_cfg.detection_condition}_responded",
                     "response_key": resolved_key,
                     "sampled_rt_ms": round(sf_rt_ms, 1),
                     "actual_rt_ms": round(actual_rt, 1),

@@ -1,0 +1,221 @@
+{
+  "task": {
+    "name": "Stroop Color-Word Task (RDoC)",
+    "constructs": [
+      "cognitive control",
+      "selective attention",
+      "inhibitory control",
+      "interference resolution"
+    ],
+    "reference_literature": [
+      "Stroop (1935) - Studies of interference in serial verbal reactions",
+      "MacLeod (1991) - Half a century of research on the Stroop effect: An integrative review",
+      "Eisenberg et al. (2019) - Uncovering the structure of self-regulation through data-driven ontology discovery"
+    ],
+    "platform": "jsPsych 7.3.1"
+  },
+  "stimuli": [
+    {
+      "id": "stroop_congruent",
+      "description": "Color word displayed in matching ink color (e.g., 'red' in red ink)",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return false; var word = el.textContent.trim().toLowerCase(); var style = el.style.color; var colorMap = {'rgb(255, 112, 112)':'red','rgb(112, 112, 255)':'blue','rgb(112, 255, 112)':'green','#ff7070':'red','#7070ff':'blue','#70ff70':'green'}; var inkColor = colorMap[style] || ''; return word === inkColor; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "congruent",
+        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return null; var style = el.style.color; var colorMap = {'rgb(255, 112, 112)':'#FF7070','rgb(112, 112, 255)':'#7070FF','rgb(112, 255, 112)':'#70FF70','#ff7070':'#FF7070','#7070ff':'#7070FF','#70ff70':'#70FF70'}; var hex = colorMap[style]; var pr = possibleResponses; if(hex==='#FF7070') return pr[0][1]; if(hex==='#7070FF') return pr[1][1]; if(hex==='#70FF70') return pr[2][1]; return null; })()"
+      }
+    },
+    {
+      "id": "stroop_incongruent",
+      "description": "Color word displayed in non-matching ink color (e.g., 'red' in blue ink)",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return false; var word = el.textContent.trim().toLowerCase(); var style = el.style.color; var colorMap = {'rgb(255, 112, 112)':'red','rgb(112, 112, 255)':'blue','rgb(112, 255, 112)':'green','#ff7070':'red','#7070ff':'blue','#70ff70':'green'}; var inkColor = colorMap[style] || ''; return inkColor !== '' && word !== inkColor; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "incongruent",
+        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return null; var style = el.style.color; var colorMap = {'rgb(255, 112, 112)':'#FF7070','rgb(112, 112, 255)':'#7070FF','rgb(112, 255, 112)':'#70FF70','#ff7070':'#FF7070','#7070ff':'#7070FF','#70ff70':'#70FF70'}; var hex = colorMap[style]; var pr = possibleResponses; if(hex==='#FF7070') return pr[0][1]; if(hex==='#7070FF') return pr[1][1]; if(hex==='#70FF70') return pr[2][1]; return null; })()"
+      }
+    }
+  ],
+  "response_distributions": {
+    "congruent": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 480,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "incongruent": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 550,
+        "sigma": 70,
+        "tau": 110
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "congruent": 0.97,
+      "incongruent": 0.9
+    },
+    "practice_accuracy": 0.85,
+    "omission_rate": {
+      "congruent": 0.02,
+      "incongruent": 0.03
+    }
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "instruction_feedback",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "instructions_page_1",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 6000
+      },
+      {
+        "phase": "instructions_page_2",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 6000
+      },
+      {
+        "phase": "instruction_done_feedback",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "practice_start_feedback",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 2000
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic"
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "max_response_time_ms": 1500,
+      "iti_mean_ms": 500,
+      "iti_min_ms": 0,
+      "iti_max_ms": 5000
+    },
+    "blocks": {
+      "practice_trials_per_block": 4,
+      "test_trials_per_block": 40,
+      "num_test_blocks": 3,
+      "max_practice_blocks": 3
+    },
+    "counterbalancing": "Key-color mapping is determined by group_index (window.efVars.group_index), which selects from 5 possible response mappings for red/blue/green to comma/period/slash keys.",
+    "possible_response_keys": [
+      ",",
+      ".",
+      "/"
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.querySelector('#finished_message') || (document.body.innerText.includes('Experiment Complete'))",
+      "test": "(function(){ return !!document.querySelector('.stroop-stim') && !document.querySelector('.prompt_box'); })()",
+      "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "(function(){ var el = document.querySelector('.prompt_box'); return !!el && !!document.querySelector('.stroop-stim'); })()",
+      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var t = el.textContent.toLowerCase(); return t.includes('press') && t.includes('enter') && !document.querySelector('.stroop-stim'); })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 35000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim')",
+      "trial_context_js": "",
+      "autocorrelation_phi": 0.25,
+      "fatigue_drift_per_trial": 0.15,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      }
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-fullscreen-btn",
+        "#jspsych-instructions-next"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.85,
+      "inhibit_wait_ms": 1500
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(function(){ var el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return null; var t = el.textContent.toLowerCase(); if(t.includes('press the q key')) return 'q'; if(t.includes('press the p key')) return 'p'; if(t.includes('press the r key')) return 'r'; if(t.includes('press the s key')) return 's'; if(t.includes('press the t key')) return 't'; if(t.includes('press the j key')) return 'j'; if(t.includes('press the k key')) return 'k'; if(t.includes('press the e key')) return 'e'; if(t.includes('press the m key')) return 'm'; if(t.includes('press the i key')) return 'i'; if(t.includes('press the u key')) return 'u'; if(t.includes('first letter')) return 'a'; if(t.includes('second letter')) return 'b'; if(t.includes('third letter') && !t.includes('third to last')) return 'c'; if(t.includes('third to last')) return 'x'; if(t.includes('second to last')) return 'y'; if(t.includes('last letter')) return 'z'; return null; })()"
+    }
+  }
+}

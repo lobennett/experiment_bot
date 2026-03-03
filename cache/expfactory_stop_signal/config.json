@@ -1,0 +1,252 @@
+{
+  "task": {
+    "name": "Stop Signal Task (RDoC)",
+    "constructs": [
+      "response inhibition",
+      "cognitive control",
+      "impulsivity",
+      "stop-signal reaction time (SSRT)"
+    ],
+    "reference_literature": [
+      "Logan, G. D., & Cowan, W. B. (1984). On the ability to inhibit thought and action: A theory of an act of control. Psychological Review, 91(3), 295-327.",
+      "Verbruggen, F., & Logan, G. D. (2008). Response inhibition in the stop-signal paradigm. Trends in Cognitive Sciences, 12(11), 418-424.",
+      "Verbruggen, F., Aron, A. R., Band, G. P., et al. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife, 8, e46323."
+    ],
+    "platform": "jsPsych 7"
+  },
+  "stimuli": [
+    {
+      "id": "stop_signal",
+      "description": "Stop signal (star) appearing around the shape - withhold response",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-SS",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "go_circle",
+      "description": "Circle shape on go trial - respond with mapped key",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-stimulus img[src*='circle']",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": ",",
+        "condition": "go_circle"
+      }
+    },
+    {
+      "id": "go_square",
+      "description": "Square shape on go trial - respond with mapped key",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-stimulus img[src*='square']",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": ".",
+        "condition": "go_square"
+      }
+    }
+  ],
+  "response_distributions": {
+    "go_circle": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "go_square": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "stop": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "stop_failure": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 350,
+        "sigma": 50,
+        "tau": 60
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "go_circle": 0.95,
+      "go_square": 0.95,
+      "stop": 0.5
+    },
+    "practice_accuracy": 0.8,
+    "omission_rate": {
+      "go_circle": 0.02,
+      "go_square": 0.02,
+      "stop": 0.0
+    }
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "instruction_feedback",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "instructions_page_1",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "instructions_page_2",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "instructions_page_3",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "practice_feedback",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 1000
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "go_circle": ",",
+      "go_square": ".",
+      "stop": null
+    },
+    "trial_timing": {
+      "stimulus_duration_ms": 1000,
+      "max_response_time_ms": 1500,
+      "fixation_duration_ms": 500,
+      "feedback_duration_ms": 500,
+      "SSD_initial_ms": 250,
+      "SSD_step_ms": 50,
+      "SSD_min_ms": 0,
+      "SSD_max_ms": 1000
+    },
+    "staircase": {
+      "method": "one-up-one-down",
+      "target_p_inhibit": 0.5,
+      "step_size_ms": 50
+    },
+    "num_test_blocks": 3,
+    "trials_per_block": 60,
+    "practice_trials": 6,
+    "go_stop_ratio": "2:1"
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "dom_query",
+      "complete": "!!document.querySelector('#finished_message') || (document.querySelector('.jspsych-display-element') && document.querySelector('.jspsych-display-element').innerText.includes('Done with this task'))",
+      "test": "!!document.querySelector('#jspsych-stop-signal-stimulus') && (typeof expStage !== 'undefined' && expStage === 'test')",
+      "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next')",
+      "practice": "!!document.querySelector('#jspsych-stop-signal-stimulus') && (typeof expStage !== 'undefined' && expStage === 'practice')",
+      "feedback": "!!(document.querySelector('#jspsych-html-keyboard-response-stimulus') && (document.querySelector('#jspsych-html-keyboard-response-stimulus').innerText.includes('Press') && document.querySelector('#jspsych-html-keyboard-response-stimulus').innerText.includes('enter')))",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 35000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-stop-signal-stimulus')",
+      "trial_context_js": "",
+      "autocorrelation_phi": 0.25,
+      "fatigue_drift_per_trial": 0.15,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      }
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 80,
+      "feedback_selectors": [
+        "#jspsych-fullscreen-btn",
+        "#jspsych-instructions-next"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "stop",
+      "failure_rt_key": "stop_failure",
+      "failure_rt_cap_fraction": 0.85,
+      "inhibit_wait_ms": 1500
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 2000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(function(){ var el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return null; var txt = el.innerText.toLowerCase(); if(txt.includes('press the q key')) return 'q'; if(txt.includes('press the p key')) return 'p'; if(txt.includes('press the r key')) return 'r'; if(txt.includes('press the s key')) return 's'; if(txt.includes('press the t key')) return 't'; if(txt.includes('press the j key')) return 'j'; if(txt.includes('press the k key')) return 'k'; if(txt.includes('press the e key')) return 'e'; if(txt.includes('press the m key')) return 'm'; if(txt.includes('press the i key')) return 'i'; if(txt.includes('press the u key')) return 'u'; if(txt.includes('first letter')) return 'a'; if(txt.includes('second letter')) return 'b'; if(txt.includes('third letter') && !txt.includes('third to last')) return 'c'; if(txt.includes('third to last')) return 'x'; if(txt.includes('second to last')) return 'y'; if(txt.includes('last letter')) return 'z'; return null; })()"
+    }
+  }
+}

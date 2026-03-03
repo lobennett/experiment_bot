@@ -1,0 +1,231 @@
+{
+  "task": {
+    "name": "Stop Signal Task (STOP-IT)",
+    "constructs": [
+      "response inhibition",
+      "inhibitory control",
+      "stop-signal reaction time (SSRT)",
+      "executive function"
+    ],
+    "reference_literature": [
+      "Logan, G. D., Cowan, W. B., & Davis, K. A. (1984). On the ability to inhibit simple and choice reaction time responses: A model and a method. Journal of Experimental Psychology: Human Perception and Performance, 10(2), 276-291.",
+      "Verbruggen, F., Aron, A. R., Band, G. P., Beste, C., Bissett, P. G., Brockett, A. T., ... & Boehler, C. N. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife, 8, e46323.",
+      "Verbruggen, F., & Logan, G. D. (2008). Response inhibition in the stop-signal paradigm. Trends in Cognitive Sciences, 12(11), 418-424.",
+      "Verbruggen, F., & Logan, G. D. (2009). Models of response inhibition in the stop-signal and stop-change paradigms. Neuroscience & Biobehavioral Reviews, 33(5), 647-661."
+    ],
+    "platform": "jsPsych 6.0.5"
+  },
+  "stimuli": [
+    {
+      "id": "stop_signal",
+      "description": "Stop-signal trial: go arrow turns red (stop image appears). Participant must withhold response.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-image-keyboard-response-stimulus') && (document.querySelector('#jspsych-image-keyboard-response-stimulus').src.includes('stop_left') || document.querySelector('#jspsych-image-keyboard-response-stimulus').src.includes('stop_right'))",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop_signal"
+      }
+    },
+    {
+      "id": "go_left",
+      "description": "Go trial with left arrow stimulus. Participant presses left arrow key.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-image-keyboard-response-stimulus') && document.querySelector('#jspsych-image-keyboard-response-stimulus').src.includes('go_left')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "ArrowLeft",
+        "condition": "go_left"
+      }
+    },
+    {
+      "id": "go_right",
+      "description": "Go trial with right arrow stimulus. Participant presses right arrow key.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-image-keyboard-response-stimulus') && document.querySelector('#jspsych-image-keyboard-response-stimulus').src.includes('go_right')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "ArrowRight",
+        "condition": "go_right"
+      }
+    }
+  ],
+  "response_distributions": {
+    "go_left": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "go_right": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 420,
+        "sigma": 60,
+        "tau": 80
+      },
+      "unit": "ms"
+    },
+    "stop_signal_failure": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 350,
+        "sigma": 50,
+        "tau": 60
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "go_left": 0.95,
+      "go_right": 0.95,
+      "stop_signal": 0.5
+    },
+    "practice_accuracy": 0.85,
+    "omission_rate": {
+      "go_left": 0.02,
+      "go_right": 0.02,
+      "stop_signal": 0.0
+    }
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "instructions_page1",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "instructions_page2",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "block_start",
+        "action": "keypress",
+        "target": "",
+        "key": " ",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "get_ready",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2500
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "go_left": "ArrowLeft",
+      "go_right": "ArrowRight",
+      "stop_signal": null
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 250,
+      "max_response_time_ms": 1250,
+      "iti_ms": 500,
+      "initial_ssd_ms": 200,
+      "ssd_step_ms": 50,
+      "feedback_duration_ms": 750,
+      "block_feedback_duration_ms": 15000
+    },
+    "design": {
+      "stop_signal_proportion": 0.25,
+      "practice_reps": 4,
+      "exp_reps": 8,
+      "n_exp_blocks": 4,
+      "trials_per_block_practice": 32,
+      "trials_per_block_exp": 64
+    }
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "document.querySelector('#jspsych-content') !== null && (document.querySelector('#jspsych-content').innerHTML.includes('Thank you for your participation') || (typeof jsPsych !== 'undefined' && jsPsych.progress && jsPsych.progress().percent_complete === 100))",
+      "test": "typeof block_ind !== 'undefined' && block_ind > 0 && document.querySelector('#jspsych-image-keyboard-response-stimulus') !== null",
+      "loading": "document.querySelector('#jspsych-fullscreen-btn') !== null",
+      "instructions": "document.querySelector('#jspsych-instructions-next') !== null",
+      "practice": "typeof block_ind !== 'undefined' && block_ind === 0 && document.querySelector('#jspsych-image-keyboard-response-stimulus') !== null",
+      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var t = el.textContent || ''; return t.includes('GO TRIALS') || t.includes('correct response') || t.includes('incorrect response') || t.includes('too slow') || t.includes('too fast') || t.includes('correct stop') || t.includes('remember: try to stop'); })()",
+      "attention_check": "false"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 800,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.85,
+      "response_window_js": "document.querySelector('#jspsych-image-keyboard-response-stimulus') !== null && document.querySelector('#jspsych-image-keyboard-response-stimulus').src.includes('go_')",
+      "trial_context_js": "",
+      "autocorrelation_phi": 0.25,
+      "fatigue_drift_per_trial": 0.15,
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      }
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        " "
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 75,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        " ",
+        "ArrowRight"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "stop_signal",
+      "failure_rt_key": "stop_signal_failure",
+      "failure_rt_cap_fraction": 0.85,
+      "inhibit_wait_ms": 1500
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "(function(){ var ignore_columns = ['raw_rt', 'trial_type', 'first_stimulus', 'second_stimulus', 'onset_of_first_stimulus', 'onset_of_second_stimulus', 'key_press', 'correct_response', 'trial_index', 'internal_node_id']; var rows = {trial_type: 'custom-stop-signal-plugin'}; var selected_data = jsPsych.data.get().filter(rows).ignore(ignore_columns); return selected_data.csv(); })()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {}
+  }
+}

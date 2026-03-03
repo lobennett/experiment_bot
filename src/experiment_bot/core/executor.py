@@ -47,8 +47,9 @@ class TaskExecutor:
         self._trial_count = 0
         self._prev_trial_error = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
+        self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
 
-        # Resolve dynamic key mappings from task_specific
+        # Resolve static key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
 
     @staticmethod
@@ -59,12 +60,52 @@ class TaskExecutor:
             return dict(ts["key_map"])
         return {}
 
-    def _resolve_response_key(self, match: StimulusMatch) -> str | None:
-        """Resolve the actual key to press for a stimulus match."""
+    async def _resolve_response_key(self, match: StimulusMatch, page: Page | None = None) -> str | None:
+        """Resolve the actual key to press for a stimulus match.
+
+        Resolution order:
+        1. Static key from stimulus config
+        2. Per-stimulus response_key_js (evaluated on page)
+        3. Global task_specific.response_key_js (evaluated on page)
+        4. Static key_map fallback
+        """
+        # Static key from config
         if match.response_key and match.response_key not in ("dynamic_mapping", "dynamic"):
+            self._seen_response_keys.add(match.response_key)
             return match.response_key
-        # Look up from dynamic key map
-        return self._key_map.get(match.condition)
+
+        # Per-stimulus response_key_js
+        if page:
+            stim_cfg = next((s for s in self._config.stimuli if s.id == match.stimulus_id), None)
+            if stim_cfg and stim_cfg.response.response_key_js:
+                try:
+                    key = await page.evaluate(stim_cfg.response.response_key_js)
+                    if key:
+                        key = str(key)
+                        self._seen_response_keys.add(key)
+                        return key
+                except Exception as e:
+                    logger.warning(f"response_key_js failed for {match.stimulus_id}: {e}")
+
+            # Global response_key_js from task_specific
+            global_js = self._config.task_specific.get("response_key_js", "")
+            if global_js:
+                try:
+                    key = await page.evaluate(global_js)
+                    if key:
+                        key = str(key)
+                        self._seen_response_keys.add(key)
+                        return key
+                except Exception as e:
+                    logger.warning(f"task_specific.response_key_js failed: {e}")
+
+        # Static key_map fallback (skip "dynamic" sentinel values)
+        mapped = self._key_map.get(match.condition)
+        if mapped and mapped not in ("dynamic_mapping", "dynamic"):
+            self._seen_response_keys.add(mapped)
+            return mapped
+
+        return None
 
     def _is_trial_stimulus(self, match: StimulusMatch) -> bool:
         """Whether a stimulus represents a trial requiring RT-distributed response.
@@ -87,8 +128,10 @@ class TaskExecutor:
         return self._py_rng.random() < self._config.performance.get_omission_rate(condition)
 
     def _pick_wrong_key(self, correct_key: str) -> str:
-        """Return a random incorrect key from the key map."""
-        all_keys = list(set(self._key_map.values()))
+        """Return a random incorrect key from known response keys."""
+        # Use static key_map when all values are real keys
+        static_keys = {v for v in self._key_map.values() if v not in ("dynamic", "dynamic_mapping")}
+        all_keys = list(static_keys or self._seen_response_keys)
         wrong_keys = [k for k in all_keys if k != correct_key]
         if not wrong_keys:
             return correct_key  # Only one key available; can't press wrong one
@@ -459,7 +502,7 @@ class TaskExecutor:
                     await asyncio.sleep(remaining_s)
 
                 actual_rt = (time.monotonic() - trial_start) * 1000
-                resolved_key = self._resolve_response_key(match)
+                resolved_key = await self._resolve_response_key(match, page)
                 if resolved_key:
                     await page.keyboard.press(resolved_key)
                 self._writer.log_trial({
@@ -484,7 +527,7 @@ class TaskExecutor:
                 await asyncio.sleep(remaining)
             actual_rt = (time.monotonic() - trial_start) * 1000
 
-        resolved_key = self._resolve_response_key(match)
+        resolved_key = await self._resolve_response_key(match, page)
         if is_error and resolved_key:
             resolved_key = self._pick_wrong_key(resolved_key)
         if resolved_key:

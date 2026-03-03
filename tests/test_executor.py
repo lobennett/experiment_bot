@@ -141,36 +141,68 @@ def test_resolve_key_mapping_task_switching():
     assert key_map["magnitude_low"] == "."
 
 
-def test_resolve_response_key_dynamic():
-    """Create a StimulusMatch with response_key='dynamic' and condition='parity_even', verify _resolve_response_key returns '.'."""
+@pytest.mark.asyncio
+async def test_resolve_response_key_dynamic_from_key_map():
+    """When response_key='dynamic', falls back to static key_map lookup."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
     executor = TaskExecutor(config)
 
-    # Create a StimulusMatch with dynamic key
     stimulus_match = StimulusMatch(
         stimulus_id="parity_even",
         response_key="dynamic",
         condition="parity_even"
     )
 
-    resolved_key = executor._resolve_response_key(stimulus_match)
+    # Without page, falls back to key_map
+    resolved_key = await executor._resolve_response_key(stimulus_match)
     assert resolved_key == "."
 
 
-def test_resolve_response_key_static():
-    """Create a StimulusMatch with response_key='z', verify it returns 'z' unchanged."""
+@pytest.mark.asyncio
+async def test_resolve_response_key_static():
+    """Static response_key='z' returns 'z' unchanged."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
     executor = TaskExecutor(config)
 
-    # Create a StimulusMatch with static key
     stimulus_match = StimulusMatch(
         stimulus_id="go_left",
         response_key="z",
         condition="go"
     )
 
-    resolved_key = executor._resolve_response_key(stimulus_match)
+    resolved_key = await executor._resolve_response_key(stimulus_match)
     assert resolved_key == "z"
+
+
+@pytest.mark.asyncio
+async def test_resolve_response_key_via_response_key_js():
+    """When response.key is null and response_key_js is set, evaluates JS on page."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["stimuli"] = [{
+        "id": "color_red",
+        "description": "Red stimulus",
+        "detection": {"method": "js_eval", "selector": "true"},
+        "response": {
+            "key": None,
+            "condition": "congruent",
+            "response_key_js": "document.querySelector('.stim').dataset.key",
+        },
+    }]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config)
+
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=",")
+
+    stimulus_match = StimulusMatch(
+        stimulus_id="color_red",
+        response_key=None,
+        condition="congruent"
+    )
+
+    resolved_key = await executor._resolve_response_key(stimulus_match, page)
+    assert resolved_key == ","
+    assert "," in executor._seen_response_keys
 
 
 def test_direct_key_map_from_config():

@@ -48,13 +48,21 @@ class DetectionConfig:
 class ResponseConfig:
     key: str | None
     condition: str
+    response_key_js: str = ""  # JS expression returning the correct key at runtime
 
     @classmethod
     def from_dict(cls, d: dict) -> ResponseConfig:
-        return cls(key=d.get("key"), condition=d["condition"])
+        return cls(
+            key=d.get("key"),
+            condition=d["condition"],
+            response_key_js=d.get("response_key_js", ""),
+        )
 
     def to_dict(self) -> dict:
-        return {"key": self.key, "condition": self.condition}
+        d = {"key": self.key, "condition": self.condition}
+        if self.response_key_js:
+            d["response_key_js"] = self.response_key_js
+        return d
 
 
 @dataclass

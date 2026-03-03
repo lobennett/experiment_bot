@@ -91,7 +91,11 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
     - `text_selector`: CSS selector to read the attention check prompt text
     - `response_js`: JavaScript expression that reads the attention check prompt and returns the correct key to press as a string. The bot evaluates this expression directly — provide complete logic for determining the response (e.g., parsing ordinal references, reading instructions). This is the primary response mechanism; without it, the bot cannot determine the correct response.
 
-11. **Task-specific parameters**: Include a `key_map` in `task_specific` — a flat dictionary mapping each stimulus condition to its correct keyboard key. Also include `trial_timing.max_response_time_ms` if the experiment enforces a response deadline.
+11. **Response key resolution**: For each stimulus, provide the correct response key:
+    - **Static keys**: Set `response.key` to the key string (e.g., `"z"`, `","`)
+    - **Dynamic keys**: When the key-stimulus mapping is randomized per participant (counterbalanced assignments), set `response.key` to `null` and provide `response.response_key_js` — a JS expression that reads the current stimulus from the DOM and returns the correct key string by consulting the experiment's runtime mapping variable.
+
+    Also include a `key_map` in `task_specific` mapping each condition to its key (or `"dynamic"` if resolved at runtime), and `trial_timing.max_response_time_ms` if the experiment enforces a response deadline.
 
 ## Response Format
 

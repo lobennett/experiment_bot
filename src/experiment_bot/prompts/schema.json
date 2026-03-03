@@ -35,8 +35,9 @@
             "type": "object",
             "required": ["condition"],
             "properties": {
-              "key": {"type": ["string", "null"]},
-              "condition": {"type": "string"}
+              "key": {"type": ["string", "null"], "description": "Static response key, or null if the key must be resolved dynamically via response_key_js"},
+              "condition": {"type": "string"},
+              "response_key_js": {"type": "string", "description": "JS expression evaluated on the page that returns the correct key to press. Use when the key-stimulus mapping is randomized per participant (e.g., counterbalanced color-key assignments). The expression should read the current stimulus from the DOM and return the correct key string."}
             }
           }
         }

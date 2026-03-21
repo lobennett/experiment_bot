@@ -15,6 +15,8 @@ For each possible stimulus, determine:
 - What the correct keyboard response is (key name or null to withhold)
 - A unique condition label for the stimulus
 
+**Condition labeling**: Label conditions by the **experimental condition** (e.g., `congruent`, `incongruent`, `go`, `stop`) rather than by stimulus features (e.g., `ink_red`, `arrow_left`). The condition label should reflect the cognitive construct being manipulated, as these labels are used for analysis. If the task has a congruency manipulation, label stimuli as `congruent` or `incongruent`. If it has a go/no-go distinction, label as `go` or `stop`. Name your `response_distributions` keys to match these condition labels.
+
 Detection methods:
 - `dom_query`: CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
 - `js_eval`: JavaScript expression — truthy if returns a truthy value
@@ -107,6 +109,8 @@ If the task has trials requiring response inhibition or signal-based interruptio
 - `failure_rt_cap_fraction`: Fraction of the maximum response time to cap commission error RTs at (0–1). Commission errors on interrupt trials typically occur before the interrupt signal can fully suppress the response.
 - `inhibit_wait_ms`: How many milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task.
 
+**Staircase-controlled tasks:** Many stop-signal experiments use an adaptive staircase procedure that adjusts the stop-signal delay (SSD) based on the participant's performance, converging on ~50% inhibition success. If you detect staircase logic in the source code (e.g., SSD increases after successful inhibition, decreases after failure), set the stop condition's accuracy target to approximately 0.50. The staircase will dynamically adjust difficulty — the bot's go RT and the staircase procedure together determine the actual inhibition rate. Do not set stop accuracy significantly above 0.50 for staircase tasks, as this would produce unrealistic SSD trajectories.
+
 ### 10. Temporal Effects Schema (mechanical descriptions)
 
 The `temporal_effects` object controls sequential dependencies in RT across trials. Each sub-object has an `enabled` boolean, numeric parameters, and a `rationale` string.
@@ -168,7 +172,13 @@ You are analyzing a cognitive experiment. Based on the task source code and your
 
 Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields.
 
-Your parameters should reflect typical performance in **online behavioral experiments** (not laboratory settings). Online samples tend to have slower mean RTs (50-150ms slower than lab norms), higher RT variability, and slightly lower accuracy due to hardware latency, environmental distractions, and broader participant demographics. Calibrate your ex-Gaussian parameters and performance targets accordingly.
+This experiment runs in a **web browser** as an online behavioral experiment. When setting RT parameters, account for browser-specific measurement factors:
+- JavaScript event loop latency adds ~20-50ms to measured RTs compared to native key capture in laboratory software (E-Prime, PsychoPy, etc.)
+- The experiment framework's RT clock typically starts when the stimulus is rendered to the DOM, which includes browser paint latency
+- Online participant samples tend to show higher RT variability (larger sigma and tau) and slightly lower accuracy than laboratory samples, due to environmental distractions and hardware differences
+- Examine the specific framework (jsPsych, lab.js, PsyToolkit, etc.) and its timing characteristics when calibrating parameters — do not apply a blanket offset
+
+Do not simply shift laboratory norms by a fixed amount. Instead, reason about how each measurement factor affects the ex-Gaussian parameters (mu, sigma, tau) for this specific platform and framework.
 
 ---
 

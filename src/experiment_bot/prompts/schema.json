@@ -101,55 +101,53 @@
       "properties": {
         "autocorrelation": {
           "type": "object",
-          "description": "Trial-to-trial autocorrelation in RT (1/f-like serial dependence).",
           "properties": {
             "enabled": {"type": "boolean"},
-            "phi": {"type": "number", "minimum": 0, "maximum": 1, "description": "AR(1) coefficient. Typical range 0.1–0.4."},
+            "phi": {"type": "number", "minimum": 0, "maximum": 1, "description": "Lag-1 autocorrelation coefficient"},
             "rationale": {"type": "string"}
           }
         },
         "fatigue_drift": {
           "type": "object",
-          "description": "Gradual RT slowing over the course of the session due to fatigue.",
           "properties": {
             "enabled": {"type": "boolean"},
-            "slope_ms_per_trial": {"type": "number", "minimum": 0, "description": "Mean RT increase per trial (ms). Typical range 0.05–0.5."},
+            "drift_per_trial_ms": {"type": "number", "minimum": 0, "description": "Milliseconds added per trial"},
             "rationale": {"type": "string"}
           }
         },
         "post_error_slowing": {
           "type": "object",
-          "description": "RT slowing on the trial immediately following an error.",
           "properties": {
             "enabled": {"type": "boolean"},
-            "delta_ms": {"type": "number", "minimum": 0, "description": "Mean RT increase (ms) after an error. Typical range 20–80."},
+            "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Minimum RT increase (ms) after an error"},
+            "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Maximum RT increase (ms) after an error"},
             "rationale": {"type": "string"}
           }
         },
         "condition_repetition": {
           "type": "object",
-          "description": "RT benefit when the same condition repeats on consecutive trials (repetition priming / switch cost).",
           "properties": {
             "enabled": {"type": "boolean"},
-            "repeat_benefit_ms": {"type": "number", "minimum": 0, "description": "RT reduction (ms) when the same condition repeats. Typical range 10–50."},
+            "facilitation_ms": {"type": "number", "minimum": 0, "description": "RT reduction on condition repetition"},
+            "cost_ms": {"type": "number", "minimum": 0, "description": "RT increase on condition alternation"},
             "rationale": {"type": "string"}
           }
         },
         "pink_noise": {
           "type": "object",
-          "description": "1/f (pink) noise added to the RT series to reproduce long-range correlations observed in human RT data.",
           "properties": {
             "enabled": {"type": "boolean"},
-            "amplitude_ms": {"type": "number", "minimum": 0, "description": "SD of the pink noise component (ms). Typical range 5–30."},
+            "sd_ms": {"type": "number", "minimum": 0, "description": "Standard deviation of pink noise contribution in ms"},
+            "hurst": {"type": "number", "minimum": 0, "maximum": 1, "description": "Hurst exponent for 1/f noise spectral structure"},
             "rationale": {"type": "string"}
           }
         },
         "post_interrupt_slowing": {
           "type": "object",
-          "description": "RT slowing on the trial immediately after a stop-signal or trial interrupt event.",
           "properties": {
             "enabled": {"type": "boolean"},
-            "delta_ms": {"type": "number", "minimum": 0, "description": "Mean RT increase (ms) after a stop-signal trial. Typical range 20–60."},
+            "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Minimum RT increase (ms) after a trial interrupt"},
+            "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Maximum RT increase (ms) after a trial interrupt"},
             "rationale": {"type": "string"}
           }
         }
@@ -159,39 +157,18 @@
       "type": "object",
       "description": "Between-subject variability parameters. Controls how much each simulated session varies from the base parameters.",
       "properties": {
-        "rt_mean_sd_ms": {
-          "type": "number",
-          "minimum": 0,
-          "description": "SD across participants in overall mean RT (ms). Typical range 20–80."
-        },
-        "rt_condition_sd_ms": {
-          "type": "number",
-          "minimum": 0,
-          "description": "SD across participants in per-condition RT offsets (ms). Typical range 5–30."
-        },
+        "rt_mean_sd_ms": {"type": "number", "minimum": 0, "description": "SD of shared mean RT shift across conditions"},
+        "rt_condition_sd_ms": {"type": "number", "minimum": 0, "description": "SD of per-condition RT shift"},
         "sigma_tau_range": {
           "type": "array",
-          "items": {"type": "number", "minimum": 0},
+          "items": {"type": "number"},
           "minItems": 2,
           "maxItems": 2,
-          "description": "Uniform range [min, max] for sampling the ex-Gaussian tau (ms) per participant. Typical range [20, 120]."
+          "description": "[min, max] multiplier range for sigma and tau jitter"
         },
-        "accuracy_sd": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 0.2,
-          "description": "SD across participants in per-condition accuracy. Typical range 0.02–0.08."
-        },
-        "omission_sd": {
-          "type": "number",
-          "minimum": 0,
-          "maximum": 0.1,
-          "description": "SD across participants in omission rate. Typical range 0.005–0.03."
-        },
-        "rationale": {
-          "type": "string",
-          "description": "Justification for the chosen variability values, citing published individual-difference or reliability studies."
-        }
+        "accuracy_sd": {"type": "number", "minimum": 0, "description": "SD of accuracy jitter"},
+        "omission_sd": {"type": "number", "minimum": 0, "description": "SD of omission rate jitter"},
+        "rationale": {"type": "string"}
       }
     },
     "runtime": {

@@ -38,19 +38,22 @@ class TaskExecutor:
         self._sampler = ResponseSampler(
             config.response_distributions,
             floor_ms=config.runtime.timing.rt_floor_ms,
-            phi=config.runtime.timing.autocorrelation_phi,
-            drift_rate=config.runtime.timing.fatigue_drift_per_trial,
+            phi=config.temporal_effects.autocorrelation.phi,
+            drift_rate=config.temporal_effects.fatigue_drift.drift_per_trial_ms,
             seed=seed,
         )
         self._navigator = InstructionNavigator()
         self._writer = OutputWriter()
         self._trial_count = 0
         self._prev_trial_error = False
+        self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
 
         # Resolve static key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
+        # Cache interrupt JS — config is immutable so this never changes
+        self._interrupt_js = self._build_interrupt_check_js()
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -430,6 +433,7 @@ class TaskExecutor:
                 "omission": True,
             })
             self._prev_trial_error = True
+            self._prev_interrupt_detected = False
             await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
             return
 
@@ -446,25 +450,26 @@ class TaskExecutor:
         is_error = not is_correct
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
 
-        # Post-error slowing: humans slow ~30-60ms after making a mistake
-        if self._prev_trial_error:
-            rt_ms += self._rng.uniform(20, 60)
+        # Sequential slowing effects (mutually exclusive — most specific wins)
+        if self._prev_interrupt_detected:
+            rt_ms += self._rng.uniform(20, 40)  # post-interrupt slowing
+        elif self._prev_trial_error:
+            rt_ms += self._rng.uniform(20, 60)  # post-error slowing
 
         # Cap RT at the task's max response window (prevents late keypresses)
         max_response_ms = self._config.task_specific.get(
             "trial_timing", {}
-        ).get("max_response_time_ms", 0)
+        ).get("max_response_time_ms") or 0
         if max_response_ms > 0:
             rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
 
-        interrupt_js = self._build_interrupt_check_js()
         interrupt_detected = False
 
-        if interrupt_js:
+        if self._interrupt_js:
             # Poll for interrupt stimulus during RT wait
             poll_interval = self._config.runtime.timing.poll_interval_ms / 1000.0
             while (time.monotonic() - trial_start) < rt_ms / 1000.0:
-                if await self._check_interrupt(page, interrupt_js):
+                if await self._check_interrupt(page, self._interrupt_js):
                     interrupt_detected = True
                     break
                 await asyncio.sleep(poll_interval)
@@ -486,6 +491,7 @@ class TaskExecutor:
                     "omission": False,
                 })
                 self._prev_trial_error = False
+                self._prev_interrupt_detected = True
                 await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
                 return
             else:
@@ -515,10 +521,11 @@ class TaskExecutor:
                     "omission": False,
                 })
                 self._prev_trial_error = True
+                self._prev_interrupt_detected = True
                 return
 
         # No interrupt — normal trial response
-        if not interrupt_js:
+        if not self._interrupt_js:
             actual_rt = (time.monotonic() - trial_start) * 1000
         else:
             # Wait remaining RT time if we were polling
@@ -546,6 +553,7 @@ class TaskExecutor:
             "cue": cue,
         })
         self._prev_trial_error = is_error
+        self._prev_interrupt_detected = False
 
     async def _handle_attention_check(self, page: Page) -> None:
         """Handle attention check using config-driven response logic.

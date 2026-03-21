@@ -597,5 +597,32 @@ def test_post_interrupt_exclusive_with_pes():
     import inspect
     source = inspect.getsource(TaskExecutor._execute_trial)
     # Find the interrupt check and verify elif for error slowing
-    assert "if self._prev_interrupt_detected:" in source
-    assert "elif self._prev_trial_error:" in source
+    assert "if self._prev_interrupt_detected" in source
+    assert "elif self._prev_trial_error" in source
+
+
+def test_post_error_slowing_reads_from_config():
+    """Post-error slowing magnitude comes from temporal_effects config."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._execute_trial)
+    assert "post_error_slowing" in source
+    assert "post_interrupt_slowing" in source
+
+
+def test_executor_sampler_receives_temporal_effects():
+    """Executor passes temporal_effects to ResponseSampler."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["temporal_effects"] = {
+        "autocorrelation": {"enabled": True, "phi": 0.3, "rationale": "test"},
+    }
+    from experiment_bot.core.config import TaskConfig
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    assert executor._sampler._effects.autocorrelation.phi == 0.3
+
+
+def test_post_interrupt_skips_condition_repetition():
+    """When post-interrupt slowing fires, condition_repetition is suppressed."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._execute_trial)
+    assert "skip_condition_repetition" in source

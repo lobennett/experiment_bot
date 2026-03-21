@@ -447,13 +447,21 @@ class TaskExecutor:
         is_correct = self._should_respond_correctly(condition)
         rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
         is_error = not is_correct
-        rt_ms = self._sampler.sample_rt_with_fallback(rt_condition)
+        te = self._config.temporal_effects
+        skip_cond_rep = self._prev_interrupt_detected and te.post_interrupt_slowing.enabled
+        rt_ms = self._sampler.sample_rt_with_fallback(rt_condition, skip_condition_repetition=skip_cond_rep)
 
         # Sequential slowing effects (mutually exclusive — most specific wins)
-        if self._prev_interrupt_detected:
-            rt_ms += self._rng.uniform(20, 40)  # post-interrupt slowing
-        elif self._prev_trial_error:
-            rt_ms += self._rng.uniform(20, 60)  # post-error slowing
+        if self._prev_interrupt_detected and te.post_interrupt_slowing.enabled:
+            rt_ms += self._rng.uniform(
+                te.post_interrupt_slowing.slowing_ms_min,
+                te.post_interrupt_slowing.slowing_ms_max,
+            )
+        elif self._prev_trial_error and te.post_error_slowing.enabled:
+            rt_ms += self._rng.uniform(
+                te.post_error_slowing.slowing_ms_min,
+                te.post_error_slowing.slowing_ms_max,
+            )
 
         # Cap RT at the task's max response window (prevents late keypresses)
         max_response_ms = self._config.task_specific.get(

@@ -4,6 +4,7 @@ from unittest.mock import AsyncMock, patch, MagicMock
 
 from experiment_bot.core.analyzer import Analyzer
 from experiment_bot.core.config import SourceBundle, TaskConfig
+from experiment_bot.core.pilot import PilotDiagnostics
 
 
 MOCK_CONFIG_JSON = json.dumps({
@@ -171,3 +172,38 @@ async def test_analyzer_prompt_includes_runtime_schema():
     """The schema sent to Claude includes the runtime section."""
     analyzer = Analyzer(client=MagicMock())
     assert "runtime" in analyzer._schema["properties"]
+
+
+@pytest.mark.asyncio
+async def test_analyzer_refine_sends_diagnostic_report():
+    """refine() sends the diagnostic report and original source to Claude."""
+    mock_client = AsyncMock()
+    mock_response = MagicMock()
+    mock_response.content = [MagicMock(text='{"task": {"name": "Test", "constructs": [], "reference_literature": []}, "stimuli": [], "response_distributions": {}, "performance": {"accuracy": {"go": 0.95}, "omission_rate": {"go": 0.02}, "practice_accuracy": 0.85}, "navigation": {"phases": []}}')]
+    mock_client.messages.create = AsyncMock(return_value=mock_response)
+
+    analyzer = Analyzer(client=mock_client)
+    config = TaskConfig.from_dict({
+        "task": {"name": "Test", "constructs": [], "reference_literature": []},
+        "stimuli": [], "response_distributions": {},
+        "performance": {"accuracy": {"go": 0.95}, "omission_rate": {"go": 0.02}, "practice_accuracy": 0.85},
+        "navigation": {"phases": []}, "task_specific": {},
+    })
+    diagnostics = PilotDiagnostics(
+        trials_completed=5, trials_with_stimulus_match=2,
+        conditions_observed=["go"], conditions_missing=["stop"],
+        selector_results={"go_stim": {"matches": 10, "polls": 50}},
+        phase_results={}, dom_snapshots=[{"trigger": "test", "html": "<div>test</div>"}],
+        anomalies=[], trial_log=[],
+    )
+    bundle = SourceBundle(url="http://test.com", source_files={}, description_text="<html>test</html>", hint="test")
+
+    result = await analyzer.refine(config, diagnostics, bundle)
+    assert isinstance(result, TaskConfig)
+
+    # Verify the API was called with diagnostic content
+    call_args = mock_client.messages.create.call_args
+    user_msg = call_args.kwargs["messages"][0]["content"]
+    assert "Pilot Run Diagnostic Report" in user_msg
+    assert "<div>test</div>" in user_msg  # DOM snapshot
+    assert "<html>test</html>" in user_msg  # original source

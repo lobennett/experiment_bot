@@ -159,6 +159,8 @@ You are analyzing a cognitive experiment. Based on the task source code and your
 
 Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields.
 
+Your parameters should reflect typical performance in **online behavioral experiments** (not laboratory settings). Online samples tend to have slower mean RTs (50-150ms slower than lab norms), higher RT variability, and slightly lower accuracy due to hardware latency, environmental distractions, and broader participant demographics. Calibrate your ex-Gaussian parameters and performance targets accordingly.
+
 ---
 
 ## Response Format

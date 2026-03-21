@@ -12,6 +12,7 @@ from experiment_bot.core.config import (
     PinkNoiseConfig,
     PostInterruptSlowingConfig,
     BetweenSubjectJitterConfig,
+    PilotConfig,
 )
 
 
@@ -202,3 +203,61 @@ def test_performance_config_no_hardcoded_fallback():
         perf.get_accuracy("any")
     with pytest.raises(ValueError, match="No omission"):
         perf.get_omission_rate("any")
+
+
+# ---------------------------------------------------------------------------
+# PilotConfig tests
+# ---------------------------------------------------------------------------
+
+
+def test_pilot_config_defaults():
+    pc = PilotConfig.from_dict({})
+    assert pc.min_trials == 20
+    assert pc.target_conditions == []
+    assert pc.max_blocks == 1
+    assert pc.stimulus_container_selector == ""
+
+
+def test_pilot_config_from_dict():
+    pc = PilotConfig.from_dict({
+        "min_trials": 30,
+        "target_conditions": ["congruent", "incongruent"],
+        "max_blocks": 2,
+        "stimulus_container_selector": "#jspsych-content",
+        "rationale": "test",
+    })
+    assert pc.min_trials == 30
+    assert pc.target_conditions == ["congruent", "incongruent"]
+    assert pc.stimulus_container_selector == "#jspsych-content"
+
+
+def test_pilot_config_round_trip():
+    original = {"min_trials": 40, "target_conditions": ["go", "stop"],
+                "max_blocks": 1, "stimulus_container_selector": "#content",
+                "rationale": "need 40 trials for 25% stop ratio"}
+    pc = PilotConfig.from_dict(original)
+    d = pc.to_dict()
+    assert d["min_trials"] == 40
+    assert d["target_conditions"] == ["go", "stop"]
+
+
+def test_task_config_has_pilot():
+    config = TaskConfig.from_dict(MINIMAL_CONFIG)
+    assert config.pilot.min_trials == 20
+    assert config.pilot.target_conditions == []
+
+
+def test_task_config_pilot_from_dict():
+    d = dict(MINIMAL_CONFIG)
+    d["pilot"] = {"min_trials": 30, "target_conditions": ["go"], "max_blocks": 1, "rationale": "test"}
+    config = TaskConfig.from_dict(d)
+    assert config.pilot.min_trials == 30
+
+
+def test_task_config_round_trip_includes_pilot():
+    d = dict(MINIMAL_CONFIG)
+    d["pilot"] = {"min_trials": 25, "target_conditions": ["a", "b"], "max_blocks": 2, "rationale": "test"}
+    config = TaskConfig.from_dict(d)
+    out = config.to_dict()
+    assert out["pilot"]["min_trials"] == 25
+    assert out["pilot"]["target_conditions"] == ["a", "b"]

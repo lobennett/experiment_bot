@@ -233,6 +233,22 @@ class BetweenSubjectJitterConfig:
 
 
 @dataclass
+class PilotConfig:
+    min_trials: int = 20
+    target_conditions: list[str] = field(default_factory=list)
+    max_blocks: int = 1
+    stimulus_container_selector: str = ""
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PilotConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
 class PerformanceConfig:
     accuracy: dict[str, float]           # condition → accuracy (0-1)
     omission_rate: dict[str, float]      # condition → omission rate (0-1)
@@ -481,6 +497,7 @@ class TaskConfig:
     task_specific: dict = field(default_factory=dict)
     temporal_effects: TemporalEffectsConfig = field(default_factory=TemporalEffectsConfig)
     between_subject_jitter: BetweenSubjectJitterConfig = field(default_factory=BetweenSubjectJitterConfig)
+    pilot: PilotConfig = field(default_factory=PilotConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
     @classmethod
@@ -497,6 +514,7 @@ class TaskConfig:
             task_specific=d.get("task_specific", {}),
             temporal_effects=TemporalEffectsConfig.from_dict(d.get("temporal_effects", {})),
             between_subject_jitter=BetweenSubjectJitterConfig.from_dict(d.get("between_subject_jitter", {})),
+            pilot=PilotConfig.from_dict(d.get("pilot", {})),
             runtime=RuntimeConfig.from_dict(d.get("runtime", {})),
         )
 
@@ -512,6 +530,7 @@ class TaskConfig:
             "task_specific": self.task_specific,
             "temporal_effects": self.temporal_effects.to_dict(),
             "between_subject_jitter": self.between_subject_jitter.to_dict(),
+            "pilot": self.pilot.to_dict(),
         }
         runtime_dict = self.runtime.to_dict()
         if any(v for v in runtime_dict.values()):

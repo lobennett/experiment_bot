@@ -171,6 +171,17 @@
         "rationale": {"type": "string"}
       }
     },
+    "pilot": {
+      "type": "object",
+      "description": "Pilot run parameters. The executor runs a short pilot session to validate selectors and detection before the full run. Based on the experiment's trial structure (block sizes, condition ratios, practice/test phases), specify enough trials to observe all experimental conditions at least once.",
+      "properties": {
+        "min_trials": {"type": "integer", "minimum": 1, "description": "Minimum trials before pilot can stop"},
+        "target_conditions": {"type": "array", "items": {"type": "string"}, "description": "Condition labels (matching response.condition in stimuli) that should be observed during pilot"},
+        "max_blocks": {"type": "integer", "minimum": 1, "description": "Maximum experimental blocks to run"},
+        "stimulus_container_selector": {"type": "string", "description": "CSS selector for the experiment's main stimulus container element, used for DOM snapshots (e.g., '#jspsych-content')"},
+        "rationale": {"type": "string"}
+      }
+    },
     "runtime": {
       "type": "object",
       "description": "Runtime configuration for the bot executor. Controls phase detection, timing, advance behavior, and trial interrupt settings.",

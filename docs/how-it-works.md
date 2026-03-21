@@ -58,7 +58,8 @@ CLI invocation
   -> Scrape experiment HTML + linked JS/CSS (up to 30KB per file)
   -> Claude Opus: structural prompt (schema) + behavioral prompt (literature knowledge)
   -> Parse response into TaskConfig
-  -> Cache config under cache/{label}/config.json
+  -> Pilot validation (see below)
+  -> Cache refined config under cache/{label}/config.json
   -> Apply between-subject jitter (deep copy — cached config is not mutated)
   -> Playwright browser opens experiment
   -> Navigate instruction screens (config-driven)
@@ -71,7 +72,9 @@ CLI invocation
 
 **Claude.** The system prompt (`prompts/system.md`) instructs Claude to analyze the source as a cognitive psychology researcher, identify the task paradigm, and populate every field in the schema. The schema (`TaskConfig` structure) constrains the output format. The hint flag provides paradigm context when the source alone is ambiguous.
 
-**Cache.** The generated config is written to `cache/{label}/config.json`. Subsequent runs skip the API call entirely. Use `--regenerate-config` to force regeneration.
+**Pilot validation.** After initial config generation, the bot runs a short pilot session against the live experiment. The pilot navigates instruction screens, polls for stimuli, and records which selectors matched, which conditions were observed, and captures DOM snapshots of the actual rendered HTML. If selectors fail or conditions are missing, the diagnostic report — including the real DOM structure — is sent back to Claude for targeted config refinement (max 2 iterations). This loop runs once per novel task; cached configs skip the pilot entirely.
+
+**Cache.** The refined config is written to `cache/{label}/config.json`. Subsequent runs skip the API call and pilot entirely. Use `--regenerate-config` to force regeneration.
 
 **Jitter.** `jitter_distributions()` applies random offsets drawn from Claude-specified distributions to simulate individual differences. A shared mu shift moves all conditions together (preserving effect sizes like the Stroop effect). Per-condition shifts, sigma/tau scaling, and accuracy jitter add additional variance.
 

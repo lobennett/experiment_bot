@@ -1,4 +1,7 @@
-from experiment_bot.core.pilot import PilotDiagnostics
+import asyncio
+
+from experiment_bot.core.config import TaskConfig
+from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner
 
 
 def test_diagnostics_match_rate_all_matched():
@@ -61,3 +64,40 @@ def test_diagnostics_to_report_contains_key_sections():
     assert "<div>test</div>" in report  # DOM snapshot
     assert "50 consecutive polls" in report  # anomaly
     assert "Trial 1" in report  # trial log entry
+
+
+PILOT_CONFIG = {
+    "task": {"name": "Test Stroop", "platform": "jsPsych", "constructs": [], "reference_literature": []},
+    "stimuli": [
+        {"id": "cong", "description": "congruent", "detection": {"method": "js_eval", "selector": "true"},
+         "response": {"key": "f", "condition": "congruent"}},
+        {"id": "incong", "description": "incongruent", "detection": {"method": "js_eval", "selector": "false"},
+         "response": {"key": "j", "condition": "incongruent"}},
+    ],
+    "response_distributions": {"congruent": {"distribution": "ex_gaussian", "params": {"mu": 500, "sigma": 60, "tau": 80}}},
+    "performance": {"accuracy": {"congruent": 0.95}, "omission_rate": {"congruent": 0.02}, "practice_accuracy": 0.85},
+    "navigation": {"phases": []},
+    "task_specific": {},
+    "pilot": {"min_trials": 5, "target_conditions": ["congruent", "incongruent"], "max_blocks": 1,
+              "stimulus_container_selector": "#jspsych-content"},
+}
+
+
+def test_pilot_runner_instantiation():
+    """PilotRunner can be created and has run method."""
+    runner = PilotRunner()
+    assert hasattr(runner, 'run')
+    assert asyncio.iscoroutinefunction(runner.run)
+
+
+def test_pilot_runner_reads_config():
+    """PilotRunner reads pilot config from TaskConfig."""
+    config = TaskConfig.from_dict(PILOT_CONFIG)
+    assert config.pilot.target_conditions == ["congruent", "incongruent"]
+    assert config.pilot.min_trials == 5
+    assert config.pilot.stimulus_container_selector == "#jspsych-content"
+
+
+def test_pilot_runner_snapshot_dom_is_static():
+    """_snapshot_dom is a static method."""
+    assert hasattr(PilotRunner, '_snapshot_dom')

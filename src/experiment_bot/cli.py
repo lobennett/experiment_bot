@@ -55,6 +55,39 @@ async def _run_task(
                 cond: accuracy for cond in config.performance.accuracy
             } if config.performance.accuracy else {"default": accuracy}
 
+        # Pilot validation loop (max 2 refinement iterations)
+        from experiment_bot.core.pilot import PilotRunner, PilotDiagnostics
+
+        click.echo("Running pilot validation...")
+        pilot_runner = PilotRunner()
+        for attempt in range(3):  # initial + 2 refinements
+            try:
+                diagnostics = await pilot_runner.run(config, url, headless=headless)
+            except Exception as e:
+                click.echo(f"Pilot crashed (attempt {attempt + 1}): {e}")
+                if attempt < 2:
+                    diagnostics = PilotDiagnostics.crashed(str(e))
+                else:
+                    click.echo("Warning: Pilot failed after 2 attempts. Caching unvalidated config.")
+                    break
+
+            # Pass: all target conditions observed and no zero-match selectors
+            no_zero_selectors = all(
+                r["matches"] > 0 for r in diagnostics.selector_results.values() if r["polls"] > 0
+            )
+            if diagnostics.all_conditions_observed and diagnostics.trials_completed > 0 and no_zero_selectors:
+                click.echo(
+                    f"Pilot passed: {diagnostics.trials_completed} trials, "
+                    f"all conditions observed, all selectors fired at least once"
+                )
+                break
+
+            if attempt < 2:
+                click.echo(f"Pilot found issues (attempt {attempt + 1}), refining config...")
+                config = await analyzer.refine(config, diagnostics, bundle)
+            else:
+                click.echo("Warning: Config still has issues after 2 refinements. Caching best attempt.")
+
         cache.save(url, config, label)
         click.echo("Config generated and cached.")
     else:

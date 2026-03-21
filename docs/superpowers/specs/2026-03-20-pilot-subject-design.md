@@ -61,7 +61,7 @@ The pilot stops when ANY of these are met:
 2. `max_blocks` blocks completed (detected via block-level feedback/instruction screens)
 3. Task completion detected (the experiment ended naturally)
 4. A hard timeout of 5 minutes elapsed (safety valve)
-5. Zero stimulus matches for 100+ consecutive polls (the config is fundamentally broken — stop early and report)
+5. Zero stimulus matches for 100 consecutive polls (the config is fundamentally broken — stop early and report). This overrides the executor's `max_no_stimulus_polls` (default 500) — the pilot uses a tighter threshold because broken selectors should be caught quickly, not after 10+ seconds of fruitless polling.
 
 Claude determines `min_trials`, `target_conditions`, and `max_blocks` from the experiment source code. It can read block sizes, trial counts, condition ratios, and practice/test structure from the JS source.
 
@@ -90,16 +90,45 @@ class PilotConfig:
     min_trials: int = 20
     target_conditions: list[str] = field(default_factory=list)
     max_blocks: int = 1
+    stimulus_container_selector: str = ""  # CSS selector for DOM snapshot target (e.g., "#jspsych-content")
     rationale: str = ""
 ```
 
 Default `min_trials=20` is a safe fallback if Claude omits the pilot section. But Claude should always populate it — the prompt instructs this.
 
+`stimulus_container_selector` tells the pilot which DOM element to snapshot. Claude sets this based on the framework (e.g., `#jspsych-content` for jsPsych, `#gorilla-content` for Gorilla). Falls back to `document.body` if empty.
+
+### Validation
+
+At config load time, `target_conditions` must be a subset of the `response.condition` values defined in the `stimuli` list. If not, log a warning — Claude may have used inconsistent naming. This prevents the pilot from waiting for conditions that can never appear.
+
+### TaskConfig integration
+
+Add to `TaskConfig`:
+
+```python
+pilot: PilotConfig = field(default_factory=PilotConfig)
+```
+
+Add to `TaskConfig.from_dict()`:
+
+```python
+pilot=PilotConfig.from_dict(d.get("pilot", {})),
+```
+
+Add to `TaskConfig.to_dict()`:
+
+```python
+"pilot": self.pilot.to_dict(),
+```
+
 ---
 
 ## 2. Pilot Runner
 
-The pilot runner is a **mode of the existing TaskExecutor**, not a separate system. It uses the same trial loop, stimulus detection, phase detection, and navigation code — but collects diagnostics and stops early.
+The pilot runner is a **separate class** (`PilotRunner` in `core/pilot.py`) that reuses lower-level components from the executor — `StimulusLookup`, `detect_phase`, `InstructionNavigator` — but has its own simplified poll loop. It does NOT subclass or wrap `TaskExecutor`.
+
+**Why not reuse `_trial_loop`:** The executor's trial loop is tightly coupled to production concerns (OutputWriter, RT sampling, accuracy decisions, interrupt handling) and has no hook points for diagnostics collection. The pilot needs fundamentally different behavior: DOM snapshotting, selector match counting, early stopping, and no response timing. A separate loop that reuses the detection primitives is cleaner than injecting pilot mode into the executor.
 
 ### What the pilot collects
 
@@ -263,18 +292,33 @@ To:
 config = await analyzer.analyze(bundle)
 
 # Pilot validation loop (max 2 refinement iterations)
+pilot_runner = PilotRunner()
 for attempt in range(3):  # initial + 2 refinements
-    diagnostics = await pilot_runner.run(config, url, headless=True)
+    try:
+        diagnostics = await pilot_runner.run(config, url, headless=headless)
+    except Exception as e:
+        click.echo(f"Pilot crashed (attempt {attempt + 1}): {e}")
+        if attempt < 2:
+            # Treat crash as maximally broken — send empty diagnostics for refinement
+            diagnostics = PilotDiagnostics.crashed(str(e))
+        else:
+            click.echo("Warning: Pilot failed after 2 attempts. Caching unvalidated config.")
+            break
+
     if diagnostics.all_conditions_observed and diagnostics.match_rate > 0.5:
+        click.echo(f"Pilot passed: {diagnostics.trials_completed} trials, "
+                    f"all conditions observed, {diagnostics.match_rate:.0%} match rate")
         break  # Config is working
     if attempt < 2:
         click.echo(f"Pilot found issues (attempt {attempt + 1}), refining config...")
-        config = await analyzer.refine(config, diagnostics)
+        config = await analyzer.refine(config, diagnostics, bundle)
     else:
         click.echo("Warning: Config still has issues after 2 refinements. Caching best attempt.")
 
 cache.save(url, config, label)
 ```
+
+If the pilot crashes (browser failure, navigation timeout, unhandled exception), the crash is treated as a diagnostic signal — the error message is included in the refinement prompt so Claude can reason about what went wrong. After 2 failed attempts, the unvalidated config is cached with a warning.
 
 ### New modules
 
@@ -287,12 +331,16 @@ cache.save(url, config, label)
 
 ```python
 class PilotRunner:
-    async def run(self, config: TaskConfig, url: str, headless: bool = True) -> PilotDiagnostics:
-        """Execute pilot run and return diagnostics."""
+    async def run(self, config: TaskConfig, url: str, headless: bool = False) -> PilotDiagnostics:
+        """Execute pilot run and return diagnostics.
+
+        headless defaults to False for debuggability. The CLI can override.
+        """
 
 @dataclass
 class PilotDiagnostics:
     trials_completed: int
+    trials_with_stimulus_match: int   # How many trials had at least one selector fire
     conditions_observed: list[str]
     conditions_missing: list[str]
     selector_results: dict[str, dict]  # stimulus_id → {matches, polls}
@@ -307,9 +355,30 @@ class PilotDiagnostics:
 
     @property
     def match_rate(self) -> float:
-        total = sum(r['matches'] for r in self.selector_results.values())
-        return total / max(self.trials_completed, 1)
+        """Fraction of completed trials where at least one stimulus selector matched."""
+        return self.trials_with_stimulus_match / max(self.trials_completed, 1)
+
+    def to_report(self) -> str:
+        """Format diagnostics as a human-readable text report for Claude."""
+        # (builds the diagnostic report text described in Section 3)
+        ...
 ```
+
+### `Analyzer.refine()` interface
+
+```python
+async def refine(self, config: TaskConfig, diagnostics: PilotDiagnostics, bundle: SourceBundle) -> TaskConfig:
+    """Send diagnostic report + original source to Claude for config refinement.
+
+    The refinement prompt includes:
+    1. Original config JSON
+    2. Diagnostic report (from diagnostics.to_report())
+    3. Original experiment source code (from bundle)
+    4. Focused refinement instructions
+    """
+```
+
+The refinement call includes the original `SourceBundle` so Claude can cross-reference the source code when rewriting selectors. This is essential — DOM snapshots show *what* the experiment renders, but the source code shows *why* (e.g., which dimension is the stimulus vs. response).
 
 ### Cache behavior
 
@@ -320,14 +389,6 @@ class PilotDiagnostics:
 ---
 
 ## 6. Prompt Changes
-
-### Addition to behavioral instructions (Section B of system.md)
-
-Add to the behavioral prompt:
-
-> "Your parameters should reflect typical performance in **online behavioral experiments** (not laboratory settings). Online samples tend to have slower mean RTs (50-150ms slower than lab norms), higher RT variability, and slightly lower accuracy due to hardware latency, environmental distractions, and broader participant demographics. Calibrate your ex-Gaussian parameters and performance targets accordingly."
-
-This addresses the RT calibration issue (bot was ~140ms too fast) without overfitting — it's a methodological consideration any researcher would apply.
 
 ### Addition to technical instructions (Section A of system.md)
 
@@ -341,7 +402,19 @@ Add a section describing the `pilot` config:
 
 ---
 
-## 7. What This Does NOT Change
+## 7. Separate Change: Online Experiment RT Calibration
+
+The following prompt change is independent of the pilot feature and should be applied as a separate commit. It addresses the observed RT calibration gap (bot ~140ms faster than human online sample).
+
+Add to the behavioral instructions (Section B of `system.md`):
+
+> "Your parameters should reflect typical performance in **online behavioral experiments** (not laboratory settings). Online samples tend to have slower mean RTs (50-150ms slower than lab norms), higher RT variability, and slightly lower accuracy due to hardware latency, environmental distractions, and broader participant demographics. Calibrate your ex-Gaussian parameters and performance targets accordingly."
+
+This is not gated on the pilot feature and can be merged independently.
+
+---
+
+## 8. What This Does NOT Change
 
 - **ExGaussianSampler, ResponseSampler, temporal effects** — untouched. Behavioral modeling is not affected.
 - **Production trial loop** — the executor's main `_trial_loop` is unchanged. The pilot reuses it with early stopping.
@@ -349,7 +422,7 @@ Add a section describing the `pilot` config:
 - **Cached configs** — once a config passes the pilot and is cached, it's used exactly as before.
 - **Between-subject jitter** — applied after the pilot, during production runs only.
 
-## 8. Anti-Goals
+## 9. Anti-Goals
 
 - **No task-specific fallback logic.** If selectors fail, Claude fixes them — the code doesn't guess.
 - **No DOM-based heuristics.** The pilot collects data; Claude interprets it.

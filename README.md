@@ -108,17 +108,49 @@ Each run saves to `output/{task_name}/{timestamp}/`:
 | `config.json` | The TaskConfig used for this run |
 | `run_metadata.json` | Run metadata (task name, URL, trial count, headless flag) |
 
-## Comparing Bot vs. Human Data
+## Analyzing Data
 
-Human reference data from an RDoC behavioral battery is in `data/human/`. The analysis notebook computes mean metrics and compares bot output to human distributions:
+### Interactive notebook
+
+The primary analysis tool is `scripts/analysis.ipynb`. It loads both human reference data and bot output, computes mean metrics, and produces comparison tables and plots.
 
 ```bash
+# Open in Jupyter Lab
 uv run jupyter lab scripts/analysis.ipynb
+
+# Or run headlessly to verify it executes without errors
+uv run jupyter execute scripts/analysis.ipynb
 ```
 
-Key comparison metrics:
-- **Stop signal**: mean go RT, go accuracy, stop accuracy, SSRT
-- **Stroop**: congruent/incongruent RT, accuracy, Stroop effect magnitude
+### Human reference data
+
+Human data from an RDoC behavioral battery is in `data/human/`:
+- `stop_signal.csv` — ~2500 sessions with go RT, go accuracy, stop accuracy, SSRT, SSD, etc.
+- `stroop.csv` — ~2500 sessions with congruent/incongruent RT and accuracy.
+
+Both files include exclusion columns (`Session-Level Exclusions`, `Task-Level Exclusions`, `Subject-Level Exclusions`). The notebook filters to rows where all three are "Include".
+
+### Bot output
+
+Each bot run saves to `output/{task_name}/{timestamp}/`. The notebook scans this directory and loads:
+- `bot_log.json` — per-trial decision log (stimulus, condition, sampled RT, actual RT, accuracy)
+- `config.json` — the TaskConfig used for the run (includes Claude's temporal_effects rationales)
+- `experiment_data.{csv,tsv,json}` — raw data captured from the experiment platform
+
+### Key comparison metrics
+
+| Task | Metrics |
+|------|---------|
+| **Stop signal** | Mean go RT, go accuracy, go omission rate, mean stop failure RT, stop accuracy, mean SSD, SSRT |
+| **Stroop** | Congruent RT, incongruent RT, congruent accuracy, incongruent accuracy, Stroop effect (incongruent - congruent RT) |
+
+### Quick command-line check
+
+To count completed bot runs without opening the notebook:
+
+```bash
+find output -name "bot_log.json" | wc -l
+```
 
 ## Project Structure
 

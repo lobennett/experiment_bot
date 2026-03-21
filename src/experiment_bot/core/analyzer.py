@@ -9,7 +9,35 @@ from experiment_bot.core.pilot import PilotDiagnostics
 
 logger = logging.getLogger(__name__)
 
+import re
+
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
+
+
+def _extract_json(text: str) -> str:
+    """Extract JSON object from Claude's response, handling various formats.
+
+    Handles: raw JSON, markdown-fenced JSON, JSON with preamble/postamble text.
+    """
+    text = text.strip()
+
+    # Strip markdown code fences (```json ... ``` or ``` ... ```)
+    fence_match = re.search(r"```(?:json)?\s*\n(.*?)```", text, re.DOTALL)
+    if fence_match:
+        return fence_match.group(1).strip()
+
+    # If it starts with {, assume raw JSON
+    if text.startswith("{"):
+        return text
+
+    # Try to find a JSON object in the text (first { to last })
+    first_brace = text.find("{")
+    last_brace = text.rfind("}")
+    if first_brace != -1 and last_brace > first_brace:
+        return text[first_brace:last_brace + 1]
+
+    # Return as-is — will fail at json.loads and trigger retry
+    return text
 
 REFINEMENT_PROMPT = """You previously generated a TaskConfig for this experiment. A pilot run tested your config against the live experiment. Below is the diagnostic report showing what worked and what didn't.
 
@@ -38,7 +66,7 @@ Return the complete corrected config JSON."""
 class Analyzer:
     """Sends task source code to Claude Opus and returns a TaskConfig."""
 
-    def __init__(self, client, model: str = "claude-opus-4-6", max_retries: int = 1):
+    def __init__(self, client, model: str = "claude-opus-4-6", max_retries: int = 3):
         self._client = client
         self._model = model
         self._max_retries = max_retries
@@ -81,10 +109,8 @@ class Analyzer:
             raw_text = response.content[0].text.strip()
             logger.debug("Claude raw response (first 500 chars): %s", raw_text[:500])
 
-            # Strip markdown code fences if present
-            if raw_text.startswith("```"):
-                lines = raw_text.split("\n")
-                raw_text = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
+            # Extract JSON from response — handle markdown fences, preamble text, etc.
+            raw_text = _extract_json(raw_text)
 
             try:
                 data = json.loads(raw_text)
@@ -119,9 +145,6 @@ class Analyzer:
         )
 
         raw_text = response.content[0].text.strip()
-        if raw_text.startswith("```"):
-            lines = raw_text.split("\n")
-            raw_text = "\n".join(lines[1:-1]) if lines[-1].strip() == "```" else "\n".join(lines[1:])
-
+        raw_text = _extract_json(raw_text)
         data = json.loads(raw_text)
         return TaskConfig.from_dict(data)

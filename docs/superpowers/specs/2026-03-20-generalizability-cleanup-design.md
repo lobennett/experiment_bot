@@ -14,7 +14,7 @@ A secondary motivation: a nefarious actor could build a similar bot to fake beha
 
 - **At build time (Python code):** Execution mechanics only. How to drive a browser, sample from distributions, apply temporal effects *if configured*. No behavioral assumptions. No default parameter values for behavioral quantities.
 - **At config generation (Claude API call):** Claude receives experiment source code and a structural schema. It infers all behavioral parameters from its knowledge of the cognitive psychology literature. Reasoning is captured in `rationale` fields.
-- **At runtime:** The executor reads the config and applies it. Between-subject jitter adds variability. No further reasoning occurs.
+- **At runtime:** The executor reads the config and applies it. Between-subject jitter adds variability (see Section 1, "Between-subject jitter" for how jitter parameters are determined). No further reasoning occurs.
 
 ## Scope
 
@@ -82,6 +82,49 @@ Add a `temporal_effects` block to the TaskConfig schema with six named effect sl
 - All effects are optional — if Claude omits an effect or sets `enabled: false`, the Python code skips it
 - `post_error_slowing` and `post_interrupt_slowing` are separate effects (currently split across `distributions.py` and `executor.py`) — they unify under the same config-driven pattern
 - Claude may choose different effects for different tasks (e.g., `post_interrupt_slowing` for stop signal but not Stroop)
+- **Effect interaction rule:** `condition_repetition` and `post_interrupt_slowing` should not both apply to the same trial. If both are enabled, the executor skips the condition-repetition adjustment on trials where post-interrupt slowing was applied, avoiding double-counting. Claude should be aware that for inhibitory tasks, `post_interrupt_slowing` is the more specific effect and `condition_repetition` applies only to non-interrupted trial sequences.
+
+### `temporal_effects` placement in TaskConfig
+
+`temporal_effects` is a **top-level field on `TaskConfig`**, alongside `response_distributions` and `performance`. It is not nested under `runtime` because it represents behavioral parameters (Claude-determined), not execution mechanics.
+
+```python
+@dataclass
+class TaskConfig:
+    task: TaskMetadata
+    stimuli: list[StimulusConfig]
+    response_distributions: dict[str, DistributionConfig]
+    performance: PerformanceConfig
+    navigation: NavigationConfig
+    task_specific: dict
+    temporal_effects: TemporalEffectsConfig  # NEW — Claude-determined
+    runtime: RuntimeConfig
+```
+
+### Between-subject jitter
+
+`jitter_distributions()` applies between-subject variability to RT distributions and performance targets. The jitter *magnitudes* are also Claude-determined via a `between_subject_jitter` block in the config:
+
+```json
+"between_subject_jitter": {
+  "rt_mean_sd_ms": 40,
+  "rt_condition_sd_ms": 15,
+  "sigma_tau_range": [0.85, 1.15],
+  "accuracy_sd": 0.015,
+  "omission_sd": 0.005,
+  "rationale": "Between-subject SD of mean RT ~50-80ms (Whelan, 2008); accuracy variability from individual differences literature"
+}
+```
+
+This block lives in `TaskConfig` alongside `temporal_effects`. If absent, no jitter is applied. The Python `jitter_distributions()` function reads these values instead of using hardcoded constants.
+
+### PerformanceConfig fallback removal
+
+Currently `PerformanceConfig.get_accuracy()` falls back to `0.90` and `get_omission_rate()` falls back to `0.02` when a condition is missing. These are behavioral assumptions. After restructuring:
+
+- `get_accuracy()` falls back to the first available condition's value (preserving the "use any available data" pattern) but has **no hardcoded numeric fallback**. If the accuracy dict is empty, it raises a `ValueError`.
+- `get_omission_rate()` same pattern — falls back to first available, raises if empty.
+- `practice_accuracy` default is removed — Claude must specify it.
 
 ### New dataclass: `TemporalEffectsConfig`
 
@@ -118,7 +161,7 @@ class ConditionRepetitionConfig:
 class PinkNoiseConfig:
     enabled: bool = False
     sd_ms: float = 0.0
-    hurst: float = 0.75
+    hurst: float = 0.0
     rationale: str = ""
 
 @dataclass
@@ -138,7 +181,7 @@ class TemporalEffectsConfig:
     post_interrupt_slowing: PostInterruptSlowingConfig
 ```
 
-All defaults are `enabled: False` with zero-valued parameters — **no behavioral assumptions in Python**.
+All defaults are `enabled: False` with zero-valued parameters — **no behavioral assumptions in Python**. When `enabled` is `true`, the implementation should validate that required parameters are non-zero (e.g., `hurst` must be in (0, 1] when pink noise is enabled) and raise a clear error if not.
 
 ---
 
@@ -164,7 +207,7 @@ New behavioral section:
 > 2. Determine appropriate response time distributions (ex-Gaussian: mu, sigma, tau) for each condition, informed by published findings for this paradigm
 > 3. Set per-condition accuracy and omission rate targets consistent with the literature
 > 4. Decide which temporal effects to enable and parameterize, with rationale citing relevant studies
-> 5. For tasks with inhibitory components, configure the trial interrupt parameters based on the race model literature
+> 5. If the task involves any form of response suppression or signal-based interruption, configure the trial_interrupt parameters based on the relevant theoretical framework, citing your reasoning
 >
 > Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields."
 
@@ -176,11 +219,20 @@ New behavioral section:
 
 ### `prompts/schema.json`
 
-Updated to include the `temporal_effects` section with all six named slots. Structural contract only — defines fields and types, not values.
+Updated to include the `temporal_effects` section with all six named slots and the `between_subject_jitter` block. The JSON schema structure mirrors the Python dataclasses exactly — each effect slot has `enabled` (boolean), its specific parameters (numbers), and `rationale` (string). Structural contract only — defines fields and types, not values.
 
 ---
 
 ## 3. Python Code Changes
+
+### `config.py` — Migration from TimingConfig
+
+- Remove `autocorrelation_phi` and `fatigue_drift_per_trial` from `TimingConfig` — these are now in `TemporalEffectsConfig`
+- Remove hardcoded fallback values from `PerformanceConfig.get_accuracy()` (currently `0.90`) and `get_omission_rate()` (currently `0.02`)
+- Remove `practice_accuracy` default — Claude must specify it
+- Add `temporal_effects: TemporalEffectsConfig` field to `TaskConfig`
+- Add `between_subject_jitter: BetweenSubjectJitterConfig` field to `TaskConfig`
+- Old cached configs containing the removed `TimingConfig` fields will be regenerated (Section 6)
 
 ### `distributions.py` — ResponseSampler becomes config-driven
 
@@ -188,7 +240,7 @@ Updated to include the `temporal_effects` section with all six named slots. Stru
 - `_apply_temporal_effects()` checks each effect's `enabled` flag — skips disabled effects
 - Pink noise buffer only allocated if `pink_noise.enabled`
 - Named constants `_GRATTON_MS` and `_PINK_BUFFER_LEN` are removed — values come from config
-- `jitter_distributions()` unchanged (between-subject jitter is a code mechanism)
+- `jitter_distributions()` reads jitter magnitudes from the new `between_subject_jitter` config block instead of hardcoded constants
 
 ### `executor.py` — Post-error and post-interrupt slowing become config-driven
 
@@ -224,9 +276,17 @@ scripts/
     └── verify_humanlike.py
 data/
 └── human/
-    ├── stop_signal.csv      # RDoC human reference data
-    └── stroop.csv           # RDoC human reference data
+    ├── stop_signal.csv      # RDoC human reference data (~2500 rows, ExpFactory format)
+    └── stroop.csv           # RDoC human reference data (~2500 rows, ExpFactory format)
 ```
+
+### Human data source
+
+The human reference data comes from an RDoC behavioral battery acquisition (ExpFactory platform). Files are moved from the repo root (`stop_signal.csv`, `stroop.csv`) to `data/human/`. Each row is one session for one participant (`sub_id` column). The data includes QC exclusion columns that must be filtered.
+
+**Stop signal columns:** `sub_id`, `go_accuracy`, `go_omission_rate`, `go_rt`, `mean_stop_failure_RT`, `stop_accuracy`, `mean_SSD`, plus exclusion flags.
+
+**Stroop columns:** `sub_id`, `congruent_accuracy`, `congruent_omission_rate`, `congruent_rt`, `incongruent_accuracy`, `incongruent_omission_rate`, `incongruent_rt`, plus exclusion flags.
 
 ### `analysis.ipynb` sections
 

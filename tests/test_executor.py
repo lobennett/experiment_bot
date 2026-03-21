@@ -354,11 +354,11 @@ def test_resolve_rt_distribution_key_condition_correct_error():
 def test_sampler_fallback_to_first_distribution():
     """When requested condition doesn't exist, sampler falls back to first available."""
     from experiment_bot.core.distributions import ResponseSampler
-    from experiment_bot.core.config import DistributionConfig
+    from experiment_bot.core.config import DistributionConfig, TemporalEffectsConfig
     dists = {
         "task_switch": DistributionConfig(distribution="ex_gaussian", params={"mu": 580, "sigma": 70, "tau": 100}),
     }
-    sampler = ResponseSampler(dists, seed=42)
+    sampler = ResponseSampler(dists, temporal_effects=TemporalEffectsConfig(), seed=42)
     rt = sampler.sample_rt_with_fallback("go_correct")
     assert 150 < rt < 2000
 
@@ -583,3 +583,19 @@ def test_build_interrupt_check_js_combines_multiple_stimuli():
     assert "||" in js
     assert "stop_left" in js
     assert "stop_right" in js
+
+
+def test_post_interrupt_slowing_state_initialized():
+    """Executor starts with _prev_interrupt_detected = False."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config, seed=42)
+    assert executor._prev_interrupt_detected is False
+
+
+def test_post_interrupt_exclusive_with_pes():
+    """Post-interrupt slowing and PES are mutually exclusive (if/elif)."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._execute_trial)
+    # Find the interrupt check and verify elif for error slowing
+    assert "if self._prev_interrupt_detected:" in source
+    assert "elif self._prev_trial_error:" in source

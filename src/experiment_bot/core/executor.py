@@ -37,9 +37,8 @@ class TaskExecutor:
         self._lookup = StimulusLookup(config)
         self._sampler = ResponseSampler(
             config.response_distributions,
+            temporal_effects=config.temporal_effects,
             floor_ms=config.runtime.timing.rt_floor_ms,
-            phi=config.temporal_effects.autocorrelation.phi,
-            drift_rate=config.temporal_effects.fatigue_drift.drift_per_trial_ms,
             seed=seed,
         )
         self._navigator = InstructionNavigator()

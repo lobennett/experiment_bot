@@ -144,6 +144,15 @@ The `between_subject_jitter` object controls session-level parameter variation a
 - `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate. Clipped to [0.0, 0.04] after jitter.
 - `rationale`: Free-text field for recording the basis for chosen jitter parameters.
 
+### 12. Pilot Configuration
+
+Specify parameters for a validation pilot run. The executor runs a short pilot session before the full experiment to test your selectors and detection logic against the live DOM. Based on the experiment's trial structure (block sizes, condition ratios, practice/test phases), specify:
+- `min_trials`: Minimum trials needed to observe all conditions at least once
+- `target_conditions`: The condition labels you expect to see during the pilot (must match `response.condition` values from your stimuli)
+- `max_blocks`: Maximum number of blocks to run (typically 1)
+- `stimulus_container_selector`: CSS selector for the experiment's main stimulus container (e.g., `#jspsych-content` for jsPsych, `body` if unknown)
+- `rationale`: Why these values are appropriate for this experiment's structure
+
 ---
 
 ## Section B — Behavioral Instructions

@@ -104,17 +104,146 @@ class DistributionConfig:
 
 
 @dataclass
+class AutocorrelationConfig:
+    enabled: bool = False
+    phi: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> AutocorrelationConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class FatigueDriftConfig:
+    enabled: bool = False
+    drift_per_trial_ms: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> FatigueDriftConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class PostErrorSlowingConfig:
+    enabled: bool = False
+    slowing_ms_min: float = 0.0
+    slowing_ms_max: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PostErrorSlowingConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class ConditionRepetitionConfig:
+    enabled: bool = False
+    facilitation_ms: float = 0.0
+    cost_ms: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> ConditionRepetitionConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class PinkNoiseConfig:
+    enabled: bool = False
+    sd_ms: float = 0.0
+    hurst: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PinkNoiseConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class PostInterruptSlowingConfig:
+    enabled: bool = False
+    slowing_ms_min: float = 0.0
+    slowing_ms_max: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PostInterruptSlowingConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class TemporalEffectsConfig:
+    autocorrelation: AutocorrelationConfig = field(default_factory=AutocorrelationConfig)
+    fatigue_drift: FatigueDriftConfig = field(default_factory=FatigueDriftConfig)
+    post_error_slowing: PostErrorSlowingConfig = field(default_factory=PostErrorSlowingConfig)
+    condition_repetition: ConditionRepetitionConfig = field(default_factory=ConditionRepetitionConfig)
+    pink_noise: PinkNoiseConfig = field(default_factory=PinkNoiseConfig)
+    post_interrupt_slowing: PostInterruptSlowingConfig = field(default_factory=PostInterruptSlowingConfig)
+
+    @classmethod
+    def from_dict(cls, d: dict) -> TemporalEffectsConfig:
+        return cls(
+            autocorrelation=AutocorrelationConfig.from_dict(d.get("autocorrelation", {})),
+            fatigue_drift=FatigueDriftConfig.from_dict(d.get("fatigue_drift", {})),
+            post_error_slowing=PostErrorSlowingConfig.from_dict(d.get("post_error_slowing", {})),
+            condition_repetition=ConditionRepetitionConfig.from_dict(d.get("condition_repetition", {})),
+            pink_noise=PinkNoiseConfig.from_dict(d.get("pink_noise", {})),
+            post_interrupt_slowing=PostInterruptSlowingConfig.from_dict(d.get("post_interrupt_slowing", {})),
+        )
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class BetweenSubjectJitterConfig:
+    rt_mean_sd_ms: float = 0.0
+    rt_condition_sd_ms: float = 0.0
+    sigma_tau_range: list = field(default_factory=lambda: [1.0, 1.0])
+    accuracy_sd: float = 0.0
+    omission_sd: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> BetweenSubjectJitterConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
 class PerformanceConfig:
     accuracy: dict[str, float]           # condition → accuracy (0-1)
     omission_rate: dict[str, float]      # condition → omission rate (0-1)
-    practice_accuracy: float = 0.85
+    practice_accuracy: float | None = None
 
     @classmethod
     def from_dict(cls, d: dict) -> PerformanceConfig:
         return cls(
             accuracy=d["accuracy"],
             omission_rate=d.get("omission_rate", {}),
-            practice_accuracy=d.get("practice_accuracy", 0.85),
+            practice_accuracy=d.get("practice_accuracy"),
         )
 
     def get_accuracy(self, condition: str) -> float:
@@ -124,7 +253,7 @@ class PerformanceConfig:
             return self.accuracy["default"]
         if self.accuracy:
             return next(iter(self.accuracy.values()))
-        return 0.90
+        raise ValueError("No accuracy values configured")
 
     def get_omission_rate(self, condition: str) -> float:
         if condition in self.omission_rate:
@@ -133,10 +262,12 @@ class PerformanceConfig:
             return self.omission_rate["default"]
         if self.omission_rate:
             return next(iter(self.omission_rate.values()))
-        return 0.02
+        raise ValueError("No omission rate values configured")
 
     def to_dict(self) -> dict:
-        result = {"accuracy": self.accuracy, "practice_accuracy": self.practice_accuracy}
+        result = {"accuracy": self.accuracy}
+        if self.practice_accuracy is not None:
+            result["practice_accuracy"] = self.practice_accuracy
         if self.omission_rate:
             result["omission_rate"] = self.omission_rate
         return result
@@ -236,8 +367,6 @@ class TimingConfig:
     rt_cap_fraction: float = 0.90
     response_window_js: str = ""
     trial_context_js: str = ""
-    autocorrelation_phi: float = 0.25
-    fatigue_drift_per_trial: float = 0.15
     viewport: dict = field(default_factory=lambda: {"width": 1280, "height": 800})
 
     @classmethod
@@ -350,6 +479,8 @@ class TaskConfig:
     performance: PerformanceConfig
     navigation: NavigationConfig
     task_specific: dict = field(default_factory=dict)
+    temporal_effects: TemporalEffectsConfig = field(default_factory=TemporalEffectsConfig)
+    between_subject_jitter: BetweenSubjectJitterConfig = field(default_factory=BetweenSubjectJitterConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
     @classmethod
@@ -364,6 +495,8 @@ class TaskConfig:
             performance=PerformanceConfig.from_dict(d["performance"]),
             navigation=NavigationConfig.from_dict(d.get("navigation", {"phases": []})),
             task_specific=d.get("task_specific", {}),
+            temporal_effects=TemporalEffectsConfig.from_dict(d.get("temporal_effects", {})),
+            between_subject_jitter=BetweenSubjectJitterConfig.from_dict(d.get("between_subject_jitter", {})),
             runtime=RuntimeConfig.from_dict(d.get("runtime", {})),
         )
 
@@ -377,6 +510,8 @@ class TaskConfig:
             "performance": self.performance.to_dict(),
             "navigation": self.navigation.to_dict(),
             "task_specific": self.task_specific,
+            "temporal_effects": self.temporal_effects.to_dict(),
+            "between_subject_jitter": self.between_subject_jitter.to_dict(),
         }
         runtime_dict = self.runtime.to_dict()
         if any(v for v in runtime_dict.values()):

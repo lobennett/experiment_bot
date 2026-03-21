@@ -15,7 +15,7 @@ For each possible stimulus, determine:
 - What the correct keyboard response is (key name or null to withhold)
 - A unique condition label for the stimulus
 
-**Condition labeling**: Label conditions by the **experimental condition** (e.g., `congruent`, `incongruent`, `go`, `stop`) rather than by stimulus features (e.g., `ink_red`, `arrow_left`). The condition label should reflect the cognitive construct being manipulated, as these labels are used for analysis. If the task has a congruency manipulation, label stimuli as `congruent` or `incongruent`. If it has a go/no-go distinction, label as `go` or `stop`. Name your `response_distributions` keys to match these condition labels.
+**Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis. Name your `response_distributions` keys to match these condition labels.
 
 Detection methods:
 - `dom_query`: CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
@@ -103,13 +103,13 @@ If the experiment has attention checks:
 
 ### 9. Trial Interrupt (response suppression trials)
 
-If the task has trials requiring response inhibition or signal-based interruption (e.g., stop-signal tasks), configure `runtime.trial_interrupt`:
+If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
 - `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
 - `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
 - `failure_rt_cap_fraction`: Fraction of the maximum response time to cap commission error RTs at (0–1). Commission errors on interrupt trials typically occur before the interrupt signal can fully suppress the response.
 - `inhibit_wait_ms`: How many milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task.
 
-**Staircase-controlled tasks:** Many stop-signal experiments use an adaptive staircase procedure that adjusts the stop-signal delay (SSD) based on the participant's performance, converging on ~50% inhibition success. If you detect staircase logic in the source code (e.g., SSD increases after successful inhibition, decreases after failure), set the stop condition's accuracy target to approximately 0.50. The staircase will dynamically adjust difficulty — the bot's go RT and the staircase procedure together determine the actual inhibition rate. Do not set stop accuracy significantly above 0.50 for staircase tasks, as this would produce unrealistic SSD trajectories.
+**Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
 
 ### 10. Temporal Effects Schema (mechanical descriptions)
 
@@ -125,7 +125,7 @@ The `temporal_effects` object controls sequential dependencies in RT across tria
 - `slowing_ms_min`: Lower bound of the post-error RT addition (ms).
 - `slowing_ms_max`: Upper bound of the post-error RT addition (ms).
 
-**`condition_repetition`** — Trial-to-trial sequential congruency effect (Gratton effect / N-2 repetition cost). Mechanism: if the current condition matches the previous condition, `facilitation_ms` is subtracted from the RT; if the condition switches, `cost_ms` is added. Condition repetition checking is automatically suppressed on the trial following an interrupt.
+**`condition_repetition`** — Trial-to-trial condition transition effect. Mechanism: if the current condition matches the previous condition, `facilitation_ms` is subtracted from the RT (repetition benefit); if the condition switches, `cost_ms` is added (switch cost). Condition repetition checking is automatically suppressed on the trial following an interrupt.
 - `facilitation_ms`: RT reduction (ms) when the same condition repeats.
 - `cost_ms`: RT increase (ms) when the condition switches.
 

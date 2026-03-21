@@ -417,7 +417,7 @@ This is not gated on the pilot feature and can be merged independently.
 ## 8. What This Does NOT Change
 
 - **ExGaussianSampler, ResponseSampler, temporal effects** — untouched. Behavioral modeling is not affected.
-- **Production trial loop** — the executor's main `_trial_loop` is unchanged. The pilot reuses it with early stopping.
+- **Production trial loop** — the executor's main `_trial_loop` is unchanged. The pilot has its own loop.
 - **Output format** — pilot data is not saved to `output/`. Production runs produce the same output as before.
 - **Cached configs** — once a config passes the pilot and is cached, it's used exactly as before.
 - **Between-subject jitter** — applied after the pilot, during production runs only.

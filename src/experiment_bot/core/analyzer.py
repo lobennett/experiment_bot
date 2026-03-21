@@ -24,11 +24,9 @@ def _extract_json(text: str) -> str:
     # Strip markdown code fences (```json ... ``` or ``` ... ```)
     fence_match = re.search(r"```(?:json)?\s*\n(.*?)```", text, re.DOTALL)
     if fence_match:
-        return fence_match.group(1).strip()
-
-    # If it starts with {, assume raw JSON
-    if text.startswith("{"):
-        return text
+        extracted = fence_match.group(1).strip()
+        if extracted:
+            return extracted
 
     # Try to find a JSON object in the text (first { to last })
     first_brace = text.find("{")
@@ -37,6 +35,7 @@ def _extract_json(text: str) -> str:
         return text[first_brace:last_brace + 1]
 
     # Return as-is — will fail at json.loads and trigger retry
+    logger.warning("Could not extract JSON from response (length=%d): %s...", len(text), text[:200])
     return text
 
 REFINEMENT_PROMPT = """You previously generated a TaskConfig for this experiment. A pilot run tested your config against the live experiment. Below is the diagnostic report showing what worked and what didn't.
@@ -107,7 +106,12 @@ class Analyzer:
             )
 
             raw_text = response.content[0].text.strip()
+            stop_reason = getattr(response, 'stop_reason', 'unknown')
+            logger.info("Claude response: %d chars, stop_reason=%s", len(raw_text), stop_reason)
             logger.debug("Claude raw response (first 500 chars): %s", raw_text[:500])
+
+            if stop_reason == 'max_tokens':
+                logger.warning("Response truncated by max_tokens — JSON likely incomplete")
 
             # Extract JSON from response — handle markdown fences, preamble text, etc.
             raw_text = _extract_json(raw_text)

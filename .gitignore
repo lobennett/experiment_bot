@@ -2,7 +2,10 @@ __pycache__/
 *.pyc
 .venv/
 cache/*
-!cache/expfactory/
+!cache/expfactory_stop_signal/
+!cache/expfactory_stroop/
+!cache/stopit_stop_signal/
+!cache/cognitionrun_stroop/
 /output/
 dist/
 *.egg-info/

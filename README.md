@@ -85,17 +85,20 @@ For the full technical description including the config schema, response time mo
 For collecting multiple sessions of bot data:
 
 ```bash
-# Run all 4 registered tasks, 5 instances each
-bash scripts/launch.sh --headless --count 5
+# Sequential batch: 5 instances of each task, one at a time (recommended)
+bash scripts/batch_run.sh --count 5 --headless
 
-# Sequential batch (one at a time, safer for long runs)
-bash scripts/batch_run.sh
+# Sequential with config regeneration on the first run of each task
+bash scripts/batch_run.sh --count 5 --headless --regenerate
+
+# Parallel batch: 5 instances each, launched simultaneously with stagger delays
+bash scripts/launch.sh --headless --count 5
 
 # Filter to a specific task
 bash scripts/launch.sh --label expfactory_stroop --count 10 --headless
 ```
 
-`launch.sh` runs instances in parallel with stagger delays. `batch_run.sh` runs them sequentially (slower but more reliable for large batches).
+`batch_run.sh` runs instances sequentially (one at a time) — recommended for clean timing data. `launch.sh` runs instances in parallel, which is faster but may inflate RTs under CPU contention.
 
 ## Output
 

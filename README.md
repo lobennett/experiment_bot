@@ -108,48 +108,97 @@ Each run saves to `output/{task_name}/{timestamp}/`:
 | `config.json` | The TaskConfig used for this run |
 | `run_metadata.json` | Run metadata (task name, URL, trial count, headless flag) |
 
+## Running the Bot
+
+### First run (generates config via Claude API)
+
+The first time the bot encounters a new experiment URL, it scrapes the source, calls Claude to generate a TaskConfig, runs a pilot validation, refines the config if needed, and caches it. This requires an API key and takes a few minutes.
+
+```bash
+# Generate config + run the task
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task" --label expfactory_stop_signal --headless
+
+# Force regeneration (e.g., after updating the prompt or schema)
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task" --label expfactory_stop_signal --regenerate-config --headless
+```
+
+Use `--regenerate-config` whenever you have changed `prompts/system.md`, `prompts/schema.json`, or the config dataclasses — otherwise the bot reuses the old cached config.
+
+### Subsequent runs (uses cached config)
+
+Once a config is cached, subsequent runs skip the API call entirely. No API key is needed.
+
+```bash
+# Uses cached config — fast, no API call
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless
+```
+
+### When to regenerate
+
+Regenerate configs when:
+- You've updated `src/experiment_bot/prompts/system.md` or `schema.json`
+- You've changed config dataclasses in `config.py`
+- You want Claude to re-infer behavioral parameters (e.g., after prompt improvements)
+- The experiment source code has changed
+
+You do NOT need to regenerate when:
+- Running additional sessions with the same config
+- Between-subject jitter is applied fresh on every run automatically
+
 ## Analyzing Data
 
-### Interactive notebook
+### Running the analysis notebook
 
-The primary analysis tool is `scripts/analysis.ipynb`. It loads both human reference data and bot output, computes mean metrics, and produces comparison tables and plots.
+The primary analysis tool is `scripts/analysis.ipynb`. It loads the raw experiment data (not the bot's decision log), compares metrics to human reference data, and exports per-run CSVs.
 
 ```bash
 # Open in Jupyter Lab
 uv run jupyter lab scripts/analysis.ipynb
-
-# Or run headlessly to verify it executes without errors
-uv run jupyter execute scripts/analysis.ipynb
 ```
+
+The notebook processes each platform in order:
+1. **RDoC Stop Signal** (ExpFactory) — 180 test trials, go/stop split
+2. **RDoC Stroop** (ExpFactory) — 120 test trials, congruent/incongruent
+3. **STOP-IT Stop Signal** — 288 trials, signal-based filtering
+4. **Cognition.run Stroop** — 15 trials, dynamic condition mapping
+
+For each platform, the notebook:
+1. Loads the cached config and displays Claude's expected parameters (RT distributions, accuracy targets, temporal effects)
+2. Loads the experiment's raw output data (`experiment_data.{csv,json}`)
+3. Computes metrics using the experiment's own correctness scoring
+4. Compares each metric to the human reference distribution (mean ± 1 SD)
+
+### Output CSVs
+
+The notebook exports per-run metrics to `data/bot/` in the same format as the human reference data:
+- `data/bot/stop_signal.csv` — one row per bot session, same columns as `data/human/stop_signal.csv`
+- `data/bot/stroop.csv` — one row per bot session, same columns as `data/human/stroop.csv`
+
+Each row includes a generated subject ID (e.g., `bot_amber_falcon`), timestamp, platform, and all task metrics.
 
 ### Human reference data
 
 Human data from an RDoC behavioral battery is in `data/human/`:
-- `stop_signal.csv` — ~2500 sessions with go RT, go accuracy, stop accuracy, SSRT, SSD, etc.
-- `stroop.csv` — ~2500 sessions with congruent/incongruent RT and accuracy.
+- `stop_signal.csv` — ~2500 sessions with go RT, go accuracy, stop accuracy, SSD metrics
+- `stroop.csv` — ~2500 sessions with congruent/incongruent RT and accuracy
 
-Both files include exclusion columns (`Session-Level Exclusions`, `Task-Level Exclusions`, `Subject-Level Exclusions`). The notebook filters to rows where all three are "Include".
-
-### Bot output
-
-Each bot run saves to `output/{task_name}/{timestamp}/`. The notebook scans this directory and loads:
-- `bot_log.json` — per-trial decision log (stimulus, condition, sampled RT, actual RT, accuracy)
-- `config.json` — the TaskConfig used for the run (includes Claude's temporal_effects rationales)
-- `experiment_data.{csv,tsv,json}` — raw data captured from the experiment platform
+Both files include exclusion columns. The notebook filters to rows where all three exclusion columns equal "Include".
 
 ### Key comparison metrics
 
-| Task | Metrics |
+| Task | Metrics (in column order) |
 |------|---------|
-| **Stop signal** | Mean go RT, go accuracy, go omission rate, mean stop failure RT, stop accuracy, mean SSD, SSRT |
-| **Stroop** | Congruent RT, incongruent RT, congruent accuracy, incongruent accuracy, Stroop effect (incongruent - congruent RT) |
+| **Stop signal** | `go_accuracy`, `go_omission_rate`, `go_rt`, `go_rt_all_responses`, `mean_stop_failure_RT`, `stop_accuracy`, `max_SSD`, `mean_SSD`, `min_SSD`, `final_SSD` |
+| **Stroop** | `congruent_accuracy`, `congruent_omission_rate`, `congruent_rt`, `incongruent_accuracy`, `incongruent_omission_rate`, `incongruent_rt` |
 
 ### Quick command-line check
 
-To count completed bot runs without opening the notebook:
-
 ```bash
-find output -name "bot_log.json" | wc -l
+# Count completed bot runs
+find output -name "experiment_data.*" | wc -l
+
+# Check cached configs
+ls cache/*/config.json
 ```
 
 ## Project Structure

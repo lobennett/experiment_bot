@@ -16,12 +16,12 @@ if [[ -f "$PROJECT_ROOT/.env" ]]; then
     set +a
 fi
 
-# Task registry: url|hint|label
+# Task registry: url|hint|label  (hints left empty — Claude infers the task from source code)
 TASKS=(
-    "https://deploy.expfactory.org/preview/9/|stop signal task|expfactory_stop_signal"
-    "https://deploy.expfactory.org/preview/10/|stroop color-word task|expfactory_stroop"
-    "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html|stop signal task|stopit_stop_signal"
-    "https://strooptest.cognition.run/|stroop color-word task|cognitionrun_stroop"
+    "https://deploy.expfactory.org/preview/9/||expfactory_stop_signal"
+    "https://deploy.expfactory.org/preview/10/||expfactory_stroop"
+    "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html||stopit_stop_signal"
+    "https://strooptest.cognition.run/||cognitionrun_stroop"
 )
 
 # ---------------------------------------------------------------------------

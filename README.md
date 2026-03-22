@@ -35,17 +35,17 @@ cp .env.example .env
 ### Run
 
 ```bash
-# Point at any experiment URL
+# Point at any experiment URL — Claude infers the task from the source code
 uv run experiment-bot "https://deploy.expfactory.org/preview/10/"
-
-# With a hint to help Claude identify the task
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task"
 
 # Headless mode (no visible browser)
 uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --headless
 
 # Cache under a label for easy reuse
 uv run experiment-bot "https://example.com/experiment/" --label my_experiment --headless
+
+# Optional: provide a hint if the source code alone is ambiguous
+uv run experiment-bot "https://example.com/experiment/" --hint "task switching" --headless
 ```
 
 On first run for a given URL, the bot scrapes the page, sends it to Claude for analysis, and caches the resulting config in `cache/`. Subsequent runs use the cache and do not call the API.
@@ -72,7 +72,7 @@ For the full technical description including the config schema, response time mo
 
 | Flag | Description |
 |------|-------------|
-| `--hint TEXT` | Hint about the task type (e.g., `"stop signal task"`) |
+| `--hint TEXT` | Optional hint about the task type (not recommended — Claude should infer from source) |
 | `--label TEXT` | Cache label (default: URL hash) |
 | `--headless` | Run browser without a visible window |
 | `--regenerate-config` | Force re-analysis via Claude API (ignores cache) |
@@ -116,10 +116,10 @@ The first time the bot encounters a new experiment URL, it scrapes the source, c
 
 ```bash
 # Generate config + run the task
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task" --label expfactory_stop_signal --headless
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless
 
 # Force regeneration (e.g., after updating the prompt or schema)
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --hint "stop signal task" --label expfactory_stop_signal --regenerate-config --headless
+uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --regenerate-config --headless
 ```
 
 Use `--regenerate-config` whenever you have changed `prompts/system.md`, `prompts/schema.json`, or the config dataclasses — otherwise the bot reuses the old cached config.

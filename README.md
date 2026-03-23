@@ -111,6 +111,8 @@ Each run saves to `output/{task_name}/{timestamp}/`:
 | `config.json` | The TaskConfig used for this run |
 | `run_metadata.json` | Run metadata (task name, URL, trial count, headless flag) |
 
+For detailed descriptions of each file and what generated it, see **[`examples/README.md`](examples/README.md)**. The `examples/` directory contains representative output from one run of each validated task.
+
 ## Running the Bot
 
 ### First run (generates config via Claude API)
@@ -226,6 +228,7 @@ experiment-bot/
 │       └── schema.json         # TaskConfig JSON schema
 ├── cache/                      # Cached TaskConfigs per experiment
 ├── data/human/                 # Human reference data (RDoC)
+├── examples/                   # Sample output from one run per task (see examples/README.md)
 ├── scripts/
 │   ├── analysis.ipynb          # Bot vs. human comparison notebook
 │   ├── launch.sh               # Parallel batch launcher

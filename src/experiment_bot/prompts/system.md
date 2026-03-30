@@ -172,13 +172,7 @@ You are analyzing a cognitive experiment. Based on the task source code and your
 
 Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields.
 
-This experiment runs in a **web browser** as an online behavioral experiment. When setting RT parameters, account for browser-specific measurement factors:
-- JavaScript event loop latency adds ~20-50ms to measured RTs compared to native key capture in laboratory software (E-Prime, PsychoPy, etc.)
-- The experiment framework's RT clock typically starts when the stimulus is rendered to the DOM, which includes browser paint latency
-- Online participant samples tend to show higher RT variability (larger sigma and tau) and slightly lower accuracy than laboratory samples, due to environmental distractions and hardware differences
-- Examine the specific framework (jsPsych, lab.js, PsyToolkit, etc.) and its timing characteristics when calibrating parameters — do not apply a blanket offset
-
-Do not simply shift laboratory norms by a fixed amount. Instead, reason about how each measurement factor affects the ex-Gaussian parameters (mu, sigma, tau) for this specific platform and framework.
+The human behavioral literature you reference may come from laboratory settings. The experiments you are configuring run online in a web browser. Use your judgment about whether to adjust parameters, but do not apply blanket inflation — many online samples produce RTs comparable to laboratory norms.
 
 ---
 

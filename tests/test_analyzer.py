@@ -62,7 +62,7 @@ async def test_analyzer_builds_correct_messages():
 
     # Verify the API was called with correct model
     call_kwargs = mock_client.messages.create.call_args
-    assert call_kwargs.kwargs["model"] == "claude-opus-4-6"
+    assert call_kwargs.kwargs["model"] == "claude-opus-4-7"
 
 
 @pytest.mark.asyncio
@@ -207,3 +207,9 @@ async def test_analyzer_refine_sends_diagnostic_report():
     assert "Pilot Run Diagnostic Report" in user_msg
     assert "<div>test</div>" in user_msg  # DOM snapshot
     assert "<html>test</html>" in user_msg  # original source
+
+
+def test_analyzer_default_model_is_opus_4_7():
+    """Analyzer uses Opus 4.7 as the default model."""
+    analyzer = Analyzer(client=None)
+    assert analyzer._model == "claude-opus-4-7"

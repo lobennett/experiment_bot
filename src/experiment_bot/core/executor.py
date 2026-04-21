@@ -62,6 +62,24 @@ class TaskExecutor:
             return dict(ts["key_map"])
         return {}
 
+    # Sentinel values returned by response_key_js that indicate "withhold / no response".
+    # Case-insensitive comparison is used — see _is_withhold_sentinel().
+    _WITHHOLD_SENTINELS: frozenset[str] = frozenset({"", "none", "null"})
+
+    @staticmethod
+    def _is_withhold_sentinel(value: object) -> bool:
+        """Return True if *value* represents a withhold / no-key-press instruction.
+
+        Handles None, empty string, and the case-insensitive strings "none" and
+        "null" that Claude's JS expressions legitimately return when a trial
+        requires response suppression (e.g. stop-signal withhold trials).
+        """
+        if value is None:
+            return True
+        if not isinstance(value, str):
+            return False
+        return value.strip().lower() in TaskExecutor._WITHHOLD_SENTINELS
+
     async def _resolve_response_key(self, match: StimulusMatch, page: Page | None = None) -> str | None:
         """Resolve the actual key to press for a stimulus match.
 
@@ -70,6 +88,10 @@ class TaskExecutor:
         2. Per-stimulus response_key_js (evaluated on page)
         3. Global task_specific.response_key_js (evaluated on page)
         4. Static key_map fallback
+
+        Returns None when no key is found OR when the resolved value is a
+        withhold sentinel ("", None, "none", "null" — case-insensitive).
+        Callers must treat None as "do not press any key".
         """
         # Static key from config
         if match.response_key and match.response_key not in ("dynamic_mapping", "dynamic"):
@@ -82,10 +104,11 @@ class TaskExecutor:
             if stim_cfg and stim_cfg.response.response_key_js:
                 try:
                     key = await page.evaluate(stim_cfg.response.response_key_js)
-                    if key:
-                        key = str(key)
-                        self._seen_response_keys.add(key)
-                        return key
+                    if self._is_withhold_sentinel(key):
+                        return None
+                    key = str(key)
+                    self._seen_response_keys.add(key)
+                    return key
                 except Exception as e:
                     logger.warning(f"response_key_js failed for {match.stimulus_id}: {e}")
 
@@ -94,10 +117,11 @@ class TaskExecutor:
             if global_js:
                 try:
                     key = await page.evaluate(global_js)
-                    if key:
-                        key = str(key)
-                        self._seen_response_keys.add(key)
-                        return key
+                    if self._is_withhold_sentinel(key):
+                        return None
+                    key = str(key)
+                    self._seen_response_keys.add(key)
+                    return key
                 except Exception as e:
                     logger.warning(f"task_specific.response_key_js failed: {e}")
 
@@ -304,26 +328,42 @@ class TaskExecutor:
                 await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                 continue
 
+            # Resolve special condition sets from config (once per match, before
+            # the non-trial skip so these are not accidentally filtered out).
+            nav_condition = self._config.runtime.navigation_stimulus_condition or "navigation"
+            ac_conditions = set(self._config.runtime.attention_check.stimulus_conditions)
+
             # Skip non-trial stimuli (fixation, ITI) without resetting miss counter.
             # Resetting here would prevent advance behavior from triggering when
             # the executor is stuck detecting fixation on an instruction screen.
-            if not self._is_trial_stimulus(match) and match.response_key is None:
+            # Navigation and attention-check stimuli are NOT skipped here — they
+            # always need handling regardless of whether they look like trial stimuli.
+            is_special = (match.condition == nav_condition or match.condition in ac_conditions)
+            if not is_special and not self._is_trial_stimulus(match) and match.response_key is None:
                 await asyncio.sleep(0.05)
                 continue
 
             consecutive_misses = 0
             stuck_detector.heartbeat()
 
-            # Handle navigation stimuli (press Enter on feedback screens)
-            if match.condition == "navigation":
+            # Handle navigation stimuli (press Enter on feedback screens).
+            # The condition label is read from config so the executor is not coupled
+            # to the literal string "navigation".  When the config omits the field
+            # (empty string), we fall back to "navigation" for backward compatibility.
+            if match.condition == nav_condition:
                 key = match.response_key or "Enter"
                 logger.info(f"Navigation stimulus detected, pressing {key}")
-                await asyncio.sleep(1.0)
+                await asyncio.sleep(
+                    self._config.runtime.timing.navigation_delay_ms / 1000.0
+                )
                 await page.keyboard.press(key)
                 continue
 
-            # Handle attention checks
-            if match.condition in ("attention_check", "attention_check_response"):
+            # Handle attention checks.
+            # The set of condition labels is read from config so the executor is not
+            # coupled to the legacy literals "attention_check" /
+            # "attention_check_response".
+            if match.condition in ac_conditions:
                 logger.info("Attention check detected")
                 await self._handle_attention_check(page)
                 continue
@@ -347,7 +387,11 @@ class TaskExecutor:
             # fixation) to avoid re-detecting the same stimulus and pressing into
             # the wrong trial.
             if timing.response_window_js:
-                await self._wait_for_trial_end(page, timing.response_window_js)
+                await self._wait_for_trial_end(
+                    page,
+                    timing.response_window_js,
+                    timeout_s=timing.trial_end_timeout_s,
+                )
 
     async def _wait_for_trial_end(
         self, page: Page, response_window_js: str, timeout_s: float = 5.0
@@ -542,10 +586,31 @@ class TaskExecutor:
             actual_rt = (time.monotonic() - trial_start) * 1000
 
         resolved_key = await self._resolve_response_key(match, page)
-        if is_error and resolved_key:
+
+        # A None resolved_key here means the config's response_key_js returned a
+        # withhold sentinel ("", "none", "null").  This is a config-authored
+        # withhold instruction — not a random omission.  Log it distinctly and
+        # skip the keyboard press.
+        if resolved_key is None:
+            self._writer.log_trial({
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": condition,
+                "response_key": None,
+                "sampled_rt_ms": round(rt_ms, 1),
+                "actual_rt_ms": None,
+                "omission": False,
+                "withheld": True,
+                "rt_distribution": rt_condition,
+                "cue": cue,
+            })
+            self._prev_trial_error = False
+            self._prev_interrupt_detected = False
+            return
+
+        if is_error:
             resolved_key = self._pick_wrong_key(resolved_key)
-        if resolved_key:
-            await page.keyboard.press(resolved_key)
+        await page.keyboard.press(resolved_key)
 
         self._writer.log_trial({
             "trial": self._trial_count,
@@ -568,7 +633,9 @@ class TaskExecutor:
         Claude must provide response_js in the attention_check config —
         the executor has no built-in knowledge of attention check formats.
         """
-        await asyncio.sleep(1.5)
+        await asyncio.sleep(
+            self._config.runtime.timing.attention_check_delay_ms / 1000.0
+        )
         ac = self._config.runtime.attention_check
         try:
             if ac.response_js:
@@ -604,7 +671,9 @@ class TaskExecutor:
 
     async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""
-        await asyncio.sleep(2.0)  # Brief settle time
+        await asyncio.sleep(
+            self._config.runtime.timing.completion_settle_ms / 1000.0
+        )
 
         capturer = ConfigDrivenCapture(self._config.runtime.data_capture)
         data = await capturer.capture(page)

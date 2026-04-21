@@ -626,3 +626,326 @@ def test_post_interrupt_skips_condition_repetition():
     import inspect
     source = inspect.getsource(TaskExecutor._execute_trial)
     assert "skip_condition_repetition" in source
+
+
+# ---------------------------------------------------------------------------
+# Tests for configurable condition names (Step 3 / Task 4)
+# ---------------------------------------------------------------------------
+
+
+def _config_with_runtime(**runtime_kwargs):
+    """Return a config dict with custom runtime fields."""
+    data = dict(SAMPLE_CONFIG)
+    data["runtime"] = dict(runtime_kwargs)
+    return data
+
+
+def test_navigation_condition_reads_from_config():
+    """navigation_stimulus_condition is read from config, not hardcoded 'navigation'."""
+    config_data = _config_with_runtime(
+        navigation_stimulus_condition="nav_screen",
+    )
+    config = TaskConfig.from_dict(config_data)
+    assert config.runtime.navigation_stimulus_condition == "nav_screen"
+
+
+def test_navigation_condition_defaults_to_empty_string():
+    """When navigation_stimulus_condition is absent, defaults to '' (backward compat)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    assert config.runtime.navigation_stimulus_condition == ""
+
+
+def test_attention_check_stimulus_conditions_reads_from_config():
+    """attention_check.stimulus_conditions is read from config."""
+    config_data = _config_with_runtime(
+        attention_check={"stimulus_conditions": ["ac", "ac_response"]},
+    )
+    config = TaskConfig.from_dict(config_data)
+    assert config.runtime.attention_check.stimulus_conditions == ["ac", "ac_response"]
+
+
+def test_attention_check_stimulus_conditions_defaults():
+    """When stimulus_conditions absent, defaults to standard set (backward compat)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    assert set(config.runtime.attention_check.stimulus_conditions) == {
+        "attention_check", "attention_check_response"
+    }
+
+
+@pytest.mark.asyncio
+async def test_trial_loop_uses_config_navigation_condition():
+    """Trial loop detects navigation using runtime.navigation_stimulus_condition."""
+    config_data = _config_with_runtime(
+        navigation_stimulus_condition="nav_screen",
+        phase_detection={"complete": "false", "test": "true"},
+    )
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+
+    nav_match = StimulusMatch(stimulus_id="nav", response_key="Enter", condition="nav_screen")
+
+    call_count = 0
+
+    async def mock_detect_phase(page, cfg):
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 2:
+            return TaskPhase.TEST
+        return TaskPhase.COMPLETE
+
+    page = AsyncMock()
+    executor._lookup = MagicMock()
+    executor._lookup.identify = AsyncMock(side_effect=[nav_match, None])
+
+    with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
+        await executor._trial_loop(page)
+
+    # Confirm navigation key was pressed (not a trial)
+    assert executor._trial_count == 0
+    page.keyboard.press.assert_any_call("Enter")
+
+
+@pytest.mark.asyncio
+async def test_trial_loop_uses_config_attention_check_conditions():
+    """Trial loop detects attention checks using runtime.attention_check.stimulus_conditions."""
+    config_data = _config_with_runtime(
+        attention_check={"stimulus_conditions": ["custom_ac"], "response_js": ""},
+        phase_detection={"complete": "false", "test": "true"},
+    )
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+
+    ac_match = StimulusMatch(stimulus_id="ac1", response_key=None, condition="custom_ac")
+
+    call_count = 0
+
+    async def mock_detect_phase(page, cfg):
+        nonlocal call_count
+        call_count += 1
+        if call_count <= 2:
+            return TaskPhase.TEST
+        return TaskPhase.COMPLETE
+
+    page = AsyncMock()
+    executor._lookup = MagicMock()
+    executor._lookup.identify = AsyncMock(side_effect=[ac_match, None])
+
+    handle_ac_calls = []
+
+    async def mock_handle_ac(p):
+        handle_ac_calls.append(p)
+
+    executor._handle_attention_check = mock_handle_ac
+
+    with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
+        await executor._trial_loop(page)
+
+    assert len(handle_ac_calls) == 1
+
+
+# ---------------------------------------------------------------------------
+# Tests for timing config fields (Step 11 / Task 4)
+# ---------------------------------------------------------------------------
+
+
+def test_timing_config_has_navigation_delay_ms():
+    """TimingConfig has navigation_delay_ms field."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig(navigation_delay_ms=500)
+    assert t.navigation_delay_ms == 500
+
+
+def test_timing_config_navigation_delay_ms_default():
+    """navigation_delay_ms defaults to 1000 (matches old hardcoded 1.0s)."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig()
+    assert t.navigation_delay_ms == 1000
+
+
+def test_timing_config_has_attention_check_delay_ms():
+    """TimingConfig has attention_check_delay_ms field."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig(attention_check_delay_ms=500)
+    assert t.attention_check_delay_ms == 500
+
+
+def test_timing_config_attention_check_delay_ms_default():
+    """attention_check_delay_ms defaults to 1500 (matches old hardcoded 1.5s)."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig()
+    assert t.attention_check_delay_ms == 1500
+
+
+def test_timing_config_has_completion_settle_ms():
+    """TimingConfig has completion_settle_ms field."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig(completion_settle_ms=3000)
+    assert t.completion_settle_ms == 3000
+
+
+def test_timing_config_completion_settle_ms_default():
+    """completion_settle_ms defaults to 2000 (matches old hardcoded 2.0s)."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig()
+    assert t.completion_settle_ms == 2000
+
+
+def test_timing_config_has_trial_end_timeout_s():
+    """TimingConfig has trial_end_timeout_s field."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig(trial_end_timeout_s=10.0)
+    assert t.trial_end_timeout_s == 10.0
+
+
+def test_timing_config_trial_end_timeout_s_default():
+    """trial_end_timeout_s defaults to 5.0 (matches old hardcoded default)."""
+    from experiment_bot.core.config import TimingConfig
+    t = TimingConfig()
+    assert t.trial_end_timeout_s == 5.0
+
+
+def test_timing_config_roundtrips_new_fields():
+    """New timing fields survive from_dict/to_dict round-trip."""
+    from experiment_bot.core.config import TimingConfig
+    d = {
+        "navigation_delay_ms": 750,
+        "attention_check_delay_ms": 800,
+        "completion_settle_ms": 1500,
+        "trial_end_timeout_s": 7.5,
+    }
+    t = TimingConfig.from_dict(d)
+    assert t.navigation_delay_ms == 750
+    assert t.attention_check_delay_ms == 800
+    assert t.completion_settle_ms == 1500
+    assert t.trial_end_timeout_s == 7.5
+    out = t.to_dict()
+    assert out["navigation_delay_ms"] == 750
+    assert out["attention_check_delay_ms"] == 800
+    assert out["completion_settle_ms"] == 1500
+    assert out["trial_end_timeout_s"] == 7.5
+
+
+def test_executor_navigation_uses_config_delay():
+    """_trial_loop uses runtime.timing.navigation_delay_ms for navigation pause."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._trial_loop)
+    # Must not have magic literal 1.0 for navigation sleep
+    # (The test verifies the config field is referenced)
+    assert "navigation_delay_ms" in source
+
+
+def test_executor_attention_check_uses_config_delay():
+    """_handle_attention_check uses runtime.timing.attention_check_delay_ms."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._handle_attention_check)
+    assert "attention_check_delay_ms" in source
+
+
+def test_executor_completion_settle_uses_config():
+    """_wait_for_completion uses runtime.timing.completion_settle_ms."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._wait_for_completion)
+    assert "completion_settle_ms" in source
+
+
+def test_executor_trial_end_timeout_uses_config():
+    """_wait_for_trial_end uses runtime.timing.trial_end_timeout_s instead of hardcoded 5.0."""
+    import inspect
+    source = inspect.getsource(TaskExecutor._trial_loop)
+    # The call site passes trial_end_timeout_s, not a literal 5.0
+    assert "trial_end_timeout_s" in source
+
+
+# ---------------------------------------------------------------------------
+# Tests for _resolve_response_key withhold sentinels (NEW Critical finding)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.asyncio
+async def test_resolve_response_key_returns_none_for_empty_string():
+    """Empty string return from JS is treated as withhold (returns None)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(config)
+    match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="")
+    result = await executor._resolve_response_key(match, page)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_resolve_response_key_returns_none_for_none_value():
+    """JS returning Python None is treated as withhold."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["stimuli"] = [{
+        "id": "go_left",
+        "description": "Go stimulus",
+        "detection": {"method": "dom_query", "selector": ".go"},
+        "response": {"key": None, "condition": "go", "response_key_js": "getKey()"},
+    }]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config)
+    match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=None)
+    result = await executor._resolve_response_key(match, page)
+    assert result is None
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sentinel", ["none", "None", "NONE", "null", "Null", "NULL"])
+async def test_resolve_response_key_returns_none_for_sentinel_strings(sentinel):
+    """Sentinel strings ('none', 'null', case-insensitive) are treated as withhold."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["stimuli"] = [{
+        "id": "stop_stim",
+        "description": "Stop/withhold stimulus",
+        "detection": {"method": "dom_query", "selector": ".stop"},
+        "response": {"key": None, "condition": "stop", "response_key_js": "getKey()"},
+    }]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config)
+    match = StimulusMatch(stimulus_id="stop_stim", response_key=None, condition="stop")
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=sentinel)
+    result = await executor._resolve_response_key(match, page)
+    assert result is None, f"Expected None for sentinel {sentinel!r}, got {result!r}"
+
+
+@pytest.mark.asyncio
+async def test_resolve_response_key_sentinel_no_keyboard_press(monkeypatch):
+    """When resolved_key is None (sentinel), _execute_trial does not press any key."""
+    config_data = dict(SAMPLE_CONFIG)
+    config_data["stimuli"] = [{
+        "id": "stop_stim",
+        "description": "Stop/withhold stimulus",
+        "detection": {"method": "dom_query", "selector": ".stop"},
+        "response": {"key": None, "condition": "go", "response_key_js": "getKey()"},
+    }]
+    config_data["response_distributions"] = {
+        "go": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
+    }
+    config_data["performance"] = {
+        "accuracy": {"go": 1.0},
+        "omission_rate": {"go": 0.0},
+    }
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+    executor._writer = MagicMock()
+
+    page = AsyncMock()
+    # JS returns "none" — sentinel for withhold
+    page.evaluate = AsyncMock(return_value="none")
+
+    match = StimulusMatch(stimulus_id="stop_stim", response_key=None, condition="go")
+    await executor._execute_trial(page, match)
+
+    # keyboard.press must NOT have been called
+    page.keyboard.press.assert_not_called()
+    # trial should still be logged (with response_key=null, withheld=true)
+    executor._writer.log_trial.assert_called_once()
+    logged = executor._writer.log_trial.call_args[0][0]
+    assert logged["response_key"] is None
+    assert logged.get("withheld") is True or logged.get("omission") is False

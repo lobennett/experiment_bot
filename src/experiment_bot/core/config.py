@@ -384,6 +384,11 @@ class TimingConfig:
     response_window_js: str = ""
     trial_context_js: str = ""
     viewport: dict = field(default_factory=lambda: {"width": 1280, "height": 800})
+    # Behavioral timing knobs (previously hardcoded in executor.py)
+    navigation_delay_ms: int = 1000      # Pause before pressing key on navigation stimuli
+    attention_check_delay_ms: int = 1500  # Pause before handling an attention check
+    completion_settle_ms: int = 2000     # Brief settle time in _wait_for_completion
+    trial_end_timeout_s: float = 5.0     # Max wait for response window to close after a trial
 
     @classmethod
     def from_dict(cls, d: dict) -> TimingConfig:
@@ -447,13 +452,22 @@ class AttentionCheckConfig:
     detection_selector: str = ""  # CSS/JS selector to detect attention check presence
     text_selector: str = ""       # CSS selector to read attention check text
     response_js: str = ""         # Optional JS to determine response (overrides regex parsing)
+    # Condition labels (matching response.condition) that trigger attention-check handling.
+    # Defaults to the legacy set so existing configs without this field still work.
+    stimulus_conditions: list = field(
+        default_factory=lambda: ["attention_check", "attention_check_response"]
+    )
 
     @classmethod
     def from_dict(cls, d: dict) -> AttentionCheckConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        obj = cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        return obj
 
     def to_dict(self) -> dict:
-        return {k: v for k, v in asdict(self).items() if v}
+        result = {k: v for k, v in asdict(self).items() if v}
+        # Always include stimulus_conditions (even if default) so round-trips are stable
+        result["stimulus_conditions"] = self.stimulus_conditions
+        return result
 
 
 @dataclass
@@ -464,6 +478,10 @@ class RuntimeConfig:
     trial_interrupt: TrialInterruptConfig = field(default_factory=TrialInterruptConfig)
     data_capture: DataCaptureConfig = field(default_factory=DataCaptureConfig)
     attention_check: AttentionCheckConfig = field(default_factory=AttentionCheckConfig)
+    # Condition label used to detect navigation stimuli in the trial loop.
+    # Defaults to "" (empty) — when empty, the executor falls back to the legacy
+    # hardcoded value "navigation" so existing configs still work.
+    navigation_stimulus_condition: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -474,10 +492,11 @@ class RuntimeConfig:
             trial_interrupt=TrialInterruptConfig.from_dict(d.get("trial_interrupt", {})),
             data_capture=DataCaptureConfig.from_dict(d.get("data_capture", {})),
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
+            navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
         )
 
     def to_dict(self) -> dict:
-        return {
+        result = {
             "phase_detection": self.phase_detection.to_dict(),
             "timing": self.timing.to_dict(),
             "advance_behavior": self.advance_behavior.to_dict(),
@@ -485,6 +504,9 @@ class RuntimeConfig:
             "data_capture": self.data_capture.to_dict(),
             "attention_check": self.attention_check.to_dict(),
         }
+        if self.navigation_stimulus_condition:
+            result["navigation_stimulus_condition"] = self.navigation_stimulus_condition
+        return result
 
 
 @dataclass

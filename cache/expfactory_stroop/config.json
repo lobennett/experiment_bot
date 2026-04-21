@@ -1,50 +1,49 @@
 {
   "task": {
-    "name": "Stroop Color-Word Task (RDoC)",
+    "name": "Stroop (RDoC)",
     "constructs": [
       "cognitive control",
-      "selective attention",
-      "inhibitory control",
-      "interference resolution"
+      "response inhibition",
+      "interference control",
+      "selective attention"
     ],
     "reference_literature": [
-      "Stroop, J. R. (1935). Studies of interference in serial verbal reactions. Journal of Experimental Psychology, 18(6), 643-662.",
-      "MacLeod, C. M. (1991). Half a century of research on the Stroop effect: An integrative review. Psychological Bulletin, 109(2), 163-203.",
-      "Spieler, D. H., Balota, D. A., & Faust, M. E. (1996). Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type. Journal of Experimental Psychology: Human Perception and Performance, 22(2), 461-479.",
-      "Steinhauser, M., & H\u00fcbner, R. (2009). Distinguishing response conflict and task conflict in the Stroop task: Evidence from ex-Gaussian distribution analysis. Journal of Experimental Psychology: Human Perception and Performance, 35(5), 1398-1412.",
-      "Dutilh, G., van Ravenzwaaij, D., Nieuwenhuis, S., van der Maas, H. L. J., Forstmann, B. U., & Wagenmakers, E.-J. (2012). How to measure post-error slowing: A confound and a simple solution. Journal of Mathematical Psychology, 56(3), 208-216."
+      "Stroop (1935)",
+      "MacLeod (1991) Psychological Bulletin",
+      "Hedge et al. (2018) - online Stroop RT distributions",
+      "Pratte et al. (2010) - ex-Gaussian Stroop parameters"
     ],
-    "platform": "jsPsych 7.3.1"
+    "platform": "jsPsych"
   },
   "stimuli": [
     {
-      "id": "congruent_stroop",
-      "description": "Congruent Stroop trial: word and ink color match (e.g., RED in red ink)",
+      "id": "congruent_stim",
+      "description": "Color word whose meaning matches ink color",
       "detection": {
         "method": "js_eval",
-        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return false; var style = el.getAttribute('style') || ''; var text = el.textContent.trim().toLowerCase(); var colorMatch = style.match(/color:\\s*(#[0-9A-Fa-f]+)/); if(!colorMatch) return false; var color = colorMatch[1].toUpperCase(); var map = {'#FF7070':'red','#7070FF':'blue','#70FF70':'green'}; return map[color] === text; })()",
+        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; const word = (el.textContent || '').trim().toLowerCase(); const c = (el.style.color || '').replace(/\\s/g,''); const map = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; return map[c] && map[c] === word; })()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "congruent",
-        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return null; var style = el.getAttribute('style') || ''; var colorMatch = style.match(/color:\\s*(#[0-9A-Fa-f]+)/); if(!colorMatch) return null; var color = colorMatch[1].toUpperCase(); var map = {'#FF7070': possibleResponses[0][1], '#7070FF': possibleResponses[1][1], '#70FF70': possibleResponses[2][1]}; return map[color] || null; })()"
+        "response_key_js": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return null; const c = (el.style.color || '').replace(/\\s/g,''); const colorMap = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; const colorName = colorMap[c]; if (!colorName) return null; try { const pr = window.possibleResponses; if (pr && pr.length >= 3) { const keyToColor = {}; keyToColor[pr[0][1]] = 'red'; keyToColor[pr[1][1]] = 'blue'; keyToColor[pr[2][1]] = 'green'; for (const k of Object.keys(keyToColor)) { if (keyToColor[k] === colorName) return k; } } } catch(e){} const hexMap = {'red':'#ff7070','blue':'#7070ff','green':'#70ff70'}; const targetHex = hexMap[colorName]; const spans = Array.from(document.querySelectorAll('.prompt_box span, .list-text span, span.large')); for (const sp of spans) { const sc = (sp.style.color || '').toLowerCase().replace(/\\s/g,''); if (sc === targetHex || sc === 'rgb(255,112,112)' && colorName==='red' || sc === 'rgb(112,112,255)' && colorName==='blue' || sc === 'rgb(112,255,112)' && colorName==='green') { const parent = sp.closest('p, li'); if (!parent) continue; const txt = parent.textContent; const m = txt.match(/([,./])/); if (m) return m[1]; } } return null; })()"
       }
     },
     {
-      "id": "incongruent_stroop",
-      "description": "Incongruent Stroop trial: word and ink color differ (e.g., RED in blue ink)",
+      "id": "incongruent_stim",
+      "description": "Color word whose meaning differs from ink color",
       "detection": {
         "method": "js_eval",
-        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return false; var style = el.getAttribute('style') || ''; var text = el.textContent.trim().toLowerCase(); var colorMatch = style.match(/color:\\s*(#[0-9A-Fa-f]+)/); if(!colorMatch) return false; var color = colorMatch[1].toUpperCase(); var map = {'#FF7070':'red','#7070FF':'blue','#70FF70':'green'}; return map[color] !== text; })()",
+        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; const word = (el.textContent || '').trim().toLowerCase(); const c = (el.style.color || '').replace(/\\s/g,''); const map = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; return map[c] && map[c] !== word; })()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "incongruent",
-        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); if(!el) return null; var style = el.getAttribute('style') || ''; var colorMatch = style.match(/color:\\s*(#[0-9A-Fa-f]+)/); if(!colorMatch) return null; var color = colorMatch[1].toUpperCase(); var map = {'#FF7070': possibleResponses[0][1], '#7070FF': possibleResponses[1][1], '#70FF70': possibleResponses[2][1]}; return map[color] || null; })()"
+        "response_key_js": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return null; const c = (el.style.color || '').replace(/\\s/g,''); const colorMap = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; const colorName = colorMap[c]; if (!colorName) return null; try { const pr = window.possibleResponses; if (pr && pr.length >= 3) { const keyToColor = {}; keyToColor[pr[0][1]] = 'red'; keyToColor[pr[1][1]] = 'blue'; keyToColor[pr[2][1]] = 'green'; for (const k of Object.keys(keyToColor)) { if (keyToColor[k] === colorName) return k; } } } catch(e){} const hexMap = {'red':'#ff7070','blue':'#7070ff','green':'#70ff70'}; const targetHex = hexMap[colorName]; const spans = Array.from(document.querySelectorAll('.prompt_box span, .list-text span, span.large')); for (const sp of spans) { const sc = (sp.style.color || '').toLowerCase().replace(/\\s/g,''); if (sc === targetHex || sc === 'rgb(255,112,112)' && colorName==='red' || sc === 'rgb(112,112,255)' && colorName==='blue' || sc === 'rgb(112,255,112)' && colorName==='green') { const parent = sp.closest('p, li'); if (!parent) continue; const txt = parent.textContent; const m = txt.match(/([,./])/); if (m) return m[1]; } } return null; })()"
       }
     }
   ],
@@ -52,7 +51,7 @@
     "congruent": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 520,
+        "mu": 580,
         "sigma": 60,
         "tau": 120
       },
@@ -61,8 +60,8 @@
     "incongruent": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 590,
-        "sigma": 70,
+        "mu": 660,
+        "sigma": 75,
         "tau": 160
       },
       "unit": "ms"
@@ -71,9 +70,9 @@
   "performance": {
     "accuracy": {
       "congruent": 0.97,
-      "incongruent": 0.9
+      "incongruent": 0.92
     },
-    "practice_accuracy": 0.85,
+    "practice_accuracy": 0.9,
     "omission_rate": {
       "congruent": 0.01,
       "incongruent": 0.02
@@ -90,15 +89,7 @@
         "duration_ms": 0
       },
       {
-        "phase": "wait_after_fullscreen",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 1500
-      },
-      {
-        "phase": "instruction_feedback",
+        "phase": "start",
         "action": "keypress",
         "target": "",
         "key": "Enter",
@@ -106,34 +97,10 @@
         "duration_ms": 0
       },
       {
-        "phase": "instruction_page_1",
+        "phase": "instructions",
         "action": "click",
         "target": "#jspsych-instructions-next",
         "key": "",
-        "steps": [],
-        "duration_ms": 0
-      },
-      {
-        "phase": "instruction_page_2",
-        "action": "click",
-        "target": "#jspsych-instructions-next",
-        "key": "",
-        "steps": [],
-        "duration_ms": 0
-      },
-      {
-        "phase": "instruction_done_feedback",
-        "action": "keypress",
-        "target": "",
-        "key": "Enter",
-        "steps": [],
-        "duration_ms": 0
-      },
-      {
-        "phase": "practice_start_feedback",
-        "action": "keypress",
-        "target": "",
-        "key": "Enter",
         "steps": [],
         "duration_ms": 0
       }
@@ -145,104 +112,90 @@
       "incongruent": "dynamic"
     },
     "trial_timing": {
-      "stimulus_duration_ms": 1000,
       "max_response_time_ms": 1500,
-      "fixation_duration_ms": 500,
-      "feedback_duration_ms": 500
+      "fixation_ms": 500,
+      "stimulus_duration_ms": 1000
     },
-    "trial_structure": {
-      "practice_trials_per_block": 4,
-      "test_trials_per_block": 40,
-      "num_test_blocks": 3,
-      "max_practice_blocks": 3,
-      "congruent_ratio": 0.5,
-      "incongruent_ratio": 0.5
-    },
-    "response_keys": [
-      ",",
-      ".",
-      "/"
-    ],
-    "color_key_mapping_note": "Key mapping is counterbalanced via group_index (default 1). possibleResponses[0] = red, possibleResponses[1] = blue, possibleResponses[2] = green. With group_index=1, this is: comma=red, period=blue, slash=green."
+    "notes": "Key-color mapping is counterbalanced via group_index. The mapping is resolved at runtime via window.possibleResponses (pr[0]=red, pr[1]=blue, pr[2]=green; each entry is [finger, key, label]). Keys are always ',' '.' '/' but mapped to different colors across participants."
   },
   "temporal_effects": {
     "autocorrelation": {
       "enabled": true,
-      "phi": 0.15,
-      "rationale": "Mild lag-1 autocorrelation is consistently observed in speeded response tasks including Stroop. Typical phi values range 0.1-0.3 (Gilden, 2001; Wagenmakers et al., 2004)."
+      "phi": 0.2,
+      "rationale": "Low-to-moderate lag-1 RT autocorrelation typical of choice RT tasks (Laming, 1968; Gilden, 2001)."
     },
     "fatigue_drift": {
       "enabled": true,
-      "drift_per_trial_ms": 0.25,
-      "rationale": "Over ~130 trials (practice + 3 test blocks \u00d7 40), a small fatigue drift accumulates ~33ms by the end. Consistent with vigilance decrement literature in short tasks."
+      "drift_per_trial_ms": 0.15,
+      "rationale": "Short task (~120 test trials + practice); mild drift expected over session."
     },
     "post_error_slowing": {
       "enabled": true,
       "slowing_ms_min": 30,
       "slowing_ms_max": 80,
-      "rationale": "Post-error slowing is robustly observed in Stroop tasks. Dutilh et al. (2012) report ~50ms PES. We use a range of 30-80ms to capture variability."
+      "rationale": "Rabbitt (1966); Danielmeier & Ullsperger (2011) - ~30-80 ms post-error slowing in Stroop-like tasks."
     },
     "condition_repetition": {
       "enabled": true,
-      "facilitation_ms": 10,
-      "cost_ms": 15,
-      "rationale": "Condition repetition effects in Stroop reflect priming of the conflict level. Congruency sequence effects (Gratton effect) show ~10-20ms facilitation for repetitions and small cost for switches (Gratton et al., 1992; Egner, 2007)."
+      "facilitation_ms": 12,
+      "cost_ms": 18,
+      "rationale": "Gratton effect / conflict adaptation: faster RT when previous trial shared congruency (Gratton et al., 1992)."
     },
     "pink_noise": {
       "enabled": true,
-      "sd_ms": 15,
+      "sd_ms": 20,
       "hurst": 0.75,
-      "rationale": "1/f noise is a hallmark of human RT time series (Gilden, 2001; Wagenmakers et al., 2005). Hurst exponents around 0.7-0.8 are typical for choice RT tasks."
+      "rationale": "1/f structure in RT series (Gilden, 2001; Wagenmakers et al., 2004)."
     },
     "post_interrupt_slowing": {
       "enabled": false,
       "slowing_ms_min": 0,
       "slowing_ms_max": 0,
-      "rationale": "No trial interrupt (stop-signal) component in this Stroop task."
+      "rationale": "No interrupt/stop signal in this task."
     }
   },
   "between_subject_jitter": {
-    "rt_mean_sd_ms": 45,
-    "rt_condition_sd_ms": 12,
+    "rt_mean_sd_ms": 70,
+    "rt_condition_sd_ms": 20,
     "sigma_tau_range": [
-      0.8,
-      1.25
+      0.85,
+      1.2
     ],
-    "accuracy_sd": 0.03,
+    "accuracy_sd": 0.02,
     "omission_sd": 0.01,
-    "rationale": "Individual differences in Stroop performance are well-documented. Mean RT SDs of 40-60ms across participants are typical in online samples. The Stroop interference effect (incongruent - congruent) varies across individuals, modeled by rt_condition_sd_ms. Sigma/tau variability captures differences in RT distribution shape. Accuracy variation is modest given the relatively easy congruent condition."
+    "rationale": "Between-subject RT variability in Stroop is substantial (Hedge et al., 2018); online samples show slightly wider spread."
   },
   "pilot": {
-    "min_trials": 4,
+    "min_trials": 6,
     "target_conditions": [
       "congruent",
       "incongruent"
     ],
     "max_blocks": 1,
     "stimulus_container_selector": "#jspsych-content",
-    "rationale": "Practice block has 4 trials (2 congruent, 2 incongruent), which is sufficient to observe both conditions. One practice block is enough for pilot validation."
+    "rationale": "Practice block has 4 trials (2 congruent, 2 incongruent). The pilot stalled on an instructions page that jsPsych renders with only clickable nav (allow_keys is false for individual instruction pages). The advance_behavior must click #jspsych-instructions-next to progress past each instruction page; Enter alone will not advance those pages. The initial feedback_instruct page DOES accept Enter."
   },
   "runtime": {
     "phase_detection": {
-      "method": "dom_query",
-      "complete": "!!document.querySelector('#finished_message') || (document.body.innerText.includes('Experiment Complete'))",
-      "test": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); return !!el && typeof expStage !== 'undefined' && expStage === 'test'; })()",
-      "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
-      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
-      "practice": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim'); return !!el && typeof expStage !== 'undefined' && expStage === 'practice'; })()",
-      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var text = el.textContent || ''; return text.includes('Press') && text.includes('enter'); })()",
+      "method": "js_eval",
+      "complete": "document.body && (document.body.innerText.includes('Experiment Complete') || document.body.innerText.includes('Thanks for completing'))",
+      "test": "!!document.querySelector('.stroop-stim')",
+      "loading": "!!document.querySelector('#jspsych-fullscreen-btn') || !!document.querySelector('#jspsych-survey-text-form')",
+      "instructions": "!document.querySelector('.stroop-stim') && (!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav'))",
+      "practice": "!!document.querySelector('.stroop-stim') && !!document.querySelector('.prompt_box')",
+      "feedback": "(() => { if (document.querySelector('.stroop-stim')) return false; if (document.querySelector('#jspsych-instructions-next')) return false; const el = document.querySelector('#jspsych-content'); if (!el) return false; const t = el.innerText || ''; return t.includes('Press enter to begin') || t.includes('Press <i>enter</i>') || t.includes('take this time to read your feedback') || t.includes('test portion') || t.includes('Done with instructions'); })()",
       "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
     },
     "timing": {
       "poll_interval_ms": 20,
-      "max_no_stimulus_polls": 500,
-      "stuck_timeout_s": 10.0,
+      "max_no_stimulus_polls": 800,
+      "stuck_timeout_s": 15.0,
       "completion_wait_ms": 35000,
       "feedback_delay_ms": 2000,
       "omission_wait_ms": 2000,
       "rt_floor_ms": 150.0,
       "rt_cap_fraction": 0.9,
-      "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus .stroop-stim')",
+      "response_window_js": "",
       "trial_context_js": "",
       "viewport": {
         "width": 1280,
@@ -255,10 +208,10 @@
         "Enter"
       ],
       "exit_pager_key": "",
-      "advance_interval_polls": 80,
+      "advance_interval_polls": 40,
       "feedback_selectors": [
-        "#jspsych-fullscreen-btn",
-        "#jspsych-instructions-next"
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
       ],
       "feedback_fallback_keys": [
         "Enter"
@@ -272,14 +225,14 @@
     },
     "data_capture": {
       "method": "js_expression",
-      "expression": "jsPsych.data.get().csv()",
-      "format": "csv",
+      "expression": "JSON.stringify(jsPsych.data.get().values())",
+      "format": "json",
       "wait_ms": 1000
     },
     "attention_check": {
       "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
       "text_selector": "#jspsych-attention-check-rdoc-stimulus",
-      "response_js": "(function(){ var el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return null; var text = el.textContent.toLowerCase(); if(text.includes('press the q key')) return 'q'; if(text.includes('press the p key')) return 'p'; if(text.includes('press the r key')) return 'r'; if(text.includes('press the s key')) return 's'; if(text.includes('press the t key')) return 't'; if(text.includes('press the j key')) return 'j'; if(text.includes('press the k key')) return 'k'; if(text.includes('press the e key')) return 'e'; if(text.includes('press the m key')) return 'm'; if(text.includes('press the i key')) return 'i'; if(text.includes('press the u key')) return 'u'; if(text.includes('first letter')) return 'a'; if(text.includes('second letter')) return 'b'; if(text.includes('third letter') && !text.includes('third to last')) return 'c'; if(text.includes('third to last')) return 'x'; if(text.includes('second to last')) return 'y'; if(text.includes('last letter')) return 'z'; return null; })()"
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const txt = el.innerText.toLowerCase(); const m = txt.match(/press the ([a-z]) key/); if (m) return m[1]; const ordinals = {'first':'a','second':'b','third':'c','third to last':'x','second to last':'y','last':'z'}; for (const k of Object.keys(ordinals)) { if (txt.includes(k + ' letter')) return ordinals[k]; } return 'a'; })()"
     }
   }
 }

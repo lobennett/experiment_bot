@@ -1,117 +1,100 @@
 {
   "task": {
-    "name": "Stroop Color-Word Task",
+    "name": "Stroop Online",
     "constructs": [
       "selective attention",
-      "cognitive inhibition",
-      "interference control",
-      "executive function"
+      "cognitive control",
+      "interference suppression",
+      "response inhibition"
     ],
     "reference_literature": [
-      "Stroop, J.R. (1935). Studies of interference in serial verbal reactions. Journal of Experimental Psychology, 18(6), 643-662.",
-      "MacLeod, C.M. (1991). Half a century of research on the Stroop effect: An integrative review. Psychological Bulletin, 109(2), 163-203.",
-      "Spieler, D.H., Balota, D.A., & Faust, M.E. (1996). Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type. Journal of Experimental Psychology: Human Perception and Performance, 22(2), 461-479.",
-      "Crump, M.J.C., McDonnell, J.V., & Gureckis, T.M. (2013). Evaluating Amazon's Mechanical Turk as a tool for experimental behavioral research. PLoS ONE, 8(3), e57410.",
-      "Hilbig, B.E. (2016). Reaction time effects in lab- versus web-based research: Experimental evidence. Behavior Research Methods, 48, 1718-1724."
+      "Stroop (1935) Studies of interference in serial verbal reactions",
+      "MacLeod (1991) Half a century of research on the Stroop effect",
+      "Algom & Chajut (2019) Reclaiming the Stroop effect back from control to input-driven attention and perception"
     ],
     "platform": "jsPsych 7.3.1"
   },
   "stimuli": [
     {
-      "id": "congruent_stimulus",
-      "description": "Color word displayed in matching ink color (congruent) \u2014 respond with first letter of ink color",
+      "id": "stroop_incongruent",
+      "description": "Word text differs from ink color (incongruent trial) - press first letter of ink color",
       "detection": {
         "method": "js_eval",
-        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var p = el.querySelector('p'); if(!p) return false; var text = p.textContent.trim().toLowerCase(); var style = p.getAttribute('style'); if(!style) return false; var cm = style.match(/color:\\s*(red|green|blue|yellow)/); if(!cm) return false; var color = cm[1].toLowerCase(); return (text === 'red' || text === 'green' || text === 'blue' || text === 'yellow') && text === color; })()",
-        "alt_method": "",
-        "pattern": ""
-      },
-      "response": {
-        "key": null,
-        "condition": "congruent",
-        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return null; var p = el.querySelector('p'); if(!p) return null; var style = p.getAttribute('style'); if(!style) return null; var cm = style.match(/color:\\s*(red|green|blue|yellow)/); if(!cm) return null; return cm[1].charAt(0); })()"
-      }
-    },
-    {
-      "id": "incongruent_stimulus",
-      "description": "Color word displayed in different ink color (incongruent) \u2014 respond with first letter of ink color",
-      "detection": {
-        "method": "js_eval",
-        "selector": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var p = el.querySelector('p'); if(!p) return false; var text = p.textContent.trim().toLowerCase(); var style = p.getAttribute('style'); if(!style) return false; var cm = style.match(/color:\\s*(red|green|blue|yellow)/); if(!cm) return false; var color = cm[1].toLowerCase(); return (text === 'red' || text === 'green' || text === 'blue' || text === 'yellow') && (color === 'red' || color === 'green' || color === 'blue' || color === 'yellow') && text !== color; })()",
+        "selector": "(function(){var s=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!s)return false;var c=window.getComputedStyle(s).color;var txt=(s.textContent||'').trim().toLowerCase();var colorMap={'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'};var colorName=colorMap[c]||'';if(colorName===''){var el=s.firstElementChild;if(el){c=window.getComputedStyle(el).color;colorName=colorMap[c]||'';txt=(el.textContent||'').trim().toLowerCase();}}return colorName!==''&&txt!==''&&['red','green','blue','yellow'].indexOf(txt)>-1&&txt!==colorName;})()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "incongruent",
-        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return null; var p = el.querySelector('p'); if(!p) return null; var style = p.getAttribute('style'); if(!style) return null; var cm = style.match(/color:\\s*(red|green|blue|yellow)/); if(!cm) return null; return cm[1].charAt(0); })()"
+        "response_key_js": "(function(){var s=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!s)return null;var c=window.getComputedStyle(s).color;var map={'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'};if(map[c])return map[c];var el=s.firstElementChild;if(el){c=window.getComputedStyle(el).color;if(map[c])return map[c];}return null;})()"
+      }
+    },
+    {
+      "id": "stroop_congruent",
+      "description": "Word text matches ink color (congruent trial) - press first letter of ink color",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var s=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!s)return false;var c=window.getComputedStyle(s).color;var txt=(s.textContent||'').trim().toLowerCase();var colorMap={'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'};var colorName=colorMap[c]||'';if(colorName===''){var el=s.firstElementChild;if(el){c=window.getComputedStyle(el).color;colorName=colorMap[c]||'';txt=(el.textContent||'').trim().toLowerCase();}}return colorName!==''&&txt===colorName;})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "congruent",
+        "response_key_js": "(function(){var s=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!s)return null;var c=window.getComputedStyle(s).color;var map={'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'};if(map[c])return map[c];var el=s.firstElementChild;if(el){c=window.getComputedStyle(el).color;if(map[c])return map[c];}return null;})()"
       }
     }
   ],
   "response_distributions": {
     "congruent": {
-      "distribution": "ex_gaussian",
+      "distribution": "exgaussian",
       "params": {
-        "mu": 580,
-        "sigma": 80,
-        "tau": 150
+        "mu": 620,
+        "sigma": 70,
+        "tau": 120
       },
       "unit": "ms"
     },
     "incongruent": {
-      "distribution": "ex_gaussian",
+      "distribution": "exgaussian",
       "params": {
-        "mu": 680,
-        "sigma": 95,
-        "tau": 200
+        "mu": 720,
+        "sigma": 85,
+        "tau": 150
       },
       "unit": "ms"
     }
   },
   "performance": {
     "accuracy": {
-      "congruent": 0.97,
-      "incongruent": 0.92
+      "congruent": 0.98,
+      "incongruent": 0.93
     },
     "practice_accuracy": 0.95,
     "omission_rate": {
-      "congruent": 0.005,
-      "incongruent": 0.01
+      "congruent": 0.01,
+      "incongruent": 0.015
     }
   },
   "navigation": {
     "phases": [
       {
-        "phase": "instructions_page_1",
-        "action": "keypress",
+        "phase": "instructions",
+        "action": "repeat",
         "target": "",
-        "key": " ",
-        "steps": [],
-        "duration_ms": 2000
-      },
-      {
-        "phase": "instructions_page_2",
-        "action": "keypress",
-        "target": "",
-        "key": " ",
-        "steps": [],
-        "duration_ms": 2000
-      },
-      {
-        "phase": "instructions_page_3",
-        "action": "keypress",
-        "target": "",
-        "key": " ",
-        "steps": [],
-        "duration_ms": 2000
-      },
-      {
-        "phase": "instructions_page_4",
-        "action": "keypress",
-        "target": "",
-        "key": " ",
-        "steps": [],
-        "duration_ms": 2000
+        "key": "",
+        "steps": [
+          {
+            "action": "keypress",
+            "key": " "
+          },
+          {
+            "action": "wait",
+            "duration_ms": 300
+          }
+        ],
+        "duration_ms": 0
       }
     ]
   },
@@ -120,104 +103,96 @@
       "congruent": "dynamic",
       "incongruent": "dynamic"
     },
+    "response_keys": [
+      "r",
+      "g",
+      "b",
+      "y"
+    ],
     "trial_timing": {
-      "fixation_duration_ms": 500,
-      "stimulus_duration_ms": 2500,
-      "max_response_time_ms": 2500,
-      "iti_ms": 500
+      "max_response_time_ms": 3000
     },
-    "n_trials": 30,
-    "conditions": [
-      "congruent",
-      "incongruent"
-    ],
-    "colors": [
-      "red",
-      "green",
-      "blue",
-      "yellow"
-    ],
-    "response_mapping": "first letter of ink color (r=red, g=green, b=blue, y=yellow)"
+    "notes": "Participant presses first letter of ink color (not word). Congruent: word matches color. Incongruent: word differs from color. 15 trials total. Condition determined by comparing word text (textContent) with ink color (computed style). Response key is dynamic per-trial based on ink color."
   },
   "temporal_effects": {
     "autocorrelation": {
       "enabled": true,
-      "phi": 0.15,
-      "rationale": "Luce (1986) and Gilden (2001) document modest lag-1 autocorrelation (r ~ 0.1-0.2) in choice RT tasks. The short task (30 trials) limits the detectability of this effect, but it is a fundamental property of human RT series."
+      "phi": 0.18,
+      "rationale": "Modest lag-1 autocorrelation (~0.15-0.25) typical in choice RT tasks (Gilden, 2001)."
     },
     "fatigue_drift": {
-      "enabled": true,
-      "drift_per_trial_ms": 1.0,
-      "rationale": "With only 30 trials, fatigue drift is minimal but present. Buck (1966) and Welford (1980) report gradual slowing over short sessions. A conservative 1 ms/trial yields ~30 ms total drift."
+      "enabled": false,
+      "drift_per_trial_ms": 0,
+      "rationale": "Only 15 trials - fatigue effects negligible."
     },
     "post_error_slowing": {
       "enabled": true,
-      "slowing_ms_min": 30,
+      "slowing_ms_min": 40,
       "slowing_ms_max": 100,
-      "rationale": "Rabbitt (1966) first documented post-error slowing. Dutilh et al. (2012) found ~50-80 ms PES in Stroop-type conflict tasks. Online settings may show slightly larger PES due to more cautious post-error adjustment."
+      "rationale": "Post-error slowing ~50-100ms typical in Stroop (Rabbitt, 1966; Laming, 1979)."
     },
     "condition_repetition": {
       "enabled": true,
       "facilitation_ms": 15,
-      "cost_ms": 10,
-      "rationale": "Gratton et al. (1992) demonstrated congruency sequence effects (CSE) in the Stroop task. Condition repetition facilitation is typically 10-25 ms. The asymmetry reflects greater repetition priming benefit than alternation cost."
+      "cost_ms": 20,
+      "rationale": "Conflict adaptation / Gratton effect: reduced interference after incongruent trials (Gratton et al., 1992)."
     },
     "pink_noise": {
       "enabled": true,
-      "sd_ms": 15,
+      "sd_ms": 20,
       "hurst": 0.75,
-      "rationale": "Gilden (1997, 2001) demonstrated 1/f noise structure in human RT series with Hurst exponents around 0.7-0.8. SD is kept moderate given the short task length of 30 trials."
+      "rationale": "1/f structure in RT series well-documented (Gilden, 2001; Van Orden et al., 2003)."
     },
     "post_interrupt_slowing": {
       "enabled": false,
       "slowing_ms_min": 0,
       "slowing_ms_max": 0,
-      "rationale": "No trial interrupt / stop-signal component in this Stroop task."
+      "rationale": "No trial interrupts in this task."
     }
   },
   "between_subject_jitter": {
-    "rt_mean_sd_ms": 60,
-    "rt_condition_sd_ms": 15,
+    "rt_mean_sd_ms": 80,
+    "rt_condition_sd_ms": 25,
     "sigma_tau_range": [
-      0.8,
-      1.25
+      0.85,
+      1.15
     ],
-    "accuracy_sd": 0.03,
-    "omission_sd": 0.005,
-    "rationale": "Online Stroop studies (Crump et al., 2013; Hilbig, 2016) show substantial between-subject variability in mean RT (SD ~60-100ms). The congruency effect magnitude also varies across individuals (SD ~15ms). Sigma/tau scaling reflects individual differences in RT distribution shape. Accuracy varies modestly across participants in this easy task."
+    "accuracy_sd": 0.02,
+    "omission_sd": 0.01,
+    "rationale": "Individual differences in baseline speed and Stroop magnitude well-documented (MacLeod, 1991)."
   },
   "pilot": {
-    "min_trials": 6,
+    "min_trials": 12,
     "target_conditions": [
       "congruent",
       "incongruent"
     ],
     "max_blocks": 1,
     "stimulus_container_selector": "#jspsych-content",
-    "rationale": "The experiment has 30 trials total (15 congruent + 15 incongruent) in a single block. With equal condition probability, 6 trials should reliably sample both conditions. There are no practice trials or multiple blocks."
+    "rationale": "Task has 15 trials with random congruent/incongruent sampling per trial (50/50). Need ~12 trials to reliably observe both conditions given stochastic sampling."
   },
   "runtime": {
     "phase_detection": {
-      "method": "dom_query",
-      "complete": "!!document.querySelector('#jspsych-data-display')",
-      "test": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var p = el.querySelector('p'); if(!p) return false; var style = p.getAttribute('style') || ''; return /color:\\s*(red|green|blue|yellow)/.test(style); })()",
+      "method": "js_eval",
+      "complete": "document.querySelector('#jspsych-data-display') !== null",
+      "test": "document.querySelector('#jspsych-html-keyboard-response-stimulus') !== null",
       "loading": "false",
-      "instructions": "(function(){ var el = document.querySelector('.jspsych-instructions-nav') || document.querySelector('#jspsych-instructions-back') || document.querySelector('#jspsych-instructions-next'); if(el) return true; var content = document.querySelector('.jspsych-content'); if(!content) return false; var text = content.textContent || ''; return (text.indexOf('Welcome') !== -1 || text.indexOf('experiment') !== -1 || text.indexOf('Press Space') !== -1) && !document.querySelector('#jspsych-html-keyboard-response-stimulus p[style*=\"color\"]'); })()",
+      "instructions": "document.querySelector('.jspsych-instructions-nav') !== null || (document.body && (document.body.textContent.indexOf('Press Space to continue') > -1 || document.body.textContent.indexOf('Press Space to start') > -1))",
       "practice": "false",
-      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var text = el.textContent || ''; return text.indexOf('Correct') !== -1 || text.indexOf('Incorrect') !== -1 || text.indexOf('Too slow') !== -1; })()",
+      "feedback": "false",
       "attention_check": "false"
     },
     "timing": {
       "poll_interval_ms": 20,
       "max_no_stimulus_polls": 500,
       "stuck_timeout_s": 10.0,
-      "completion_wait_ms": 5000,
+      "completion_wait_ms": 3000,
       "feedback_delay_ms": 2000,
       "omission_wait_ms": 2000,
       "rt_floor_ms": 150.0,
       "rt_cap_fraction": 0.9,
-      "response_window_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var p = el.querySelector('p'); if(!p) return false; var style = p.getAttribute('style') || ''; return /color:\\s*(red|green|blue|yellow)/.test(style); })()",
-      "trial_context_js": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return ''; var p = el.querySelector('p'); if(!p) return ''; var text = p.textContent.trim().toLowerCase(); var style = p.getAttribute('style') || ''; var cm = style.match(/color:\\s*(\\w+)/); var color = cm ? cm[1] : '?'; return 'word=' + text + ',color=' + color; })()",
+      "response_window_js": "",
+      "trial_context_js": "",
       "viewport": {
         "width": 1280,
         "height": 800
@@ -229,7 +204,7 @@
         " "
       ],
       "exit_pager_key": "",
-      "advance_interval_polls": 75,
+      "advance_interval_polls": 80,
       "feedback_selectors": [],
       "feedback_fallback_keys": [
         " "
@@ -243,10 +218,9 @@
     },
     "data_capture": {
       "method": "js_expression",
-      "expression": "document.querySelector('#jspsych-data-display') ? document.querySelector('#jspsych-data-display').textContent : ''",
-      "result_selector": "#jspsych-data-display",
+      "expression": "(function(){var el=document.querySelector('#jspsych-data-display');return el?el.textContent:'';})()",
       "format": "csv",
-      "wait_ms": 2000
+      "wait_ms": 1000
     },
     "attention_check": {}
   }

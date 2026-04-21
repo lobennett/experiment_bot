@@ -3,80 +3,63 @@
     "name": "Stop Signal Task (RDoC)",
     "constructs": [
       "response inhibition",
-      "cognitive control",
-      "impulsivity",
-      "stop-signal reaction time (SSRT)"
+      "motor inhibition",
+      "cognitive control"
     ],
     "reference_literature": [
-      "Logan, G. D., & Cowan, W. B. (1984). On the ability to inhibit thought and action: A theory of an act of control. Psychological Review, 91(3), 295-327.",
-      "Verbruggen, F., & Logan, G. D. (2008). Response inhibition in the stop-signal paradigm. Trends in Cognitive Sciences, 12(11), 418-424.",
-      "Band, G. P. H., van der Molen, M. W., & Logan, G. D. (2003). Horse-race model simulations of the stop-signal procedure. Acta Psychologica, 112(2), 105-142.",
-      "Congdon, E., et al. (2012). Measurement and reliability of response inhibition. Frontiers in Psychology, 3, 37.",
-      "Verbruggen, F., et al. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife, 8, e46323."
+      "Logan, G. D., & Cowan, W. B. (1984). On the ability to inhibit thought and action. Psychological Review, 91, 295-327.",
+      "Verbruggen, F., & Logan, G. D. (2008). Response inhibition in the stop-signal paradigm. TiCS, 12, 418-424.",
+      "Verbruggen et al. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife."
     ],
-    "platform": "jsPsych 7.3.1"
+    "platform": "jsPsych"
   },
   "stimuli": [
     {
-      "id": "stop_signal",
-      "description": "Stop signal (star) appearing around the shape on stop trials - detected via the SS div element appended to display_element",
+      "id": "stop_trial",
+      "description": "Shape with stop-signal star overlay; participant must withhold response",
       "detection": {
-        "method": "dom_query",
-        "selector": "div#jspsych-stop-signal-SS",
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-SS') !== null && document.querySelector('#jspsych-stop-signal-stimulus') !== null",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
-        "condition": "stop"
+        "condition": "stop",
+        "response_key_js": "(function(){var img=document.querySelector('#jspsych-stop-signal-stimulus img'); if(!img) return ','; var src=img.src||''; var gi=(window.efVars&&window.efVars.group_index!=null)?window.efVars.group_index:1; if(gi>=0 && gi<=4){ return src.indexOf('circle')!==-1 ? ',' : '.'; } else { return src.indexOf('square')!==-1 ? ',' : '.'; }})()"
       }
     },
     {
-      "id": "go_stimulus",
-      "description": "Go stimulus (circle or square shape) requiring a key press response",
+      "id": "go_trial",
+      "description": "Go trial showing a shape (circle or square) without stop signal",
       "detection": {
-        "method": "dom_query",
-        "selector": "#jspsych-stop-signal-stimulus img.center",
+        "method": "js_eval",
+        "selector": "document.querySelector('#jspsych-stop-signal-stimulus') !== null && document.querySelector('#jspsych-stop-signal-SS') === null",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "go",
-        "response_key_js": "(function(){ var img = document.querySelector('#jspsych-stop-signal-stimulus img.center'); if(!img) return null; var src = img.getAttribute('src') || ''; if(src.indexOf('circle') !== -1) return possibleResponses[0][1]; if(src.indexOf('square') !== -1) return possibleResponses[1][1]; return null; })()"
-      }
-    },
-    {
-      "id": "attention_check",
-      "description": "Attention check question displayed between test blocks",
-      "detection": {
-        "method": "dom_query",
-        "selector": "#jspsych-attention-check-rdoc-stimulus",
-        "alt_method": "",
-        "pattern": ""
-      },
-      "response": {
-        "key": null,
-        "condition": "attention_check",
-        "response_key_js": "(function(){ var el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return null; var text = el.textContent.toLowerCase(); if(text.indexOf('press the q key') !== -1) return 'q'; if(text.indexOf('press the p key') !== -1) return 'p'; if(text.indexOf('press the r key') !== -1) return 'r'; if(text.indexOf('press the s key') !== -1) return 's'; if(text.indexOf('press the t key') !== -1) return 't'; if(text.indexOf('press the j key') !== -1) return 'j'; if(text.indexOf('press the k key') !== -1) return 'k'; if(text.indexOf('press the e key') !== -1) return 'e'; if(text.indexOf('press the m key') !== -1) return 'm'; if(text.indexOf('press the i key') !== -1) return 'i'; if(text.indexOf('press the u key') !== -1) return 'u'; if(text.indexOf('first letter') !== -1) return 'a'; if(text.indexOf('second letter') !== -1) return 'b'; if(text.indexOf('third letter of') !== -1) return 'c'; if(text.indexOf('third to last') !== -1) return 'x'; if(text.indexOf('second to last') !== -1) return 'y'; if(text.indexOf('last letter') !== -1) return 'z'; return null; })()"
+        "response_key_js": "(function(){var img=document.querySelector('#jspsych-stop-signal-stimulus img'); if(!img) return ','; var src=img.src||''; var gi=(window.efVars&&window.efVars.group_index!=null)?window.efVars.group_index:1; if(gi>=0 && gi<=4){ return src.indexOf('circle')!==-1 ? ',' : '.'; } else { return src.indexOf('square')!==-1 ? ',' : '.'; }})()"
       }
     }
   ],
   "response_distributions": {
     "go": {
-      "distribution": "ex_gaussian",
+      "distribution": "exgaussian",
       "params": {
-        "mu": 430,
+        "mu": 450,
         "sigma": 60,
-        "tau": 120
+        "tau": 90
       },
       "unit": "ms"
     },
-    "stop_failure": {
-      "distribution": "ex_gaussian",
+    "stop": {
+      "distribution": "exgaussian",
       "params": {
-        "mu": 350,
-        "sigma": 45,
+        "mu": 420,
+        "sigma": 55,
         "tau": 80
       },
       "unit": "ms"
@@ -84,12 +67,12 @@
   },
   "performance": {
     "accuracy": {
-      "go": 0.92,
+      "go": 0.95,
       "stop": 0.5
     },
-    "practice_accuracy": 0.85,
+    "practice_accuracy": 0.9,
     "omission_rate": {
-      "go": 0.03,
+      "go": 0.02,
       "stop": 0.0
     }
   },
@@ -104,15 +87,7 @@
         "duration_ms": 0
       },
       {
-        "phase": "wait_after_fullscreen",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 2000
-      },
-      {
-        "phase": "instruction_feedback",
+        "phase": "instructions_feedback",
         "action": "keypress",
         "target": "",
         "key": "Enter",
@@ -120,63 +95,20 @@
         "duration_ms": 0
       },
       {
-        "phase": "wait_for_instructions",
-        "action": "wait",
+        "phase": "instructions_pages",
+        "action": "repeat",
         "target": "",
         "key": "",
-        "steps": [],
-        "duration_ms": 1000
-      },
-      {
-        "phase": "instruction_page_1",
-        "action": "click",
-        "target": "#jspsych-instructions-next",
-        "key": "",
-        "steps": [],
+        "steps": [
+          {
+            "action": "click",
+            "target": "#jspsych-instructions-next"
+          }
+        ],
         "duration_ms": 0
       },
       {
-        "phase": "wait_between_instructions_1",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 1000
-      },
-      {
-        "phase": "instruction_page_2",
-        "action": "click",
-        "target": "#jspsych-instructions-next",
-        "key": "",
-        "steps": [],
-        "duration_ms": 0
-      },
-      {
-        "phase": "wait_between_instructions_2",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 1000
-      },
-      {
-        "phase": "instruction_page_3",
-        "action": "click",
-        "target": "#jspsych-instructions-next",
-        "key": "",
-        "steps": [],
-        "duration_ms": 0
-      },
-      {
-        "phase": "wait_for_practice_feedback",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 1000
-      },
-      {
-        "phase": "practice_feedback",
+        "phase": "begin_practice",
         "action": "keypress",
         "target": "",
         "key": "Enter",
@@ -188,76 +120,70 @@
   "task_specific": {
     "key_map": {
       "go": "dynamic",
-      "stop": null
+      "stop": "dynamic"
     },
     "trial_timing": {
-      "max_response_time_ms": 1500,
       "stimulus_duration_ms": 1000,
-      "fixation_duration_ms": 500,
-      "feedback_duration_ms": 500,
-      "ss_duration_ms": 500
+      "max_response_time_ms": 1500,
+      "fixation_ms": 500,
+      "iti_ms_mean": 500,
+      "ssd_initial_ms": 250,
+      "ssd_step_ms": 50,
+      "ssd_min_ms": 0,
+      "ssd_max_ms": 1000
     },
-    "staircase": {
-      "initial_ssd_ms": 250,
-      "step_size_ms": 50,
-      "min_ssd_ms": 0,
-      "max_ssd_ms": 1000,
-      "target_inhibition_rate": 0.5
-    },
-    "trial_structure": {
+    "block_structure": {
       "practice_trials": 6,
       "test_trials_per_block": 60,
-      "test_blocks": 3,
-      "go_ratio": "2/3",
-      "stop_ratio": "1/3"
+      "num_test_blocks": 3
     }
   },
   "temporal_effects": {
     "autocorrelation": {
       "enabled": true,
-      "phi": 0.15,
-      "rationale": "Modest lag-1 autocorrelation is consistently observed in speeded RT tasks (Gilden, 2001; Wagenmakers et al., 2004). In stop-signal tasks, participants show trial-to-trial RT carry-over on go trials."
+      "phi": 0.2,
+      "rationale": "Modest lag-1 autocorrelation typical of RT series (Gilden, 2001; Wagenmakers et al., 2004)"
     },
     "fatigue_drift": {
       "enabled": true,
-      "drift_per_trial_ms": 0.15,
-      "rationale": "With 180 test trials plus practice, a very mild fatigue drift is expected. Online participants in 10-minute sessions show slight slowing (~0.1-0.2 ms/trial; Fortenbaugh et al., 2015)."
+      "drift_per_trial_ms": 0.1,
+      "rationale": "Slight RT drift over ~180 test trials in a ~10 min task"
     },
     "post_error_slowing": {
       "enabled": true,
       "slowing_ms_min": 20,
-      "slowing_ms_max": 80,
-      "rationale": "Post-error slowing is well-documented in speeded RT tasks including stop-signal tasks (Dutilh et al., 2012; Verbruggen & Logan, 2008). After incorrect go responses, participants slow by 20-80 ms."
+      "slowing_ms_max": 60,
+      "rationale": "Post-error slowing is well-documented in stop-signal and choice RT tasks (Rabbitt, 1966; Dutilh et al., 2012)"
     },
     "condition_repetition": {
       "enabled": false,
       "facilitation_ms": 0,
       "cost_ms": 0,
-      "rationale": "In the stop-signal task, condition (go vs stop) repetition effects are confounded with the staircase and post-stop slowing. Disabling to avoid double-counting with post_interrupt_slowing."
+      "rationale": "Not a primary manipulation in stop-signal task"
     },
     "pink_noise": {
       "enabled": true,
-      "sd_ms": 15,
+      "sd_ms": 20,
       "hurst": 0.75,
-      "rationale": "Long-range 1/f fluctuations are a signature of human RT time series (Gilden, 2001; Wagenmakers et al., 2005). Hurst ~0.75 is typical for choice RT tasks."
+      "rationale": "1/f structure is a robust feature of RT series (Gilden, 2001; Van Orden et al., 2003)"
     },
     "post_interrupt_slowing": {
       "enabled": true,
-      "slowing_ms_min": 15,
-      "slowing_ms_max": 60,
-      "rationale": "Post-stop slowing is well-documented: after successful stop trials, participants slow their go RT on the following trial by ~15-60ms (Verbruggen et al., 2008; Bissett & Logan, 2011)."
+      "slowing_ms_min": 30,
+      "slowing_ms_max": 90,
+      "rationale": "Post-stop-signal slowing is well-documented (Verbruggen & Logan, 2008; Bissett & Logan, 2011)"
     }
   },
   "between_subject_jitter": {
-    "rt_mean_sd_ms": 45,
-    "rt_condition_sd_ms": 10,
+    "rt_mean_sd_ms": 60,
+    "rt_condition_sd_ms": 20,
     "sigma_tau_range": [
-      0.8,
-      1.25
+      0.85,
+      1.15
     ],
-    "accuracy_sd": 0.04,
+    "accuracy_sd": 0.03,
     "omission_sd": 0.01,
-    "rationale": "Stop-signal task shows substantial individual differences in go RT (SD ~40-60ms across participants; Congdon et al., 2012). SSRT individual differences are partly captured by the staircase. Online samples add additional variability due to hardware/environmental differences."
+    "rationale": "Typical between-subject variability in stop-signal RTs (Verbruggen et al., 2019 consensus guide)"
   },
   "pilot": {
     "min_trials": 6,
@@ -267,30 +193,30 @@
     ],
     "max_blocks": 1,
     "stimulus_container_selector": "#jspsych-content",
-    "rationale": "Practice block has 6 trials with 2/3 go and 1/3 stop ratio (from stopSignalsConditions=['go','go','stop'] x shapes=['circle','square'] = 6 unique combos). All conditions should appear within the first practice block. Using #jspsych-content as confirmed in DOM snapshot."
+    "rationale": "Practice block contains 6 trials with both go and stop conditions (2:1 ratio)"
   },
   "runtime": {
     "phase_detection": {
       "method": "js_eval",
-      "complete": "!!document.querySelector('#finished_message') || (typeof document.body !== 'undefined' && document.body.innerHTML.indexOf('Experiment Complete') !== -1)",
-      "test": "!!document.querySelector('#jspsych-stop-signal-stimulus') && (typeof expStage !== 'undefined') && expStage === 'test'",
-      "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
-      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
-      "practice": "!!document.querySelector('#jspsych-stop-signal-stimulus') && (typeof expStage !== 'undefined') && expStage === 'practice'",
-      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var text = el.textContent || ''; return (text.indexOf('enter') !== -1 || text.indexOf('Enter') !== -1 || text.indexOf('begin') !== -1 || text.indexOf('completed') !== -1 || text.indexOf('practice') !== -1 || text.indexOf('test portion') !== -1 || text.indexOf('Done') !== -1 || text.indexOf('Welcome') !== -1) && !document.querySelector('#jspsych-stop-signal-stimulus'); })()",
-      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+      "complete": "(function(){var el=document.querySelector('#jspsych-content, body'); if(!el) return false; var t=el.innerText||''; return /Thanks for completing this task/i.test(t) || document.getElementById('finished_message')!==null;})()",
+      "test": "document.querySelector('#jspsych-stop-signal-stimulus') !== null",
+      "loading": "document.querySelector('#jspsych-fullscreen-btn') !== null",
+      "instructions": "document.querySelector('#jspsych-instructions-next') !== null || (function(){var el=document.querySelector('#jspsych-content'); return el && /Press\\s*<i>enter<\\/i>\\s*to begin/i.test(el.innerHTML) && document.querySelector('#jspsych-stop-signal-stimulus')===null;})()",
+      "practice": "document.querySelector('#jspsych-stop-signal-stimulus') !== null",
+      "feedback": "(function(){var el=document.querySelector('#jspsych-content'); if(!el) return false; var t=el.innerText||''; return (/Please take this time to read your feedback/i.test(t) || /You have completed \\d+ out of/i.test(t)) && document.querySelector('#jspsych-stop-signal-stimulus')===null;})()",
+      "attention_check": "document.querySelector('#jspsych-attention-check-rdoc-stimulus') !== null"
     },
     "timing": {
-      "poll_interval_ms": 16,
-      "max_no_stimulus_polls": 800,
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
       "stuck_timeout_s": 10.0,
       "completion_wait_ms": 35000,
       "feedback_delay_ms": 2000,
       "omission_wait_ms": 2000,
       "rt_floor_ms": 150.0,
       "rt_cap_fraction": 0.9,
-      "response_window_js": "!!document.querySelector('#jspsych-stop-signal-stimulus img.center')",
-      "trial_context_js": "(function(){ var img = document.querySelector('#jspsych-stop-signal-stimulus img.center'); if(!img) return ''; var src = img.getAttribute('src') || ''; var shape = src.indexOf('circle') !== -1 ? 'circle' : (src.indexOf('square') !== -1 ? 'square' : 'unknown'); var ss = document.querySelector('div#jspsych-stop-signal-SS'); return shape + (ss ? '_stop' : '_go'); })()",
+      "response_window_js": "",
+      "trial_context_js": "",
       "viewport": {
         "width": 1280,
         "height": 800
@@ -302,9 +228,10 @@
         "Enter"
       ],
       "exit_pager_key": "",
-      "advance_interval_polls": 80,
+      "advance_interval_polls": 100,
       "feedback_selectors": [
-        "#jspsych-instructions-next"
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
       ],
       "feedback_fallback_keys": [
         "Enter"
@@ -312,20 +239,20 @@
     },
     "trial_interrupt": {
       "detection_condition": "stop",
-      "failure_rt_key": "stop_failure",
+      "failure_rt_key": "stop",
       "failure_rt_cap_fraction": 0.85,
       "inhibit_wait_ms": 1500
     },
     "data_capture": {
       "method": "js_expression",
-      "expression": "jsPsych.data.get().json()",
-      "format": "json",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
       "wait_ms": 1000
     },
     "attention_check": {
       "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
       "text_selector": "#jspsych-attention-check-rdoc-stimulus",
-      "response_js": "(function(){ var el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return null; var text = el.textContent.toLowerCase(); if(text.indexOf('press the q key') !== -1) return 'q'; if(text.indexOf('press the p key') !== -1) return 'p'; if(text.indexOf('press the r key') !== -1) return 'r'; if(text.indexOf('press the s key') !== -1) return 's'; if(text.indexOf('press the t key') !== -1) return 't'; if(text.indexOf('press the j key') !== -1) return 'j'; if(text.indexOf('press the k key') !== -1) return 'k'; if(text.indexOf('press the e key') !== -1) return 'e'; if(text.indexOf('press the m key') !== -1) return 'm'; if(text.indexOf('press the i key') !== -1) return 'i'; if(text.indexOf('press the u key') !== -1) return 'u'; if(text.indexOf('first letter') !== -1) return 'a'; if(text.indexOf('second letter') !== -1) return 'b'; if(text.indexOf('third letter of') !== -1) return 'c'; if(text.indexOf('third to last') !== -1) return 'x'; if(text.indexOf('second to last') !== -1) return 'y'; if(text.indexOf('last letter') !== -1) return 'z'; return null; })()"
+      "response_js": "(function(){var el=document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if(!el) return 'q'; var t=(el.innerText||'').toLowerCase(); var m=t.match(/press the ([a-z]) key/i); if(m) return m[1].toLowerCase(); if(/first letter of the english alphabet/i.test(t)) return 'a'; if(/second letter of the english alphabet/i.test(t)) return 'b'; if(/third letter of the english alphabet/i.test(t)) return 'c'; if(/third to last letter/i.test(t)) return 'x'; if(/second to last letter/i.test(t)) return 'y'; if(/last letter of the english alphabet/i.test(t)) return 'z'; return 'q';})()"
     }
   }
 }

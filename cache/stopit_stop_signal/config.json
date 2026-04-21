@@ -1,28 +1,41 @@
 {
   "task": {
-    "name": "Stop Signal Task (STOP-IT)",
+    "name": "Stop-Signal Task (STOP-IT)",
     "constructs": [
       "response inhibition",
-      "cognitive control",
-      "stop-signal reaction time (SSRT)",
-      "impulsivity"
+      "motor control",
+      "proactive and reactive control",
+      "stop-signal reaction time (SSRT)"
     ],
     "reference_literature": [
-      "Verbruggen, F., Aron, A. R., Band, G. P., Beste, C., Bissett, P. G., Brockett, A. T., ... & Boehler, C. N. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife, 8, e46323.",
-      "Logan, G. D., & Cowan, W. B. (1984). On the ability to inhibit thought and action: A theory of an act of control. Psychological Review, 91(3), 295-327.",
-      "Verbruggen, F., & Logan, G. D. (2009). Models of response inhibition in the stop-signal and stop-change paradigms. Neuroscience & Biobehavioral Reviews, 33(5), 647-661.",
-      "Band, G. P., van der Molen, M. W., & Logan, G. D. (2003). Horse-race model simulations of the stop-signal procedure. Acta Psychologica, 112(2), 105-142.",
-      "Matzke, D., Verbruggen, F., & Logan, G. D. (2018). The stop-signal paradigm. Stevens' Handbook of Experimental Psychology and Cognitive Neuroscience, 5, 1-45."
+      "Logan & Cowan (1984). On the ability to inhibit thought and action: A theory of an act of control. Psychological Review.",
+      "Verbruggen & Logan (2008). Response inhibition in the stop-signal paradigm. Trends in Cognitive Sciences.",
+      "Verbruggen et al. (2019). A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task. eLife.",
+      "Rabbitt (1966). Errors and error correction in choice-response tasks. JEP."
     ],
     "platform": "jsPsych 6.0.5"
   },
   "stimuli": [
     {
-      "id": "stop_signal",
-      "description": "Stop signal trial \u2014 the go arrow has been replaced by a red stop image. The participant must withhold their response.",
+      "id": "stop_left",
+      "description": "Stop signal trial with leftward arrow (red arrow appears after SSD)",
       "detection": {
-        "method": "js_eval",
-        "selector": "(function(){ var img = document.querySelector('#jspsych-image-keyboard-response-stimulus'); if(!img) return false; var s = img.src || ''; return s.indexOf('stop_left') !== -1 || s.indexOf('stop_right') !== -1; })()",
+        "method": "dom_query",
+        "selector": "img#jspsych-image-keyboard-response-stimulus[src*='stop_left']",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop_signal"
+      }
+    },
+    {
+      "id": "stop_right",
+      "description": "Stop signal trial with rightward arrow (red arrow appears after SSD)",
+      "detection": {
+        "method": "dom_query",
+        "selector": "img#jspsych-image-keyboard-response-stimulus[src*='stop_right']",
         "alt_method": "",
         "pattern": ""
       },
@@ -33,108 +46,89 @@
     },
     {
       "id": "go_left",
-      "description": "Go trial with left arrow \u2014 participant should press the left arrow key",
+      "description": "Go trial with leftward white arrow \u2014 respond with left arrow key",
       "detection": {
-        "method": "js_eval",
-        "selector": "(function(){ var img = document.querySelector('#jspsych-image-keyboard-response-stimulus'); if(!img) return false; var s = img.src || ''; return s.indexOf('go_left') !== -1 && s.indexOf('stop_') === -1; })()",
+        "method": "dom_query",
+        "selector": "img#jspsych-image-keyboard-response-stimulus[src*='go_left']",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": "ArrowLeft",
-        "condition": "go_left"
+        "condition": "go"
       }
     },
     {
       "id": "go_right",
-      "description": "Go trial with right arrow \u2014 participant should press the right arrow key",
+      "description": "Go trial with rightward white arrow \u2014 respond with right arrow key",
       "detection": {
-        "method": "js_eval",
-        "selector": "(function(){ var img = document.querySelector('#jspsych-image-keyboard-response-stimulus'); if(!img) return false; var s = img.src || ''; return s.indexOf('go_right') !== -1 && s.indexOf('stop_') === -1; })()",
+        "method": "dom_query",
+        "selector": "img#jspsych-image-keyboard-response-stimulus[src*='go_right']",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": "ArrowRight",
-        "condition": "go_right"
+        "condition": "go"
       }
     }
   ],
   "response_distributions": {
-    "go_left": {
+    "go": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 420,
-        "sigma": 50,
+        "mu": 450,
+        "sigma": 60,
         "tau": 90
       },
       "unit": "ms"
     },
-    "go_right": {
+    "stop_signal": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 420,
-        "sigma": 50,
-        "tau": 90
-      },
-      "unit": "ms"
-    },
-    "failed_stop": {
-      "distribution": "ex_gaussian",
-      "params": {
-        "mu": 340,
-        "sigma": 40,
-        "tau": 60
+        "mu": 430,
+        "sigma": 55,
+        "tau": 80
       },
       "unit": "ms"
     }
   },
   "performance": {
     "accuracy": {
-      "go_left": 0.96,
-      "go_right": 0.96,
+      "go": 0.97,
       "stop_signal": 0.5
     },
-    "practice_accuracy": 0.9,
+    "practice_accuracy": 0.95,
     "omission_rate": {
-      "go_left": 0.01,
-      "go_right": 0.01,
+      "go": 0.01,
       "stop_signal": 0.0
     }
   },
   "navigation": {
     "phases": [
       {
-        "phase": "fullscreen",
+        "phase": "welcome",
         "action": "click",
-        "target": "#jspsych-fullscreen-btn",
-        "key": null,
+        "target": "button#jspsych-instructions-next",
+        "key": "",
         "steps": [],
         "duration_ms": 0
       },
       {
-        "phase": "wait_fullscreen",
-        "action": "wait",
-        "target": "",
+        "phase": "fullscreen",
+        "action": "click",
+        "target": "button#jspsych-fullscreen-btn",
         "key": "",
         "steps": [],
-        "duration_ms": 2000
+        "duration_ms": 0
       },
       {
-        "phase": "instructions_page1",
+        "phase": "instructions",
         "action": "click",
-        "target": "#jspsych-instructions-next",
+        "target": "button#jspsych-instructions-next",
         "key": "",
         "steps": [],
-        "duration_ms": 500
-      },
-      {
-        "phase": "instructions_page2",
-        "action": "click",
-        "target": "#jspsych-instructions-next",
-        "key": "",
-        "steps": [],
-        "duration_ms": 500
+        "duration_ms": 0
       },
       {
         "phase": "block_start",
@@ -142,121 +136,105 @@
         "target": "",
         "key": " ",
         "steps": [],
-        "duration_ms": 500
-      },
-      {
-        "phase": "get_ready",
-        "action": "wait",
-        "target": "",
-        "key": "",
-        "steps": [],
-        "duration_ms": 2500
+        "duration_ms": 0
       }
     ]
   },
   "task_specific": {
     "key_map": {
-      "go_left": "ArrowLeft",
-      "go_right": "ArrowRight",
-      "stop_signal": null,
-      "failed_stop": "dynamic"
+      "go": "dynamic",
+      "stop_signal": "none"
     },
     "trial_timing": {
       "max_response_time_ms": 1250,
-      "fixation_duration_ms": 250,
-      "iti_ms": 500,
-      "feedback_duration_ms": 750,
-      "block_feedback_duration_ms": 15000,
-      "initial_SSD_ms": 200,
-      "SSD_step_ms": 50
+      "fixation_ms": 250,
+      "iti_ms": 500
     },
-    "stop_signal_proportion": 0.25,
-    "n_practice_trials": 32,
-    "n_exp_trials_per_block": 64,
-    "n_experimental_blocks": 4,
-    "staircase_target_accuracy": 0.5,
-    "staircase_description": "SSD increases by 50ms after successful stop, decreases by 50ms after failed stop, converging on ~50% inhibition rate"
+    "staircase": {
+      "start_ssd_ms": 200,
+      "step_ms": 50,
+      "target_p_respond": 0.5
+    }
   },
   "temporal_effects": {
     "autocorrelation": {
       "enabled": true,
-      "phi": 0.15,
-      "rationale": "Modest lag-1 autocorrelation is consistently observed in choice RT tasks (~0.1-0.2, Gilden 2001; Wagenmakers et al., 2004). In the stop-signal task, go-trial RTs show sequential dependencies as participants balance speed-accuracy tradeoffs."
+      "phi": 0.2,
+      "rationale": "Gilden (2001) and Wagenmakers et al. (2004) report modest lag-1 positive autocorrelation in choice RT series."
     },
     "fatigue_drift": {
       "enabled": true,
-      "drift_per_trial_ms": 0.08,
-      "rationale": "The task has 5 blocks \u00d7 ~48-64 trials = ~290+ total trials over ~25 minutes. A small fatigue drift of ~0.08ms/trial adds ~23ms over the full session, consistent with vigilance decrements in sustained attention tasks (Parasuraman & Davies, 1977)."
+      "drift_per_trial_ms": 0.15,
+      "rationale": "Slight RT drift over ~320 trials consistent with time-on-task effects reported in sustained RT tasks."
     },
     "post_error_slowing": {
       "enabled": true,
       "slowing_ms_min": 20,
-      "slowing_ms_max": 80,
-      "rationale": "Post-error slowing is a robust finding in speeded choice tasks (Rabbitt, 1966; Dutilh et al., 2012). In stop-signal tasks, post-error slowing of 20-80ms is typical after commission errors on go trials (Verbruggen & Logan, 2008)."
+      "slowing_ms_max": 60,
+      "rationale": "Rabbitt (1966); Danielmeier & Ullsperger (2011). Post-error slowing typically 20-60 ms in choice RT tasks."
     },
     "condition_repetition": {
-      "enabled": true,
-      "facilitation_ms": 8,
-      "cost_ms": 8,
-      "rationale": "Stimulus repetition effects in two-choice tasks typically produce 5-15ms facilitation for repeated stimuli and a small cost for switches (Soetens et al., 1985). In the stop-signal task these effects are modest due to the binary stimulus set."
+      "enabled": false,
+      "facilitation_ms": 0,
+      "cost_ms": 0,
+      "rationale": "Stop-signal trial type is unpredictable by design; repetition effects are minimal and dominated by the SSD staircase dynamics."
     },
     "pink_noise": {
       "enabled": true,
-      "sd_ms": 15,
+      "sd_ms": 18,
       "hurst": 0.75,
-      "rationale": "Long-range correlations (1/f noise) are ubiquitous in human RT series (Gilden, 2001; Wagenmakers et al., 2004). A Hurst exponent of ~0.75 and modest amplitude (15ms SD) captures the slow drift structure observed in extended RT tasks."
+      "rationale": "Gilden (2001): 1/f structure in RT series is a robust feature of human performance."
     },
     "post_interrupt_slowing": {
       "enabled": true,
-      "slowing_ms_min": 15,
-      "slowing_ms_max": 60,
-      "rationale": "After successful stop trials, participants typically slow their go responses on the next trial by 15-60ms (Verbruggen & Logan, 2008; Bissett & Logan, 2011). This post-stop slowing reflects a strategic adjustment in response caution."
+      "slowing_ms_min": 30,
+      "slowing_ms_max": 80,
+      "rationale": "Verbruggen & Logan (2008): successful stopping reliably slows the subsequent go-trial RT, often larger than post-error slowing."
     }
   },
   "between_subject_jitter": {
-    "rt_mean_sd_ms": 45,
-    "rt_condition_sd_ms": 8,
+    "rt_mean_sd_ms": 50,
+    "rt_condition_sd_ms": 15,
     "sigma_tau_range": [
-      0.8,
-      1.25
+      0.85,
+      1.2
     ],
-    "accuracy_sd": 0.025,
-    "omission_sd": 0.008,
-    "rationale": "Individual differences in go RT mean are substantial in the stop-signal task (SD ~40-60ms across participants; Verbruggen et al., 2013). Accuracy and omission rates vary modestly. The left-right difference is small, so condition-level jitter is low. Sigma/tau variability reflects individual differences in the shape of RT distributions."
+    "accuracy_sd": 0.02,
+    "omission_sd": 0.005,
+    "rationale": "Individual differences in baseline RT in stop-signal tasks show SDs around 50-80 ms across healthy adults (Congdon et al., 2012); accuracy is near ceiling with low between-subject variability."
   },
   "pilot": {
     "min_trials": 16,
     "target_conditions": [
-      "go_left",
-      "go_right",
+      "go",
       "stop_signal"
     ],
     "max_blocks": 1,
     "stimulus_container_selector": "#jspsych-content",
-    "rationale": "The practice block has 32 trials (NdesignReps_practice=4 \u00d7 8 trial basic design). With 25% stop trials, 16 trials should be sufficient to observe all 3 conditions (go_left, go_right, stop_signal). Running max 1 block (practice) validates all detection logic."
+    "rationale": "Practice block has NdesignReps_practice=4 * 8 = 32 trials with 1/4 stop ratio, so ~16 trials observes both conditions reliably."
   },
   "runtime": {
     "phase_detection": {
       "method": "js_eval",
-      "complete": "(function(){ var el = document.querySelector('#jspsych-content'); if(!el) return false; var txt = el.innerText; return txt.indexOf('Thank you for your participation') !== -1; })()",
-      "test": "typeof block_ind !== 'undefined' && block_ind > 0",
-      "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
-      "instructions": "!!document.querySelector('#jspsych-instructions-next')",
-      "practice": "typeof block_ind !== 'undefined' && block_ind === 0",
-      "feedback": "(function(){ var el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if(!el) return false; var txt = el.innerText || ''; return (txt.indexOf('correct') !== -1 || txt.indexOf('incorrect') !== -1 || txt.indexOf('too slow') !== -1 || txt.indexOf('too fast') !== -1 || txt.indexOf('remember') !== -1 || txt.indexOf('GO TRIALS') !== -1 || txt.indexOf('STOP-SIGNAL TRIALS') !== -1); })()",
+      "complete": "document.body.innerText.includes('Thank you for your participation')",
+      "test": "!!document.querySelector('img#jspsych-image-keyboard-response-stimulus')",
+      "loading": "!document.querySelector('#jspsych-content') || document.querySelector('#jspsych-content').innerHTML === ''",
+      "instructions": "!!document.querySelector('button#jspsych-instructions-next') || !!document.querySelector('button#jspsych-fullscreen-btn')",
+      "practice": "!!document.querySelector('img#jspsych-image-keyboard-response-stimulus') && (typeof block_ind !== 'undefined' && block_ind === 0)",
+      "feedback": "document.body.innerText.includes('GO TRIALS:') || document.body.innerText.includes('Average response time')",
       "attention_check": "false"
     },
     "timing": {
       "poll_interval_ms": 20,
-      "max_no_stimulus_polls": 800,
+      "max_no_stimulus_polls": 1500,
       "stuck_timeout_s": 10.0,
       "completion_wait_ms": 5000,
       "feedback_delay_ms": 2000,
       "omission_wait_ms": 2000,
       "rt_floor_ms": 150.0,
-      "rt_cap_fraction": 0.92,
-      "response_window_js": "(function(){ var img = document.querySelector('#jspsych-image-keyboard-response-stimulus'); if(!img) return false; var s = img.src || ''; return s.indexOf('/go_') !== -1 || s.indexOf('/stop_') !== -1; })()",
-      "trial_context_js": "(function(){ var img = document.querySelector('#jspsych-image-keyboard-response-stimulus'); if(!img) return ''; return img.src || ''; })()",
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "(function(){var i=document.querySelector('img#jspsych-image-keyboard-response-stimulus');return !!i && !/fix\\.png/.test(i.src);})()",
+      "trial_context_js": "",
       "viewport": {
         "width": 1280,
         "height": 800
@@ -268,25 +246,24 @@
         " "
       ],
       "exit_pager_key": "",
-      "advance_interval_polls": 75,
+      "advance_interval_polls": 80,
       "feedback_selectors": [
-        "#jspsych-instructions-next",
-        "#jspsych-fullscreen-btn"
+        "button#jspsych-instructions-next",
+        "button#jspsych-fullscreen-btn"
       ],
       "feedback_fallback_keys": [
-        " ",
-        "ArrowRight"
+        " "
       ]
     },
     "trial_interrupt": {
       "detection_condition": "stop_signal",
-      "failure_rt_key": "failed_stop",
+      "failure_rt_key": "stop_signal",
       "failure_rt_cap_fraction": 0.85,
-      "inhibit_wait_ms": 1500
+      "inhibit_wait_ms": 1300
     },
     "data_capture": {
       "method": "js_expression",
-      "expression": "jsPsych.data.get().filter({trial_type:'custom-stop-signal-plugin'}).csv()",
+      "expression": "jsPsych.data.get().filter({trial_type: 'custom-stop-signal-plugin'}).csv()",
       "format": "csv",
       "wait_ms": 1000
     },

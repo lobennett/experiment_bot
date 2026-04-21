@@ -53,6 +53,13 @@ class TaskExecutor:
         self._key_map = self._resolve_key_mapping(config)
         # Cache interrupt JS — config is immutable so this never changes
         self._interrupt_js = self._build_interrupt_check_js()
+        # Cache condition names — config is immutable, no need to recompute per trial
+        self._navigation_condition_name: str = (
+            config.runtime.navigation_stimulus_condition or "navigation"
+        )
+        self._attention_check_conditions: set[str] = set(
+            config.runtime.attention_check.stimulus_conditions
+        ) or {"attention_check", "attention_check_response"}
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -328,17 +335,15 @@ class TaskExecutor:
                 await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                 continue
 
-            # Resolve special condition sets from config (once per match, before
-            # the non-trial skip so these are not accidentally filtered out).
-            nav_condition = self._config.runtime.navigation_stimulus_condition or "navigation"
-            ac_conditions = set(self._config.runtime.attention_check.stimulus_conditions)
-
             # Skip non-trial stimuli (fixation, ITI) without resetting miss counter.
             # Resetting here would prevent advance behavior from triggering when
             # the executor is stuck detecting fixation on an instruction screen.
             # Navigation and attention-check stimuli are NOT skipped here — they
             # always need handling regardless of whether they look like trial stimuli.
-            is_special = (match.condition == nav_condition or match.condition in ac_conditions)
+            is_special = (
+                match.condition == self._navigation_condition_name
+                or match.condition in self._attention_check_conditions
+            )
             if not is_special and not self._is_trial_stimulus(match) and match.response_key is None:
                 await asyncio.sleep(0.05)
                 continue
@@ -350,7 +355,7 @@ class TaskExecutor:
             # The condition label is read from config so the executor is not coupled
             # to the literal string "navigation".  When the config omits the field
             # (empty string), we fall back to "navigation" for backward compatibility.
-            if match.condition == nav_condition:
+            if match.condition == self._navigation_condition_name:
                 key = match.response_key or "Enter"
                 logger.info(f"Navigation stimulus detected, pressing {key}")
                 await asyncio.sleep(
@@ -363,7 +368,7 @@ class TaskExecutor:
             # The set of condition labels is read from config so the executor is not
             # coupled to the legacy literals "attention_check" /
             # "attention_check_response".
-            if match.condition in ac_conditions:
+            if match.condition in self._attention_check_conditions:
                 logger.info("Attention check detected")
                 await self._handle_attention_check(page)
                 continue

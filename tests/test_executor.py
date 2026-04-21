@@ -948,4 +948,64 @@ async def test_resolve_response_key_sentinel_no_keyboard_press(monkeypatch):
     executor._writer.log_trial.assert_called_once()
     logged = executor._writer.log_trial.call_args[0][0]
     assert logged["response_key"] is None
-    assert logged.get("withheld") is True or logged.get("omission") is False
+    assert logged.get("withheld") is True
+    assert logged.get("omission") is False
+
+
+# ---------------------------------------------------------------------------
+# Helper
+# ---------------------------------------------------------------------------
+
+def _minimal_config_dict() -> dict:
+    """Return a minimal valid config dict suitable for TaskConfig.from_dict."""
+    import copy
+    return copy.deepcopy(SAMPLE_CONFIG)
+
+
+# ---------------------------------------------------------------------------
+# Important Issue 1: cached condition-name attributes
+# ---------------------------------------------------------------------------
+
+def test_navigation_condition_name_attribute_is_config_driven(monkeypatch):
+    """TaskExecutor caches navigation_stimulus_condition in __init__."""
+    cfg_dict = _minimal_config_dict()
+    cfg_dict["runtime"]["navigation_stimulus_condition"] = "advance_screen"
+    config = TaskConfig.from_dict(cfg_dict)
+    executor = TaskExecutor(config)
+    assert executor._navigation_condition_name == "advance_screen"
+
+
+def test_attention_check_conditions_attribute_is_config_driven():
+    """TaskExecutor caches attention_check.stimulus_conditions in __init__."""
+    cfg_dict = _minimal_config_dict()
+    cfg_dict["runtime"]["attention_check"] = {"stimulus_conditions": ["probe", "probe_resp"]}
+    config = TaskConfig.from_dict(cfg_dict)
+    executor = TaskExecutor(config)
+    assert executor._attention_check_conditions == {"probe", "probe_resp"}
+
+
+# ---------------------------------------------------------------------------
+# Minor Issue 4: sentinel test for global task_specific.response_key_js path
+# ---------------------------------------------------------------------------
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sentinel", ["", None, "none", "null", "NONE", "Null"])
+async def test_resolve_response_key_global_js_sentinel_returns_none(sentinel):
+    """Global task_specific.response_key_js returning a sentinel resolves to None."""
+    config_data = _minimal_config_dict()
+    # Move response_key_js to task_specific (global path) — NOT on the stimulus
+    config_data["task_specific"]["response_key_js"] = "getKey()"
+    config_data["stimuli"] = [{
+        "id": "stop_stim",
+        "description": "Stop/withhold stimulus",
+        "detection": {"method": "dom_query", "selector": ".stop"},
+        "response": {"key": None, "condition": "stop"},
+    }]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config, seed=42)
+
+    match = StimulusMatch(stimulus_id="stop_stim", response_key=None, condition="stop")
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=sentinel)
+    result = await executor._resolve_response_key(match, page)
+    assert result is None, f"Expected None for sentinel {sentinel!r}, got {result!r}"

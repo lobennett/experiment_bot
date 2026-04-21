@@ -243,3 +243,16 @@ def test_runtime_config_with_data_capture():
     cfg = RuntimeConfig.from_dict(d)
     assert cfg.data_capture.method == "js_expression"
     assert cfg.attention_check.detection_selector == "#attention-check"
+
+
+def test_runtime_config_to_dict_always_emits_navigation_stimulus_condition():
+    """RuntimeConfig.to_dict always includes navigation_stimulus_condition for round-trip stability."""
+    from experiment_bot.core.config import RuntimeConfig
+    rc = RuntimeConfig.from_dict({})
+    assert rc.navigation_stimulus_condition == ""
+    d = rc.to_dict()
+    assert "navigation_stimulus_condition" in d
+    assert d["navigation_stimulus_condition"] == ""
+    # Round-trip preserves empty value
+    rc2 = RuntimeConfig.from_dict(d)
+    assert rc2.navigation_stimulus_condition == ""

@@ -496,17 +496,16 @@ class RuntimeConfig:
         )
 
     def to_dict(self) -> dict:
-        result = {
+        return {
             "phase_detection": self.phase_detection.to_dict(),
             "timing": self.timing.to_dict(),
             "advance_behavior": self.advance_behavior.to_dict(),
             "trial_interrupt": self.trial_interrupt.to_dict(),
             "data_capture": self.data_capture.to_dict(),
             "attention_check": self.attention_check.to_dict(),
+            # Always emit for round-trip stability, matching AttentionCheckConfig policy.
+            "navigation_stimulus_condition": self.navigation_stimulus_condition,
         }
-        if self.navigation_stimulus_condition:
-            result["navigation_stimulus_condition"] = self.navigation_stimulus_condition
-        return result
 
 
 @dataclass

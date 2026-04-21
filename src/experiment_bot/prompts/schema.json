@@ -208,7 +208,11 @@
             "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. PsyToolkit tasks need ~2000, jsPsych tasks ~500."},
             "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. jsPsych tasks need ~35000 (server upload), PsyToolkit ~5000."},
             "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap sampled RTs at"},
-            "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the platform's response window is open and RT timer has started. Required for PsyToolkit tasks where stimulus detection fires before the readkey step (e.g., cued task switching detects the cue but the response window opens later with the target). Use psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of one of the task's response keys (e.g., 66 for 'b', 78 for 'n'). Leave empty if stimulus detection already aligns with the response window."}
+            "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the platform's response window is open and RT timer has started. Required for PsyToolkit tasks where stimulus detection fires before the readkey step (e.g., cued task switching detects the cue but the response window opens later with the target). Use psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of one of the task's response keys (e.g., 66 for 'b', 78 for 'n'). Leave empty if stimulus detection already aligns with the response window."},
+            "navigation_delay_ms": {"type": "integer", "default": 1000, "description": "Milliseconds to pause before pressing the key on a navigation stimulus. Allows the screen to fully render before the keypress is registered. Default 1000 ms."},
+            "attention_check_delay_ms": {"type": "integer", "default": 1500, "description": "Milliseconds to pause before handling an attention check. Simulates a human reading the prompt. Default 1500 ms."},
+            "completion_settle_ms": {"type": "integer", "default": 2000, "description": "Milliseconds to wait after the trial loop ends before attempting data capture. Allows the experiment to finish rendering its completion state. Default 2000 ms."},
+            "trial_end_timeout_s": {"type": "number", "default": 5.0, "description": "Maximum seconds to wait for the response window to close after a trial (i.e., for the next trial's fixation to start). If the window is still open after this timeout the bot proceeds. Default 5.0 s."}
           }
         },
         "advance_behavior": {
@@ -251,8 +255,17 @@
           "properties": {
             "detection_selector": {"type": "string", "description": "CSS/JS selector to detect when an attention check is displayed"},
             "text_selector": {"type": "string", "description": "CSS selector to read attention check prompt text"},
-            "response_js": {"type": "string", "description": "JS expression returning the correct key to press. This is the primary response mechanism — provide complete parsing logic here."}
+            "response_js": {"type": "string", "description": "JS expression returning the correct key to press. This is the primary response mechanism — provide complete parsing logic here."},
+            "stimulus_conditions": {
+              "type": "array",
+              "items": {"type": "string"},
+              "description": "Condition labels (matching response.condition in stimuli) that trigger attention-check handling in the trial loop. Defaults to [\"attention_check\", \"attention_check_response\"] when omitted. Override when your stimulus config uses different condition names for attention-check stimuli."
+            }
           }
+        },
+        "navigation_stimulus_condition": {
+          "type": "string",
+          "description": "Condition label (matching response.condition in stimuli) that marks navigation/advance stimuli handled by pressing their response key. Defaults to \"navigation\" when omitted. Set this when your stimulus config uses a different condition name for navigation stimuli."
         }
       }
     }

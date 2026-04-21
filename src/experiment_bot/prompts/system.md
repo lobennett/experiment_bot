@@ -44,6 +44,8 @@ Also include a `key_map` in `task_specific` mapping each condition to its key (o
 
 How does a participant get from the initial page to the first trial? List every click, keypress, and wait needed. Include CSS selectors for buttons and the exact keys to press.
 
+If the experiment has stimuli that require the bot to press a key to advance (e.g., a "continue" prompt embedded in the trial stream rather than a separate instruction screen), give those stimuli a `response.condition` of your choice and set `runtime.navigation_stimulus_condition` to that same value. Leave `runtime.navigation_stimulus_condition` empty (or omit it) if you do not use navigation stimuli.
+
 Navigation action types:
 - `click`: CSS selector for a button or element to click
 - `keypress`: a key name to press (e.g., `"Space"`, `"Enter"`)
@@ -78,6 +80,12 @@ Analyze the source code to determine:
 - `completion_wait_ms`: How long the experiment takes to save/upload data after the last trial
 - `max_no_stimulus_polls`: How many empty poll cycles before giving up (canvas-based tasks may need more: ~2000)
 
+Optional behavioral timing knobs (override defaults only when the task requires it):
+- `navigation_delay_ms` (default 1000): Pause before pressing a navigation-stimulus key. Increase if the page needs longer to register the keypress.
+- `attention_check_delay_ms` (default 1500): Pause before handling an attention check. Simulates reading time.
+- `completion_settle_ms` (default 2000): Pause after the trial loop ends, before data capture. Increase for tasks with long post-trial animations.
+- `trial_end_timeout_s` (default 5.0): Maximum seconds to wait for the response window to close between trials. Increase for tasks with unusually long inter-trial intervals.
+
 ### 6. Advance Behavior
 
 How to advance past instruction/feedback screens that appear between blocks:
@@ -100,6 +108,9 @@ If the experiment has attention checks:
 - `detection_selector`: CSS/JS selector that detects when an attention check is displayed
 - `text_selector`: CSS selector to read the attention check prompt text
 - `response_js`: JavaScript expression that reads the attention check prompt and returns the correct key to press as a string. The bot evaluates this expression directly — provide complete logic for determining the response (e.g., parsing ordinal references, reading instructions). This is the primary response mechanism; without it, the bot cannot determine the correct response.
+- `stimulus_conditions`: List of `response.condition` values from your stimulus definitions that identify attention-check stimuli in the trial stream. The bot routes any matched stimulus to attention-check handling instead of treating it as a trial. Omit (or leave empty) to use the defaults `["attention_check", "attention_check_response"]`.
+
+**Withhold responses from `response_key_js`:** If a stimulus's correct response is to withhold (no keypress), return `null`, `""`, `"none"`, or `"null"` from `response_key_js`. The executor treats any of these as a withhold instruction — it will not press any key and will log the trial with `withheld: true`.
 
 ### 9. Trial Interrupt (response suppression trials)
 

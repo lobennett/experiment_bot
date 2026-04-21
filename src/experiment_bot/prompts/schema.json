@@ -93,7 +93,26 @@
       }
     },
     "task_specific": {
-      "type": "object"
+      "type": "object",
+      "description": "Task-specific configuration not covered by the standard schema. Two well-known sub-fields the executor reads: key_map (object mapping condition names to key strings or 'dynamic') and trial_timing.max_response_time_ms (integer, deadline in ms if the experiment enforces one). Additional fields may be added freely for task-level documentation.",
+      "properties": {
+        "key_map": {
+          "type": "object",
+          "description": "Maps condition names (matching response.condition in stimuli) to their response key strings. Use 'dynamic' or 'dynamic_mapping' as the value for conditions where the key is resolved at runtime via response_key_js.",
+          "additionalProperties": {"type": "string"}
+        },
+        "trial_timing": {
+          "type": "object",
+          "description": "Trial-level timing parameters read by the executor.",
+          "properties": {
+            "max_response_time_ms": {"type": "integer", "description": "Maximum response time deadline enforced by the experiment (ms). When set, the executor caps sampled RTs at this value times rt_cap_fraction."}
+          }
+        },
+        "response_key_js": {
+          "type": "string",
+          "description": "Global JS expression returning the correct response key for the current trial. Evaluated as a fallback when a per-stimulus response_key_js is absent. Useful when a single JS expression resolves the key for all stimuli (e.g., a counterbalanced mapping stored in a global variable)."
+        }
+      }
     },
     "temporal_effects": {
       "type": "object",
@@ -190,7 +209,7 @@
           "type": "object",
           "description": "JavaScript expressions evaluated to detect the current task phase.",
           "properties": {
-            "method": {"type": "string", "enum": ["dom_query", "js_eval"], "description": "Detection method: dom_query for jsPsych/HTML tasks, js_eval for PsyToolkit/canvas tasks"},
+            "method": {"type": "string", "enum": ["dom_query", "js_eval"], "description": "Detection method for phase detection expressions. dom_query: uses CSS selector presence/absence (works for jsPsych, lab.js, Gorilla, and most custom HTML tasks). js_eval: evaluates a JS expression directly (required for PsyToolkit and canvas-based tasks where DOM elements do not reflect phase transitions)."},
             "complete": {"type": "string", "description": "JS expression returning true when the task is finished"},
             "loading": {"type": "string", "description": "JS expression returning true when on a loading/start screen"},
             "instructions": {"type": "string", "description": "JS expression returning true when on an instruction page"},
@@ -205,14 +224,15 @@
           "description": "Timing parameters for the executor polling and waiting behavior.",
           "properties": {
             "poll_interval_ms": {"type": "integer", "default": 20, "description": "Milliseconds between stimulus detection polls"},
-            "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. PsyToolkit tasks need ~2000, jsPsych tasks ~500."},
-            "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. jsPsych tasks need ~35000 (server upload), PsyToolkit ~5000."},
+            "max_no_stimulus_polls": {"type": "integer", "description": "Maximum polls with no stimulus before stopping. Canvas-based tasks (PsyToolkit, custom canvas) need ~2000; DOM-based tasks (jsPsych, lab.js, Gorilla, custom HTML) need ~500."},
+            "completion_wait_ms": {"type": "integer", "description": "Milliseconds to wait after task completion for data saving. Allow extra time if the experiment uploads data to a server (e.g., jsPsych + DataPipe need ~35000); local-only tasks (PsyToolkit, lab.js, most custom HTML) need ~5000."},
             "rt_cap_fraction": {"type": "number", "default": 0.9, "description": "Fraction of max_response_time to cap sampled RTs at"},
-            "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the platform's response window is open and RT timer has started. Required for PsyToolkit tasks where stimulus detection fires before the readkey step (e.g., cued task switching detects the cue but the response window opens later with the target). Use psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of one of the task's response keys (e.g., 66 for 'b', 78 for 'n'). Leave empty if stimulus detection already aligns with the response window."},
+            "response_window_js": {"type": "string", "default": "", "description": "JS expression returning true when the experiment's response window is open and its RT timer has started. Use when stimulus detection can fire BEFORE the response window opens (e.g., when a cue is detectable but the response window opens later on the target). Platform examples: PsyToolkit — psy_readkey.keys.includes(KEYCODE) where KEYCODE is the JS keyCode of a response key (e.g., 66 for 'b'); jsPsych — check a jsPsych trial-level JS variable; custom HTML — check a DOM flag or JS global set when the listener activates. Leave empty if stimulus detection already aligns with the response window."},
             "navigation_delay_ms": {"type": "integer", "default": 1000, "description": "Milliseconds to pause before pressing the key on a navigation stimulus. Allows the screen to fully render before the keypress is registered. Default 1000 ms."},
             "attention_check_delay_ms": {"type": "integer", "default": 1500, "description": "Milliseconds to pause before handling an attention check. Simulates a human reading the prompt. Default 1500 ms."},
             "completion_settle_ms": {"type": "integer", "default": 2000, "description": "Milliseconds to wait after the trial loop ends before attempting data capture. Allows the experiment to finish rendering its completion state. Default 2000 ms."},
-            "trial_end_timeout_s": {"type": "number", "default": 5.0, "description": "Maximum seconds to wait for the response window to close after a trial (i.e., for the next trial's fixation to start). If the window is still open after this timeout the bot proceeds. Default 5.0 s."}
+            "trial_end_timeout_s": {"type": "number", "default": 5.0, "description": "Maximum seconds to wait for the response window to close after a trial (i.e., for the next trial's fixation to start). If the window is still open after this timeout the bot proceeds. Default 5.0 s."},
+            "trial_context_js": {"type": "string", "default": "", "description": "JS expression evaluated on the page each trial that returns a string describing the current trial context (e.g., cue identity, block label, or other per-trial metadata). Logged in bot_log.json for debugging and analysis. Leave empty if no per-trial context is needed."}
           }
         },
         "advance_behavior": {

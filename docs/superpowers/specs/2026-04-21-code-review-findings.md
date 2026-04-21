@@ -276,3 +276,105 @@ All 4 cached configs (`cognitionrun_stroop`, `expfactory_stop_signal`, `expfacto
 - `test_feedback_fallback_keys_empty_by_default`
 - `test_failure_rt_cap_fraction_zero_by_default`
 - `test_inhibit_wait_ms_zero_by_default`
+
+---
+
+## `prompts/system.md` and `prompts/schema.json` — Task 6: Agnosticism review
+
+Methodology: (1) `rg -n -i 'jspsych|psytoolkit|labjs|gorilla|cognition\.run'` across both files; (2) manual cross-check of every schema top-level property against system.md; (3) cross-check of config.py `TimingConfig` fields against schema.
+
+---
+
+### Significant — `firstElementChild` selector example is jsPsych-only
+
+**Path:** `system.md` Section 1 (Selector best practices)
+
+**Observation:** The `firstElementChild` best-practice note used `document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild` as its sole example. Claude patterns-matches on concrete examples; this biased it toward generating jsPsych container selectors even for lab.js, Gorilla, and custom HTML tasks. The section is general advice that applies to all platforms.
+
+**Fix:** Added parallel examples for lab.js/Gorilla (`'.content-vertical-center'`) and custom HTML (`'#stimulus-container'`), framed as "inspect the source for the task's actual wrapper" to avoid over-prescribing selector names. The jsPsych example was retained as the first item.
+
+---
+
+### Significant — `response_window_js` schema description was a PsyToolkit tutorial
+
+**Path:** `schema.json` → `runtime.timing.response_window_js`
+
+**Observation:** The description devoted its entire content to PsyToolkit-specific implementation details (`psy_readkey.keys.includes(KEYCODE)`, JS keyCodes for 'b' and 'n'). The opening phrase "Required for PsyToolkit tasks where…" trained Claude to think this field is PsyToolkit-only and to skip it for jsPsych or custom-HTML tasks that also have response-window timing gaps.
+
+**Fix:** Rewritten to lead with the platform-agnostic concept ("stimulus detection can fire BEFORE the response window opens"), then provide one example per platform type (PsyToolkit, jsPsych, custom HTML) in compact form. PsyToolkit example (`psy_readkey.keys.includes(KEYCODE)`) is retained — concrete examples improve Claude's pattern-matching — but now positioned as "one of three examples."
+
+---
+
+### Minor — `phase_detection.method` description implied a two-platform binary
+
+**Path:** `schema.json` → `runtime.phase_detection.method`
+
+**Observation:** Description read "dom_query for jsPsych/HTML tasks, js_eval for PsyToolkit/canvas tasks." This omitted lab.js and Gorilla, both of which use DOM-based detection and should use `dom_query`. The description also could mislead Claude into thinking `js_eval` is PsyToolkit's identifier rather than describing canvas tasks broadly.
+
+**Fix:** Rewrote as "dom_query: works for jsPsych, lab.js, Gorilla, and most custom HTML tasks; js_eval: required for PsyToolkit and canvas-based tasks where DOM elements do not reflect phase transitions." Clarifies intent for each value rather than mapping to platform names.
+
+---
+
+### Minor — `max_no_stimulus_polls` and `completion_wait_ms` used jsPsych/PsyToolkit binary
+
+**Paths:** `schema.json` → `runtime.timing.max_no_stimulus_polls`, `runtime.timing.completion_wait_ms`
+
+**Observation:** Both descriptions gave jsPsych and PsyToolkit as the only two platform examples. This obscured the actual technical distinction (canvas-based vs. DOM-based rendering for polls; server-upload vs. local-only for completion wait) and omitted lab.js, Gorilla, and custom HTML from guidance.
+
+**Fix:** Rewrote both descriptions in terms of the underlying technical distinction (canvas-based vs. DOM-based; server-upload vs. local-only) with platform examples subordinated to that framing.
+
+---
+
+### Significant — `trial_context_js` in system.md and executor but absent from schema
+
+**Path:** `schema.json` → (absent) `runtime.timing.trial_context_js`
+
+**Observation:** `trial_context_js` is documented in system.md Section 5 and is read by `executor.py` (line 380: `await page.evaluate(timing.trial_context_js)`) and stored in `config.py` `TimingConfig`. It was completely absent from `schema.json`, so Claude received no schema hint to populate it, and the field name did not appear in schema-driven documentation. This is a schema gap: the field exists in the contract between system.md and the executor but was invisible to schema-aware tooling.
+
+**Fix:** Added `trial_context_js` to `schema.json` under `runtime.timing` with type `string`, default `""`, and a description matching the system.md definition. No system.md change needed — Section 5 already documented the field.
+
+---
+
+### Minor — `task_specific` in schema was an untyped open object without description
+
+**Path:** `schema.json` → `task_specific`
+
+**Observation:** `task_specific` was defined as `{"type": "object"}` with no `description` and no documented properties. System.md (Section 2) instructed Claude to place `key_map` and `trial_timing.max_response_time_ms` here, and the executor reads both at runtime. Additionally, `task_specific.response_key_js` is read by the executor as a global key-resolution fallback (`executor.py:123`). None of these were discoverable from the schema alone.
+
+**Fix:** Added a `description` to `task_specific` summarizing its purpose and the two well-known executor-read sub-fields. Added explicit property schemas for `key_map` (object of string → string), `trial_timing.max_response_time_ms` (integer), and `response_key_js` (string) with descriptions. `additionalProperties` left implicit (open schema) — task-specific fields by definition vary per task.
+
+---
+
+### No issue — other framework mentions
+
+The following rg hits were reviewed and found acceptable:
+
+- `schema.json:11` (`task.platform` description): lists jsPsych, PsyToolkit, lab.js, Gorilla — balanced, all 4 platforms.
+- `schema.json:222` (`pre_keypress_js`): "e.g., 'psy_expect_keyboard()' for PsyToolkit" — clearly labeled as PsyToolkit-specific.
+- `schema.json:224` (`exit_pager_key`): "e.g., 'q' for PsyToolkit" — clearly labeled.
+- `system.md:5` (task description): lists all 4 platforms — balanced.
+- `system.md:169` (`stimulus_container_selector`): "#jspsych-content for jsPsych, `body` if unknown" — generic fallback provided.
+
+---
+
+### No issue — Sections 10, 11 (Temporal Effects, Between-Subject Jitter)
+
+Both sections are purely behavioral. They describe mathematical mechanisms (AR(1), drift, noise parameters) with no platform-specific content. No framework names appear. Verified platform-invariant.
+
+---
+
+### No issue — Section 8 (Attention Checks) reads as optional
+
+Section 8 opens with "If the experiment has attention checks:" — clearly conditional, not mandatory. A task without attention checks simply omits this section. No changes needed.
+
+---
+
+### Summary — Task 6
+
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| Significant | 3 | Yes |
+| Minor | 3 | Yes |
+| No issue | 5 | N/A |
+
+All fixes are backward-compatible. The schema additions (`trial_context_js`, `task_specific` sub-properties) are additions only — no existing fields were removed or renamed. All 4 cached configs continue to load correctly. No executor or config.py changes — prompts/schema only.

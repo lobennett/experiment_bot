@@ -401,11 +401,11 @@ class TimingConfig:
 @dataclass
 class AdvanceBehaviorConfig:
     pre_keypress_js: str = ""
-    advance_keys: list[str] = field(default_factory=lambda: [" "])
+    advance_keys: list[str] = field(default_factory=list)
     exit_pager_key: str = ""
     advance_interval_polls: int = 100
     feedback_selectors: list[str] = field(default_factory=lambda: ["button"])
-    feedback_fallback_keys: list[str] = field(default_factory=lambda: ["Enter"])
+    feedback_fallback_keys: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, d: dict) -> AdvanceBehaviorConfig:
@@ -419,8 +419,8 @@ class AdvanceBehaviorConfig:
 class TrialInterruptConfig:
     detection_condition: str = ""
     failure_rt_key: str = ""
-    failure_rt_cap_fraction: float = 0.85
-    inhibit_wait_ms: int = 1500
+    failure_rt_cap_fraction: float = 0.0
+    inhibit_wait_ms: int = 0
 
     @classmethod
     def from_dict(cls, d: dict) -> TrialInterruptConfig:

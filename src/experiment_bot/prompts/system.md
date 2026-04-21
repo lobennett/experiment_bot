@@ -89,7 +89,8 @@ Optional behavioral timing knobs (override defaults only when the task requires 
 ### 6. Advance Behavior
 
 How to advance past instruction/feedback screens that appear between blocks:
-- `advance_keys`: Keys to press (typically Space or Enter)
+- `advance_keys`: **Required when the experiment uses keypress to advance screens.** Keys to press (typically `[" "]` for Space or `["Enter"]`). Set to an empty list only if the experiment exclusively uses button clicks to advance. If this list is empty and the executor encounters an instruction or feedback screen, it will not press any key and the run will stall.
+- `feedback_fallback_keys`: **Required when the experiment uses keypress to dismiss feedback.** Keys to try when no feedback button is found by `feedback_selectors` (typically `["Enter"]` or `[" "]`). Set to an empty list only if the experiment's feedback screens always expose a clickable button.
 - `pre_keypress_js`: JavaScript to call before keypresses (some frameworks require this)
 - `exit_pager_key`: Key to exit multi-page instruction viewers
 - `feedback_selectors`: CSS selectors for "Continue" or "Next" buttons
@@ -117,8 +118,8 @@ If the experiment has attention checks:
 If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
 - `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
 - `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
-- `failure_rt_cap_fraction`: Fraction of the maximum response time to cap commission error RTs at (0–1). Commission errors on interrupt trials typically occur before the interrupt signal can fully suppress the response.
-- `inhibit_wait_ms`: How many milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task.
+- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time to cap commission error RTs at (0–1). Commission errors on interrupt trials typically occur before the interrupt signal can fully suppress the response. A value of 0.85 is typical for stop-signal tasks — set this explicitly; the default is 0.0 (no cap), which will produce unrealistic commission-error RTs if left unset.
+- `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's stop-signal delay (SSD) or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
 **Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
 

@@ -180,7 +180,7 @@ def test_runtime_config_defaults():
     rc = RuntimeConfig.from_dict({})
     assert rc.timing.poll_interval_ms == 20
     assert rc.timing.max_no_stimulus_polls == 500
-    assert rc.advance_behavior.advance_keys == [" "]
+    assert rc.advance_behavior.advance_keys == []
     assert rc.trial_interrupt.detection_condition == ""
 
 
@@ -256,3 +256,48 @@ def test_runtime_config_to_dict_always_emits_navigation_stimulus_condition():
     # Round-trip preserves empty value
     rc2 = RuntimeConfig.from_dict(d)
     assert rc2.navigation_stimulus_condition == ""
+
+
+# ---------------------------------------------------------------------------
+# Task 5: Agnosticism review — behavioral defaults must be empty/zero by default
+# ---------------------------------------------------------------------------
+
+
+def test_advance_keys_empty_by_default():
+    """advance_keys must default to [] — was [' '], now requires Claude to opt in."""
+    from experiment_bot.core.config import AdvanceBehaviorConfig
+    cfg = AdvanceBehaviorConfig.from_dict({})
+    assert cfg.advance_keys == [], (
+        "advance_keys should default to [] so the executor does not silently assume "
+        "Space advances screens on every task"
+    )
+
+
+def test_feedback_fallback_keys_empty_by_default():
+    """feedback_fallback_keys must default to [] — was ['Enter'], now requires Claude to opt in."""
+    from experiment_bot.core.config import AdvanceBehaviorConfig
+    cfg = AdvanceBehaviorConfig.from_dict({})
+    assert cfg.feedback_fallback_keys == [], (
+        "feedback_fallback_keys should default to [] so the executor does not silently "
+        "assume Enter dismisses feedback on every task"
+    )
+
+
+def test_failure_rt_cap_fraction_zero_by_default():
+    """failure_rt_cap_fraction must default to 0.0 — was 0.85, leaked stop-signal assumption."""
+    from experiment_bot.core.config import TrialInterruptConfig
+    cfg = TrialInterruptConfig.from_dict({})
+    assert cfg.failure_rt_cap_fraction == 0.0, (
+        "failure_rt_cap_fraction should default to 0.0; non-zero default leaks stop-signal "
+        "assumptions into non-interrupt tasks"
+    )
+
+
+def test_inhibit_wait_ms_zero_by_default():
+    """inhibit_wait_ms must default to 0 — was 1500, leaked stop-signal assumption."""
+    from experiment_bot.core.config import TrialInterruptConfig
+    cfg = TrialInterruptConfig.from_dict({})
+    assert cfg.inhibit_wait_ms == 0, (
+        "inhibit_wait_ms should default to 0; 1500 ms default leaks a specific stop-signal "
+        "timing assumption into configs where detection_condition is empty"
+    )

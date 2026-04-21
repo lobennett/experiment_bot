@@ -160,3 +160,11 @@ All four fields are documented in `schema.json` and `system.md` section 5. The 0
 - `("dynamic_mapping", "dynamic")` sentinel checks in `_resolve_response_key` — these are structural, not behavioral, and are explicitly documented as reserved sentinel values in the config schema.
 - `asyncio.sleep(0.05)` in the non-trial-stimulus poll — structural busy-wait grain, not a behavioral knob.
 - The four cached configs in `cache/` — they will be regenerated in Phase 3 with schema awareness of the new fields.
+
+---
+
+### Post-review fixes (Task 4 code quality pass)
+- Cached `_navigation_condition_name` / `_attention_check_conditions` in `__init__` per plan spec (removed per-loop recomputation).
+- Strengthened `test_resolve_response_key_sentinel_no_keyboard_press` assertions (was a vacuously-passing `or`).
+- Made `RuntimeConfig.to_dict` always emit `navigation_stimulus_condition` for round-trip stability (matching `AttentionCheckConfig.to_dict` policy).
+- Added sentinel coverage for the global `task_specific.response_key_js` resolution path.

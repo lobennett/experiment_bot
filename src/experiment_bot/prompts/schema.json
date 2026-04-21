@@ -220,11 +220,11 @@
           "description": "How to advance through instruction/feedback screens between blocks.",
           "properties": {
             "pre_keypress_js": {"type": "string", "default": "", "description": "JS to execute before keypresses (e.g., 'psy_expect_keyboard()' for PsyToolkit)"},
-            "advance_keys": {"type": "array", "items": {"type": "string"}, "default": [" "], "description": "Keys to press to advance between blocks"},
+            "advance_keys": {"type": "array", "items": {"type": "string"}, "default": [], "description": "Keys to press to advance between blocks — required when the experiment uses keypress to advance screens."},
             "exit_pager_key": {"type": "string", "default": "", "description": "Key to exit pager mode (e.g., 'q' for PsyToolkit)"},
             "advance_interval_polls": {"type": "integer", "default": 100, "description": "Press advance keys every N polls with no stimulus"},
             "feedback_selectors": {"type": "array", "items": {"type": "string"}, "description": "CSS selectors for feedback/advance buttons to click"},
-            "feedback_fallback_keys": {"type": "array", "items": {"type": "string"}, "description": "Keys to press if no feedback button is found"}
+            "feedback_fallback_keys": {"type": "array", "items": {"type": "string"}, "default": [], "description": "Keys to press if no feedback button is found — required when the experiment uses keypress to dismiss feedback (otherwise rely on `feedback_selectors`)."}
           }
         },
         "trial_interrupt": {
@@ -233,8 +233,8 @@
           "properties": {
             "detection_condition": {"type": "string", "default": "", "description": "Stimulus condition name that triggers mid-trial detection. Empty string for tasks without trial interrupts."},
             "failure_rt_key": {"type": "string", "default": "", "description": "Distribution key for RTs when suppression fails and a response escapes"},
-            "failure_rt_cap_fraction": {"type": "number", "default": 0.85, "description": "Fraction of max_response_time to cap failed-suppression RTs"},
-            "inhibit_wait_ms": {"type": "integer", "default": 1500, "description": "Wait duration (ms) after successful response suppression"}
+            "failure_rt_cap_fraction": {"type": "number", "default": 0.0, "description": "Fraction of max_response_time to cap failed-suppression RTs — required when `detection_condition` is set."},
+            "inhibit_wait_ms": {"type": "integer", "default": 0, "description": "Wait duration (ms) after successful response suppression — required when `detection_condition` is set; a non-zero value is needed or inhibition trials will proceed immediately."}
           }
         },
         "data_capture": {

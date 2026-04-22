@@ -26,9 +26,9 @@ Detection methods:
 **IMPORTANT**: Identify ALL possible stimulus types. Missing a stimulus type will cause the bot to freeze. Order stimulus rules by detection priority — stimuli requiring response suppression should be detected BEFORE standard response stimuli when both may be simultaneously present.
 
 **Selector best practices**: Do not assume the stimulus is wrapped in a specific HTML tag (`span`, `p`, `div`). Experiment authors use different tags in their stimulus HTML strings. Prefer tag-agnostic selectors:
-- Use `firstElementChild` to get the first child of a container. Examples by platform:
+- Use `firstElementChild` to get the first child of a container. Inspect the experiment source to identify the stimulus wrapper element, then select its first child. Common patterns:
   - jsPsych: `document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild`
-  - lab.js / Gorilla: `document.querySelector('.content-vertical-center')?.firstElementChild` (or whatever wrapper the task uses — inspect the source)
+  - lab.js / Gorilla: `document.querySelector('.content-vertical-center')?.firstElementChild`
   - Custom HTML: `document.querySelector('#stimulus-container')?.firstElementChild`
 - Use `children[0]` as an alternative
 - Only target a specific tag (e.g., `querySelector('span')`) if the experiment source code explicitly defines that tag

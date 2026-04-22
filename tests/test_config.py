@@ -1,4 +1,8 @@
 import json
+from pathlib import Path
+
+import pytest
+
 from experiment_bot.core.config import (
     TaskConfig,
     SourceBundle,
@@ -300,4 +304,94 @@ def test_inhibit_wait_ms_zero_by_default():
     assert cfg.inhibit_wait_ms == 0, (
         "inhibit_wait_ms should default to 0; 1500 ms default leaks a specific stop-signal "
         "timing assumption into configs where detection_condition is empty"
+    )
+
+
+# ---------------------------------------------------------------------------
+# Task 10: Contract tests — cached configs must have required fields populated
+# ---------------------------------------------------------------------------
+
+_CACHE_LABELS = [
+    "expfactory_stop_signal",
+    "expfactory_stroop",
+    "stopit_stop_signal",
+    "cognitionrun_stroop",
+]
+
+_STOP_SIGNAL_LABELS = {"expfactory_stop_signal", "stopit_stop_signal"}
+
+
+def _load_cached_config(label: str) -> dict:
+    cfg_path = Path(f"cache/{label}/config.json")
+    if not cfg_path.exists():
+        pytest.skip(f"{label} cache not present")
+    return json.loads(cfg_path.read_text())
+
+
+@pytest.mark.parametrize("label", _CACHE_LABELS)
+def test_cached_config_has_advance_keys(label):
+    """advance_keys must be non-empty in every cached config (required since Task 5)."""
+    data = _load_cached_config(label)
+    keys = data.get("runtime", {}).get("advance_behavior", {}).get("advance_keys", [])
+    assert keys, f"{label} has empty advance_keys — Claude did not populate"
+
+
+@pytest.mark.parametrize("label", _CACHE_LABELS)
+def test_cached_config_has_feedback_fallback_keys(label):
+    """feedback_fallback_keys must be non-empty in every cached config (required since Task 5)."""
+    data = _load_cached_config(label)
+    keys = data.get("runtime", {}).get("advance_behavior", {}).get("feedback_fallback_keys", [])
+    assert keys, f"{label} has empty feedback_fallback_keys — Claude did not populate"
+
+
+@pytest.mark.parametrize("label", _CACHE_LABELS)
+def test_cached_config_failure_rt_cap_fraction_when_stop_signal(label):
+    """failure_rt_cap_fraction must be non-zero for stop-signal tasks (required since Task 5).
+
+    Stroop tasks have an empty detection_condition and are exempt — their
+    failure_rt_cap_fraction value is irrelevant and the executor ignores it.
+    """
+    data = _load_cached_config(label)
+    detection_condition = (
+        data.get("runtime", {})
+        .get("trial_interrupt", {})
+        .get("detection_condition", "")
+    )
+    if not detection_condition:
+        # Non-interrupt task — field is irrelevant, skip the check
+        pytest.skip(f"{label} has no detection_condition; failure_rt_cap_fraction is exempt")
+    fraction = (
+        data.get("runtime", {})
+        .get("trial_interrupt", {})
+        .get("failure_rt_cap_fraction", 0.0)
+    )
+    assert fraction, (
+        f"{label} has detection_condition={detection_condition!r} but "
+        f"failure_rt_cap_fraction={fraction!r} — Claude did not populate"
+    )
+
+
+@pytest.mark.parametrize("label", _CACHE_LABELS)
+def test_cached_config_inhibit_wait_ms_when_stop_signal(label):
+    """inhibit_wait_ms must be non-zero for stop-signal tasks (required since Task 5).
+
+    Stroop tasks have an empty detection_condition and are exempt — their
+    inhibit_wait_ms value is irrelevant and the executor ignores it.
+    """
+    data = _load_cached_config(label)
+    detection_condition = (
+        data.get("runtime", {})
+        .get("trial_interrupt", {})
+        .get("detection_condition", "")
+    )
+    if not detection_condition:
+        pytest.skip(f"{label} has no detection_condition; inhibit_wait_ms is exempt")
+    inhibit_ms = (
+        data.get("runtime", {})
+        .get("trial_interrupt", {})
+        .get("inhibit_wait_ms", 0)
+    )
+    assert inhibit_ms, (
+        f"{label} has detection_condition={detection_condition!r} but "
+        f"inhibit_wait_ms={inhibit_ms!r} — Claude did not populate"
     )

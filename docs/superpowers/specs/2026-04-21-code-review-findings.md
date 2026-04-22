@@ -636,3 +636,67 @@ No task-specific strings. Output paths use `task_name` from config. Standard JSO
 | navigation/stuck.py | No issue | N/A |
 | output/data_capture.py | No issue (structural) | N/A |
 | output/writer.py | No issue | N/A |
+
+---
+
+## Task 10: Quality pass — error handling, dead code, contract tests
+
+### Step 1 — Bare-except audit
+
+`rg -n 'except Exception' src/experiment_bot/` returned 25 handlers across 8 files. Categorized:
+
+**Justified `page.evaluate` handlers (added comment "Page context may be torn down by navigation"):**
+
+| File | Count |
+|------|-------|
+| `core/executor.py` | 10 handlers |
+| `core/stimulus.py` | 1 handler |
+| `core/pilot.py` | 2 handlers |
+| `navigation/navigator.py` | 1 handler (`_exec_pre_js`) |
+
+**Non-evaluate handlers — narrowed to specific types:**
+
+| File | Old | New |
+|------|-----|-----|
+| `core/cache.py:34` | `except Exception` | `except (JSONDecodeError, KeyError, TypeError, ValueError)` — JSON parse + dataclass construction |
+| `core/scraper.py:92,107` | `except Exception` | `except httpx.HTTPError` — HTTP request failure only |
+| `navigation/navigator.py:55` | `except Exception` | `except PlaywrightError` — locator wait/click timeout only |
+
+**Justified broad catches (added explanatory comment):**
+
+| File | Justification |
+|------|---------------|
+| `output/data_capture.py:83` | Any capture failure (network, JS eval, DOM parse) must never crash the executor — caller treats None as "no data captured" |
+| `cli.py:66` | Top-level retry handler — pilot may fail for any reason (Playwright, network, timeout) |
+| `navigation/navigator.py:44` (`repeat` action) | A sub-step failure signals the repeat loop should stop — the break is intentional control flow |
+| `core/executor.py` (attention check fallback) | Falls back to Enter — the fallback itself is the justification |
+| `core/executor.py` (feedback selectors loop) | Added comment: "Button may not exist on this feedback screen — try next selector" |
+
+**Already justified (no change needed):**
+
+- `core/phase_detection.py:29` — had "Context destroyed (page navigated away) typically means complete" comment from Task 4.
+
+### Step 2 — Dead-code audit
+
+No dead code found. All 182 functions/classes across 14 source files are reachable. Public API methods on data classes (`match_rate`, `to_report`) tested in test suite. `parse_showdata_html` called internally by `ConfigDrivenCapture._capture_button_click`. No YAGNI removals warranted.
+
+### Step 3 — Contract tests
+
+Added 12 parametrized tests to `tests/test_config.py` (4 labels × 3 always-checked fields + 4 labels × 2 stop-signal-only fields with 4 pytest.skip paths for stroop tasks):
+
+| Test | Scope | Stroop tasks |
+|------|-------|-------------|
+| `test_cached_config_has_advance_keys` | All 4 labels | Checked |
+| `test_cached_config_has_feedback_fallback_keys` | All 4 labels | Checked |
+| `test_cached_config_failure_rt_cap_fraction_when_stop_signal` | Stop-signal only | Skipped |
+| `test_cached_config_inhibit_wait_ms_when_stop_signal` | Stop-signal only | Skipped |
+
+**All 4 cached configs passed all applicable contract tests.** No "Claude did not populate required field" findings. The stroop tasks correctly show non-zero `failure_rt_cap_fraction` and `inhibit_wait_ms` values (from the old Python defaults baked in at config-gen time), but these fields are inert for non-interrupt tasks — the executor checks `detection_condition` before using them, so the stale values cause no harm.
+
+### Test count before/after
+
+| Phase | Count |
+|-------|-------|
+| Before Task 10 | 181 passing |
+| After Task 10 | 193 passing, 4 skipped |
+| New tests added | 12 |

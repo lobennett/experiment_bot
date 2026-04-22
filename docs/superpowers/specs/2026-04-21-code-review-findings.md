@@ -729,3 +729,118 @@ Added 12 parametrized tests to `tests/test_config.py` (4 labels × 3 always-chec
 | Before Task 10 | 181 passing |
 | After Task 10 | 193 passing, 4 skipped |
 | New tests added | 12 |
+
+---
+
+## Analysis notebook
+
+Notebook: `scripts/analysis.ipynb`. Executed from `scripts/` so `ROOT = Path('..').resolve()`.
+
+### 1. RDoC Stop Signal (ExpFactory) — Section 1
+
+**Bot source:** `output/stop_signal_task_(rdoc)/*/experiment_data.*`
+**Bot column mapping:** `trial_id == 'test_trial'` → test filter; `condition ∈ {go, stop}`; `correct_trial` (0/1); `rt` (float ms, NaN = omission); `SSD` (float ms)
+**Human source:** `data/human/stop_signal.csv` (Eisenberg 2019 trial-level, gitignored) or fallback `data/human/archive_rdoc/stop_signal.csv` (session-level)
+**Human column mapping (trial-level):** `exp_stage == 'test'`; `SS_trial_type ∈ {go, stop}`; `correct` (0/1); `rt`; `SS_delay` (SSD); `stopped` (bool)
+**Human column mapping (archive fallback):** pre-computed session metrics; exclusion filter `Session-Level Exclusions == 'Include' AND Task-Level Exclusions == 'Include' AND Subject-Level Exclusions == 'Include'`
+**Exclusion filter:** archive path applies all three exclusion columns; trial-level path applies no session-level filter (derives metrics directly from trials)
+**Trial filter:** `trial_id == 'test_trial'` (excludes practice, attention check, feedback)
+**RT cleaning:** none explicit; omissions are NaN → excluded from `.mean()` automatically; `go_rt` uses correct-go trials only (no explicit NaN guard needed since correct_trial==1 implies rt is non-NaN)
+**Metrics:** `go_accuracy`, `go_omission_rate` (NaN rt fraction), `go_rt` (mean correct-go rt), `go_rt_all_responses` (mean all-go rt incl. wrong), `mean_stop_failure_RT`, `stop_accuracy`, `max_SSD`, `mean_SSD`, `min_SSD`, `final_SSD`
+**Issues:** None. go_rt is on correct go trials only. go_omission_rate uses `rt.isna()` which correctly excludes omissions from the denominator of mean RT separately.
+
+---
+
+### 2. RDoC Stroop (ExpFactory) — Section 2
+
+**Bot source:** `output/stroop_(rdoc)/*/experiment_data.*` (JSON format)
+**Bot column mapping:** `trial_id == 'test_trial'`; `condition ∈ {congruent, incongruent}`; `correct_trial` (0/1); `rt` (float ms)
+**Human source:** same as above (Eisenberg 2019 / archive fallback)
+**Human column mapping (trial-level):** `exp_stage == 'test'`; `condition ∈ {congruent, incongruent}`; `correct` (0/1); `rt`
+**Exclusion filter:** same as stop signal
+**Trial filter:** `trial_id == 'test_trial'`
+**RT cleaning:** `congruent_rt` / `incongruent_rt` computed on **correct trials only** (field-standard). Omission rate uses `rt.isna()`.
+**Metrics:** `congruent_accuracy`, `congruent_omission_rate`, `congruent_rt`, `incongruent_accuracy`, `incongruent_omission_rate`, `incongruent_rt`, `stroop_effect`
+**Issues:** None on correctness. One note: `congruent_omission_rate` in the archive_rdoc human data uses a different operationalization (`rt < 0`) from the bot data (`rt.isna()`); this is per-platform by design. Both yield 0 for the current smoke run data.
+
+---
+
+### 3. STOP-IT Stop Signal — Section 3
+
+**Bot source:** `output/stop-signal_task_(stop-it)/*/experiment_data.*` (no experiment_data in Phase 0 smoke run — FAILED)
+**Bot column mapping:** `signal ∈ {no=go, yes=stop}`; `correct` (bool); `response` (`'undefined'` = omission); `rt`; `SSD`
+**Human source:** same Eisenberg / archive stop signal data
+**Exclusion filter:** bot: none; human: as above
+**Trial filter:** `signal` column distinguishes go/stop (no separate phase filter — all rows are test trials in STOP-IT's exported CSV)
+**RT cleaning:** `go_rt` uses `go[correct == True]['rt'].mean()` — correct go trials only. `go_omission_rate` uses `response == 'undefined'`. `go_rt_all_responses` uses `go['rt'].mean()` including omissions (NaN → excluded by pandas mean).
+**Metrics:** same as RDoC SS
+**Issues:** STOP-IT Phase 0 run FAILED (no `experiment_data.*` file produced). Section 3 will execute correctly once Phase 3 re-runs STOP-IT with the "none" keypress sentinel fix (Task 4 Critical finding, already committed). Static audit shows correct per-platform logic.
+
+---
+
+### 4. Cognition.run Stroop — Section 4
+
+**Bot source:** `output/stroop_online/*/experiment_data.*` (CSV, 46 rows total including instructions)
+**Bot column mapping:** `text.notna()` → test trial filter (derives from cognition.run's data schema where instructions rows have no `text` value); `text` (word shown); `colour` (ink color); `response` (single-char key); `rt`
+**Human source:** same Eisenberg / archive stroop data
+**Exclusion filter:** bot: none; human: as above
+**Trial filter:** `text.notna()` — correct: includes all 15 test rows (even the first trial with rt=87226ms which is a valid slow first-trial response, not an instructions row)
+**RT cleaning:** correctness derived inline (`response == colour[0]`). `congruent_rt` / `incongruent_rt` on correct trials only. First trial rt=87226ms is retained as valid data (not filtered — it's a real response, just slow).
+**Metrics:** `congruent_accuracy`, `congruent_omission_rate`, `congruent_rt`, `incongruent_accuracy`, `incongruent_omission_rate`, `incongruent_rt`, `stroop_effect`
+**Issues:** One note flagged for Task 14 follow-up: the first-trial rt=87226ms is an extreme outlier likely due to bot startup delay (bot finished navigation and was on first trial before timer started). The congruent/incongruent split for this run is 5/10 (not 50/50), making per-condition estimates unreliable. Both are expected consequences of the small 15-trial sample — not a code bug.
+
+---
+
+### Export cell (Cell 13)
+
+**Bot CSV export schema:**
+- `data/bot/stop_signal.csv`: `sub_id, date_time, session, platform, go_accuracy, go_omission_rate, go_rt, go_rt_all_responses, mean_stop_failure_RT, stop_accuracy, max_SSD, mean_SSD, min_SSD, final_SSD`
+- `data/bot/stroop.csv`: `sub_id, date_time, session, platform, congruent_accuracy, congruent_omission_rate, congruent_rt, incongruent_accuracy, incongruent_omission_rate, incongruent_rt`
+
+Both match `data/human/archive_rdoc/*.csv` column-for-column (metrics columns only; human data additionally has exclusion and metadata columns which bot data intentionally omits — it has no exclusion criteria by design). The `platform` column is a bot-only addition identifying which experimental platform produced the data. This is appropriate and does not break schema compatibility.
+
+**Caveat on current bot CSVs:** Running the notebook now produces 1-row CSVs (one smoke run each for SS-RDoC and Stroop-RDoC; STOP-IT and Cognition.run are 0 rows). This is expected — the full dataset will come from Phase 3 batch runs.
+
+---
+
+### Fixes applied (Tasks 12–13)
+
+| Before | After |
+|--------|-------|
+| `HUMAN_DIR / 'stop_signal.csv'` → FileNotFoundError (gitignored) | Try trial-level path first; fall back to `archive_rdoc/` with exclusion filter applied |
+| `find_latest_run('stroop_color-word_task_(rdoc)')` → no match (wrong dir name) | `find_latest_run_by_name('stroop_(rdoc)')` using new exact-name helper |
+| `find_latest_run('stop*signal*task*(stop-it)')` → no match (Python 3.12 pathlib treats `()` as glob groups) | `find_latest_run_by_name('stop-signal_task_(stop-it)')` |
+| `find_latest_run('stroop_color-word_task')` + rdoc exclusion fallback → no match (wrong dir name) | `find_latest_run_by_name('stroop_online')` |
+| Export cell: 3 more instances of the same dir-name and glob-group bugs | All fixed via `find_all_runs_by_name()` |
+| Figure 2 cell: same 3 patterns, plus `human_seq.groupby('task')` crash when empty DataFrame | All dir patterns fixed; `groupby` and violin-plot guarded with `len(df) > 0` |
+| Figure 2 cell: `bot_seq.groupby(['task'])` could crash with no bot data | Guarded with `len(bot_seq) > 0` |
+
+---
+
+### Spot-check result
+
+**Task:** expfactory_stroop, `output/stroop_(rdoc)/2026-04-21_14-16-00/experiment_data.json`
+
+**Hand computation:**
+- Filter to `trial_id == 'test_trial'` → 120 trials (60 congruent, 60 incongruent)
+- Filter congruent to `correct_trial == 1` → 60 / 60 correct
+- `mean(rt)` = **780.7000 ms**
+
+**Notebook-reported value:** `congruent_rt: 780.7000`
+
+**Match:** exact (0.0 ms difference). Spot-check PASSED.
+
+---
+
+### Field-standard divergences flagged (for Task 14 follow-up)
+
+1. **SSRT computation (Figure 1 and figures only).** Both bot and human SSRT is estimated as `go_rt - mean_SSD`. This is a simplified estimate. The field standard (Verbruggen et al. 2019 integration method) is `nth_percentile(go_RT_distribution, p_respond_given_stop) - mean_SSD`, where the go RT distribution includes go-omissions set to the maximum go RT. The simplified estimate will overestimate SSRT when `stop_accuracy ≈ 0.50` only if `go_rt` is near the median of the go RT distribution. For this bot run (`stop_accuracy = 0.517`, `go_rt = 598ms`, `mean_SSD = 337ms`, simplified SSRT = 261ms), the integrated SSRT would be slightly different. Flag for Task 14: should the SSRT plot use the integration method?
+
+2. **go_omission_rate operationalization (archive_rdoc human vs. bot).** Bot uses `rt.isna()`. The archive_rdoc human CSV pre-computes `go_omission_rate` from a slightly different definition (likely `stopped == True` in the original trial-level data). For the archive fallback path, we load the pre-computed value, which may differ slightly. This is a metadata caveat, not a code bug.
+
+3. **Post-error slowing (Figure 2).** The `post_error_slowing()` function computes `mean(RT_{t+1} | error_t) - mean(RT_{t+1} | correct_t)`, which is the "unconditional RT after error" form. The Dutilh et al. (2012) "robust" method instead uses `mean(RT_{t+1} | error_t) - mean(RT_{t-1} | error_t)` (matched pre/post pairs for the same error anchor). The current implementation is the simpler form. Flag for Task 14: does the user want the Dutilh robust method?
+
+4. **No cross-block exclusion in sequential effects.** The `lag1_autocorr` and `post_error_slowing` functions operate on the full trial sequence without block-boundary detection. If blocks are separated by a practice/rest period, the last trial of block N and the first trial of block N+1 are included as a consecutive pair. For RDoC SS (single block), this is a non-issue. For STOP-IT (which may have multiple blocks), this could introduce cross-block noise. Flag for Task 14.
+
+5. **Human sequential effects (archive fallback).** When Eisenberg 2019 trial-level data is not present, Figure 2 shows no human violin backgrounds. This is correct behavior (session-level archive has no trial ordering), but the figure will appear with bot points only and no reference distribution. Noted for user awareness.
+

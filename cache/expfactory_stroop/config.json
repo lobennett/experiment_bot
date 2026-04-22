@@ -3,47 +3,60 @@
     "name": "Stroop (RDoC)",
     "constructs": [
       "cognitive control",
-      "response inhibition",
-      "interference control",
-      "selective attention"
+      "selective attention",
+      "interference suppression"
     ],
     "reference_literature": [
-      "Stroop (1935)",
-      "MacLeod (1991) Psychological Bulletin",
-      "Hedge et al. (2018) - online Stroop RT distributions",
-      "Pratte et al. (2010) - ex-Gaussian Stroop parameters"
+      "Stroop (1935) Studies of interference in serial verbal reactions",
+      "MacLeod (1991) Half a century of research on the Stroop effect",
+      "Bugg & Crump (2012) Stroop control mechanisms"
     ],
     "platform": "jsPsych"
   },
   "stimuli": [
     {
-      "id": "congruent_stim",
-      "description": "Color word whose meaning matches ink color",
+      "id": "attention_check",
+      "description": "Attention check prompt asking for a specific key",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-attention-check-rdoc-stimulus",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "attention_check_response",
+        "response_key_js": "(function(){var e=document.querySelector('#jspsych-attention-check-rdoc-stimulus');if(!e)return null;var t=e.textContent.toLowerCase();var m=t.match(/press the ([a-z]) key/);if(m)return m[1];if(t.includes('first letter of the english'))return 'a';if(t.includes('second letter of the english'))return 'b';if(t.includes('third letter of the english'))return 'c';if(t.includes('third to last'))return 'x';if(t.includes('second to last'))return 'y';if(t.includes('last letter'))return 'z';return null;})()"
+      }
+    },
+    {
+      "id": "stroop_congruent",
+      "description": "Color word displayed in matching ink color",
       "detection": {
         "method": "js_eval",
-        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; const word = (el.textContent || '').trim().toLowerCase(); const c = (el.style.color || '').replace(/\\s/g,''); const map = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; return map[c] && map[c] === word; })()",
+        "selector": "(function(){var e=document.querySelector('.stroop-stim');if(!e)return false;var c=(e.style&&e.style.color)?e.style.color:'';if(!c){var style=e.getAttribute('style')||'';var m=style.match(/color\\s*:\\s*([^;]+)/i);c=m?m[1]:'';}c=c.replace(/\\s+/g,'').toLowerCase();var w=e.textContent.trim().toLowerCase();var hexMap={'red':'#ff7070','blue':'#7070ff','green':'#70ff70'};var rgbMap={'red':'rgb(255,112,112)','blue':'rgb(112,112,255)','green':'rgb(112,255,112)'};return (hexMap[w]===c)||(rgbMap[w]===c);})()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "congruent",
-        "response_key_js": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return null; const c = (el.style.color || '').replace(/\\s/g,''); const colorMap = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; const colorName = colorMap[c]; if (!colorName) return null; try { const pr = window.possibleResponses; if (pr && pr.length >= 3) { const keyToColor = {}; keyToColor[pr[0][1]] = 'red'; keyToColor[pr[1][1]] = 'blue'; keyToColor[pr[2][1]] = 'green'; for (const k of Object.keys(keyToColor)) { if (keyToColor[k] === colorName) return k; } } } catch(e){} const hexMap = {'red':'#ff7070','blue':'#7070ff','green':'#70ff70'}; const targetHex = hexMap[colorName]; const spans = Array.from(document.querySelectorAll('.prompt_box span, .list-text span, span.large')); for (const sp of spans) { const sc = (sp.style.color || '').toLowerCase().replace(/\\s/g,''); if (sc === targetHex || sc === 'rgb(255,112,112)' && colorName==='red' || sc === 'rgb(112,112,255)' && colorName==='blue' || sc === 'rgb(112,255,112)' && colorName==='green') { const parent = sp.closest('p, li'); if (!parent) continue; const txt = parent.textContent; const m = txt.match(/([,./])/); if (m) return m[1]; } } return null; })()"
+        "response_key_js": "(function(){var e=document.querySelector('.stroop-stim');if(!e)return null;var c=(e.style&&e.style.color)?e.style.color:'';if(!c){var style=e.getAttribute('style')||'';var m=style.match(/color\\s*:\\s*([^;]+)/i);c=m?m[1]:'';}c=c.replace(/\\s+/g,'').toLowerCase();var nameMap={'#ff7070':'red','#7070ff':'blue','#70ff70':'green','rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'};var colorName=nameMap[c];if(!colorName)return null;var kmap=window.possibleResponses;if(!kmap||typeof getColorByKey!=='function')return null;for(var i=0;i<kmap.length;i++){var k=kmap[i][1];var cb=getColorByKey(k);if(cb&&cb.name===colorName)return k;}return null;})()"
       }
     },
     {
-      "id": "incongruent_stim",
-      "description": "Color word whose meaning differs from ink color",
+      "id": "stroop_incongruent",
+      "description": "Color word displayed in non-matching ink color",
       "detection": {
         "method": "js_eval",
-        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; const word = (el.textContent || '').trim().toLowerCase(); const c = (el.style.color || '').replace(/\\s/g,''); const map = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; return map[c] && map[c] !== word; })()",
+        "selector": "(function(){var e=document.querySelector('.stroop-stim');if(!e)return false;var c=(e.style&&e.style.color)?e.style.color:'';if(!c){var style=e.getAttribute('style')||'';var m=style.match(/color\\s*:\\s*([^;]+)/i);c=m?m[1]:'';}c=c.replace(/\\s+/g,'').toLowerCase();var w=e.textContent.trim().toLowerCase();var hexMap={'red':'#ff7070','blue':'#7070ff','green':'#70ff70'};var rgbMap={'red':'rgb(255,112,112)','blue':'rgb(112,112,255)','green':'rgb(112,255,112)'};if(!hexMap[w])return false;var wordColor=hexMap[w];var wordRgb=rgbMap[w];return (c!==wordColor)&&(c!==wordRgb)&&(c==='#ff7070'||c==='#7070ff'||c==='#70ff70'||c==='rgb(255,112,112)'||c==='rgb(112,112,255)'||c==='rgb(112,255,112)');})()",
         "alt_method": "",
         "pattern": ""
       },
       "response": {
         "key": null,
         "condition": "incongruent",
-        "response_key_js": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return null; const c = (el.style.color || '').replace(/\\s/g,''); const colorMap = {'rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'}; const colorName = colorMap[c]; if (!colorName) return null; try { const pr = window.possibleResponses; if (pr && pr.length >= 3) { const keyToColor = {}; keyToColor[pr[0][1]] = 'red'; keyToColor[pr[1][1]] = 'blue'; keyToColor[pr[2][1]] = 'green'; for (const k of Object.keys(keyToColor)) { if (keyToColor[k] === colorName) return k; } } } catch(e){} const hexMap = {'red':'#ff7070','blue':'#7070ff','green':'#70ff70'}; const targetHex = hexMap[colorName]; const spans = Array.from(document.querySelectorAll('.prompt_box span, .list-text span, span.large')); for (const sp of spans) { const sc = (sp.style.color || '').toLowerCase().replace(/\\s/g,''); if (sc === targetHex || sc === 'rgb(255,112,112)' && colorName==='red' || sc === 'rgb(112,112,255)' && colorName==='blue' || sc === 'rgb(112,255,112)' && colorName==='green') { const parent = sp.closest('p, li'); if (!parent) continue; const txt = parent.textContent; const m = txt.match(/([,./])/); if (m) return m[1]; } } return null; })()"
+        "response_key_js": "(function(){var e=document.querySelector('.stroop-stim');if(!e)return null;var c=(e.style&&e.style.color)?e.style.color:'';if(!c){var style=e.getAttribute('style')||'';var m=style.match(/color\\s*:\\s*([^;]+)/i);c=m?m[1]:'';}c=c.replace(/\\s+/g,'').toLowerCase();var nameMap={'#ff7070':'red','#7070ff':'blue','#70ff70':'green','rgb(255,112,112)':'red','rgb(112,112,255)':'blue','rgb(112,255,112)':'green'};var colorName=nameMap[c];if(!colorName)return null;var kmap=window.possibleResponses;if(!kmap||typeof getColorByKey!=='function')return null;for(var i=0;i<kmap.length;i++){var k=kmap[i][1];var cb=getColorByKey(k);if(cb&&cb.name===colorName)return k;}return null;})()"
       }
     }
   ],
@@ -51,18 +64,27 @@
     "congruent": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 580,
-        "sigma": 60,
-        "tau": 120
+        "mu": 620,
+        "sigma": 65,
+        "tau": 110
       },
       "unit": "ms"
     },
     "incongruent": {
       "distribution": "ex_gaussian",
       "params": {
-        "mu": 660,
-        "sigma": 75,
-        "tau": 160
+        "mu": 720,
+        "sigma": 80,
+        "tau": 140
+      },
+      "unit": "ms"
+    },
+    "attention_check_response": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 1800,
+        "sigma": 300,
+        "tau": 500
       },
       "unit": "ms"
     }
@@ -70,12 +92,14 @@
   "performance": {
     "accuracy": {
       "congruent": 0.97,
-      "incongruent": 0.92
+      "incongruent": 0.9,
+      "attention_check_response": 0.98
     },
-    "practice_accuracy": 0.9,
+    "practice_accuracy": 0.85,
     "omission_rate": {
       "congruent": 0.01,
-      "incongruent": 0.02
+      "incongruent": 0.02,
+      "attention_check_response": 0.005
     }
   },
   "navigation": {
@@ -89,7 +113,7 @@
         "duration_ms": 0
       },
       {
-        "phase": "start",
+        "phase": "instructions_start",
         "action": "keypress",
         "target": "",
         "key": "Enter",
@@ -103,104 +127,114 @@
         "key": "",
         "steps": [],
         "duration_ms": 0
+      },
+      {
+        "phase": "block_start",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
       }
     ]
   },
   "task_specific": {
     "key_map": {
       "congruent": "dynamic",
-      "incongruent": "dynamic"
+      "incongruent": "dynamic",
+      "attention_check_response": "dynamic"
     },
     "trial_timing": {
-      "max_response_time_ms": 1500,
-      "fixation_ms": 500,
-      "stimulus_duration_ms": 1000
-    },
-    "notes": "Key-color mapping is counterbalanced via group_index. The mapping is resolved at runtime via window.possibleResponses (pr[0]=red, pr[1]=blue, pr[2]=green; each entry is [finger, key, label]). Keys are always ',' '.' '/' but mapped to different colors across participants."
+      "max_response_time_ms": 1500
+    }
   },
   "temporal_effects": {
     "autocorrelation": {
       "enabled": true,
-      "phi": 0.2,
-      "rationale": "Low-to-moderate lag-1 RT autocorrelation typical of choice RT tasks (Laming, 1968; Gilden, 2001)."
+      "phi": 0.18,
+      "rationale": "Modest lag-1 autocorrelation in RT series is well-documented (Gilden 2001; Wagenmakers et al. 2004)."
     },
     "fatigue_drift": {
       "enabled": true,
-      "drift_per_trial_ms": 0.15,
-      "rationale": "Short task (~120 test trials + practice); mild drift expected over session."
+      "drift_per_trial_ms": 0.3,
+      "rationale": "Mild time-on-task slowing across ~120 test trials (Ackerman 2011)."
     },
     "post_error_slowing": {
       "enabled": true,
       "slowing_ms_min": 30,
       "slowing_ms_max": 80,
-      "rationale": "Rabbitt (1966); Danielmeier & Ullsperger (2011) - ~30-80 ms post-error slowing in Stroop-like tasks."
+      "rationale": "Post-error slowing is robust in speeded choice tasks (Rabbitt 1966; Danielmeier & Ullsperger 2011)."
     },
     "condition_repetition": {
       "enabled": true,
-      "facilitation_ms": 12,
-      "cost_ms": 18,
-      "rationale": "Gratton effect / conflict adaptation: faster RT when previous trial shared congruency (Gratton et al., 1992)."
+      "facilitation_ms": 15,
+      "cost_ms": 10,
+      "rationale": "Congruency sequence (Gratton) effects: smaller Stroop interference after incongruent trials (Gratton et al. 1992; Egner 2007)."
     },
     "pink_noise": {
       "enabled": true,
-      "sd_ms": 20,
+      "sd_ms": 25,
       "hurst": 0.75,
-      "rationale": "1/f structure in RT series (Gilden, 2001; Wagenmakers et al., 2004)."
+      "rationale": "1/f structure in RT series (Gilden 2001; Van Orden et al. 2003)."
     },
     "post_interrupt_slowing": {
       "enabled": false,
       "slowing_ms_min": 0,
       "slowing_ms_max": 0,
-      "rationale": "No interrupt/stop signal in this task."
+      "rationale": "No interrupt trials in Stroop task."
     }
   },
   "between_subject_jitter": {
-    "rt_mean_sd_ms": 70,
+    "rt_mean_sd_ms": 60,
     "rt_condition_sd_ms": 20,
     "sigma_tau_range": [
       0.85,
-      1.2
+      1.15
     ],
     "accuracy_sd": 0.02,
-    "omission_sd": 0.01,
-    "rationale": "Between-subject RT variability in Stroop is substantial (Hedge et al., 2018); online samples show slightly wider spread."
+    "omission_sd": 0.005,
+    "rationale": "Between-subject variability in baseline RT is substantial (~60-100ms SD); Stroop effect magnitude varies ~20ms SD across subjects."
   },
   "pilot": {
-    "min_trials": 6,
+    "min_trials": 12,
     "target_conditions": [
       "congruent",
       "incongruent"
     ],
     "max_blocks": 1,
     "stimulus_container_selector": "#jspsych-content",
-    "rationale": "Practice block has 4 trials (2 congruent, 2 incongruent). The pilot stalled on an instructions page that jsPsych renders with only clickable nav (allow_keys is false for individual instruction pages). The advance_behavior must click #jspsych-instructions-next to progress past each instruction page; Enter alone will not advance those pages. The initial feedback_instruct page DOES accept Enter."
+    "rationale": "Practice block has 4 trials (2 congruent, 2 incongruent). Pilot needs to run past practice and into test block (which has 20 congruent + 20 incongruent shuffled) to reliably see both conditions, since practice may repeat if accuracy threshold not met."
   },
   "runtime": {
     "phase_detection": {
       "method": "js_eval",
-      "complete": "document.body && (document.body.innerText.includes('Experiment Complete') || document.body.innerText.includes('Thanks for completing'))",
-      "test": "!!document.querySelector('.stroop-stim')",
-      "loading": "!!document.querySelector('#jspsych-fullscreen-btn') || !!document.querySelector('#jspsych-survey-text-form')",
-      "instructions": "!document.querySelector('.stroop-stim') && (!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav'))",
-      "practice": "!!document.querySelector('.stroop-stim') && !!document.querySelector('.prompt_box')",
-      "feedback": "(() => { if (document.querySelector('.stroop-stim')) return false; if (document.querySelector('#jspsych-instructions-next')) return false; const el = document.querySelector('#jspsych-content'); if (!el) return false; const t = el.innerText || ''; return t.includes('Press enter to begin') || t.includes('Press <i>enter</i>') || t.includes('take this time to read your feedback') || t.includes('test portion') || t.includes('Done with instructions'); })()",
-      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+      "complete": "document.body && document.body.textContent.includes('Experiment Complete')",
+      "test": "document.querySelector('.stroop-stim') !== null",
+      "loading": "document.querySelector('#jspsych-fullscreen-btn') !== null",
+      "instructions": "document.querySelector('#jspsych-instructions-next') !== null",
+      "practice": "(function(){var trials=(window.jsPsych&&jsPsych.data&&jsPsych.data.get)?jsPsych.data.get().last(1).values():[];return trials.length>0&&trials[0].exp_stage==='practice';})()",
+      "feedback": "(function(){var e=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!e)return false;if(document.querySelector('.stroop-stim'))return false;var t=e.textContent.toLowerCase();return t.includes('press')&&(t.includes('enter')||t.includes('begin'))||t.includes('completed')||t.includes('feedback');})()",
+      "attention_check": "document.querySelector('#jspsych-attention-check-rdoc-stimulus') !== null"
     },
     "timing": {
       "poll_interval_ms": 20,
-      "max_no_stimulus_polls": 800,
-      "stuck_timeout_s": 15.0,
-      "completion_wait_ms": 35000,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
       "feedback_delay_ms": 2000,
       "omission_wait_ms": 2000,
       "rt_floor_ms": 150.0,
       "rt_cap_fraction": 0.9,
       "response_window_js": "",
-      "trial_context_js": "",
+      "trial_context_js": "(function(){var e=document.querySelector('.stroop-stim');if(!e)return '';var c=(e.style&&e.style.color)?e.style.color:'';return 'word='+e.textContent.trim()+' color='+c;})()",
       "viewport": {
         "width": 1280,
         "height": 800
-      }
+      },
+      "navigation_delay_ms": 800,
+      "attention_check_delay_ms": 2000,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0
     },
     "advance_behavior": {
       "pre_keypress_js": "",
@@ -208,10 +242,9 @@
         "Enter"
       ],
       "exit_pager_key": "",
-      "advance_interval_polls": 40,
+      "advance_interval_polls": 100,
       "feedback_selectors": [
-        "#jspsych-instructions-next",
-        "#jspsych-fullscreen-btn"
+        "#jspsych-instructions-next"
       ],
       "feedback_fallback_keys": [
         "Enter"
@@ -220,19 +253,23 @@
     "trial_interrupt": {
       "detection_condition": "",
       "failure_rt_key": "",
-      "failure_rt_cap_fraction": 0.85,
-      "inhibit_wait_ms": 1500
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
     },
     "data_capture": {
       "method": "js_expression",
-      "expression": "JSON.stringify(jsPsych.data.get().values())",
-      "format": "json",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
       "wait_ms": 1000
     },
     "attention_check": {
       "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
       "text_selector": "#jspsych-attention-check-rdoc-stimulus",
-      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const txt = el.innerText.toLowerCase(); const m = txt.match(/press the ([a-z]) key/); if (m) return m[1]; const ordinals = {'first':'a','second':'b','third':'c','third to last':'x','second to last':'y','last':'z'}; for (const k of Object.keys(ordinals)) { if (txt.includes(k + ' letter')) return ordinals[k]; } return 'a'; })()"
-    }
+      "response_js": "(function(){var e=document.querySelector('#jspsych-attention-check-rdoc-stimulus');if(!e)return null;var t=e.textContent.toLowerCase();var m=t.match(/press the ([a-z]) key/);if(m)return m[1];if(t.includes('first letter of the english'))return 'a';if(t.includes('second letter of the english'))return 'b';if(t.includes('third letter of the english'))return 'c';if(t.includes('third to last'))return 'x';if(t.includes('second to last'))return 'y';if(t.includes('last letter'))return 'z';return null;})()",
+      "stimulus_conditions": [
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": ""
   }
 }

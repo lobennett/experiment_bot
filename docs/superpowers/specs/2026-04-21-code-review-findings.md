@@ -378,3 +378,261 @@ Section 8 opens with "If the experiment has attention checks:" — clearly condi
 | No issue | 5 | N/A |
 
 All fixes are backward-compatible. The schema additions (`trial_context_js`, `task_specific` sub-properties) are additions only — no existing fields were removed or renamed. All 4 cached configs continue to load correctly. No executor or config.py changes — prompts/schema only.
+
+---
+
+## Task 6 post-review polish (Part A)
+
+Three follow-up prompt edits applied after the Task 6 review pass.
+
+### completion_wait_ms framing — Minor
+
+**Path:** `schema.json` → `runtime.timing.completion_wait_ms`
+
+**Before:** description led with platform names ("jsPsych + DataPipe need ~35000; local-only tasks (PsyToolkit, lab.js, most custom HTML) need ~5000").
+
+**After:** reframed around the technical distinction: "If the framework's native behavior uploads to a server (e.g., jsPsych + DataPipe), allow ~35000; for frameworks that save locally by default (PsyToolkit default, lab.js typical, most custom HTML), ~5000 is sufficient." The field label and the description now both say "wait duration (ms) after the last trial completes, allowing the experiment to finalize." Platform examples are retained but subordinated to the technical framing.
+
+---
+
+### response_window_js custom-HTML example — Minor
+
+**Path:** `schema.json` → `runtime.timing.response_window_js`
+
+**Before:** custom HTML example was abstract — "check a DOM flag or JS global set when the listener activates."
+
+**After:** made concrete: "inspect the source for a JS variable like `window.responseWindowOpen` or a DOM attribute like `data-response-ready='true'` set when the keyboard listener activates." Claude can now pattern-match to actual variable names and DOM attribute patterns rather than an abstract description.
+
+---
+
+### firstElementChild guidance order — Minor
+
+**Path:** `system.md` Section 1 (Selector best practices)
+
+**Before:** the bullet opened with "Use `firstElementChild` to get the first child of a container. Examples by platform:" — examples came before the directive.
+
+**After:** reordered so the directive ("Inspect the experiment source to identify the stimulus wrapper element, then select its first child") comes first; examples are now labeled "Common patterns:" and subordinated. The parenthetical "(or whatever wrapper the task uses — inspect the source)" was removed from the lab.js example since that intent is now covered by the leading directive.
+
+---
+
+## core/pilot.py
+
+Methodology: end-to-end read of all 297 lines; cross-check against cli.py success criterion; analysis of edge cases (empty target_conditions, multi-condition, single-condition, canvas-based tasks).
+
+---
+
+### No issue — No hardcoded stimulus counts, block counts, or condition labels
+
+The pilot loop is fully driven by `config.pilot.min_trials`, `config.pilot.max_blocks`, and `config.pilot.target_conditions`. No Python literals prescribe experiment structure. `_NO_MATCH_EARLY_STOP = 100` and `_PILOT_POLL_MS = 50` are mechanical constants (busy-wait parameters), not behavioral assumptions about trial counts.
+
+---
+
+### No issue — Container selector defaults to `body`
+
+`container_sel = pilot_cfg.stimulus_container_selector or "body"` — correct safe fallback. The DOM snapshot helper falls back further to `document.body.outerHTML` if the selector matches nothing.
+
+---
+
+### No issue — Success criterion with empty target_conditions
+
+`cli.py:78`: `if diagnostics.all_conditions_observed and diagnostics.trials_completed > 0 and no_zero_selectors`.
+
+`all_conditions_observed` = `len(conditions_missing) == 0`. `conditions_missing = sorted(target - conditions_seen)`. If `target_conditions = []`, then `target = set()` and `target - conditions_seen = set()`, so `conditions_missing = []` and `all_conditions_observed = True`. The pilot then passes as long as `trials_completed > 0` and all selectors fired — correct behavior for a task where no specific conditions need validation.
+
+---
+
+### No issue — Multi-condition and single-condition tasks
+
+`target = set(pilot_cfg.target_conditions)`. The stopping condition `conditions_seen >= target` (line 268) works for any set size: empty (passes immediately when trials > 0), singleton, or n-back's many conditions.
+
+---
+
+### No issue — Canvas tasks
+
+Pilot polls use the same `StimulusLookup.identify()` call as the executor, which dispatches on `stim.detection.method`. Both `js_eval` and `canvas_state` methods are supported. The 50ms pilot poll (`_PILOT_POLL_MS`) is faster than the executor's 20ms default, which could cause canvas tasks to miss short-duration stimuli — but the pilot's purpose is selector validation, not behavioral realism, so this is acceptable.
+
+---
+
+### Minor — Pilot feedback handling is simpler than executor's
+
+**Location:** `pilot.py:174–187`
+
+The pilot handles `FEEDBACK` phase by pressing `advance_keys` and polling for the phase to clear. It does not attempt `feedback_selectors` (button clicks) or `feedback_fallback_keys`. If a task uses button-click feedback and no `advance_keys`, the pilot will silently block on the feedback screen until `blocks_completed >= max_blocks` triggers a break (or the 300s hard timeout fires).
+
+**Verdict:** Minor. The pilot's goal is selector validation, not full executor fidelity. In practice, tasks with click-based feedback also have a `max_blocks=1` in their pilot config, so the pilot will exit via the max_blocks branch even if it stalls on feedback. The full executor handles feedback correctly. No fix applied — acceptable for a diagnostic harness.
+
+---
+
+### Summary — core/pilot.py
+
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| Minor | 1 | No (acceptable) |
+| No issue | 5 | N/A |
+
+---
+
+## core/scraper.py
+
+Methodology: end-to-end read; live harness run against all 4 validated URLs; analysis of inline script coverage.
+
+### Scraper harness output
+
+```
+expfactory 9 (stop_signal_rdoc):
+  files=16  kb=1247  page_html_len=8274
+  truncated (>= 30 KB): jquery.min.js (89 501 B), bootstrap.min.js (35 453 B),
+    math.min.js (431 237 B), jspsych.js (151 448 B), jspsych.css (475 141 B)
+
+expfactory 10 (stroop_rdoc):
+  files=13  kb=1239  page_html_len=7933
+  truncated (>= 30 KB): jquery.min.js (89 501 B), bootstrap.min.js (35 453 B),
+    math.min.js (431 237 B), jspsych.js (151 448 B),
+    experiment.js (34 405 B) ← PRIMARY TRIAL SCRIPT,  jspsych.css (475 141 B)
+
+stopit (STOP-IT):
+  files=13  kb=226  page_html_len=5460
+  truncated (>= 30 KB): jquery-1.7.1.min.js (93 867 B), jspsych.js (77 289 B)
+
+cognitionrun (Stroop):
+  files=6  kb=631  page_html_len=10066
+  truncated (>= 30 KB): jspsych.js (151 500 B), jspsych.css (475 141 B)
+```
+
+Framework libraries (jquery, jspsych core, bootstrap, math.js, CSS) hitting the cap are acceptable — Claude does not need their full text to configure the experiment.
+
+---
+
+### Significant — experiment.js for expfactory stroop exceeded 30 KB cap
+
+**Location:** `analyzer.py:88` (cap applied when building Claude message)
+
+`experiment.js` for the stroop_rdoc task is 34 405 bytes, exceeding the 30 KB per-file cap. This is the primary trial-definition script containing all stimulus definitions, block structure, and response key mappings. Truncating it causes Claude to miss the second ~4 KB of trial config.
+
+**Fix:** Added `_file_cap(filename)` helper to `analyzer.py` that returns 60 000 bytes for `.js` files and 30 000 for all others. Applied in both `_build_user_message()` and `refine()`. The higher cap for JS files covers experiment scripts up to ~60 KB without significantly increasing token cost for CSS/HTML files.
+
+---
+
+### Significant — Inline `<script>` blocks not captured
+
+**Location:** `scraper.py:_ResourceTagParser`
+
+All 4 validated experiment pages contain meaningful inline scripts:
+
+| Task | Inline script size | Content |
+|------|--------------------|---------|
+| expfactory 9 | 5 417 B | `window.efVars` init |
+| expfactory 10 | 5 387 B | `window.efVars` init |
+| stopit | 3 285 B | `filter_data()`, data-save helpers |
+| cognitionrun | 6 934 B | `window.STIMULI`, `window.CONDITION`, `window.RUN_ID` |
+
+The cognitionrun inline script contains the critical `window.STIMULI` and `window.CONDITION` globals that Claude needs to understand the Stroop trial structure. Without inline script capture, Claude is blind to page-level JS that experiments commonly use for runtime configuration.
+
+**Fix:** Extended `_ResourceTagParser` to buffer inline `<script>` content (scripts without a `src` attribute). Blocks shorter than 50 bytes are discarded as trivial. Captured scripts are stored as `inline_script.js` (single script) or `inline_script_1.js`, `inline_script_2.js` (multiple scripts) in `source_files`.
+
+**Test added:** `test_scrape_captures_inline_scripts` in `tests/test_scraper.py` — fixture HTML with one trivial (< 50 B) and one substantive inline block; asserts exactly one virtual file is captured with expected content.
+
+---
+
+### No issue — `<script src>` and `<link rel=stylesheet>` resource fetching
+
+All externally-linked JS and CSS files are fetched correctly. Relative URLs are resolved via `urljoin`. Status-200 guard prevents silent failures from 404s.
+
+---
+
+### No issue — iframes, dynamic imports, lazy-loaded resources
+
+Not reachable by static HTML parsing. This is an intentional scope limitation — the scraper is a static fetcher, not a browser. Claude is given the experiment URL and the full HTML, and can reason about dynamic loading from the source code. No fix warranted for a static fetcher.
+
+---
+
+### Summary — core/scraper.py
+
+| Severity | Count | Fixed |
+|----------|-------|-------|
+| Significant | 2 | Yes |
+| No issue | 2 | N/A |
+
+Commits: `fix(scraper): capture inline scripts and raise JS file cap to 60 KB`
+
+---
+
+## remaining files
+
+Scope: `core/analyzer.py`, `core/cache.py`, `core/distributions.py`, `core/phase_detection.py`, `core/stimulus.py`, `navigation/navigator.py`, `navigation/stuck.py`, `output/data_capture.py`, `output/writer.py`.
+
+Methodology: rg scan for hardcoded strings and selectors; end-to-end read of each file.
+
+```
+rg -n '(== ?"[a-z]|" ?in \(|querySelector|\.key ?== ?")' src/experiment_bot/core/ src/experiment_bot/navigation/ src/experiment_bot/output/ | grep -v 'core/executor.py' | grep -v 'test_'
+```
+
+---
+
+### core/analyzer.py — No issue (structural string matches only)
+
+`_extract_json`: string literals `"```json"`, `"{"`, `"}"` are JSON parsing mechanics, not task-specific content. No platform-specific assumptions. The 30-KB file cap has been raised to 60 KB for JS files (see scraper findings above).
+
+---
+
+### core/cache.py — No issue
+
+No hardcoded strings beyond filesystem path construction. URL hashing and config serialization are fully generic.
+
+---
+
+### core/distributions.py — No issue (structural)
+
+`"ex_gaussian"` at lines 71 and 173 is a schema-defined distribution type string dispatched from the config. The schema documents this as the only supported distribution type. If a future distribution type were added to the schema, a corresponding branch here would also be needed — but this is a mechanical extension point, not an agnosticism violation.
+
+---
+
+### core/phase_detection.py — No issue
+
+Phase name strings (`"complete"`, `"loading"`, etc.) are schema-defined enum values read from `PhaseDetectionConfig` field names. No hardcoded selectors or platform assumptions.
+
+---
+
+### core/stimulus.py — No issue (structural)
+
+Method dispatch strings (`"dom_query"`, `"js_eval"`, `"text_content"`, `"canvas_state"`) match schema enum values exactly. No container selectors hardcoded. The `querySelector` in the scraper snapshot helper falls back to `document.body`.
+
+---
+
+### navigation/navigator.py — No issue (structural)
+
+Action-type dispatch strings (`"click"`, `"press"`, `"keypress"`, `"wait"`, `"sequence"`, `"repeat"`) are schema-defined `NavigationPhase.action` values. The `repeat` action has a hardcoded `max_iterations = 20` guard — this is a structural safety cap, not a behavioral parameter. No task-specific content.
+
+---
+
+### navigation/stuck.py — No issue
+
+No task-specific content. The `timeout_seconds = 10.0` default is a structural constant (safety timeout for stimulus detection, not behavioral RT).
+
+---
+
+### output/data_capture.py — No issue (structural)
+
+Tag strings (`"tr"`, `"td"`) are HTML spec constants for the table parser. Method dispatch (`"js_expression"`, `"button_click"`) matches schema enum values. No task-specific selectors hardcoded — all selectors come from `DataCaptureConfig`.
+
+---
+
+### output/writer.py — No issue
+
+No task-specific strings. Output paths use `task_name` from config. Standard JSON/file I/O only.
+
+---
+
+### Summary — remaining files
+
+| File | Severity | Fixed |
+|------|----------|-------|
+| core/analyzer.py | No issue (cap fix in Task 8) | N/A |
+| core/cache.py | No issue | N/A |
+| core/distributions.py | No issue (structural) | N/A |
+| core/phase_detection.py | No issue | N/A |
+| core/stimulus.py | No issue (structural) | N/A |
+| navigation/navigator.py | No issue (structural) | N/A |
+| navigation/stuck.py | No issue | N/A |
+| output/data_capture.py | No issue (structural) | N/A |
+| output/writer.py | No issue | N/A |

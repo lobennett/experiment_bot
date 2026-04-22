@@ -844,3 +844,53 @@ Both match `data/human/archive_rdoc/*.csv` column-for-column (metrics columns on
 
 5. **Human sequential effects (archive fallback).** When Eisenberg 2019 trial-level data is not present, Figure 2 shows no human violin backgrounds. This is correct behavior (session-level archive has no trial ordering), but the figure will appear with bot points only and no reference distribution. Noted for user awareness.
 
+---
+
+## Analysis notebook
+
+### Task 15 feedback applied
+
+#### Decision 1 — SSRT computation: no change
+
+User confirmed: keep simple subtraction `mean(go_rt) − mean(SSD)`. The integration method (Verbruggen et al. 2019) was noted as more field-standard but the user elected not to implement it at this stage.
+
+#### Decision 2 — Post-error slowing: no change
+
+User confirmed: keep unconditional form `mean(RT_{t+1} | error_t) − mean(RT_{t+1} | correct_t)`. The Dutilh et al. (2012) robust matched-pair method was noted but not implemented.
+
+#### Decision 3 — Block-boundary filtering for sequential effects
+
+Added block-boundary filtering to `lag1_autocorr` and `post_error_slowing` via a new `_within_block_pairs()` helper. Consecutive trial pairs that cross a block boundary are excluded from both metrics.
+
+**Platform-specific details:**
+
+| Platform | Block column | Behavior |
+|----------|-------------|----------|
+| expfactory_stop_signal | `block_num` (0, 1, 2 — three blocks of 60 trials) | Block filtering applied |
+| expfactory_stroop | `block_num` (0, 1, 2 — three blocks of 40 trials) | Block filtering applied |
+| stopit_stop_signal | `block_num` if present (passed through via column check) | Block filtering applied if column exists |
+| cognitionrun_stroop | No block column (only `trial_index`) | Treated as single block — inline comment added: `# cognitionrun_stroop: no block column, assuming single block` |
+
+**Human data (Eisenberg 2019):** No explicit block column. Trials are already filtered to `exp_stage == 'test'` (single stage per worker). Workers are grouped individually before computing sequential effects, so cross-worker pairs never form.
+
+**Before/after spot-check — expfactory_stop_signal, run 2026-04-21_14-00-00:**
+
+| Metric | Before (no block filter) | After (block filter) |
+|--------|--------------------------|----------------------|
+| lag-1 autocorr (Pearson r) | −0.0507 | −0.0414 |
+
+The difference is small for this run (180 trials across 3 blocks; only 2 cross-boundary pairs removed from ~100 valid pairs), but filtering is now correct by construction.
+
+#### Decision 4 — Switch Figure 2 to trial-level Eisenberg 2019 human data
+
+Removed the archive_rdoc session-level fallback. Cell 3 now:
+- Loads `data/human/stop_signal.csv` and `data/human/stroop.csv` directly.
+- Raises `FileNotFoundError` with a clear message if either file is missing (instead of silently falling back).
+- Filters to `exp_stage == 'test'` trials only.
+- No exclusion column filtering applied — Eisenberg 2019 trial-level CSVs have no per-trial exclusion flags. This is noted inline.
+- `USING_TRIAL_LEVEL` flag is removed (always True now; the conditional branch is gone).
+
+**Result:** Figure 2 now renders human violin backgrounds for both Stop Signal and Stroop panels using 522 subjects × ~600 test trials each. Notebook executed cleanly (0 errors, 43 KB PNG output for Figure 2 verified).
+
+**Data files:** `data/human/stop_signal.csv` (346 712 rows) and `data/human/stroop.csv` (62 640 rows) remain gitignored. Confirmed via `git status data/human/` — no untracked files listed.
+

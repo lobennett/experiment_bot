@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import logging
+from json import JSONDecodeError
 from pathlib import Path
 
 from experiment_bot.core.config import TaskConfig
@@ -31,7 +32,7 @@ class ConfigCache:
         try:
             data = json.loads(path.read_text())
             return TaskConfig.from_dict(data)
-        except Exception as e:
+        except (JSONDecodeError, KeyError, TypeError, ValueError) as e:
             logger.warning(f"Failed to load cached config: {e}")
             return None
 

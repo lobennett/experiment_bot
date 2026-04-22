@@ -89,7 +89,7 @@ async def scrape_experiment_source(
                 if r.status_code == 200:
                     filename = path.split("/")[-1].split("?")[0]
                     source_files[filename] = r.text
-            except Exception as e:
+            except httpx.HTTPError as e:
                 logger.debug(f"Failed to fetch resource {resource_url}: {e}")
 
         # Store inline scripts as virtual files so Claude can read page-level JS
@@ -104,7 +104,7 @@ async def scrape_experiment_source(
                 if r.status_code == 200:
                     filename = extra_url.split("/")[-1].split("?")[0]
                     source_files[filename] = r.text
-            except Exception as e:
+            except httpx.HTTPError as e:
                 logger.debug(f"Failed to fetch extra URL {extra_url}: {e}")
 
     return SourceBundle(

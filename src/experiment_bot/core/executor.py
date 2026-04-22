@@ -117,6 +117,7 @@ class TaskExecutor:
                     self._seen_response_keys.add(key)
                     return key
                 except Exception as e:
+                    # Page context may be torn down by navigation
                     logger.warning(f"response_key_js failed for {match.stimulus_id}: {e}")
 
             # Global response_key_js from task_specific
@@ -130,6 +131,7 @@ class TaskExecutor:
                     self._seen_response_keys.add(key)
                     return key
                 except Exception as e:
+                    # Page context may be torn down by navigation
                     logger.warning(f"task_specific.response_key_js failed: {e}")
 
         # Static key_map fallback (skip "dynamic" sentinel values)
@@ -288,6 +290,7 @@ class TaskExecutor:
                                 try:
                                     await page.evaluate(ab.pre_keypress_js)
                                 except Exception:
+                                    # Page context may be torn down by navigation
                                     pass
                             for key in ab.advance_keys:
                                 await page.keyboard.press(key)
@@ -299,6 +302,7 @@ class TaskExecutor:
                     self._response_window_confirmed = True
                     consecutive_misses = 0
                 except Exception:
+                    # Page context may be torn down by navigation
                     pass
 
             if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
@@ -318,6 +322,7 @@ class TaskExecutor:
                         try:
                             await page.evaluate(ab.pre_keypress_js)
                         except Exception:
+                            # Page context may be torn down by navigation
                             pass
                     for key in ab.advance_keys:
                         await page.keyboard.press(key)
@@ -328,6 +333,7 @@ class TaskExecutor:
                             try:
                                 await page.evaluate(ab.pre_keypress_js)
                             except Exception:
+                                # Page context may be torn down by navigation
                                 pass
                         await page.keyboard.press(ab.exit_pager_key)
                 if consecutive_misses == 1:
@@ -383,6 +389,7 @@ class TaskExecutor:
                     if raw_cue:  # Ignore empty strings from non-stimulus phases
                         cue = raw_cue
                 except Exception:
+                    # Page context may be torn down by navigation
                     pass
 
             logger.info(f"Trial {self._trial_count}: {match.stimulus_id} ({match.condition}) cue={cue!r}")
@@ -410,6 +417,7 @@ class TaskExecutor:
                 if not ready:
                     return
             except Exception:
+                # Page context may be torn down by navigation — treat as trial ended
                 return
             await asyncio.sleep(poll_s)
 
@@ -438,6 +446,7 @@ class TaskExecutor:
             result = await page.evaluate(js_expr)
             return bool(result)
         except Exception:
+            # Page context may be torn down by navigation — treat as no interrupt
             return False
 
     async def _wait_for_response_window(self, page: Page, js_expr: str) -> None:
@@ -455,6 +464,7 @@ class TaskExecutor:
                 if ready:
                     return
             except Exception:
+                # Page context may be torn down by navigation — stop polling
                 pass
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
@@ -652,6 +662,7 @@ class TaskExecutor:
             logger.warning("No response_js configured for attention check, pressing Enter")
             await page.keyboard.press("Enter")
         except Exception as e:
+            # Page context may be torn down by navigation — fall back to Enter
             logger.warning(f"Attention check handling failed: {e}")
             await page.keyboard.press("Enter")
 
@@ -668,6 +679,7 @@ class TaskExecutor:
                     await btn.click()
                     return
             except Exception:
+                # Button may not exist on this feedback screen — try next selector
                 continue
 
         for key in ab.feedback_fallback_keys:

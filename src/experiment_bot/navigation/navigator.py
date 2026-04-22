@@ -4,6 +4,7 @@ import asyncio
 import logging
 import random
 
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from experiment_bot.core.config import NavigationConfig, NavigationPhase
@@ -42,6 +43,7 @@ class InstructionNavigator:
                         sub_phase = NavigationPhase.from_dict(step)
                         await self.execute_phase(page, sub_phase)
                 except Exception:
+                    # A sub-step failed (e.g., element not found after click) — stop repeating
                     break
         else:
             logger.info(f"Skipping unknown/meta action: {phase.action}")
@@ -52,7 +54,7 @@ class InstructionNavigator:
         try:
             await locator.wait_for(state="visible", timeout=10000)
             await locator.click()
-        except Exception as e:
+        except PlaywrightError as e:
             logger.warning(f"Click target not found, skipping: {target} ({e})")
 
     async def _do_press(self, page: Page, key: str) -> None:
@@ -67,6 +69,7 @@ class InstructionNavigator:
         try:
             await page.evaluate(js)
         except Exception as e:
+            # Page context may be torn down by navigation
             logger.debug(f"pre_js execution failed: {e}")
 
     async def _inject_reading_delay(self) -> None:

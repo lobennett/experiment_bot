@@ -81,6 +81,8 @@ class ConfigDrivenCapture:
                 logger.warning(f"Unknown capture method: {self._config.method}")
                 return None
         except Exception:
+            # Broad catch: capture failure (network, JS eval, DOM parse) must never
+            # crash the executor — caller treats None as "no data captured"
             logger.warning("Data capture failed", exc_info=True)
             return None
 

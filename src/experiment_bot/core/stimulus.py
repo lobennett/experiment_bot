@@ -71,5 +71,6 @@ class StimulusLookup:
                 result = await page.evaluate(rule.selector)
                 return bool(result)
         except Exception as e:
+            # Page context may be torn down by navigation
             logger.debug(f"Rule check failed for {rule.id}: {e}")
         return False

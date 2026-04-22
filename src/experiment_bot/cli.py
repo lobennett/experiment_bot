@@ -64,6 +64,7 @@ async def _run_task(
             try:
                 diagnostics = await pilot_runner.run(config, url, headless=headless)
             except Exception as e:
+                # Broad catch: pilot may fail for any reason (Playwright, network, timeout)
                 click.echo(f"Pilot crashed (attempt {attempt + 1}): {e}")
                 if attempt < 2:
                     diagnostics = PilotDiagnostics.crashed(str(e))

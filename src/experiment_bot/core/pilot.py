@@ -209,6 +209,7 @@ class PilotRunner:
                             if matched:
                                 selector_results[stim.id]["matches"] += 1
                         except Exception as e:
+                            # Page context may be torn down by navigation
                             logger.debug(f"Pilot selector check failed for {stim.id}: {e}")
 
                     # Use StimulusLookup for the actual match
@@ -293,4 +294,5 @@ class PilotRunner:
             )
             return html[:2000] if html else "(empty)"
         except Exception:
+            # Page context may be torn down by navigation
             return "(snapshot failed)"

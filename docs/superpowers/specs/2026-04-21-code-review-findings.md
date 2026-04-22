@@ -1,8 +1,37 @@
 # Code Review Findings — 2026-04-21
 
-Scope: `src/experiment_bot/core/`, `src/experiment_bot/prompts/`, and the pilot validation loop.
+Scope: `src/experiment_bot/core/`, `src/experiment_bot/prompts/`, `src/experiment_bot/navigation/`, `src/experiment_bot/output/`, and the pilot validation loop.
 
 Standard: task-agnostic, platform-agnostic per the claim in `docs/how-it-works.md`.
+
+## Executive summary
+
+The claim in `how-it-works.md` that the bot is zero-shot and task-agnostic holds **after the fixes recorded in this document**, with three caveats noted below. Prior to the fixes, four Critical / Significant issues silently constrained which tasks the bot could execute correctly.
+
+**Findings by severity and area:**
+
+| Area | Critical | Significant | Minor | Structural / No-issue |
+|---|---|---|---|---|
+| `core/executor.py` | 2 (hardcoded condition strings; "none" sentinel unhandled) | 1 (4 hardcoded timing values) | — | — |
+| `core/config.py` defaults | — | 4 (advance_keys, feedback_fallback_keys, failure_rt_cap_fraction, inhibit_wait_ms) | — | 12 (triaged Structural) |
+| `prompts/` (system.md + schema.json) | — | 3 (jsPsych-biased examples, PsyToolkit-biased descriptions, schema/prompt drift) | 3 | — |
+| `core/pilot.py` | — | — | 1 | 5 |
+| `core/scraper.py` | — | 2 (inline scripts dropped, 30 KB cap truncated expfactory_stroop's experiment.js at 34 KB) | — | 2 |
+| Remaining core + navigation + output | — | — | — | 8 |
+| Quality pass (bare excepts, dead code, contracts) | — | — | 1 | — |
+| **Totals** | **2** | **10** | **5** | **27** |
+
+All Critical and Significant findings were fixed during this review. All Minor findings were either fixed or documented with rationale. Test suite: 139 (baseline) → 193 (+54 new tests, +4 skipped contract tests for inapplicable stop-signal-only fields).
+
+**Caveats on the agnosticism claim:**
+
+1. **Conditional-requirement enforcement is documentation-only.** `inhibit_wait_ms` and `failure_rt_cap_fraction` are required only when `runtime.trial_interrupt.detection_condition` is non-empty. The plan explicitly allowed documentation-in-`system.md` as the enforcement mechanism rather than runtime validation. If Phase 3 batch runs reveal Claude omits these on interrupt tasks, add a `TaskConfig.__post_init__` check.
+2. **Legacy backward-compatibility defaults.** Six new config fields (`navigation_stimulus_condition`, `attention_check.stimulus_conditions`, and four `runtime.timing.*` knobs) default to legacy literal values so existing cached configs load unchanged. A strictly agnostic defensive reading would require these to default to empty/0 and force Claude to populate them. The current compromise preserves backward compat at the cost of a soft fallback; this is a conscious judgment call.
+3. **Scraper still caps individual files at 60 KB.** Raised from 30 KB after discovering expfactory_stroop's `experiment.js` was being truncated. A larger task bundle could still silently exceed the cap. Monitor during Phase 3.
+
+**Re-smoke decision:** Task 3's Phase 0 smoke runs produced reference outputs for 3 of 4 tasks (stopit failed at trial 86 with the "none" keypress bug, which was among the Critical findings fixed in Task 4). Two Significant changes landed after the smoke ran that could affect config generation: the scraper fix (inline scripts + 60 KB cap) and the prompts revisions. Phase 3 regenerates all four configs with `--regenerate` before the batch, so both changes will apply there. **No additional re-smoke is required between Phase 1 and Phase 2.** The existing 3 smoke outputs are sufficient for the analysis notebook audit; STOP-IT's notebook section can be verified against a Phase 3 stopit run.
+
+**Recommendation:** Proceed to Phase 2 (analysis notebook audit) and then Phase 3 (60-run batch). Revisit caveat 1 after Phase 3 if interrupt-task configs come back with empty required fields.
 
 ## Severity legend
 - **Critical** — breaks the agnosticism claim or produces wrong behavior on a novel task.

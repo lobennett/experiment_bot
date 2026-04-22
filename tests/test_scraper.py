@@ -44,3 +44,41 @@ async def test_scrape_resolves_relative_urls():
     from urllib.parse import urljoin
     assert urljoin("https://example.com/exp/", "js/experiment.js") == "https://example.com/exp/js/experiment.js"
     assert urljoin("https://example.com/exp/", "../css/style.css") == "https://example.com/css/style.css"
+
+
+@pytest.mark.asyncio
+async def test_scrape_captures_inline_scripts():
+    """Scraper should extract inline <script> blocks as virtual source files."""
+    html = (
+        "<html><head>"
+        "<script>window.SHORT = 1;</script>"  # too short — should be ignored
+        "<script>\n"
+        "window.CONDITION = 1;\n"
+        "window.STIMULI = ['red', 'blue', 'green'];\n"
+        "var trialConfig = {responseWindow: 1500, fixation: 500};\n"
+        "</script>"
+        "</head><body></body></html>"
+    )
+
+    mock_response = AsyncMock()
+    mock_response.text = html
+    mock_response.status_code = 200
+    mock_response.raise_for_status = lambda: None
+
+    mock_client = AsyncMock()
+    mock_client.get = AsyncMock(return_value=mock_response)
+    mock_client.__aenter__ = AsyncMock(return_value=mock_client)
+    mock_client.__aexit__ = AsyncMock(return_value=None)
+
+    with patch("experiment_bot.core.scraper.httpx.AsyncClient", return_value=mock_client):
+        bundle = await scrape_experiment_source(
+            url="https://example.com/experiment/",
+            hint="",
+        )
+
+    # The substantive inline script (>= 50 bytes) should be captured
+    inline_keys = [k for k in bundle.source_files if "inline_script" in k]
+    assert len(inline_keys) == 1, f"Expected 1 inline script, got {inline_keys}"
+    content = bundle.source_files[inline_keys[0]]
+    assert "window.CONDITION" in content
+    assert "trialConfig" in content

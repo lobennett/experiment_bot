@@ -13,6 +13,17 @@ import re
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
+# Per-file content caps when building Claude messages.
+# JS files get a higher cap because experiment-specific trial-definition scripts
+# can exceed 30 KB and are the primary source Claude needs to read in full.
+_JS_FILE_CAP = 60_000  # bytes
+_DEFAULT_FILE_CAP = 30_000  # bytes
+
+
+def _file_cap(filename: str) -> int:
+    """Return the content cap for a given filename."""
+    return _JS_FILE_CAP if filename.endswith(".js") else _DEFAULT_FILE_CAP
+
 
 def _extract_json(text: str) -> str:
     """Extract JSON object from Claude's response, handling various formats.
@@ -85,7 +96,7 @@ class Analyzer:
 
         for filename, content in bundle.source_files.items():
             parts.append(f"## File: {filename}")
-            parts.append(content[:30000])
+            parts.append(content[:_file_cap(filename)])
             parts.append("")
 
         parts.append("## Required Output Schema")
@@ -132,7 +143,7 @@ class Analyzer:
 
         source_parts = [f"## Page HTML\n{bundle.description_text[:5000]}"]
         for filename, content in bundle.source_files.items():
-            source_parts.append(f"## File: {filename}\n{content[:30000]}")
+            source_parts.append(f"## File: {filename}\n{content[:_file_cap(filename)]}")
         source_summary = "\n\n".join(source_parts)
 
         user_message = REFINEMENT_PROMPT.format(

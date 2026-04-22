@@ -71,7 +71,13 @@ class TaskExecutor:
 
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
-    _WITHHOLD_SENTINELS: frozenset[str] = frozenset({"", "none", "null"})
+    # Permissive expansion: no Playwright key names match any of these strings, so
+    # false-positives are impossible while false-negatives cause a crash.
+    _WITHHOLD_SENTINELS: frozenset[str] = frozenset({
+        "", "none", "null",
+        "withhold", "no_response", "noresponse",
+        "no_key", "nokey", "suppress", "skip", "pass",
+    })
 
     @staticmethod
     def _is_withhold_sentinel(value: object) -> bool:

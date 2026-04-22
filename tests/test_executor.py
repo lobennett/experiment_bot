@@ -895,9 +895,19 @@ async def test_resolve_response_key_returns_none_for_none_value():
 
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("sentinel", ["none", "None", "NONE", "null", "Null", "NULL"])
+@pytest.mark.parametrize("sentinel", [
+    "none", "None", "NONE", "null", "Null", "NULL",
+    "withhold", "Withhold", "WITHHOLD",
+    "no_response", "NO_RESPONSE", "No_Response",
+    "noresponse", "NORESPONSE",
+    "no_key", "NO_KEY",
+    "nokey", "NOKEY",
+    "suppress", "SUPPRESS",
+    "skip", "SKIP",
+    "pass", "PASS",
+])
 async def test_resolve_response_key_returns_none_for_sentinel_strings(sentinel):
-    """Sentinel strings ('none', 'null', case-insensitive) are treated as withhold."""
+    """Sentinel strings (case-insensitive) are treated as withhold / no key press."""
     config_data = dict(SAMPLE_CONFIG)
     config_data["stimuli"] = [{
         "id": "stop_stim",
@@ -989,7 +999,13 @@ def test_attention_check_conditions_attribute_is_config_driven():
 # ---------------------------------------------------------------------------
 
 @pytest.mark.asyncio
-@pytest.mark.parametrize("sentinel", ["", None, "none", "null", "NONE", "Null"])
+@pytest.mark.parametrize("sentinel", [
+    "", None, "none", "null", "NONE", "Null",
+    "withhold", "WITHHOLD",
+    "no_response", "noresponse",
+    "no_key", "nokey",
+    "suppress", "skip", "pass",
+])
 async def test_resolve_response_key_global_js_sentinel_returns_none(sentinel):
     """Global task_specific.response_key_js returning a sentinel resolves to None."""
     config_data = _minimal_config_dict()

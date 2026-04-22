@@ -198,6 +198,15 @@ All four fields are documented in `schema.json` and `system.md` section 5. The 0
 - Made `RuntimeConfig.to_dict` always emit `navigation_stimulus_condition` for round-trip stability (matching `AttentionCheckConfig.to_dict` policy).
 - Added sentinel coverage for the global `task_specific.response_key_js` resolution path.
 
+### Post-Phase-3 fix — withhold sentinel set was too narrow
+**Severity: Critical (regression caught in Phase 3 batch)**
+
+4 of the 60 Phase 3 runs failed with `Keyboard.press: Unknown key: "withhold"`. The executor's `_WITHHOLD_SENTINELS` frozenset only covered `{"", "none", "null"}`, but Opus 4.7's regenerated cache for `expfactory_stop_signal` emitted `"withhold"` as the return value of `response_key_js` on stop trials.
+
+Fix: expanded the set to include `"withhold"`, `"no_response"`, `"noresponse"`, `"no_key"`, `"nokey"`, `"suppress"`, `"skip"`, `"pass"`. Permissive expansion — no Playwright key names match these.
+
+24 additional Phase 3 failures were `Page.goto: net::ERR_INTERNET_DISCONNECTED` — environmental network drop, not a code bug.
+
 ---
 
 ## `core/config.py` — Task 5: Agnosticism review of dataclass defaults

@@ -140,9 +140,11 @@ class TaskExecutor:
                     # Page context may be torn down by navigation
                     logger.warning(f"task_specific.response_key_js failed: {e}")
 
-        # Static key_map fallback (skip "dynamic" sentinel values)
+        # Static key_map fallback (skip "dynamic" sentinel values and withhold sentinels)
         mapped = self._key_map.get(match.condition)
         if mapped and mapped not in ("dynamic_mapping", "dynamic"):
+            if self._is_withhold_sentinel(mapped):
+                return None
             self._seen_response_keys.add(mapped)
             return mapped
 
@@ -170,12 +172,16 @@ class TaskExecutor:
 
     def _pick_wrong_key(self, correct_key: str) -> str:
         """Return a random incorrect key from known response keys."""
-        # Use static key_map when all values are real keys
-        static_keys = {v for v in self._key_map.values() if v not in ("dynamic", "dynamic_mapping")}
+        # Use static key_map when all values are real keys; exclude sentinel values
+        static_keys = {
+            v for v in self._key_map.values()
+            if v not in ("dynamic", "dynamic_mapping")
+            and not self._is_withhold_sentinel(v)
+        }
         all_keys = list(static_keys or self._seen_response_keys)
-        wrong_keys = [k for k in all_keys if k != correct_key]
+        wrong_keys = [k for k in all_keys if k != correct_key and not self._is_withhold_sentinel(k)]
         if not wrong_keys:
-            return correct_key  # Only one key available; can't press wrong one
+            return correct_key  # Only one real key available; can't press wrong one
         return self._py_rng.choice(wrong_keys)
 
     def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:

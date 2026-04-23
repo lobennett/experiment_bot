@@ -998,6 +998,49 @@ def test_attention_check_conditions_attribute_is_config_driven():
 # Minor Issue 4: sentinel test for global task_specific.response_key_js path
 # ---------------------------------------------------------------------------
 
+# ---------------------------------------------------------------------------
+# Post-Phase-3 fix: _pick_wrong_key sentinel filtering (second sentinel leak)
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("sentinel", [
+    "withhold", "none", "null", "", "skip", "pass", "noresponse",
+    "no_response", "no_key", "nokey", "suppress",
+])
+def test_pick_wrong_key_filters_sentinels(sentinel):
+    """_pick_wrong_key must not return a sentinel value as a 'wrong key'."""
+    config = TaskConfig.from_dict(_minimal_config_dict())
+    executor = TaskExecutor(config)
+    executor._key_map = {"go": "z", "stop": sentinel}
+    executor._seen_response_keys = set()
+    # correct_key = "z"; the only other candidate is sentinel; must not return sentinel
+    result = executor._pick_wrong_key("z")
+    assert not TaskExecutor._is_withhold_sentinel(result), f"Got sentinel {result!r}"
+
+
+@pytest.mark.asyncio
+async def test_resolve_response_key_static_key_map_sentinel_returns_none():
+    """_resolve_response_key must return None when the static key_map maps to a sentinel."""
+    config_data = _minimal_config_dict()
+    # Set up key_map with a sentinel for "stop" condition; no response_key_js on the stimulus
+    config_data["task_specific"] = {"key_map": {"go": "z", "stop": "withhold"}}
+    config_data["stimuli"] = [{
+        "id": "stop_stim",
+        "description": "Stop/withhold stimulus",
+        "detection": {"method": "dom_query", "selector": ".stop"},
+        "response": {"key": "dynamic", "condition": "stop"},
+    }]
+    config = TaskConfig.from_dict(config_data)
+    executor = TaskExecutor(config)
+
+    # No page provided, so JS paths are skipped; falls through to static key_map
+    match = StimulusMatch(stimulus_id="stop_stim", response_key="dynamic", condition="stop")
+    result = await executor._resolve_response_key(match)
+    assert result is None, f"Expected None for sentinel key_map value, got {result!r}"
+    # Sentinel must NOT be stored in seen_response_keys
+    assert "withhold" not in executor._seen_response_keys
+
+
 @pytest.mark.asyncio
 @pytest.mark.parametrize("sentinel", [
     "", None, "none", "null", "NONE", "Null",

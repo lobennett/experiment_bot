@@ -207,6 +207,17 @@ Fix: expanded the set to include `"withhold"`, `"no_response"`, `"noresponse"`, 
 
 24 additional Phase 3 failures were `Page.goto: net::ERR_INTERNET_DISCONNECTED` — environmental network drop, not a code bug.
 
+### Post-Phase-3 fix (second sentinel leak) — `_pick_wrong_key` and key_map fallback
+**Severity: Critical (regression caught in Phase 3 batch rerun)**
+
+After fixing the `_resolve_response_key` sentinel handling (Post-Phase-3 fix 1), 15 of 60 runs in the Phase 3 batch rerun still failed — all in `expfactory_stop_signal` with `Keyboard.press: Unknown key: "withhold"`. The crash site was on intended-error GO trials, not stop trials.
+
+Root cause: `_pick_wrong_key()` pulled candidate keys from `self._key_map.values()` without filtering sentinel strings. The cached config's `key_map = {"go": "dynamic", "stop": "withhold"}` — after filtering the `"dynamic"` placeholder, only `"withhold"` remained as a "wrong-key" candidate for go trials, and the bot pressed it.
+
+A secondary latent leak was in `_resolve_response_key()` step 4 (static key_map fallback) which also did not run `_is_withhold_sentinel` on the looked-up value.
+
+Fix: filter sentinels in both paths. Tests added for both.
+
 ---
 
 ## `core/config.py` — Task 5: Agnosticism review of dataclass defaults

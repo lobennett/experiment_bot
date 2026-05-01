@@ -24,13 +24,14 @@ The user's primary deliverable is a defensible scientific paper arguing that thi
 This spec covers SP1 only. The full program (in dependency order):
 
 1. **SP1 (this spec): TaskCard + Reasoner.** Schema for the peer-reviewable artifact. Multi-stage Reasoner that produces it. Migration off v1 cached configs.
-2. **SP2: Behavioral fidelity expansion.** Congruency sequence effect (CSE) as 2-trial interaction. Distributional matching against human references. Calibration of `between_subject_sd` from human population spread.
-3. **SP3: Performer (HPC-ready).** Deterministic seeded execution. Headless cluster runtime. Slurm batch scripts. Distributed output coordination.
-4. **SP4: Validation framework.** Statistical oracles (KS, Anderson-Darling, sequential-effect tests). Bot-vs-human comparison reports per task per metric. Power analysis.
-5. **SP5: Novel paradigm acquisition.** 2–4 novel paradigms (Flanker, Simon, n-back, task-switching, lexical decision — selection in SP5). Source URLs. Reference human data per paradigm. Replaces the under-trial cognition.run stroop with a richer paradigm.
+2. **SP2: Behavioral fidelity expansion.** A generalizable framework where Claude identifies which canonical sequential/temporal effects apply per task type and parameterizes them. CSE applies to conflict paradigms (Stroop, Flanker, Simon); switch costs to task-switching; list-length effects to memory tasks; speed-accuracy tradeoffs to forced-choice paradigms; etc. The TaskCard schema's `temporal_effects` section becomes extensible — new effect types are added as registered entries Claude can opt into per task. Distributional matching against human references. Calibration of `between_subject_sd` from human population spread (per-paradigm where reference data exists).
+3. **SP3: Performer (HPC-ready).** Deterministic seeded execution. Headless cluster runtime. Slurm batch scripts. Distributed output coordination. **Platform-native data capture:** for server-uploading platforms (Expfactory, Cognition.run), intercept the network upload via Playwright's `page.on("request")` and persist the exact payload the server would have received. For client-only platforms (jsPsych without DataPipe), keep the current page-state extraction. Output includes a side-by-side comparison of platform-recorded vs locally-measured RT to characterize browser latency.
+4. **SP4: Validation framework.** Statistical oracles (KS, Anderson-Darling, sequential-effect tests). Bot-vs-human comparison reports per task per metric. Power analysis. Tests run against the platform-native data (SP3 output) so the comparison is "what the platform recorded for the bot" vs "what the platform recorded for humans" — protects against the reviewer critique that bot RTs come from a different clock than human RTs.
+5. **SP5: Novel paradigm acquisition.** 2–4 novel paradigms (candidates: Flanker, Simon, n-back, task-switching, lexical decision — final selection in SP5). Source URLs. Reference human data per paradigm. Replaces the under-trial cognition.run stroop with a richer paradigm.
 6. **SP6: Traceability + audit.** Per-session trace logs linking every decision back to TaskCard fields. Audit reports for the paper.
+7. **SP7: Analysis pipeline.** Refactor `scripts/analysis.ipynb` (currently per-platform per-task) to consume the new TaskCard + Performer output format. Column-level audit of each platform's output (verify what each column means, how RT/accuracy/condition are encoded, what timing reference each platform uses). Update analysis to use platform-native data from SP3 as the canonical source. Where possible, generalize across tasks (e.g., a generic "speeded-choice analysis" function that takes a TaskCard + output and produces the standard metric battery). Per-paradigm specializations stay specialized. Final outputs feed SP4's statistical oracles.
 
-Each gets its own brainstorm → spec → plan → implementation cycle. SP2, SP3, and SP6 can be parallelized after SP1 lands; SP4 needs SP2's schema additions; SP5 needs everything.
+Each gets its own brainstorm → spec → plan → implementation cycle. SP2, SP3, and SP6 can be parallelized after SP1 lands; SP4 needs SP2's schema additions and SP3's platform-native capture; SP5 needs everything; SP7 is last because it consumes the final output format.
 
 ## Architecture
 
@@ -314,11 +315,12 @@ TDD throughout. Layers, in order of speed:
 
 | Deferred to | Items |
 |---|---|
-| **SP2** | Congruency sequence effect (CSE) as 2-trial interaction. Distributional matching against human references. Calibration of `between_subject_sd` from human population data. New temporal effects (response-repetition, error-corrective adaptation). |
-| **SP3** | Slurm batch scripts, distributed output coordination, headless cluster runtime, full session trace log shape, deterministic seed coordination across nodes. |
-| **SP4** | Statistical oracles (KS, Anderson-Darling, sequential-effect tests), bot-vs-human comparison reports, power analysis. |
-| **SP5** | Specific novel paradigms (Flanker, Simon, n-back, task-switching, lexical decision). Sourcing URLs. Acquiring human reference data. Choosing the cognition.run replacement. |
+| **SP2** | A generalizable framework for canonical sequential/temporal effects per task type. Claude identifies which apply (CSE on conflict, switch costs on task-switching, etc.). Schema extensibility for new effect types. Distributional matching. Calibration of `between_subject_sd` from human population data. |
+| **SP3** | Slurm batch scripts, distributed output coordination, headless cluster runtime. **Platform-native data capture:** intercept server uploads via Playwright network listening for server-uploading platforms; keep page-state extraction for client-only platforms. Side-by-side platform-recorded vs locally-measured RT in output. Full session trace log shape; deterministic seed coordination across nodes. |
+| **SP4** | Statistical oracles (KS, Anderson-Darling, sequential-effect tests), bot-vs-human comparison reports against platform-native data, power analysis. |
+| **SP5** | Specific novel paradigms (candidates: Flanker, Simon, n-back, task-switching, lexical decision). Sourcing URLs. Acquiring human reference data. Choosing the cognition.run replacement. |
 | **SP6** | Full audit reports linking trace → TaskCard → citation. Per-session forensic trace logs. Reproducibility verification harness. |
+| **SP7** | Analysis pipeline refactor: column-level audit of each platform's output, refactor of `scripts/analysis.ipynb` to consume new TaskCard + Performer output format, generalization across tasks where possible, integration with SP4 oracles. |
 | **SP1.5** | Curated literature corpus per paradigm. Replaces stage 3's training-data-only citation production with corpus-grounded production. |
 | **Other** | Full executor refactor with formal Protocols (deferred — current executor reads new fields and continues to work). Performance optimization beyond keeping the test suite under 30s. |
 

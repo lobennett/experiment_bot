@@ -17,7 +17,7 @@ The existing experiment-bot pipeline (`Claude → cache/config.json → executor
 
 A skeptical cognitive-psychology reviewer reading those files cannot verify that, e.g., `mu = 480 ms` for go-trial RT in stop-signal tasks comes from anywhere specific. The reasoning is opaque, and there is no way to distinguish parameters Claude is confident about from parameters it is guessing at. This is the gap SP1 closes.
 
-The user's primary deliverable is a defensible scientific paper arguing that this bot poses a serious risk for online behavioral data collection on speeded-choice tasks, demonstrated on tasks the bot has never been configured for during development. SP1 produces the artifact format that defends every parameter individually.
+The user's primary deliverable is a defensible scientific paper arguing that this bot poses a serious risk for online behavioral data collection on speeded-choice tasks. The argument has two halves: (a) the bot reproduces canonical human behavior on 4 paradigms used during development of the bot's mechanism, and (b) the *same* Reasoner-then-Performer pipeline generalizes to additional paradigms it has never been configured for. The 4 development paradigms are not "training data" in any ML sense — no parameters carry across tasks; each task is configured zero-shot by Claude reading its source. The development paradigms drove iteration on the executor's mechanism (e.g., the `"withhold"` sentinel bug surfaced via `expfactory_stop_signal`); the additional paradigms test that the mechanism is general, not over-fit to those tasks' quirks. SP1 produces the artifact format that defends every parameter individually.
 
 ## Program context
 
@@ -27,7 +27,7 @@ This spec covers SP1 only. The full program (in dependency order):
 2. **SP2: Behavioral fidelity expansion.** A generalizable framework where Claude identifies which canonical sequential/temporal effects apply per task type and parameterizes them. CSE applies to conflict paradigms (Stroop, Flanker, Simon); switch costs to task-switching; list-length effects to memory tasks; speed-accuracy tradeoffs to forced-choice paradigms; etc. The TaskCard schema's `temporal_effects` section becomes extensible — new effect types are added as registered entries Claude can opt into per task. Distributional matching against human references. Calibration of `between_subject_sd` from human population spread (per-paradigm where reference data exists).
 3. **SP3: Performer (HPC-ready).** Deterministic seeded execution. Headless cluster runtime. Slurm batch scripts. Distributed output coordination. **Platform-native data capture:** for server-uploading platforms (Expfactory, Cognition.run), intercept the network upload via Playwright's `page.on("request")` and persist the exact payload the server would have received. For client-only platforms (jsPsych without DataPipe), keep the current page-state extraction. Output includes a side-by-side comparison of platform-recorded vs locally-measured RT to characterize browser latency.
 4. **SP4: Validation framework.** Statistical oracles (KS, Anderson-Darling, sequential-effect tests). Bot-vs-human comparison reports per task per metric. Power analysis. Tests run against the platform-native data (SP3 output) so the comparison is "what the platform recorded for the bot" vs "what the platform recorded for humans" — protects against the reviewer critique that bot RTs come from a different clock than human RTs.
-5. **SP5: Novel paradigm acquisition.** 2–4 novel paradigms (candidates: Flanker, Simon, n-back, task-switching, lexical decision — final selection in SP5). Source URLs. Reference human data per paradigm. Replaces the under-trial cognition.run stroop with a richer paradigm.
+5. **SP5: Additional-paradigm acquisition.** 2–4 paradigms the bot has not been configured for during development. Confirmed candidate: **n-back** via the user's in-house Expfactory deployment at https://deploy.expfactory.org/preview/5/. Other candidates (final selection in SP5): Flanker, Simon, task-switching. Source URLs. Reference human data per paradigm. Replaces the under-trial cognition.run stroop with a richer paradigm.
 6. **SP6: Traceability + audit.** Per-session trace logs linking every decision back to TaskCard fields. Audit reports for the paper.
 7. **SP7: Analysis pipeline.** Refactor `scripts/analysis.ipynb` (currently per-platform per-task) to consume the new TaskCard + Performer output format. Column-level audit of each platform's output (verify what each column means, how RT/accuracy/condition are encoded, what timing reference each platform uses). Update analysis to use platform-native data from SP3 as the canonical source. Where possible, generalize across tasks (e.g., a generic "speeded-choice analysis" function that takes a TaskCard + output and produces the standard metric battery). Per-paradigm specializations stay specialized. Final outputs feed SP4's statistical oracles.
 
@@ -49,7 +49,7 @@ URL ──> Reasoner (5 stages) ──> TaskCard.json (versioned, immutable)
 
 **Performer** runs at session time. Reads a TaskCard, executes via Playwright, writes data + trace. No Claude API at runtime. SP3 turns it HPC-ready; SP1 just keeps it compatible with the new TaskCard layout.
 
-**SP1 delivers:** the TaskCard schema, the 5-stage Reasoner with both LLM client implementations, full regeneration of the 4 train tasks, executor adaptation to read TaskCards. SP1 does NOT deliver Slurm scripts, statistical oracles, new behavioral mechanics, or new paradigms.
+**SP1 delivers:** the TaskCard schema, the 5-stage Reasoner with both LLM client implementations, full regeneration of the 4 development tasks, executor adaptation to read TaskCards. SP1 does NOT deliver Slurm scripts, statistical oracles, new behavioral mechanics, or new paradigms.
 
 ## TaskCard schema
 
@@ -167,7 +167,7 @@ Five stages. Each stage's output is appended to a partial TaskCard. Stages are i
 |---|---|---|---|---|
 | **1. Structural inference** | LLMClient call | Source HTML+JS bundle, schema | Stimuli, navigation, runtime, phase_detection, task_specific, pilot config | Uses `prompts/system.md` (with Phase 1 fixes). No behavioral params yet. |
 | **2. Behavioral inference** | LLMClient call | Stage 1 + paradigm identification | `response_distributions[*].value`, `performance.{accuracy, omission_rate}`, `temporal_effects` (point estimates) | Point estimates only; ranges + SDs come in Stage 3. |
-| **3. Citation production** | LLMClient call(s) per parameter | Stage 2 parameters | `citations[]`, `literature_range`, `between_subject_sd` per parameter | Parallelizable. Either fan-out (one call per parameter) or batched (one call returning all citations). Implementation will benchmark both; default to whichever produces higher citation quality on the 4 train tasks. |
+| **3. Citation production** | LLMClient call(s) per parameter | Stage 2 parameters | `citations[]`, `literature_range`, `between_subject_sd` per parameter | Parallelizable. Either fan-out (one call per parameter) or batched (one call returning all citations). Implementation will benchmark both; default to whichever produces higher citation quality on the 4 development tasks. |
 | **4. DOI verification** | Out-of-band HTTP | Stage 3 citations | `doi_verified` flag per citation | Hits OpenAlex API (`https://api.openalex.org/works/doi:{doi}`). No LLM. Failures flagged but non-blocking. |
 | **5. Sensitivity tagging** | LLMClient call | All previous output | `sensitivity` tag per numeric parameter | Considered nice-to-have for SP4; included in SP1 because the cost is modest (~30s, 1 call). |
 
@@ -202,11 +202,11 @@ The new TaskCard format is fundamentally richer than v1. Auto-upgrading would le
 Concrete migration steps:
 
 1. SP1 ships the Reasoner.
-2. As part of SP1's bring-up, the Reasoner regenerates all 4 current task URLs to produce v2 TaskCards via Max CLI.
+2. As part of SP1's bring-up, the Reasoner regenerates all 4 development-task URLs to produce v2 TaskCards via Max CLI.
 3. The 4 existing `cache/{label}/config.json` files are deleted.
 4. The new `taskcards/{label}/{hash}.json` files replace them.
 5. Tests are updated to read from `taskcards/`. Existing 4 cached-config contract tests become 4 TaskCard contract tests.
-6. The 4 novel paradigms in SP5 are born as v2 from day 1.
+6. Additional paradigms acquired in SP5 are born as v2 from day 1.
 
 **Cost / wall-clock:** With Max CLI, $0 cost. ~150–200 Claude calls across the regeneration window. Wall-clock estimate 2–3 hours of active reasoning time, possibly stretched across 2–3 five-hour Max windows depending on user's tier. Resume mechanism handles cap boundaries cleanly.
 
@@ -309,7 +309,7 @@ TDD throughout. Layers, in order of speed:
 4. Reasoner stages 1 → 2 → 3 → 4 → 5, each with full test before implementation.
 5. `sample_session_params`.
 6. Migration of executor + cli (minimal changes).
-7. Live regeneration of 4 train tasks.
+7. Live regeneration of the 4 development tasks.
 
 ## Out of scope
 
@@ -318,7 +318,7 @@ TDD throughout. Layers, in order of speed:
 | **SP2** | A generalizable framework for canonical sequential/temporal effects per task type. Claude identifies which apply (CSE on conflict, switch costs on task-switching, etc.). Schema extensibility for new effect types. Distributional matching. Calibration of `between_subject_sd` from human population data. |
 | **SP3** | Slurm batch scripts, distributed output coordination, headless cluster runtime. **Platform-native data capture:** intercept server uploads via Playwright network listening for server-uploading platforms; keep page-state extraction for client-only platforms. Side-by-side platform-recorded vs locally-measured RT in output. Full session trace log shape; deterministic seed coordination across nodes. |
 | **SP4** | Statistical oracles (KS, Anderson-Darling, sequential-effect tests), bot-vs-human comparison reports against platform-native data, power analysis. |
-| **SP5** | Specific novel paradigms (candidates: Flanker, Simon, n-back, task-switching, lexical decision). Sourcing URLs. Acquiring human reference data. Choosing the cognition.run replacement. |
+| **SP5** | Specific additional paradigms not seen during development. Confirmed: n-back at https://deploy.expfactory.org/preview/5/. Other candidates: Flanker, Simon, task-switching. Sourcing URLs. Acquiring human reference data. Choosing the cognition.run replacement. |
 | **SP6** | Full audit reports linking trace → TaskCard → citation. Per-session forensic trace logs. Reproducibility verification harness. |
 | **SP7** | Analysis pipeline refactor: column-level audit of each platform's output, refactor of `scripts/analysis.ipynb` to consume new TaskCard + Performer output format, generalization across tasks where possible, integration with SP4 oracles. |
 | **SP1.5** | Curated literature corpus per paradigm. Replaces stage 3's training-data-only citation production with corpus-grounded production. |
@@ -328,7 +328,7 @@ TDD throughout. Layers, in order of speed:
 
 1. **No new behavioral mechanics.** SP1 changes how parameters are *expressed and produced*; it does not change how the bot behaves at runtime. The 4 cached configs, when regenerated as TaskCards, should produce statistically equivalent bot behavior to today (within session noise). Testable.
 2. **No HPC-specific code.** SP1's Performer changes are minimal. SP3 builds the cluster wrappers.
-3. **No new tasks.** The 4 existing tasks are the regeneration targets. New paradigms wait for SP5.
+3. **No new tasks.** The 4 existing development tasks are the regeneration targets. Additional paradigms wait for SP5.
 
 ## Risks
 

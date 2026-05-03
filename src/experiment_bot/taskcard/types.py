@@ -26,6 +26,15 @@ class Citation:
 
 @dataclass
 class ParameterValue:
+    """A behavioral parameter with provenance and sensitivity metadata.
+
+    The `sensitivity` field accepts either:
+      - A single string: "high" / "medium" / "low" / "unknown" — applies to
+        the parameter as a whole.
+      - A dict keyed by sub-parameter name: e.g. {"mu": "high", "sigma": "medium"}
+        — used when Stage 5 of the Reasoner tags individual sub-parameters
+        (mu/sigma/tau) at different sensitivity levels.
+    """
     value: dict
     literature_range: dict | None = None
     between_subject_sd: dict | None = None

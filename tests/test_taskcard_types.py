@@ -32,9 +32,7 @@ def test_parameter_value_round_trip():
     }
     pv = ParameterValue.from_dict(data)
     rt = pv.to_dict()
-    assert rt["value"] == data["value"]
-    assert rt["literature_range"] == data["literature_range"]
-    assert rt["sensitivity"] == "high"
+    assert rt == data
 
 
 def test_reasoning_step_round_trip():

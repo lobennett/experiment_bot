@@ -18,6 +18,7 @@ dependencies = [
 
 [project.scripts]
 experiment-bot = "experiment_bot.cli:main"
+experiment-bot-reason = "experiment_bot.reasoner.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -34,4 +35,5 @@ asyncio_mode = "auto"
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
+    "hypothesis>=6.0",
 ]

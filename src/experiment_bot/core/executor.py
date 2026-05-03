@@ -20,15 +20,59 @@ from experiment_bot.output.data_capture import ConfigDrivenCapture
 logger = logging.getLogger(__name__)
 
 
+def _taskcard_to_config(tc):
+    """Project a TaskCard into a TaskConfig the executor knows how to drive.
+
+    Reads: tc.task, tc.stimuli, tc.navigation, tc.runtime, tc.task_specific,
+    tc.performance. Behavioral fields are projected from ParameterValue.value.
+    """
+    from experiment_bot.core.config import (
+        TaskConfig,
+        DistributionConfig,
+        TemporalEffectsConfig,
+        BetweenSubjectJitterConfig,
+    )
+    cfg = TaskConfig(
+        task=tc.task,
+        stimuli=tc.stimuli,
+        response_distributions={
+            k: DistributionConfig(distribution="ex_gaussian", params=v.value)
+            for k, v in tc.response_distributions.items()
+        },
+        performance=tc.performance,
+        navigation=tc.navigation,
+        task_specific=tc.task_specific,
+        runtime=tc.runtime,
+    )
+    te_dict = {k: v.value for k, v in tc.temporal_effects.items()}
+    cfg.temporal_effects = TemporalEffectsConfig.from_dict(te_dict)
+    bsj = tc.between_subject_jitter
+    if isinstance(bsj, dict):
+        bsj_value = bsj.get("value", {})
+    else:
+        # already a BetweenSubjectJitterConfig
+        cfg.between_subject_jitter = bsj
+        return cfg
+    cfg.between_subject_jitter = BetweenSubjectJitterConfig.from_dict(bsj_value)
+    return cfg
+
+
 class TaskExecutor:
     """Drives Playwright through a cognitive task using a pre-generated TaskConfig."""
 
     def __init__(
         self,
-        config: TaskConfig,
+        config,  # TaskCard or TaskConfig
         seed: int | None = None,
         headless: bool = False,
     ):
+        # If a TaskCard was passed, project to a TaskConfig view the executor knows.
+        from experiment_bot.taskcard.types import TaskCard
+        if isinstance(config, TaskCard):
+            self._taskcard = config
+            config = _taskcard_to_config(config)
+        else:
+            self._taskcard = None
         self._config = config
         self._headless = headless
         self._rng = np.random.default_rng(seed)

@@ -1068,3 +1068,40 @@ async def test_resolve_response_key_global_js_sentinel_returns_none(sentinel):
     page.evaluate = AsyncMock(return_value=sentinel)
     result = await executor._resolve_response_key(match, page)
     assert result is None, f"Expected None for sentinel {sentinel!r}, got {result!r}"
+
+
+def test_executor_constructs_from_taskcard():
+    """TaskExecutor accepts a TaskCard (dataclass) as well as legacy TaskConfig."""
+    from experiment_bot.taskcard.types import TaskCard
+    from experiment_bot.core.executor import TaskExecutor
+
+    base = {
+        "schema_version": "2.0",
+        "produced_by": {
+            "model": "x", "prompt_sha256": "", "scraper_version": "1.0",
+            "source_sha256": "", "timestamp": "2026-04-23T12:00:00Z",
+            "taskcard_sha256": "",
+        },
+        "task": {"name": "stroop", "constructs": [], "reference_literature": []},
+        "stimuli": [],
+        "navigation": {"phases": []},
+        "runtime": {},
+        "task_specific": {},
+        "performance": {"accuracy": {"default": 0.95}},
+        "response_distributions": {
+            "default": {
+                "distribution": "ex_gaussian",
+                "value": {"mu": 500.0, "sigma": 60.0, "tau": 80.0},
+                "rationale": "",
+            }
+        },
+        "temporal_effects": {},
+        "between_subject_jitter": {},
+        "reasoning_chain": [],
+        "pilot_validation": {},
+    }
+    tc = TaskCard.from_dict(base)
+    executor = TaskExecutor(tc)
+    assert executor._config.task.name == "stroop"
+    # Legacy TaskConfig view still has response_distributions
+    assert "default" in executor._config.response_distributions

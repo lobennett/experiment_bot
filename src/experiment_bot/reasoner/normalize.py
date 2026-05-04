@@ -13,6 +13,8 @@ def normalize_partial(partial: dict) -> dict:
     """Apply all stage-1 normalizations to a partial TaskCard dict."""
     p = copy.deepcopy(partial)
     p["stimuli"] = [_normalize_stimulus(s) for s in p.get("stimuli", [])]
+    p["task"] = _normalize_task(p.get("task", {}))
+    p["navigation"] = _normalize_navigation(p.get("navigation"))
     return p
 
 
@@ -55,3 +57,33 @@ def _normalize_stimulus(s: dict) -> dict:
     out["response"] = response
 
     return out
+
+
+def _normalize_task(t: dict | None) -> dict:
+    """Ensure task dict has a 'name' key."""
+    out = dict(t or {})
+    if "name" not in out or not out["name"]:
+        # Try common alternatives the LLM might use
+        for alt in ("title", "task_name", "id"):
+            if alt in out and out[alt]:
+                out["name"] = out[alt]
+                break
+        else:
+            out["name"] = "unknown"
+    out.setdefault("constructs", [])
+    out.setdefault("reference_literature", [])
+    return out
+
+
+def _normalize_navigation(n) -> dict:
+    """Ensure navigation is shaped as {'phases': [...]}."""
+    if n is None:
+        return {"phases": []}
+    if isinstance(n, list):
+        return {"phases": n}
+    if isinstance(n, dict):
+        if "phases" in n:
+            return n
+        # No phases key — treat the whole dict as a single phase or empty
+        return {"phases": []}
+    return {"phases": []}

@@ -79,3 +79,60 @@ def test_normalize_handles_missing_stimuli_key():
     p = {}
     out = normalize_partial(p)
     assert out.get("stimuli", []) == []
+
+
+def test_normalize_task_adds_name_when_missing():
+    p = {"task": {"constructs": ["x"], "reference_literature": []}}
+    out = normalize_partial(p)
+    assert out["task"]["name"] == "unknown"
+
+
+def test_normalize_task_uses_title_alt():
+    p = {"task": {"title": "Stroop Task"}}
+    out = normalize_partial(p)
+    assert out["task"]["name"] == "Stroop Task"
+
+
+def test_normalize_task_uses_task_name_alt():
+    p = {"task": {"task_name": "Stop Signal"}}
+    out = normalize_partial(p)
+    assert out["task"]["name"] == "Stop Signal"
+
+
+def test_normalize_task_preserves_existing_name():
+    p = {"task": {"name": "Real Name", "title": "Wrong"}}
+    out = normalize_partial(p)
+    assert out["task"]["name"] == "Real Name"
+
+
+def test_normalize_task_adds_missing_constructs_and_lit():
+    p = {"task": {"name": "x"}}
+    out = normalize_partial(p)
+    assert out["task"]["constructs"] == []
+    assert out["task"]["reference_literature"] == []
+
+
+def test_normalize_navigation_wraps_list():
+    p = {"navigation": [{"phase": "instructions", "action": "click"}]}
+    out = normalize_partial(p)
+    assert "phases" in out["navigation"]
+    assert len(out["navigation"]["phases"]) == 1
+    assert out["navigation"]["phases"][0]["phase"] == "instructions"
+
+
+def test_normalize_navigation_preserves_phases_dict():
+    p = {"navigation": {"phases": [{"phase": "x"}]}}
+    out = normalize_partial(p)
+    assert out["navigation"] == {"phases": [{"phase": "x"}]}
+
+
+def test_normalize_navigation_handles_none():
+    p = {}
+    out = normalize_partial(p)
+    assert out["navigation"] == {"phases": []}
+
+
+def test_normalize_navigation_handles_empty_dict():
+    p = {"navigation": {}}
+    out = normalize_partial(p)
+    assert out["navigation"] == {"phases": []}

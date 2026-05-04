@@ -16,7 +16,7 @@ For a detailed technical description, see [`docs/how-it-works.md`](docs/how-it-w
 
 - Python 3.12+
 - [uv](https://docs.astral.sh/uv/) package manager
-- An [Anthropic API key](https://console.anthropic.com/) (needed once per task to generate config)
+- Claude Max subscription (used by `experiment-bot-reason` via the `claude` CLI) **or** an [Anthropic API key](https://console.anthropic.com/) set as `ANTHROPIC_API_KEY` (fallback)
 
 ### Setup
 
@@ -35,36 +35,40 @@ cp .env.example .env
 ### Run
 
 ```bash
-# Point at any experiment URL — Claude infers the task from the source code
-uv run experiment-bot "https://deploy.expfactory.org/preview/10/"
+# Step 1: generate TaskCard (once per experiment, uses Claude)
+uv run experiment-bot-reason "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop
 
-# Headless mode (no visible browser)
-uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --headless
+# Step 2: run a session (no API key required)
+uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless
 
-# Cache under a label for easy reuse
+# With a hint (not recommended — Claude should infer from source)
+uv run experiment-bot-reason "https://example.com/experiment/" --label my_experiment --hint "task switching"
 uv run experiment-bot "https://example.com/experiment/" --label my_experiment --headless
-
-# Optional: provide a hint if the source code alone is ambiguous
-uv run experiment-bot "https://example.com/experiment/" --hint "task switching" --headless
 ```
 
-On first run for a given URL, the bot scrapes the page, sends it to Claude for analysis, and caches the resulting config in `cache/`. Subsequent runs use the cache and do not call the API.
+Run `experiment-bot-reason` once per experiment to generate the TaskCard, then use `experiment-bot` for all sessions. The TaskCard is stored in `taskcards/{label}/` and does not require the API again.
 
 ## How It Works
 
-The bot follows a simple pipeline:
+The bot follows a two-phase pipeline:
 
+**Phase 1 — Reason** (`experiment-bot-reason`, run once per experiment):
 ```
-URL → Scrape HTML/JS → Claude API → TaskConfig JSON → Execute via Playwright → Save Data
+URL → Scrape HTML/JS → 5-stage Reasoner → TaskCard JSON → taskcards/{label}/
 ```
-
 1. **Scrape**: Fetches the experiment page and its linked JavaScript/CSS resources.
-2. **Analyze**: Sends the source to Claude with a structural schema. Claude identifies the task, infers behavioral parameters from the literature, and returns a TaskConfig JSON.
-3. **Cache**: The config is saved to `cache/{label}/config.json` for reuse.
-4. **Jitter**: Between-subject variability is applied (magnitudes determined by Claude).
-5. **Execute**: Playwright drives the browser — navigating instructions, detecting stimuli, sampling response times, pressing keys, and capturing output data.
+2. **Reason**: The 5-stage Reasoner runs structural inference, behavioral parameter estimation, literature citation, DOI verification, and sensitivity tagging — producing a peer-reviewable TaskCard.
+3. **Store**: The TaskCard is written to `taskcards/{label}/{hash}.json` (content-addressed, immutable).
 
-All behavioral decisions (how fast to respond, how accurate to be, which temporal effects to include) are made by Claude during step 2. The executor applies them mechanically.
+**Phase 2 — Execute** (`experiment-bot`, run per session):
+```
+TaskCard → Sample session params → Playwright session → Save Data
+```
+4. **Load**: The executor loads the latest TaskCard for the label.
+5. **Jitter**: Per-session distributional parameters are sampled (deterministic given `--seed`).
+6. **Execute**: Playwright drives the browser — navigating instructions, detecting stimuli, sampling response times, pressing keys, and capturing output data.
+
+All behavioral decisions (how fast to respond, how accurate to be, which temporal effects to include) are determined by the Reasoner in Phase 1. The executor applies them mechanically.
 
 For the full technical description including the config schema, response time modeling, and trial execution loop, see **[`docs/how-it-works.md`](docs/how-it-works.md)**.
 
@@ -73,9 +77,8 @@ For the full technical description including the config schema, response time mo
 | Flag | Description |
 |------|-------------|
 | `--hint TEXT` | Optional hint about the task type (not recommended — Claude should infer from source) |
-| `--label TEXT` | Cache label (default: URL hash) |
+| `--label TEXT` | TaskCard label (default: URL hash) |
 | `--headless` | Run browser without a visible window |
-| `--regenerate-config` | Force re-analysis via Claude API (ignores cache) |
 | `--rt-mean FLOAT` | Override mean reaction time (mu) in ms |
 | `--accuracy FLOAT` | Override primary accuracy target (0-1) |
 | `-v, --verbose` | Enable debug logging |
@@ -87,9 +90,6 @@ For collecting multiple sessions of bot data:
 ```bash
 # Sequential batch: 5 instances of each task, one at a time (recommended)
 bash scripts/batch_run.sh --count 5 --headless
-
-# Sequential with config regeneration on the first run of each task
-bash scripts/batch_run.sh --count 5 --headless --regenerate
 
 # Parallel batch: 5 instances each, launched simultaneously with stagger delays
 bash scripts/launch.sh --headless --count 5
@@ -113,42 +113,32 @@ Each run saves to `output/{task_name}/{timestamp}/`:
 
 For detailed descriptions of each file and what generated it, see **[`examples/README.md`](examples/README.md)**. The `examples/` directory contains representative output from one run of each validated task.
 
-## Running the Bot
+## Workflow: two-step (reason then execute)
 
-### First run (generates config via Claude API)
+experiment-bot is split into two commands:
 
-The first time the bot encounters a new experiment URL, it scrapes the source, calls Claude to generate a TaskConfig, runs a pilot validation, refines the config if needed, and caches it. This requires an API key and takes a few minutes.
+1. `experiment-bot-reason <url> --label <label>` — reads the experiment source,
+   runs the 5-stage Reasoner (structural inference → behavioral parameters →
+   literature citations → DOI verification → sensitivity tagging), and writes
+   a peer-reviewable TaskCard to `taskcards/{label}/{hash}.json`. Uses your
+   Claude Max subscription via the `claude` CLI by default; falls back to the
+   Anthropic API with `ANTHROPIC_API_KEY` if `claude` is not on PATH. Run once
+   per experiment; the TaskCard is content-addressed and immutable.
 
-```bash
-# Generate config + run the task
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless
-
-# Force regeneration (e.g., after updating the prompt or schema)
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --regenerate-config --headless
-```
-
-Use `--regenerate-config` whenever you have changed `prompts/system.md`, `prompts/schema.json`, or the config dataclasses — otherwise the bot reuses the old cached config.
-
-### Subsequent runs (uses cached config)
-
-Once a config is cached, subsequent runs skip the API call entirely. No API key is needed.
+2. `experiment-bot <url> --label <label> --headless` — loads the latest
+   TaskCard for the given label, samples per-session distributional parameters
+   (deterministic given a `--seed`), and runs a Playwright session.
 
 ```bash
-# Uses cached config — fast, no API call
+# Step 1: generate TaskCard (once per experiment)
+uv run experiment-bot-reason "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal
+
+# Step 2: run sessions (no API key required)
 uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless
 ```
 
-### When to regenerate
-
-Regenerate configs when:
-- You've updated `src/experiment_bot/prompts/system.md` or `schema.json`
-- You've changed config dataclasses in `config.py`
-- You want Claude to re-infer behavioral parameters (e.g., after prompt improvements)
-- The experiment source code has changed
-
-You do NOT need to regenerate when:
-- Running additional sessions with the same config
-- Between-subject jitter is applied fresh on every run automatically
+See `docs/superpowers/specs/2026-04-23-taskcard-reasoner-design.md` for the
+TaskCard schema and reasoning pipeline.
 
 ## Analyzing Data
 
@@ -202,8 +192,8 @@ Both files include exclusion columns. The notebook filters to rows where all thr
 # Count completed bot runs
 find output -name "experiment_data.*" | wc -l
 
-# Check cached configs
-ls cache/*/config.json
+# Check generated TaskCards
+ls taskcards/*/
 ```
 
 ## Project Structure
@@ -211,22 +201,21 @@ ls cache/*/config.json
 ```
 experiment-bot/
 ├── src/experiment_bot/
-│   ├── cli.py                  # Entry point
+│   ├── cli.py                  # experiment-bot entry point
+│   ├── reasoner_cli.py         # experiment-bot-reason entry point
 │   ├── core/
 │   │   ├── config.py           # TaskConfig data model (all dataclasses)
 │   │   ├── distributions.py    # Ex-Gaussian RT sampling, temporal effects
 │   │   ├── executor.py         # Playwright task execution engine
 │   │   ├── stimulus.py         # Stimulus detection rules
-│   │   ├── phase_detection.py  # Experiment phase detection
-│   │   ├── analyzer.py         # Claude API integration
-│   │   ├── scraper.py          # Experiment source scraping
-│   │   └── cache.py            # Config caching
+│   │   └── phase_detection.py  # Experiment phase detection
+│   ├── taskcard/               # TaskCard schema and I/O
+│   ├── reasoner/               # 5-stage reasoning pipeline
+│   ├── llm/                    # Claude CLI + API client shim
 │   ├── navigation/             # Instruction screen navigation
 │   ├── output/                 # Data capture and output writing
-│   └── prompts/
-│       ├── system.md           # Claude system prompt (technical + behavioral)
-│       └── schema.json         # TaskConfig JSON schema
-├── cache/                      # Cached TaskConfigs per experiment
+│   └── scraper.py              # Experiment source scraping
+├── taskcards/                  # Content-addressed TaskCards per experiment
 ├── data/human/                 # Human reference data (RDoC)
 ├── examples/                   # Sample output from one run per task (see examples/README.md)
 ├── scripts/

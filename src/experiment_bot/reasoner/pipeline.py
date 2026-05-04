@@ -11,7 +11,13 @@ from experiment_bot.reasoner.stage5_sensitivity import run_stage5
 
 
 class ReasonerPipeline:
-    """Runs stages 1-5, persisting partial state after each so --resume works."""
+    """Runs stages 1-5, persisting partial state after each so --resume works.
+
+    Accumulates a reasoning_chain across stages, stored under the partial's
+    `_reasoning_chain` key (preserved on disk for --resume). The CLI later
+    promotes this to `reasoning_chain` (no underscore) when constructing
+    the TaskCard.
+    """
 
     def __init__(self, client: LLMClient, work_dir: Path):
         self._client = client
@@ -41,19 +47,27 @@ class ReasonerPipeline:
             if res is not None:
                 start_after, partial = res
 
+        # Initialize the reasoning chain (preserved from saved partial if present)
+        partial.setdefault("_reasoning_chain", [])
+
         if start_after < 1:
-            partial = await run_stage1(self._client, bundle)
+            partial, step = await run_stage1(self._client, bundle)
+            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 1, partial)
         if start_after < 2:
-            partial = await run_stage2(self._client, partial)
+            partial, step = await run_stage2(self._client, partial)
+            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 2, partial)
         if start_after < 3:
-            partial = await run_stage3(self._client, partial)
+            partial, step = await run_stage3(self._client, partial)
+            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 3, partial)
         if start_after < 4:
-            partial = await run_stage4(partial)
+            partial, step = await run_stage4(partial)
+            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 4, partial)
         if start_after < 5:
-            partial = await run_stage5(self._client, partial)
+            partial, step = await run_stage5(self._client, partial)
+            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 5, partial)
         return partial

@@ -17,7 +17,14 @@ async def run_stage5(client: LLMClient, partial: dict) -> dict:
 
     result = copy.deepcopy(partial)
     for path, level in tags_map.items():
-        section, key, param = path.split("/", 2)
+        parts = path.split("/")
+        if len(parts) == 3:
+            section, key, param = parts
+        elif len(parts) == 2:
+            section, param = parts
+            key = None
+        else:
+            continue  # malformed path; skip
         if section == "response_distributions":
             target = result.get("response_distributions", {}).get(key)
         elif section == "temporal_effects":

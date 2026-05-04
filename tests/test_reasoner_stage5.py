@@ -55,3 +55,24 @@ async def test_stage5_does_not_mutate_partial():
     snapshot = {"response_distributions": {"c": {"value": {"mu": 100}}}}
     await run_stage5(client=fake, partial=partial)
     assert partial == snapshot
+
+
+@pytest.mark.asyncio
+async def test_stage5_handles_two_part_jitter_path():
+    """LLM may return paths like 'between_subject_jitter/rt_mean_sd_ms' (2 parts)."""
+    fake = AsyncMock()
+    fake.complete = AsyncMock(return_value=LLMResponse(text="""
+    {
+      "between_subject_jitter/rt_mean_sd_ms": "high",
+      "between_subject_jitter/accuracy_sd": "medium"
+    }
+    """))
+    partial = {
+        "between_subject_jitter": {
+            "value": {"rt_mean_sd_ms": 60, "accuracy_sd": 0.02},
+        }
+    }
+    out = await run_stage5(client=fake, partial=partial)
+    bsj = out["between_subject_jitter"]
+    assert bsj["sensitivity"]["rt_mean_sd_ms"] == "high"
+    assert bsj["sensitivity"]["accuracy_sd"] == "medium"

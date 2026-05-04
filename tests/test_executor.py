@@ -972,6 +972,37 @@ def _minimal_config_dict() -> dict:
     return copy.deepcopy(SAMPLE_CONFIG)
 
 
+@pytest.mark.live
+def test_live_executor_runs_against_regenerated_taskcard():
+    """End-to-end smoke against a real Playwright session.
+
+    Skipped by default. Run with `RUN_LIVE_LLM=1 uv run pytest -m live -v`.
+    Verifies executor + TaskCard integration on expfactory_stroop.
+    """
+    import asyncio
+    import os
+    from pathlib import Path
+    from experiment_bot.core.executor import TaskExecutor
+    from experiment_bot.taskcard.loader import load_latest
+    from experiment_bot.taskcard.sampling import sample_session_params
+
+    if not os.environ.get("RUN_LIVE_LLM"):
+        pytest.skip("Set RUN_LIVE_LLM=1 to run live tests")
+
+    label = "expfactory_stroop"
+    if not (Path("taskcards") / label).exists():
+        pytest.skip(f"{label} TaskCard not present")
+
+    tc = load_latest(Path("taskcards"), label=label)
+    sampled = sample_session_params(tc.to_dict(), seed=42)
+    for cond, params in sampled.items():
+        if cond in tc.response_distributions:
+            tc.response_distributions[cond].value.update(params)
+
+    ex = TaskExecutor(tc, headless=True)
+    asyncio.run(ex.run("https://deploy.expfactory.org/preview/10/"))
+
+
 # ---------------------------------------------------------------------------
 # Important Issue 1: cached condition-name attributes
 # ---------------------------------------------------------------------------

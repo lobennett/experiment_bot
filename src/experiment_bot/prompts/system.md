@@ -203,3 +203,20 @@ Return ONLY valid JSON conforming to the provided schema. No markdown, no explan
 4. Map the experiment's internal state variables to observable DOM/JS state
 5. Determine the navigation sequence from page load to first trial
 6. Find completion/data-saving logic to set up phase detection and data capture
+
+---
+
+## REQUIRED runtime fields summary (executor will fail if missing)
+
+The Reasoner enforces these fields via a post-stage validator. Failing
+to populate them causes the pipeline to abort with a specific error.
+
+| Field | Required when | Notes |
+|---|---|---|
+| `runtime.advance_behavior.advance_keys` | Experiment uses keypress to advance | Empty list OK only if `feedback_selectors` covers advance |
+| `runtime.advance_behavior.feedback_fallback_keys` | Experiment uses keypress to dismiss feedback | Same fallback rule |
+| `runtime.data_capture.method` | Always | One of `js_expression`, `button_click`, `""`. `""` permitted only if no native data save exists |
+| `runtime.data_capture.expression` | `method == "js_expression"` | JS expression returning data string |
+| `runtime.data_capture.button_selector` | `method == "button_click"` | CSS selector for "show data" button |
+| `runtime.data_capture.result_selector` | `method == "button_click"` | CSS selector for result element |
+| `runtime.data_capture.format` | `method != ""` | `csv`, `tsv`, or `json` |

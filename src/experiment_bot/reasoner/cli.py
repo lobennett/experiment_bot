@@ -31,12 +31,14 @@ def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
 
 
 async def _run(url, label, hint, taskcards_dir, work_dir, resume):
+    from experiment_bot.reasoner.normalize import normalize_partial
     bundle = await scrape_experiment_source(url=url, hint=hint)
     client = build_default_client()
     pipeline = ReasonerPipeline(client=client, work_dir=work_dir)
     final = await pipeline.run(bundle, label=label, resume=resume)
     if "schema_version" not in final:
         final = _wrap_for_taskcard(final, url)
+    final = normalize_partial(final)
     tc = TaskCard.from_dict(final)
     out = save_taskcard(tc, taskcards_dir, label=label)
     click.echo(f"TaskCard written: {out}")

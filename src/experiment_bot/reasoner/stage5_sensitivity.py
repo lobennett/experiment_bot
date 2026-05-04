@@ -4,11 +4,12 @@ import json
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.stage1_structural import _extract_json
+from experiment_bot.taskcard.types import ReasoningStep
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
-async def run_stage5(client: LLMClient, partial: dict) -> dict:
+async def run_stage5(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 5: sensitivity tags per parameter."""
     system = (PROMPTS_DIR / "stage5_sensitivity.md").read_text()
     user = "## Behavioral parameters\n" + json.dumps(partial, indent=2)
@@ -41,4 +42,24 @@ async def run_stage5(client: LLMClient, partial: dict) -> dict:
         if not isinstance(existing, dict):
             target["sensitivity"] = {}
         target["sensitivity"][param] = level
-    return result
+
+    n_high = 0
+    n_total = 0
+    for section in ("response_distributions", "temporal_effects"):
+        for v in result.get(section, {}).values():
+            sens = v.get("sensitivity", {})
+            if isinstance(sens, dict):
+                n_total += len(sens)
+                n_high += sum(1 for s in sens.values() if s == "high")
+    bsj_sens = result.get("between_subject_jitter", {}).get("sensitivity", {})
+    if isinstance(bsj_sens, dict):
+        n_total += len(bsj_sens)
+        n_high += sum(1 for s in bsj_sens.values() if s == "high")
+
+    step = ReasoningStep(
+        step="stage5_sensitivity",
+        inference=f"Tagged sensitivity on {n_total} parameters; {n_high} are high-sensitivity.",
+        evidence_lines=[],
+        confidence="medium",
+    )
+    return result, step

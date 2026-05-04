@@ -19,9 +19,12 @@ async def test_stage5_tags_each_parameter():
             "congruent": {"value": {"mu": 580, "sigma": 80, "tau": 100}}
         }
     }
-    out = await run_stage5(client=fake, partial=partial)
+    out, step = await run_stage5(client=fake, partial=partial)
     cong = out["response_distributions"]["congruent"]
     assert cong["sensitivity"] == {"mu": "high", "sigma": "medium", "tau": "medium"}
+    from experiment_bot.taskcard.types import ReasoningStep
+    assert isinstance(step, ReasoningStep)
+    assert step.step == "stage5_sensitivity"
 
 
 @pytest.mark.asyncio
@@ -40,7 +43,7 @@ async def test_stage5_tags_temporal_effects():
             }
         }
     }
-    out = await run_stage5(client=fake, partial=partial)
+    out, _step = await run_stage5(client=fake, partial=partial)
     pes = out["temporal_effects"]["post_error_slowing"]
     assert pes["sensitivity"] == {"slowing_ms_min": "medium", "slowing_ms_max": "low"}
 
@@ -53,7 +56,7 @@ async def test_stage5_does_not_mutate_partial():
     """))
     partial = {"response_distributions": {"c": {"value": {"mu": 100}}}}
     snapshot = {"response_distributions": {"c": {"value": {"mu": 100}}}}
-    await run_stage5(client=fake, partial=partial)
+    await run_stage5(client=fake, partial=partial)  # tuple return; discard both values
     assert partial == snapshot
 
 
@@ -72,7 +75,7 @@ async def test_stage5_handles_two_part_jitter_path():
             "value": {"rt_mean_sd_ms": 60, "accuracy_sd": 0.02},
         }
     }
-    out = await run_stage5(client=fake, partial=partial)
+    out, _step = await run_stage5(client=fake, partial=partial)
     bsj = out["between_subject_jitter"]
     assert bsj["sensitivity"]["rt_mean_sd_ms"] == "high"
     assert bsj["sensitivity"]["accuracy_sd"] == "medium"

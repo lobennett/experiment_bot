@@ -77,3 +77,40 @@ def test_reason_cli_wraps_partial_when_envelope_missing(tmp_path):
     saved = json.loads(next((tmp_path / "stroop").glob("*.json")).read_text())
     assert saved["schema_version"] == "2.0"
     assert "produced_by" in saved
+
+
+def test_reason_cli_writes_reasoning_chain_to_taskcard(tmp_path):
+    runner = CliRunner()
+    fake_partial = {
+        "task": {"name": "x", "constructs": [], "reference_literature": []},
+        "stimuli": [], "navigation": {"phases": []}, "runtime": {},
+        "task_specific": {}, "performance": {"accuracy": {"d": 0.9}},
+        "response_distributions": {}, "temporal_effects": {},
+        "between_subject_jitter": {},
+        "_reasoning_chain": [
+            {"step": "stage1_structural", "inference": "stroop", "evidence_lines": [], "confidence": "high", "input_hash": ""},
+            {"step": "stage2_behavioral", "inference": "ex-gauss", "evidence_lines": [], "confidence": "medium", "input_hash": ""},
+        ],
+    }
+
+    class FakeBundle:
+        url = "http://x"
+        source_files = {}
+        description_text = ""
+        hint = ""
+        metadata = {}
+
+    with patch("experiment_bot.reasoner.cli.scrape_experiment_source",
+               new=AsyncMock(return_value=FakeBundle())), \
+         patch("experiment_bot.reasoner.cli.build_default_client",
+               return_value=object()), \
+         patch("experiment_bot.reasoner.cli.ReasonerPipeline") as Pipe:
+        instance = Pipe.return_value
+        instance.run = AsyncMock(return_value=fake_partial)
+        result = runner.invoke(main, [
+            "http://x", "--label", "stroop", "--taskcards-dir", str(tmp_path),
+        ])
+    assert result.exit_code == 0, result.output
+    saved = json.loads(next((tmp_path / "stroop").glob("*.json")).read_text())
+    assert len(saved["reasoning_chain"]) == 2
+    assert saved["reasoning_chain"][0]["step"] == "stage1_structural"

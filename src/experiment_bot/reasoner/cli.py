@@ -39,6 +39,9 @@ async def _run(url, label, hint, taskcards_dir, work_dir, resume):
     if "schema_version" not in final:
         final = _wrap_for_taskcard(final, url)
     final = normalize_partial(final)
+    # Promote internal _reasoning_chain to the public reasoning_chain field
+    if "_reasoning_chain" in final:
+        final["reasoning_chain"] = final.pop("_reasoning_chain")
     tc = TaskCard.from_dict(final)
     out = save_taskcard(tc, taskcards_dir, label=label)
     click.echo(f"TaskCard written: {out}")

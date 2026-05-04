@@ -46,7 +46,7 @@ async def _run_task(
     for cond, params in sampled.items():
         if cond in taskcard.response_distributions:
             taskcard.response_distributions[cond].value.update(params)
-    click.echo(f"Sampled session parameters for {len(sampled)} conditions")
+    click.echo(f"Seed: {seed} | Sampled session parameters for {len(sampled)} conditions")
 
     click.echo(f"Running task at {url}")
     executor = TaskExecutor(taskcard, headless=headless)

@@ -3,6 +3,7 @@ import asyncio
 import copy
 from datetime import datetime, timezone
 from experiment_bot.reasoner.openalex import verify_doi
+from experiment_bot.taskcard.types import ReasoningStep
 
 
 def _iter_citations(partial: dict):
@@ -14,7 +15,7 @@ def _iter_citations(partial: dict):
         yield cit
 
 
-async def run_stage4(partial: dict) -> dict:
+async def run_stage4(partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 4: verify each citation's DOI via OpenAlex. Non-blocking on failures."""
     result = copy.deepcopy(partial)
 
@@ -30,4 +31,13 @@ async def run_stage4(partial: dict) -> dict:
     citations = list(_iter_citations(result))
     if citations:
         await asyncio.gather(*[_verify_one(c) for c in citations])
-    return result
+
+    n_total = len(citations)
+    n_verified = sum(1 for c in citations if c.get("doi_verified"))
+    step = ReasoningStep(
+        step="stage4_doi_verify",
+        inference=f"Submitted {n_total} citations to OpenAlex; {n_verified} verified.",
+        evidence_lines=[],
+        confidence="high",
+    )
+    return result, step

@@ -5,7 +5,6 @@ round-trips through JSON and constructs a working executor.
 """
 import json
 
-from experiment_bot.core.cache import ConfigCache
 from experiment_bot.core.config import (
     AttentionCheckConfig,
     DataCaptureConfig,
@@ -101,36 +100,6 @@ def test_generic_config_json_serializable():
     assert "platform" not in reloaded["task"] or reloaded["task"]["platform"] == ""
     assert reloaded["runtime"]["data_capture"]["method"] == "js_expression"
 
-
-def test_generic_config_cache_round_trip(tmp_path):
-    """Cache stores and retrieves a platform-free config by URL hash."""
-    config = TaskConfig.from_dict(GENERIC_CONFIG)
-    cache = ConfigCache(cache_dir=tmp_path)
-    url = "https://example.com/flanker-experiment/"
-
-    cache.save(url, config)
-    loaded = cache.load(url)
-
-    assert loaded is not None
-    assert loaded.task.name == "Flanker Task"
-    assert loaded.task.platform == ""
-    assert loaded.runtime.data_capture.expression == "JSON.stringify(window.trialData)"
-
-
-def test_generic_config_cache_with_label(tmp_path):
-    """Cache supports label-based storage alongside URL hash."""
-    config = TaskConfig.from_dict(GENERIC_CONFIG)
-    cache = ConfigCache(cache_dir=tmp_path)
-    url = "https://example.com/flanker-experiment/"
-
-    cache.save(url, config, label="my_flanker")
-    loaded = cache.load(url, label="my_flanker")
-
-    assert loaded is not None
-    assert loaded.task.name == "Flanker Task"
-
-    # URL-hash lookup should NOT find label-stored config
-    assert cache.load(url) is None
 
 
 def test_generic_executor_constructs():

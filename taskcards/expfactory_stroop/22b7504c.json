@@ -91,13 +91,17 @@
     },
     "advance_behavior": {
       "pre_keypress_js": "",
-      "advance_keys": [],
+      "advance_keys": [
+        "Enter"
+      ],
       "exit_pager_key": "",
       "advance_interval_polls": 100,
       "feedback_selectors": [
         "button"
       ],
-      "feedback_fallback_keys": []
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
     },
     "trial_interrupt": {
       "detection_condition": "",

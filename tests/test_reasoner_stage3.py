@@ -39,7 +39,7 @@ async def test_stage3_attaches_citations_and_ranges():
         "temporal_effects": {},
         "between_subject_jitter": {},
     }
-    out = await run_stage3(client=fake, partial=partial)
+    out, step = await run_stage3(client=fake, partial=partial)
     cong = out["response_distributions"]["congruent"]
     assert cong["citations"]
     # Citations from BOTH mu and sigma paths get merged
@@ -53,6 +53,9 @@ async def test_stage3_attaches_citations_and_ranges():
     # between_subject_sd merged similarly
     assert cong["between_subject_sd"]["mu"] == 40
     assert cong["between_subject_sd"]["sigma"] == 15
+    from experiment_bot.taskcard.types import ReasoningStep
+    assert isinstance(step, ReasoningStep)
+    assert step.step == "stage3_citations"
 
 
 def test_enumerate_parameters_lists_all_paths():

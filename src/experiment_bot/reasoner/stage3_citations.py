@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.stage1_structural import _extract_json
+from experiment_bot.taskcard.types import ReasoningStep
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
@@ -29,7 +30,7 @@ def _enumerate_parameters(partial: dict) -> list[str]:
     return paths
 
 
-async def run_stage3(client: LLMClient, partial: dict) -> dict:
+async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 3: citations + literature_range + between_subject_sd per parameter (batched)."""
     system = (PROMPTS_DIR / "stage3_citations.md").read_text()
     paths = _enumerate_parameters(partial)
@@ -66,4 +67,20 @@ async def run_stage3(client: LLMClient, partial: dict) -> dict:
             target.setdefault("literature_range", {}).update(body["literature_range"])
         if body.get("between_subject_sd") is not None:
             target.setdefault("between_subject_sd", {}).update(body["between_subject_sd"])
-    return result
+
+    n_cits = 0
+    for section in ("response_distributions", "temporal_effects"):
+        for v in result.get(section, {}).values():
+            n_cits += len(v.get("citations", []))
+    n_cits += len(result.get("between_subject_jitter", {}).get("citations", []))
+
+    step = ReasoningStep(
+        step="stage3_citations",
+        inference=(
+            f"Produced {n_cits} citations across {len(paths)} numeric parameters "
+            f"with literature_range and between_subject_sd."
+        ),
+        evidence_lines=[],
+        confidence="medium",
+    )
+    return result, step

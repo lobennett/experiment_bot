@@ -87,6 +87,7 @@ def eligible_effects(paradigm_classes: list[str]) -> set[str]:
 # Wire handlers into the registry (Task A2)
 # ---------------------------------------------------------------------------
 from experiment_bot.effects import handlers as _h  # noqa: E402
+from experiment_bot.effects.validation_metrics import cse_magnitude  # noqa: E402
 
 EFFECT_REGISTRY["autocorrelation"].handler = _h.apply_autocorrelation
 EFFECT_REGISTRY["fatigue_drift"].handler = _h.apply_fatigue_drift
@@ -102,3 +103,5 @@ EFFECT_REGISTRY["congruency_sequence"] = EffectType(
     handler=_h.apply_cse,
     validation_metric=None,  # B3 fills in
 )
+
+EFFECT_REGISTRY["congruency_sequence"].validation_metric = cse_magnitude

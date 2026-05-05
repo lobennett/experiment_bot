@@ -338,6 +338,7 @@ class TaskMetadata:
     constructs: list[str]
     reference_literature: list[str]
     platform: str = ""  # Optional — Claude may infer platform or leave blank
+    paradigm_classes: list[str] = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, d: dict) -> TaskMetadata:
@@ -346,6 +347,7 @@ class TaskMetadata:
             constructs=d.get("constructs", []),
             reference_literature=d.get("reference_literature", []),
             platform=d.get("platform", ""),
+            paradigm_classes=d.get("paradigm_classes", []),
         )
 
     def to_dict(self) -> dict:

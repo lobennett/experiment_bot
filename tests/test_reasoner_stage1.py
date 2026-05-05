@@ -8,7 +8,7 @@ from experiment_bot.taskcard.types import ReasoningStep
 
 COMPLETE_STROOP_RESPONSE = """
 {
-  "task": {"name": "Stroop", "constructs": ["cognitive control"], "reference_literature": []},
+  "task": {"name": "Stroop", "constructs": ["cognitive control"], "reference_literature": [], "paradigm_classes": ["conflict", "speeded_choice"]},
   "stimuli": [
     {"id": "stroop_congruent", "description": "color matches word",
      "detection": {"method": "dom_query", "selector": ".congruent"},
@@ -93,3 +93,13 @@ async def test_stage1_extracts_json_from_markdown_fence():
     bundle = SourceBundle(url="x", source_files={}, description_text="")
     partial, _step = await run_stage1(client=fake, bundle=bundle)
     assert partial["task"]["name"] == "Stroop"
+
+
+@pytest.mark.asyncio
+async def test_stage1_user_message_includes_paradigm_classes_section():
+    fake = AsyncMock()
+    fake.complete = AsyncMock(return_value=LLMResponse(text=COMPLETE_STROOP_RESPONSE))
+    bundle = SourceBundle(url="x", source_files={}, description_text="")
+    await run_stage1(client=fake, bundle=bundle)
+    user_msg = fake.complete.await_args.kwargs["user"]
+    assert "paradigm_classes" in user_msg

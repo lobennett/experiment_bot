@@ -43,6 +43,20 @@ defaults.
 
 - `runtime.data_capture.format` (string: "csv" | "tsv" | "json") — required
   alongside `method` when `method != ""`.
+
+## REQUIRED task metadata
+
+- `task.paradigm_classes` (list of strings) — abstract classes the paradigm
+  belongs to. Open-ended vocabulary; used to filter which paradigm-specific
+  sequential effects apply. Examples:
+  - `["conflict"]` for Stroop, Flanker, Simon, Eriksen tasks (anything with a
+    manipulable congruency dimension).
+  - `["interrupt"]` for stop-signal, go/no-go tasks.
+  - `["task_switching"]` for cued or alternating-runs paradigms.
+  - `["memory"]` for n-back, list-recall paradigms.
+  - `["speeded_choice"]` is the universal class — always include it for any
+    speeded-response paradigm. (Most tasks should have at least one specific
+    class plus `"speeded_choice"`.)
 """
 
 

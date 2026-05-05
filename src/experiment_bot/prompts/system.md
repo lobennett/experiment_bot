@@ -6,6 +6,24 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
 ---
 
+## Paradigm classes
+
+Each task you analyze has a `task.paradigm_classes` field — a list of strings
+naming the abstract paradigm families this task belongs to. The vocabulary is
+open-ended; canonical values include:
+
+- `"conflict"` — interference paradigms (Stroop, Flanker, Simon).
+- `"interrupt"` — response-inhibition (stop-signal, go/no-go).
+- `"task_switching"` — task-set switching (cued or alternating).
+- `"memory"` — working-memory or list-recall (n-back, Sternberg).
+- `"speeded_choice"` — universal class for any speeded-response task.
+
+The classes are used to filter which paradigm-specific sequential effects
+(CSE, switch cost, list-length effect, etc.) apply to a given task in
+Stage 2's behavioral inference.
+
+---
+
 ## Section A — Technical Instructions
 
 ### 1. Stimulus-Response Mappings

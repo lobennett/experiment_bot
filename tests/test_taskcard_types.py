@@ -94,3 +94,20 @@ def test_taskcard_round_trip_minimal():
     out = tc.to_dict()
     assert out["schema_version"] == "2.0"
     assert out["produced_by"]["model"] == "claude-opus-4-7"
+
+
+def test_task_metadata_has_paradigm_classes_field():
+    from experiment_bot.core.config import TaskMetadata
+    tm = TaskMetadata.from_dict({
+        "name": "Stroop",
+        "constructs": [],
+        "reference_literature": [],
+        "paradigm_classes": ["conflict"],
+    })
+    assert tm.paradigm_classes == ["conflict"]
+
+
+def test_task_metadata_paradigm_classes_default_empty():
+    from experiment_bot.core.config import TaskMetadata
+    tm = TaskMetadata.from_dict({"name": "x", "constructs": [], "reference_literature": []})
+    assert tm.paradigm_classes == []

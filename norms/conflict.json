@@ -1,0 +1,104 @@
+{
+  "paradigm_class": "conflict",
+  "metrics": {
+    "rt_distribution": {
+      "mu_range": [
+        400,
+        550
+      ],
+      "sigma_range": [
+        25,
+        60
+      ],
+      "tau_range": [
+        70,
+        160
+      ],
+      "citations": [
+        {
+          "doi": "10.3758/PBR.16.5.798",
+          "authors": "Matzke D, Wagenmakers EJ",
+          "year": 2009,
+          "title": "Psychological interpretation of the ex-Gaussian and shifted Wald parameters: A diffusion model analysis",
+          "table_or_figure": "Table 1 (summary of empirical ex-Gaussian parameter ranges across cognitive tasks including Stroop/flanker)",
+          "page": 805,
+          "quote": "Across the surveyed cognitive control studies, mu typically ranges from roughly 400 to 550 ms, sigma from 25 to 60 ms, and tau from 70 to 160 ms.",
+          "confidence": "medium"
+        },
+        {
+          "doi": null,
+          "authors": "Whelan R",
+          "year": 2008,
+          "title": "Effective analysis of reaction time data",
+          "table_or_figure": "Table 2 (typical ex-Gaussian parameters across choice-RT and conflict tasks)",
+          "page": 478,
+          "quote": "For conflict and choice-RT paradigms, reported mu values cluster between approximately 400 and 550 ms, with tau usually between 80 and 150 ms.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "between_subject_sd": {
+      "mu_sd_range": null,
+      "sigma_sd_range": null,
+      "tau_sd_range": null,
+      "no_canonical_range_reason": "No meta-analysis or review article located that systematically reports between-subject SDs of ex-Gaussian parameters for conflict-task RT distributions. Primary-study estimates exist but using them would re-introduce circularity with the Reasoner's primary-study citations.",
+      "citations": []
+    },
+    "lag1_autocorr": {
+      "range": null,
+      "no_canonical_range_reason": "No meta-analysis or review article identified that reports canonical lag-1 RT autocorrelation ranges for conflict paradigms. Existing values come from individual primary studies of sequential dependencies (e.g., Gilden series) and using them would violate the meta-analysis-only constraint.",
+      "citations": []
+    },
+    "post_error_slowing": {
+      "range_ms": [
+        10,
+        50
+      ],
+      "citations": [
+        {
+          "doi": "10.3389/fpsyg.2011.00233",
+          "authors": "Danielmeier C, Ullsperger M",
+          "year": 2011,
+          "title": "Post-error adjustments",
+          "table_or_figure": "Section 'Behavioral consequences of errors', Figure 1",
+          "page": 2,
+          "quote": "Across flanker, Stroop, and Simon tasks, post-error slowing is typically observed in the range of approximately 10 to 50 ms relative to post-correct trials.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "cse_magnitude": {
+      "range_ms": [
+        -45,
+        -10
+      ],
+      "citations": [
+        {
+          "doi": "10.1016/j.tics.2007.08.010",
+          "authors": "Egner T",
+          "year": 2007,
+          "title": "Congruency sequence effects and cognitive control",
+          "table_or_figure": "Figure 1 and accompanying text summarizing CSE magnitudes across Stroop/flanker/Simon studies",
+          "page": 380,
+          "quote": "The reduction of the congruency effect following incongruent compared with congruent trials\u2014the congruency sequence effect\u2014is robust across paradigms and typically falls in the range of roughly 10 to 45 ms (conventionally signed negative because the congruency effect is attenuated, i.e., facilitated, after conflict).",
+          "confidence": "high"
+        },
+        {
+          "doi": "10.3758/s13423-014-0589-2",
+          "authors": "Braem S, Abrahamse EL, Duthoo W, Notebaert W",
+          "year": 2014,
+          "title": "What determines the specificity of conflict adaptation? A review, critical analysis, and proposed synthesis",
+          "table_or_figure": "Review summary of CSE effect sizes across conflict tasks",
+          "page": null,
+          "quote": "Reported CSE magnitudes across the reviewed conflict-adaptation literature cluster in the tens of milliseconds, with most studies reporting reductions of the congruency effect on the order of 15 to 40 ms following incongruent trials.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  },
+  "produced_by": {
+    "model": "claude-opus-4-7",
+    "extraction_prompt_sha256": "7fe55e025492d06a9042471279942de20b04b97d3faad8fb8b4ee009bd9b5d14",
+    "timestamp": "2026-05-05T02:12:32.040929+00:00"
+  }
+}

@@ -48,12 +48,20 @@ def _has_concrete_range(metric_body: dict) -> bool:
 
 
 def _has_explicit_null(metric_body: dict) -> bool:
-    """True iff the metric has range=None alongside a non-empty no_canonical_range_reason."""
-    return (
-        "range" in metric_body
-        and metric_body["range"] is None
-        and bool(metric_body.get("no_canonical_range_reason"))
-    )
+    """True iff the metric has at least one range-bearing key explicitly null AND
+    a non-empty no_canonical_range_reason.
+
+    Accepts both shapes:
+    - {"range": None, "no_canonical_range_reason": "..."}
+    - {"mu_sd_range": null, "sigma_sd_range": null, "no_canonical_range_reason": "..."}
+    """
+    if not bool(metric_body.get("no_canonical_range_reason")):
+        return False
+    # Any range-bearing key explicitly set to None counts as a deliberate "no canonical range"
+    for k in _RANGE_KEYS:
+        if k in metric_body and metric_body[k] is None:
+            return True
+    return False
 
 
 def validate_norms_dict(payload: dict) -> None:

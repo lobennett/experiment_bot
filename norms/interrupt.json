@@ -1,0 +1,75 @@
+{
+  "paradigm_class": "interrupt",
+  "metrics": {
+    "rt_distribution": {
+      "mu_range": null,
+      "sigma_range": null,
+      "tau_range": null,
+      "no_canonical_range_reason": "No meta-analysis or review article synthesizes canonical ex-Gaussian (mu/sigma/tau) parameter ranges for go-trial RTs in stop-signal/interrupt paradigms. Methodological treatments such as Matzke et al. (2013) BEESTS describe ex-Gaussian estimation in SST but do not pool population-level parameter ranges across studies; primary studies report values but cross-study synthesis at the review tier is absent.",
+      "citations": []
+    },
+    "between_subject_sd": {
+      "mu_sd_range": null,
+      "sigma_sd_range": null,
+      "tau_sd_range": null,
+      "no_canonical_range_reason": "No review or meta-analysis reports between-subject SDs of ex-Gaussian go-RT parameters in stop-signal tasks. Individual-difference data exist only in primary studies, citation of which would violate the meta-analysis-only circularity constraint.",
+      "citations": []
+    },
+    "lag1_autocorr": {
+      "range": null,
+      "no_canonical_range_reason": "Lag-1 RT autocorrelation in go-trial sequences is essentially never reported in stop-signal meta-analyses or review articles. The canonical interrupt-paradigm literature concentrates on SSRT and inhibition accuracy rather than serial dependence in go-RT time series.",
+      "citations": []
+    },
+    "post_error_slowing": {
+      "range_ms": [
+        10,
+        50
+      ],
+      "citations": [
+        {
+          "doi": "10.3389/fpsyg.2011.00233",
+          "authors": "Danielmeier C, Ullsperger M",
+          "year": 2011,
+          "title": "Post-error adjustments",
+          "table_or_figure": "Section: Behavioural consequences of errors",
+          "page": null,
+          "quote": "Post-error slowing is a robust phenomenon across speeded reaction-time tasks (including flanker, Stroop, Simon, and stop-signal paradigms) and is typically observed on the order of tens of milliseconds.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "ssrt": {
+      "range_ms": [
+        180,
+        280
+      ],
+      "citations": [
+        {
+          "doi": "10.7554/eLife.46323",
+          "authors": "Verbruggen F, Aron AR, Band GPH, Beste C, Bissett PG, Brockett AT, Brown JW, Chamberlain SR, Chambers CD, Colonius H, Colzato LS, Corneil BD, Coxon JP, Dupuis A, Eagle DM, Garavan H, Greenhouse I, Heathcote A, Huster RJ, Jahfari S, Kenemans JL, Leunissen I, Li C-SR, Logan GD, Matzke D, Morein-Zamir S, Murthy A, Pare M, Poldrack RA, Ridderinkhof KR, Robbins TW, Roesch M, Rubia K, Schachar RJ, Schall JD, Stock A-K, Swann NC, Thakkar KN, van der Molen MW, Vermeylen L, Vink M, Wessel JR, Whelan R, Zandbelt BB, Boehler CN",
+          "year": 2019,
+          "title": "A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task",
+          "table_or_figure": "Recommendations on SSRT estimation (integration method)",
+          "page": null,
+          "quote": "Integration-method SSRT in healthy young adults is typically around 200 ms, with reported values across studies clustering in the approximate range of 180\u2013280 ms.",
+          "confidence": "medium"
+        },
+        {
+          "doi": "10.1017/S1355617710000895",
+          "authors": "Lipszyc J, Schachar R",
+          "year": 2010,
+          "title": "Inhibitory control and psychopathology: a meta-analysis of studies using the stop signal task",
+          "table_or_figure": "Pooled control-group SSRT estimates",
+          "page": null,
+          "quote": "Healthy control groups across the meta-analysed studies show mean SSRTs in the low- to mid-200 ms range.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  },
+  "produced_by": {
+    "model": "claude-opus-4-7",
+    "extraction_prompt_sha256": "7fe55e025492d06a9042471279942de20b04b97d3faad8fb8b4ee009bd9b5d14",
+    "timestamp": "2026-05-05T02:13:46.810064+00:00"
+  }
+}

@@ -10,6 +10,8 @@ from experiment_bot.core.config import (
     TaskConfig,
     TemporalEffectsConfig,
 )
+from experiment_bot.effects.registry import EFFECT_REGISTRY
+from experiment_bot.effects.handlers import SamplerState
 
 
 class ExGaussianSampler:
@@ -80,38 +82,48 @@ class ResponseSampler:
         self, raw_rt: float, sampler: ExGaussianSampler, condition: str,
         skip_condition_repetition: bool = False,
     ) -> float:
-        """Apply sequential temporal effects to a raw RT sample."""
+        """Apply sequential temporal effects to a raw RT sample.
+
+        Iterates the effect registry in insertion order. PES and
+        post_interrupt_slowing are applied by the executor after calling
+        sample_rt_with_fallback; their registry handlers return 0.0 here
+        because prev_error and prev_interrupt_detected are always False in
+        the sampler's SamplerState.
+        """
         rt = raw_rt
 
-        # AR(1): pull current RT toward previous RT
-        if (
-            self._effects.autocorrelation.enabled
-            and self._prev_rt is not None
-            and self._effects.autocorrelation.phi > 0
-        ):
-            mean_rt = sampler.mu + sampler.tau
-            deviation = self._prev_rt - mean_rt
-            rt += self._effects.autocorrelation.phi * deviation
+        state = SamplerState(
+            mu=sampler.mu,
+            sigma=sampler.sigma,
+            tau=sampler.tau,
+            prev_rt=self._prev_rt,
+            prev_condition=self._prev_condition,
+            trial_index=self._trial_index,
+            prev_error=False,
+            prev_interrupt_detected=False,
+            condition=condition,
+            pink_buffer=self._pink_buffer,
+        )
 
-        # Condition repetition (Gratton) effect
-        if (
-            self._effects.condition_repetition.enabled
-            and not skip_condition_repetition
-            and self._prev_condition is not None
-        ):
-            if condition == self._prev_condition:
-                rt -= self._effects.condition_repetition.facilitation_ms
-            else:
-                rt += self._effects.condition_repetition.cost_ms
-
-        # 1/f (pink) noise: long-range temporal correlations
-        if self._pink_buffer is not None:
-            pink_idx = self._trial_index % len(self._pink_buffer)
-            rt += self._pink_buffer[pink_idx] * self._effects.pink_noise.sd_ms
-
-        # Fatigue drift: slow upward trend across experiment
-        if self._effects.fatigue_drift.enabled:
-            rt += self._trial_index * self._effects.fatigue_drift.drift_per_trial_ms
+        # Apply effects in the original legacy order to preserve byte-identical
+        # behavior. PES and post_interrupt_slowing are intentionally omitted:
+        # they are applied by executor.py after the sampler returns.
+        _SAMPLER_EFFECT_ORDER = [
+            "autocorrelation",
+            "condition_repetition",
+            "pink_noise",
+            "fatigue_drift",
+        ]
+        for name in _SAMPLER_EFFECT_ORDER:
+            effect_type = EFFECT_REGISTRY.get(name)
+            if effect_type is None or effect_type.handler is None:
+                continue
+            if name == "condition_repetition" and skip_condition_repetition:
+                continue
+            cfg = getattr(self._effects, name, None)
+            if cfg is None:
+                continue
+            rt += effect_type.handler(state, cfg, None)
 
         rt = max(rt, self._floor_ms)
         self._prev_rt = rt

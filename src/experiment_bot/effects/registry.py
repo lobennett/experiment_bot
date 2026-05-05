@@ -81,3 +81,16 @@ def eligible_effects(paradigm_classes: list[str]) -> set[str]:
         elif set(paradigm_classes) & et.applicable_paradigms:
             out.add(name)
     return out
+
+
+# ---------------------------------------------------------------------------
+# Wire handlers into the registry (Task A2)
+# ---------------------------------------------------------------------------
+from experiment_bot.effects import handlers as _h  # noqa: E402
+
+EFFECT_REGISTRY["autocorrelation"].handler = _h.apply_autocorrelation
+EFFECT_REGISTRY["fatigue_drift"].handler = _h.apply_fatigue_drift
+EFFECT_REGISTRY["post_error_slowing"].handler = _h.apply_post_error_slowing
+EFFECT_REGISTRY["condition_repetition"].handler = _h.apply_condition_repetition
+EFFECT_REGISTRY["pink_noise"].handler = _h.apply_pink_noise
+EFFECT_REGISTRY["post_interrupt_slowing"].handler = _h.apply_post_interrupt_slowing

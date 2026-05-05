@@ -22,13 +22,15 @@ A key design constraint: the bot's parameters come from Claude's literature reas
 ## Architecture
 
 ```
-        Reasoner (5 existing stages, prompt updates)
+        Reasoner (5 existing stages + new norms extractor)
                           │
-                          ▼
-                    TaskCard (literature-grounded:
-                     - paradigm_classes tags on task
-                     - temporal_effects keyed by registered
-                       effect-type names
+                          ├─────────────────────┐
+                          ▼                     ▼
+                    TaskCard           norms/{paradigm}.json
+                    (parameters)       (per-metric published ranges
+                     - paradigm_classes tags on task    + DOI citations
+                     - temporal_effects keyed by         from meta-analyses
+                       registered effect-type names      and review articles)
                      - between_subject_sd from Claude's
                        reading of inter-subject variability
                        norms in cited papers)
@@ -39,22 +41,27 @@ A key design constraint: the bot's parameters come from Claude's literature reas
                           ▼
         ┌─────────────────────────────────────────────┐
         │  SP2 Validation oracle (NEW; separate)      │
-        │  Reads bot output + Eisenberg 2019 data:    │
-        │   - KS / Anderson-Darling on RT dists       │
-        │   - Ex-Gaussian parameter recovery          │
-        │   - Population SD across bot vs human       │
-        │   - Lag-1 autocorrelation match             │
-        │   - Post-error slowing match                │
-        │   - CSE magnitude (when applicable)         │
-        │   - SSRT (when applicable)                  │
+        │  Reads bot output + norms/{paradigm}.json:  │
+        │   - bot RT distribution vs published range  │
+        │   - bot ex-Gaussian params vs published     │
+        │     mu/sigma/tau ranges                     │
+        │   - bot population SD vs published SD range │
+        │   - bot lag-1 autocorr vs published range   │
+        │   - bot PES vs published range              │
+        │   - bot CSE magnitude vs Egner 2007 range   │
+        │   - bot SSRT vs Verbruggen 2019 range       │
+        │  Optionally: side-by-side comparison vs     │
+        │  Eisenberg 2019 (descriptive only).         │
         │  Reports pass/fail per pillar per task.     │
         └─────────────────────────────────────────────┘
 ```
 
-### Two strict rules
+### Four strict rules
 
-- **Asymmetric data flow.** Human reference data is read ONLY by the validation oracle. The Reasoner never sees it. The bot's parameters come from Claude's literature reasoning + DOI-verified citations (the SP1 mechanism).
-- **Failures route to prompts, not to data.** If the bot's output mismatches human, the fix is in `prompts/system.md` or in providing better literature pointers — not in feeding the bot human data.
+- **Asymmetric data flow on subject-level data.** Raw subject-level human reference data (e.g., Eisenberg 2019 trial-level CSVs) is read ONLY by the validation oracle, never by the Reasoner. The bot's parameters come from Claude's literature reasoning + DOI-verified citations (the SP1 mechanism).
+- **Validation against published canonical norms, not against any single dataset.** The oracle's pass/fail criterion is "bot's metric falls within published-literature ranges per the canonical reviews/meta-analyses cited in `norms/{paradigm}.json`." Specific datasets like Eisenberg 2019 are shown side-by-side for context but do not gate pass/fail. This protects against the failure mode where a single dataset is flawed, unrepresentative, or contested.
+- **Norms extraction citation discipline.** The Reasoner stage that extracts norms is prompted to cite **meta-analyses and review articles**, not the same primary sources used for parameter-setting. This avoids circularity (bot trivially matching norms because both came from the same citation pool). When meta-analyses don't exist for a metric, the norms extractor reports "no canonical range available" — that metric becomes descriptive-only for the affected paradigm.
+- **Failures route to prompts, not to data.** If the bot's output mismatches the published range, the fix is in `prompts/system.md` or in providing better literature pointers — not in feeding the bot human data, and not in widening the published-range thresholds.
 
 ## Generalized effect framework
 
@@ -123,24 +130,86 @@ Does NOT ship:
 
 ## Validation oracle
 
-**Module:** `src/experiment_bot/validation/oracle.py` — function `validate_session_set(taskcard, session_dirs, human_reference_path) -> ValidationReport` that runs all applicable metrics and reports per-pillar pass/fail.
+**Module:** `src/experiment_bot/validation/oracle.py` — function `validate_session_set(taskcard, session_dirs, norms_path, eisenberg_path=None) -> ValidationReport` that scores bot output against published norms (`norms_path`) and optionally shows side-by-side descriptive comparison to Eisenberg 2019 (`eisenberg_path`).
 
-### Universal metrics (run on every task)
+### Norms file schema (`norms/{paradigm_class}.json`)
 
-| Metric | Computation | Pass criterion |
-|---|---|---|
-| **RT distribution match** | KS test on per-condition correct-trial RT, bot vs human, two-sample | p > 0.01 (two-sided) |
-| **Ex-Gaussian parameter recovery** | Fit ex-Gaussian to bot session and to human subject; Cohen's d on each parameter (mu, sigma, tau) across the population | abs(d) < 0.5 for all parameters |
-| **Population SD match** | SD across N=15 bot sessions of each parameter, vs SD across human subjects | ratio in [0.5, 2.0] |
-| **Lag-1 autocorrelation match** | Pearson r at lag-1 within block, mean across runs vs across subjects | abs(r_bot − r_human) < 0.10 |
-| **Post-error slowing match** | mean(RT_{t+1} \| error_t) − mean(RT_{t+1} \| correct_t), per run vs per subject | abs(bot − human) / human_SE < 2 |
+```jsonc
+{
+  "paradigm_class": "conflict",
+  "produced_by": {                  // same shape as TaskCard.produced_by
+    "model": "claude-opus-4-7",
+    "extraction_prompt_sha256": "...",
+    "timestamp": "2026-05-04T..."
+  },
+  "metrics": {
+    "rt_distribution": {
+      "mu_range": [430, 580],
+      "sigma_range": [40, 90],
+      "tau_range": [50, 130],
+      "citations": [
+        {"doi": "10.1016/j.cognition.2008.07.011", "quote": "...", "doi_verified": true}
+      ]
+    },
+    "between_subject_sd": {
+      "mu_sd_range": [30, 80],
+      "sigma_sd_range": [8, 20],
+      "tau_sd_range": [15, 35],
+      "citations": [...]
+    },
+    "lag1_autocorr": {
+      "range": [0.05, 0.25],
+      "citations": [...]
+    },
+    "post_error_slowing": {
+      "range_ms": [10, 60],
+      "citations": [{"doi": "10.1037/h0042782", "authors": "Rabbitt", ...}]
+    },
+    "cse_magnitude": {           // paradigm-specific; only present in conflict norms
+      "range_ms": [15, 55],
+      "citations": [{"doi": "10.1016/j.tics.2007.08.005", "authors": "Egner", ...}]
+    }
+  }
+}
+```
 
-### Paradigm-specific metrics
+When a metric has no canonical published range (e.g., a niche paradigm with no meta-analysis), the entry is `{"range": null, "no_canonical_range_reason": "<text>"}` and the oracle reports descriptively for that metric only.
 
-| Metric | Active when | Pass criterion |
-|---|---|---|
-| **CSE magnitude** | `congruency_sequence` enabled | abs(bot_CSE − human_CSE) / human_cross_subject_SE < 2 (same 2-SE rule as PES) |
-| **SSRT recovery** | `runtime.trial_interrupt.detection_condition` populated | bot's SSRT (integration method) within ±50ms of human mean |
+### Pass criteria (against published ranges)
+
+| Metric | Pass criterion |
+|---|---|
+| **RT distribution mu** | bot's mu in `mu_range` for the paradigm |
+| **RT distribution sigma** | bot's sigma in `sigma_range` |
+| **RT distribution tau** | bot's tau in `tau_range` |
+| **Population SD on mu** | SD across N=15 bot sessions in `mu_sd_range` |
+| **Population SD on sigma** | SD across N=15 bot sessions in `sigma_sd_range` |
+| **Population SD on tau** | SD across N=15 bot sessions in `tau_sd_range` |
+| **Lag-1 autocorrelation** | bot's mean lag-1 r in published `range` |
+| **Post-error slowing** | bot's mean PES in published `range_ms` |
+| **CSE magnitude** | bot's mean CSE in published `range_ms` (conflict paradigms only) |
+| **SSRT** | bot's SSRT (integration method) in published `range_ms` (interrupt paradigms only) |
+
+Each pass criterion is a simple range check, not a statistical test. The published range already encodes the cross-study variability that subsumes both random-sampling noise and methodological differences.
+
+### Optional side-by-side with a specific dataset
+
+If `eisenberg_path` is provided, the oracle ALSO computes the bot's metric vs Eisenberg 2019's value and reports the comparison **descriptively only**. Output looks like:
+
+```
+mu (Stroop congruent)
+  bot:        542 ms
+  published:  [430, 580]   ✅ in range
+  Eisenberg:  537 ms       (descriptive only; bot − Eisenberg = +5 ms)
+```
+
+This satisfies a reviewer who asks "how does the bot compare to a specific real dataset" without gating on that dataset.
+
+### Norms extractor (new Reasoner sub-module)
+
+A standalone extractor at `src/experiment_bot/reasoner/norms_extractor.py`. Function: `extract_norms(paradigm_class: str, llm_client) -> dict`. Prompted to cite ONLY meta-analyses and review articles. Optionally seeded with a list of known seminal papers per paradigm (Egner 2007 for CSE, Verbruggen 2019 for SSRT, Whelan 2008 for RT distributions, etc.). Output validated against the norms file schema before saving.
+
+CLI entry point: `experiment-bot-extract-norms --paradigm-class conflict` — produces `norms/conflict.json`. Run once per paradigm class; norms files are committed to the repo and treated as project-level artifacts (not per-TaskCard).
 
 ### Report format
 
@@ -149,7 +218,7 @@ Does NOT ship:
 class ValidationReport:
     task_label: str
     pillar_results: dict[str, PillarResult]
-    overall_pass: bool
+    overall_pass: bool       # all gating metrics in published range
     summary: str
 
 @dataclass
@@ -157,11 +226,20 @@ class PillarResult:
     pillar: str          # "rt_distribution" | "sequential" | "individual_differences"
     metrics: dict[str, MetricResult]
     pass_: bool
+
+@dataclass
+class MetricResult:
+    name: str
+    bot_value: float
+    published_range: tuple[float, float] | None    # None when no canonical range
+    pass_: bool | None                              # None for descriptive-only metrics
+    eisenberg_value: float | None                   # optional; descriptive
+    citations: list[Citation]
 ```
 
 Output: one `validation/{label}_{taskcard_hash}_{timestamp}.json` per run plus a summary CSV with one row per (paradigm, metric).
 
-CLI entry point: `experiment-bot-validate --label <label>` reads latest TaskCard for the label, finds session output directories under `output/`, finds human reference data per paradigm class, runs the oracle.
+CLI entry point: `experiment-bot-validate --label <label>` reads latest TaskCard for the label, finds session output directories under `output/`, loads `norms/{paradigm_class}.json`, optionally loads Eisenberg data if present, runs the oracle.
 
 ## Prompt changes
 
@@ -180,7 +258,8 @@ CLI entry point: `experiment-bot-validate --label <label>` reads latest TaskCard
 
 - `tests/test_effect_registry.py` — registry construction, lookup, paradigm filtering. ~6 tests.
 - `tests/test_effect_handlers.py` — each effect handler in isolation, including the new CSE handler. CSE-specific: pre/post sequences of (cong, incong) trials produce correct facilitation_ms / cost_ms RT modulation. ~8 tests.
-- `tests/test_validation_oracle.py` — oracle on synthetic bot+human inputs with known statistical properties; verifies pass/fail correctness for each metric. ~10 tests.
+- `tests/test_validation_oracle.py` — oracle on synthetic bot input + handcrafted norms files with known ranges; verifies pass/fail logic for each metric, including the descriptive-only path when `range` is null. ~10 tests.
+- `tests/test_norms_extractor.py` — norms extractor with mocked LLM responses producing valid norms-file shapes; schema validation; circularity-prevention prompt content check. ~5 tests.
 
 ### Integration tests
 
@@ -188,37 +267,43 @@ CLI entry point: `experiment-bot-validate --label <label>` reads latest TaskCard
 
 ### Live tests (gated, RUN_LIVE_LLM=1)
 
-- One end-to-end Reasoner regen on `expfactory_stroop` and verification that the resulting TaskCard has `congruency_sequence` enabled.
+- One end-to-end Reasoner regen on `expfactory_stroop` and verification that the resulting TaskCard has `congruency_sequence` enabled and `paradigm_classes` includes `"conflict"`.
+- One end-to-end norms extraction for paradigm class `"conflict"` and verification that the resulting `norms/conflict.json` has DOI-verified citations from meta-analyses or reviews.
 - One executor smoke against a CSE-enabled TaskCard verifying CSE structure appears in `bot_log.json`.
 
 ### Validation oracle live runs
 
-After SP2 lands the registry, executor changes, and Reasoner prompts, regenerate the 4 dev TaskCards. Then run a fresh batch (15 sessions × 4 paradigms = 60 sessions). Then run `experiment-bot-validate` against each. Report per-pillar pass/fail. **THIS is the SP2 success measurement.**
+After SP2 lands the registry, executor changes, Reasoner prompts, AND `norms/{conflict, interrupt}.json` are extracted, regenerate the 4 dev TaskCards. Then run a fresh batch (15 sessions × 4 paradigms = 60 sessions). Then run `experiment-bot-validate` against each. Report per-pillar pass/fail. **THIS is the SP2 success measurement.**
 
-If a pillar fails on a paradigm: the fix is in the prompt or in providing better literature pointers — NOT in the data. Iterate prompt → regenerate → re-validate.
+If a metric falls outside its published range on a paradigm: the fix is in the prompt or in providing better literature pointers to the Reasoner — NOT in widening the norms range, and NOT in feeding the bot human data. Iterate prompt → regenerate → re-validate.
 
 ## Success criterion
 
-SP2 is "done" when, on all 4 dev paradigms:
+SP2 is "done" when, on all 4 dev paradigms, the bot's mean output for every gating metric falls within the published canonical range as recorded in `norms/{paradigm_class}.json`:
 
-- ✅ RT distribution KS test p > 0.01 per condition
-- ✅ Ex-Gaussian parameter recovery abs(d) < 0.5
-- ✅ Population SD ratio in [0.5, 2.0]
-- ✅ Lag-1 autocorrelation match within 0.10
-- ✅ Post-error slowing match within 2 SE
-- ✅ CSE magnitude within 2 cross-subject SE of human mean (3 conflict paradigms only)
-- ✅ SSRT within ±50ms of human mean (2 stop-signal paradigms only)
+- ✅ ex-Gaussian mu, sigma, tau in published ranges (per condition)
+- ✅ Population SD on mu, sigma, tau in published cross-subject SD ranges
+- ✅ Lag-1 autocorrelation in published range
+- ✅ Post-error slowing in published range
+- ✅ CSE magnitude in published range from canonical reviews (3 conflict paradigms only)
+- ✅ SSRT in published range from Verbruggen et al. consensus (2 stop-signal paradigms only)
 
-If any pillar fails on any paradigm, SP2 is incomplete — iterate prompts and regen until passing.
+Side-by-side comparison to Eisenberg 2019 is reported but does NOT gate.
 
-**Failure mode protection:** if iterating the prompt cannot produce passing values, this is itself a finding. Document in a `docs/sp2-findings.md` what didn't converge and why. May indicate that the literature-only approach has limits for that paradigm — a real result for the paper.
+If any gating metric falls outside its published range on any paradigm, SP2 is incomplete — iterate prompts and regen until in range.
+
+**Metrics with no canonical range** (e.g., niche derived metric with no meta-analysis) are descriptive-only — they appear in the report but don't gate pass/fail.
+
+**Failure mode protection:** if iterating the prompt cannot produce values within published ranges, this is itself a paper finding. Document in `docs/sp2-findings.md` what didn't converge and why. The literature-only approach has documented limits for that paradigm — a real result.
 
 ## Out of scope (deferred)
 
 - New paradigm-specific effects beyond CSE (switch cost, list length, n-back lure, etc.) — registered when SP5 brings new paradigms. Schema is ready; just no implementations or validators yet.
 - Auto-iteration of prompts (some kind of optimization loop). Manual prompt iteration is sufficient for v1.
 - Non-RT metrics like response confidence or reaction-time-by-position curves.
-- Calibration via local data files (explicitly forbidden by the design's asymmetric-data-flow rule).
+- Bot reading raw subject-level human reference data (explicitly forbidden by the asymmetric-data-flow rule).
+- Validation against any specific dataset as a gating criterion (Eisenberg 2019 is descriptive-only). The gating mechanism is published canonical norms.
+- Norms files for paradigm classes the dev set doesn't include (task-switching, memory, etc.) — extracted in SP5 alongside their paradigms.
 - HPC / Slurm execution (SP3).
 - Per-session forensic trace logs and audit reports (SP6).
 
@@ -229,7 +314,8 @@ If any pillar fails on any paradigm, SP2 is incomplete — iterate prompts and r
 ## Risks
 
 - **CSE handler implementation correctness.** The 2-back interaction is subtle; an off-by-one in trial-pair tracking could produce a mathematically-valid-but-wrong CSE. Mitigation: extensive unit tests on synthetic trial sequences with known expected RT modulations.
-- **Human data limitations.** The Eisenberg 2019 trial-level CSV covers stop_signal and stroop. STOP-IT and cognition.run paradigms differ in trial counts, instructions, etc. — direct comparison may be noisy. Mitigation: oracle accepts a `paradigm_class` mapping that points STOP-IT to the same human reference as stop_signal_RDoC.
-- **Pillar-pass thresholds may be too strict.** KS p > 0.01 on N=15 bot × 100 trials = 1500 RTs is a high-power test that may reject even moderate effect sizes. Mitigation: thresholds documented in spec; if all paradigms fail KS but pass effect-size-based metrics, re-evaluate the threshold rather than the bot.
-- **Literature-only between_subject_sd may be wrong.** Claude's reasoning about between-subject variation may diverge from Eisenberg's empirical SD. Mitigation: this is the whole experiment — if it diverges, that's a paper finding. Don't paper over with calibration.
+- **Norms extraction circularity.** If the Reasoner pulls norms from the same papers it cites for parameter-setting, the bot trivially matches by construction. Mitigation: norms-extractor prompt explicitly requires meta-analyses and review articles (e.g., Egner 2007 for CSE; Verbruggen 2019 for SSRT). Manual review of the first norms files per paradigm is recommended before relying on them as gates.
+- **Norms files may have no canonical range for some metrics.** Some metrics (e.g., a derived measure with no published meta-analysis) genuinely have no defensible canonical range. Mitigation: norms file schema explicitly supports `{"range": null, "no_canonical_range_reason": "..."}` for these — they become descriptive-only and don't gate.
+- **Published ranges may be too wide to be discriminating.** A range like "Stroop congruent mu in [400, 600]" is broad enough that many implementations pass, including ones that don't behave very humanlike on shape or sequential effects. Mitigation: combination of universal metrics (RT distribution + ex-Gaussian + sequential effects + population SD) jointly constrains the bot more tightly than any single metric. The point is not to "pass narrowly" but to be in the published mainstream on all metrics simultaneously.
 - **Effect-registry refactor risk.** Re-expressing 6 existing effects as registry entries is a structural change to ResponseSampler. Mitigation: regression test that bot output before/after the refactor produces statistically equivalent traces (run 10 sessions of each task on a frozen seed, compare per-trial RT and accuracy log).
+- **Eisenberg 2019 differs from canonical norms.** This is now a feature, not a bug — the bot is validated against published norms; Eisenberg shows up descriptively as "for context, here is one specific real-world dataset." If Eisenberg falls outside the published range, that's interesting independent of the bot.

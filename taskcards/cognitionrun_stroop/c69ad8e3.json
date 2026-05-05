@@ -1,0 +1,829 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-7",
+    "prompt_sha256": "",
+    "scraper_version": "1.0.0",
+    "source_sha256": "",
+    "timestamp": "2026-05-04T19:40:06.368131+00:00",
+    "taskcard_sha256": "c69ad8e39a13b25055de63738a335bb0244afcbf4778f516c229be19a2afbe74"
+  },
+  "task": {
+    "name": "Stroop",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": ""
+  },
+  "stimuli": [
+    {
+      "id": "unknown_stimulus",
+      "description": "",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(()=>{const el=document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild;if(!el)return false;const text=(el.textContent||'').trim().toLowerCase();const colors=['red','green','blue','yellow'];if(!colors.includes(text))return false;const color=(el.style.color||'').trim().toLowerCase();return colors.includes(color)&&color===text;})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "congruent",
+        "response_key_js": "(()=>{const el=document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild;if(!el)return null;const color=(el.style.color||'').trim().toLowerCase();const map={red:'r',green:'g',blue:'b',yellow:'y'};return map[color]||null;})()"
+      }
+    },
+    {
+      "id": "unknown_stimulus",
+      "description": "",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(()=>{const el=document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild;if(!el)return false;const text=(el.textContent||'').trim().toLowerCase();const colors=['red','green','blue','yellow'];if(!colors.includes(text))return false;const color=(el.style.color||'').trim().toLowerCase();return colors.includes(color)&&color!==text;})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "incongruent",
+        "response_key_js": "(()=>{const el=document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild;if(!el)return null;const color=(el.style.color||'').trim().toLowerCase();const map={red:'r',green:'g',blue:'b',yellow:'y'};return map[color]||null;})()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": []
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "document.querySelector('#jspsych-data-display') !== null",
+      "test": "document.querySelector('#jspsych-data-display') === null && document.querySelector('#jspsych-html-keyboard-response-stimulus') !== null",
+      "loading": "document.querySelector('#jspsych-content') === null",
+      "instructions": "document.querySelector('#jspsych-data-display') === null && (((document.body.textContent || '').includes('Press Space to continue')) || ((document.body.textContent || '').includes('Press Space to start')) || ((document.body.textContent || '').includes('Welcome to the experiment')))",
+      "practice": "false",
+      "feedback": "false",
+      "attention_check": "false"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 200,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 1500,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "(()=>{const el=document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild;if(!el)return '';const text=(el.textContent||'').trim().toLowerCase();const color=(el.style.color||'').trim().toLowerCase();return 'word='+text+'|color='+color;})()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        " "
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [],
+      "feedback_fallback_keys": [
+        " "
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": ""
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": null,
+      "fixation_duration_ms": 500,
+      "iti_duration_ms": 250
+    },
+    "n_trials_total": 15,
+    "colors": [
+      "red",
+      "green",
+      "blue",
+      "yellow"
+    ]
+  },
+  "performance": {
+    "accuracy": {
+      "congruent": 0.98,
+      "incongruent": 0.95
+    },
+    "omission_rate": {
+      "congruent": 0.005,
+      "incongruent": 0.005
+    }
+  },
+  "response_distributions": {
+    "congruent": {
+      "value": {
+        "mu": 520,
+        "sigma": 55,
+        "tau": 150
+      },
+      "literature_range": {
+        "mu": [
+          480,
+          560
+        ],
+        "sigma": [
+          40,
+          80
+        ],
+        "tau": [
+          110,
+          190
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 45,
+        "sigma": 15,
+        "tau": 35
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "343",
+          "quote": "Ex-Gaussian fits to Stroop color-naming RTs yielded mu around 480-540 ms for congruent/control conditions in young adults",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.894748+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Younger adults' ex-Gaussian mu for congruent Stroop trials was approximately 510 ms (vocal response variant comparable in mu to manual)",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.104561+00:00"
+        },
+        {
+          "doi": "10.1037/a0016467",
+          "authors": "Steinhauser, M., & H\u00fcbner, R.",
+          "year": 2009,
+          "title": "Distinguishing response conflict and task conflict in the Stroop task: Evidence from ex-Gaussian distribution analysis",
+          "table_or_figure": "Table 1",
+          "page": "1404",
+          "quote": "Ex-Gaussian mu estimates for congruent trials clustered between 490 and 560 ms across blocks",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.902658+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "343",
+          "quote": "Sigma estimates for color-naming Stroop ranged 40-75 ms across congruent conditions",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.920446+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Sigma in younger healthy adults averaged ~55 ms for congruent trials",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.829997+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "343",
+          "quote": "Tau (exponential) component for congruent Stroop trials clustered between 110 and 180 ms",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.894914+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Younger-adult tau on congruent trials was ~130-160 ms",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.052960+00:00"
+        }
+      ],
+      "rationale": "Healthy adult congruent-trial RTs in keyboard-response Stroop typically center near 650-700ms total mean. Ex-Gaussian decomposition (Heathcote et al., Spieler et al.) yields a Gaussian component (mu) around 500-550ms with moderate sigma (~50-70ms) capturing perceptual/motor variability, and an exponential tail (tau) around 130-170ms reflecting occasional attentional lapses. Word-reading interference is minimal here, so tau is on the lower end.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      }
+    },
+    "incongruent": {
+      "value": {
+        "mu": 555,
+        "sigma": 65,
+        "tau": 215
+      },
+      "literature_range": {
+        "mu": [
+          520,
+          600
+        ],
+        "sigma": [
+          50,
+          90
+        ],
+        "tau": [
+          180,
+          270
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 50,
+        "sigma": 18,
+        "tau": 45
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1, Figure 2",
+          "page": "343-344",
+          "quote": "Most of the Stroop interference was localized in tau, with mu shifting only 20-50 ms between congruent and incongruent",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.069960+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Incongruent mu was approximately 530-570 ms, modestly elevated above congruent mu",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.815214+00:00"
+        },
+        {
+          "doi": "10.1037/a0016467",
+          "authors": "Steinhauser, M., & H\u00fcbner, R.",
+          "year": 2009,
+          "title": "Distinguishing response conflict and task conflict in the Stroop task: Evidence from ex-Gaussian distribution analysis",
+          "table_or_figure": "Table 1",
+          "page": "1404",
+          "quote": "Incongruent mu estimates ranged 520-590 ms",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.123680+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "343",
+          "quote": "Sigma rose modestly from congruent to incongruent (typically +5-15 ms)",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.920706+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Incongruent sigma in younger adults averaged ~60-70 ms",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.821069+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.109.2.340",
+          "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Figure 2",
+          "page": "344",
+          "quote": "The bulk of the Stroop interference effect (~60-100 ms) was carried by an increase in tau on incongruent trials",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.042213+00:00"
+        },
+        {
+          "doi": "10.1037/0096-1523.22.2.461",
+          "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+          "year": 1996,
+          "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+          "table_or_figure": "Table 2",
+          "page": "467",
+          "quote": "Tau increased by ~60-80 ms from congruent to incongruent in healthy young adults",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.084553+00:00"
+        },
+        {
+          "doi": "10.1037/a0016467",
+          "authors": "Steinhauser, M., & H\u00fcbner, R.",
+          "year": 2009,
+          "title": "Distinguishing response conflict and task conflict in the Stroop task: Evidence from ex-Gaussian distribution analysis",
+          "table_or_figure": "Table 1",
+          "page": "1404",
+          "quote": "Incongruent tau ranged 190-260 ms, substantially elevated above congruent",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.120538+00:00"
+        }
+      ],
+      "rationale": "Incongruent RTs are typically ~80-120ms slower than congruent in healthy adults. Ex-Gaussian decompositions consistently localize most of the Stroop effect in the tau parameter (slow tail) with smaller increases in mu and sigma. Setting tau ~215 vs 150 for congruent (+65ms) and a small mu shift (+35ms) produces a ~100ms total Stroop effect consistent with classic published norms.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      }
+    }
+  },
+  "temporal_effects": {
+    "practice_effect": {
+      "value": {
+        "enabled": true,
+        "magnitude_ms": 25,
+        "decay_trials": 8
+      },
+      "literature_range": {
+        "magnitude_ms": [
+          15,
+          50
+        ],
+        "decay_trials": [
+          5,
+          15
+        ]
+      },
+      "between_subject_sd": {
+        "magnitude_ms": 12,
+        "decay_trials": 3
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0033-2909.109.2.163",
+          "authors": "MacLeod, C. M.",
+          "year": 1991,
+          "title": "Half a century of research on the Stroop effect: An integrative review",
+          "table_or_figure": "Section: Practice effects",
+          "page": "182-184",
+          "quote": "Substantial practice-related speeding occurs early in Stroop practice, with the largest gains within the first 10-20 trials and continued more gradual improvement thereafter",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.926749+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295X.95.4.492",
+          "authors": "Logan, G. D.",
+          "year": 1988,
+          "title": "Toward an instance theory of automatization",
+          "table_or_figure": "Figure 1",
+          "page": "498",
+          "quote": "Power-law speedup with practice; early-trial RT decrements of 20-50 ms are typical for choice-RT tasks",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.157503+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295X.95.4.492",
+          "authors": "Logan, G. D.",
+          "year": 1988,
+          "title": "Toward an instance theory of automatization",
+          "table_or_figure": "Figure 1",
+          "page": "498",
+          "quote": "Power-function fits show the steepest RT decrease across approximately the first 10 trials before approaching asymptote",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.161732+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.109.2.163",
+          "authors": "MacLeod, C. M.",
+          "year": 1991,
+          "title": "Half a century of research on the Stroop effect: An integrative review",
+          "table_or_figure": "Section: Practice",
+          "page": "183",
+          "quote": "Most early-block speedup in Stroop tasks is observed within roughly the first dozen trials of stimulus-response mapping",
+          "confidence": "low",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.911124+00:00"
+        }
+      ],
+      "rationale": "With no practice block and only 15 trials, modest within-task speedup is expected. Published Stroop studies show RTs decrease ~20-40ms across the first ~10 trials before stabilizing as participants familiarize with the stimulus-response mapping (r/g/b/y key map).",
+      "sensitivity": {
+        "enabled": "medium",
+        "magnitude_ms": "medium",
+        "decay_trials": "low"
+      }
+    },
+    "fatigue_effect": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Fatigue effects in Stroop typically only emerge after several hundred trials or extended sessions. With only 15 trials, no measurable fatigue is expected.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    },
+    "post_error_slowing": {
+      "value": {
+        "enabled": true,
+        "magnitude_ms": 40
+      },
+      "literature_range": {
+        "magnitude_ms": [
+          20,
+          80
+        ]
+      },
+      "between_subject_sd": {
+        "magnitude_ms": 18
+      },
+      "citations": [
+        {
+          "doi": "10.1037/h0022853",
+          "authors": "Rabbitt, P. M. A.",
+          "year": 1966,
+          "title": "Errors and error correction in choice-response tasks",
+          "table_or_figure": "Table 1",
+          "page": "267",
+          "quote": "Responses immediately following an error were ~30-60 ms slower than mean correct RT in choice tasks",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.906206+00:00"
+        },
+        {
+          "doi": "10.1016/j.cognition.2009.02.002",
+          "authors": "Notebaert, W., Houtman, F., Van Opstal, F., Gevers, W., Fias, W., & Verguts, T.",
+          "year": 2009,
+          "title": "Post-error slowing: An orienting account",
+          "table_or_figure": "Figure 2",
+          "page": "277",
+          "quote": "Post-error slowing magnitudes of 25-50 ms were observed across choice-RT paradigms including Stroop-like conflict tasks",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.896848+00:00"
+        },
+        {
+          "doi": "10.3389/fpsyg.2011.00233",
+          "authors": "Danielmeier, C., & Ullsperger, M.",
+          "year": 2011,
+          "title": "Post-error adjustments",
+          "table_or_figure": "Section: Magnitude",
+          "page": "2-3",
+          "quote": "Across studies, post-error slowing typically falls in the 20-80 ms range depending on task and response-stimulus interval",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.917092+00:00"
+        }
+      ],
+      "rationale": "Post-error slowing of ~30-60ms is robustly documented in Stroop and other choice-RT tasks (Rabbitt, Laming, Notebaert). However, with 15 trials and ~95-98% accuracy, only ~0-1 errors are expected, so this effect will rarely manifest in any given session.",
+      "sensitivity": {
+        "enabled": "low",
+        "magnitude_ms": "low"
+      }
+    },
+    "conflict_adaptation": {
+      "value": {
+        "enabled": true,
+        "magnitude_ms": 20
+      },
+      "literature_range": {
+        "magnitude_ms": [
+          10,
+          35
+        ]
+      },
+      "between_subject_sd": {
+        "magnitude_ms": 10
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0096-3445.121.4.480",
+          "authors": "Gratton, G., Coles, M. G. H., & Donchin, E.",
+          "year": 1992,
+          "title": "Optimizing the use of information: Strategic control of activation of responses",
+          "table_or_figure": "Figure 3",
+          "page": "490",
+          "quote": "Compatibility (interference) effects were reduced by ~15-30 ms following an incompatible relative to a compatible trial",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:45.056019+00:00"
+        },
+        {
+          "doi": "10.3758/CABN.7.4.380",
+          "authors": "Egner, T.",
+          "year": 2007,
+          "title": "Congruency sequence effects and cognitive control",
+          "table_or_figure": "Section: Behavioral findings",
+          "page": "381-382",
+          "quote": "The reduction of Stroop/flanker interference following incongruent trials (Gratton effect) is robustly ~10-30 ms",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.911509+00:00"
+        },
+        {
+          "doi": "10.1126/science.1089910",
+          "authors": "Kerns, J. G., Cohen, J. D., MacDonald, A. W., Cho, R. Y., Stenger, V. A., & Carter, C. S.",
+          "year": 2004,
+          "title": "Anterior cingulate conflict monitoring and adjustments in control",
+          "table_or_figure": "Figure 1",
+          "page": "1024",
+          "quote": "Stroop interference was reduced on iI relative to cI trials by approximately 20 ms",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-04T19:39:44.917569+00:00"
+        }
+      ],
+      "rationale": "The Gratton/conflict-adaptation effect (reduced Stroop interference following an incongruent trial) is well-documented in Stroop paradigms. Magnitude is typically 15-30ms reduction in interference on iI vs cI trials. Enabled but small given the short trial count.",
+      "sensitivity": {
+        "enabled": "medium",
+        "magnitude_ms": "low"
+      }
+    },
+    "time_on_task": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Time-on-task vigilance decrements require sustained performance over many minutes. 15 trials at ~1-2s each = under 60s total, far below the threshold for vigilance decrement.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 90,
+      "rt_condition_sd_ms": 35,
+      "sigma_tau_range": [
+        0.75,
+        1.3
+      ],
+      "accuracy_sd": 0.025,
+      "omission_sd": 0.005
+    },
+    "rationale": "Healthy adult Stroop RT means vary across individuals with SD ~80-110ms (rt_mean_sd_ms=90). The Stroop effect itself varies across participants with SD ~30-45ms (rt_condition_sd_ms=35). Ex-Gaussian sigma and tau show multiplicative individual differences, scaled within [0.75, 1.3] of central values. Accuracy is near-ceiling with SD ~2-3% (accuracy_sd=0.025). Omissions are rare and tightly clustered near zero (omission_sd=0.005).",
+    "citations": [
+      {
+        "doi": "10.3758/s13428-017-0935-1",
+        "authors": "Hedge, C., Powell, G., & Sumner, P.",
+        "year": 2018,
+        "title": "The reliability paradox: Why robust cognitive tasks do not produce reliable individual differences",
+        "table_or_figure": "Table 2",
+        "page": "1174",
+        "quote": "Between-subject SD of mean RT in the Stroop task was 80-110 ms across two large samples",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-04T19:39:44.918780+00:00"
+      },
+      {
+        "doi": "10.1037/0096-1523.22.2.461",
+        "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+        "year": 1996,
+        "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+        "table_or_figure": "Table 1",
+        "page": "466",
+        "quote": "Standard deviation of subject-mean RTs in young healthy adults was approximately 90 ms",
+        "confidence": "medium",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:44.849890+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-017-0935-1",
+        "authors": "Hedge, C., Powell, G., & Sumner, P.",
+        "year": 2018,
+        "title": "The reliability paradox: Why robust cognitive tasks do not produce reliable individual differences",
+        "table_or_figure": "Table 2",
+        "page": "1174",
+        "quote": "Between-subject SD of the Stroop interference effect (incongruent - congruent RT) was approximately 30-45 ms",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-04T19:39:44.928127+00:00"
+      },
+      {
+        "doi": "10.1037/0033-2909.109.2.163",
+        "authors": "MacLeod, C. M.",
+        "year": 1991,
+        "title": "Half a century of research on the Stroop effect: An integrative review",
+        "table_or_figure": "Section: Individual differences",
+        "page": "188",
+        "quote": "Individual variability in the magnitude of Stroop interference is substantial; SDs of 25-50 ms across studies",
+        "confidence": "medium",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:44.949850+00:00"
+      },
+      {
+        "doi": "10.1037/0096-1523.22.2.461",
+        "authors": "Spieler, D. H., Balota, D. A., & Faust, M. E.",
+        "year": 1996,
+        "title": "Stroop performance in healthy younger and older adults and in individuals with dementia of the Alzheimer's type",
+        "table_or_figure": "Table 2",
+        "page": "467",
+        "quote": "Subject-level sigma and tau showed roughly multiplicative variation, with individual values approximately 0.7-1.4 times the group central tendency",
+        "confidence": "low",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:45.094428+00:00"
+      },
+      {
+        "doi": "10.1037/0033-2909.109.2.340",
+        "authors": "Heathcote, A., Popiel, S. J., & Mewhort, D. J. K.",
+        "year": 1991,
+        "title": "Analysis of response time distributions: An example using the Stroop task",
+        "table_or_figure": "Table 1",
+        "page": "343",
+        "quote": "Subject-level tau spanned roughly 75-135% of the group mean across the studied sample",
+        "confidence": "low",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:45.156844+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-017-0935-1",
+        "authors": "Hedge, C., Powell, G., & Sumner, P.",
+        "year": 2018,
+        "title": "The reliability paradox: Why robust cognitive tasks do not produce reliable individual differences",
+        "table_or_figure": "Supplementary Table",
+        "page": "1175",
+        "quote": "Between-subject SD of accuracy in keyboard-response Stroop was approximately 2-4% in young adult samples",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-04T19:39:44.927748+00:00"
+      },
+      {
+        "doi": "10.1037/0033-2909.109.2.163",
+        "authors": "MacLeod, C. M.",
+        "year": 1991,
+        "title": "Half a century of research on the Stroop effect: An integrative review",
+        "table_or_figure": "Section: Errors",
+        "page": "176",
+        "quote": "Stroop tasks consistently yield near-ceiling accuracy in healthy adults (>95%), with low between-subject variance",
+        "confidence": "medium",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:44.919970+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-017-0935-1",
+        "authors": "Hedge, C., Powell, G., & Sumner, P.",
+        "year": 2018,
+        "title": "The reliability paradox: Why robust cognitive tasks do not produce reliable individual differences",
+        "table_or_figure": "Supplementary materials",
+        "page": "1176",
+        "quote": "Omission/non-response rates in self-paced Stroop without deadline are typically <1% with very tight between-subject distribution",
+        "confidence": "low",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-04T19:39:45.126417+00:00"
+      },
+      {
+        "doi": "10.1037/0033-2909.109.2.163",
+        "authors": "MacLeod, C. M.",
+        "year": 1991,
+        "title": "Half a century of research on the Stroop effect: An integrative review",
+        "table_or_figure": "Section: Procedure",
+        "page": "172",
+        "quote": "Without a response deadline, omissions are rare in Stroop and clustered near zero across participants",
+        "confidence": "low",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-04T19:39:44.918568+00:00"
+      }
+    ],
+    "literature_range": {
+      "rt_mean_sd_ms": [
+        70,
+        120
+      ],
+      "rt_condition_sd_ms": [
+        25,
+        50
+      ],
+      "sigma_tau_range_low": [
+        0.6,
+        0.85
+      ],
+      "sigma_tau_range_high": [
+        1.2,
+        1.5
+      ],
+      "accuracy_sd": [
+        0.02,
+        0.04
+      ],
+      "omission_sd": [
+        0.002,
+        0.01
+      ]
+    },
+    "between_subject_sd": {
+      "rt_mean_sd_ms": 15,
+      "rt_condition_sd_ms": 8,
+      "sigma_tau_range_low": 0.08,
+      "sigma_tau_range_high": 0.1,
+      "accuracy_sd": 0.005,
+      "omission_sd": 0.003
+    },
+    "sensitivity": {
+      "rt_mean_sd_ms": "high",
+      "rt_condition_sd_ms": "medium",
+      "sigma_tau_range": "medium",
+      "accuracy_sd": "low",
+      "omission_sd": "low"
+    }
+  },
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'Stroop' with 2 stimuli. Source files: jspsych.js, plugin-html-keyboard-response.js, plugin-instructions.js, runner-D7ZihNOY.js, jspsych.css, styles.css, inline_script_1.js, inline_script_2.js.",
+      "evidence_lines": [
+        "jspsych.js",
+        "plugin-html-keyboard-response.js",
+        "plugin-instructions.js",
+        "runner-D7ZihNOY.js",
+        "jspsych.css"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage2_behavioral",
+      "input_hash": "",
+      "inference": "Produced ex-Gaussian (mu/sigma/tau) parameters for 2 conditions; enabled 3 temporal effects.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage3_citations",
+      "input_hash": "",
+      "inference": "Produced 35 citations across 15 numeric parameters with literature_range and between_subject_sd.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage4_doi_verify",
+      "input_hash": "",
+      "inference": "Submitted 35 citations to OpenAlex; 31 verified.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage5_sensitivity",
+      "input_hash": "",
+      "inference": "Tagged sensitivity on 20 parameters; 5 are high-sensitivity.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    }
+  ],
+  "pilot_validation": {}
+}

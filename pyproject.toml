@@ -19,6 +19,7 @@ dependencies = [
 [project.scripts]
 experiment-bot = "experiment_bot.cli:main"
 experiment-bot-reason = "experiment_bot.reasoner.cli:main"
+experiment-bot-extract-norms = "experiment_bot.reasoner.norms_cli:main"
 
 [build-system]
 requires = ["hatchling"]

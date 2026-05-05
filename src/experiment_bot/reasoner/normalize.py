@@ -15,7 +15,31 @@ def normalize_partial(partial: dict) -> dict:
     p["stimuli"] = [_normalize_stimulus(s) for s in p.get("stimuli", [])]
     p["task"] = _normalize_task(p.get("task", {}))
     p["navigation"] = _normalize_navigation(p.get("navigation"))
+    p["runtime"] = _normalize_runtime(p.get("runtime", {}))
+    p["performance"] = _normalize_performance(p.get("performance", {}))
     return p
+
+
+def _normalize_runtime(r: dict | None) -> dict:
+    """Ensure runtime sub-dicts (trial_interrupt, etc.) are dicts not None."""
+    out = dict(r or {})
+    # Sub-dicts the LLM sometimes returns as null when the feature is N/A
+    for key in ("trial_interrupt", "advance_behavior", "data_capture",
+                "attention_check", "phase_detection", "timing"):
+        if out.get(key) is None:
+            out[key] = {}
+    return out
+
+
+def _normalize_performance(p: dict | None) -> dict:
+    """Ensure performance.accuracy is present (LLM occasionally omits it on tasks
+    where accuracy isn't a primary measure, e.g. interrupt tasks measuring
+    inhibition rate).
+    """
+    out = dict(p or {})
+    if "accuracy" not in out or out["accuracy"] is None:
+        out["accuracy"] = {"default": 0.95}
+    return out
 
 
 def _normalize_stimulus(s: dict) -> dict:

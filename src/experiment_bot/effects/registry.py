@@ -94,3 +94,11 @@ EFFECT_REGISTRY["post_error_slowing"].handler = _h.apply_post_error_slowing
 EFFECT_REGISTRY["condition_repetition"].handler = _h.apply_condition_repetition
 EFFECT_REGISTRY["pink_noise"].handler = _h.apply_pink_noise
 EFFECT_REGISTRY["post_interrupt_slowing"].handler = _h.apply_post_interrupt_slowing
+
+EFFECT_REGISTRY["congruency_sequence"] = EffectType(
+    name="congruency_sequence",
+    params={"sequence_facilitation_ms": float, "sequence_cost_ms": float},
+    applicable_paradigms=frozenset({"conflict"}),
+    handler=_h.apply_cse,
+    validation_metric=None,  # B3 fills in
+)

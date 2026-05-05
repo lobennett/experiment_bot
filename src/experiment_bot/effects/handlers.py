@@ -109,3 +109,28 @@ def apply_post_interrupt_slowing(state: SamplerState, cfg, rng) -> float:
     if not state.prev_interrupt_detected:
         return 0.0
     return float(rng.uniform(cfg.slowing_ms_min, cfg.slowing_ms_max))
+
+
+def apply_cse(state: SamplerState, params: dict, rng) -> float:
+    """Congruency sequence effect (Gratton 1992; Egner 2007).
+
+    The conflict effect (incongruent − congruent RT) is REDUCED following
+    an incongruent trial vs following a congruent trial.
+
+    On incongruent current trials only:
+      - if previous was incongruent: subtract `sequence_facilitation_ms`
+      - if previous was congruent: add `sequence_cost_ms`
+    Congruent current trials are not modulated. Skipped after error trials
+    (error contamination).
+    """
+    if not params.get("enabled", False):
+        return 0.0
+    if state.prev_condition is None or state.prev_error:
+        return 0.0
+    if state.condition != "incongruent":
+        return 0.0
+    if state.prev_condition == "incongruent":
+        return -float(params.get("sequence_facilitation_ms", 0.0))
+    if state.prev_condition == "congruent":
+        return float(params.get("sequence_cost_ms", 0.0))
+    return 0.0

@@ -89,19 +89,26 @@ def _partial_to_pilot_config(partial: dict) -> TaskConfig:
 
     Only structural fields are populated; response_distributions and
     temporal_effects are left empty since pilot doesn't sample RTs.
+
+    The partial may carry the raw mid-pipeline shape (key aliases, missing
+    sub-dicts, list-vs-dict mismatches) — normalize first so downstream
+    dataclass constructors get canonical input. Stage 6 is the final
+    stage, so normalizing here is idempotent with the cli.py post-pipeline
+    normalize call.
     """
-    pilot_dict = partial.get("pilot_validation_config", partial.get("pilot", {}))
+    p = normalize_partial(partial)
+    pilot_dict = p.get("pilot_validation_config", p.get("pilot", {}))
     return TaskConfig(
-        task=TaskMetadata.from_dict(partial.get("task", {})),
-        stimuli=[StimulusConfig.from_dict(s) for s in partial.get("stimuli", [])],
+        task=TaskMetadata.from_dict(p.get("task", {})),
+        stimuli=[StimulusConfig.from_dict(s) for s in p.get("stimuli", [])],
         response_distributions={},  # pilot doesn't sample RTs
         performance=PerformanceConfig.from_dict(
-            partial.get("performance", {"accuracy": {}})
+            p.get("performance", {"accuracy": {}})
         ),
-        navigation=NavigationConfig.from_dict(partial.get("navigation", {"phases": []})),
-        task_specific=partial.get("task_specific", {}),
+        navigation=NavigationConfig.from_dict(p.get("navigation", {"phases": []})),
+        task_specific=p.get("task_specific", {}),
         pilot=PilotConfig.from_dict(pilot_dict),
-        runtime=RuntimeConfig.from_dict(partial.get("runtime", {})),
+        runtime=RuntimeConfig.from_dict(p.get("runtime", {})),
     )
 
 
@@ -163,17 +170,41 @@ async def _refine_partial(
     resp = await client.complete(system="", user=user, output_format="json")
     refined = json.loads(_extract_json(resp.text))
 
-    # Splice: copy partial, overwrite only the structural fields the LLM returned.
+    # Splice: deep-merge dict-shaped fields so a partial runtime fix from
+    # the LLM (e.g. only data_capture.method changed) doesn't clobber the
+    # other sub-fields (advance_behavior, phase_detection, ...). Lists are
+    # replaced wholesale; the LLM is expected to return complete lists.
     out = copy.deepcopy(partial)
     for key in (
         "stimuli", "navigation", "runtime", "task_specific",
         "performance", "pilot_validation_config",
     ):
-        if key in refined:
+        if key not in refined:
+            continue
+        if isinstance(refined[key], dict) and isinstance(out.get(key), dict):
+            out[key] = _deep_merge(out[key], refined[key])
+        else:
             out[key] = refined[key]
     out = normalize_partial(out)
-    validate_stage1_output(out)
+    # Don't validate the refined partial — if the LLM produced something
+    # broken (empty advance_keys, missing selectors, etc.), the next pilot
+    # iteration will surface the problem via its own diagnostic. Hard-
+    # failing here would short-circuit the retry loop's ability to
+    # recover, even when later refinements might fix the issue.
     return out
+
+
+def _deep_merge(base: dict, overlay: dict) -> dict:
+    """Recursively merge `overlay` into `base`. Dicts merge by key;
+    non-dict values from overlay replace those in base. Returns a new dict.
+    """
+    result = dict(base)
+    for k, v in overlay.items():
+        if isinstance(v, dict) and isinstance(result.get(k), dict):
+            result[k] = _deep_merge(result[k], v)
+        else:
+            result[k] = v
+    return result
 
 
 def _save_diagnostic(diagnostics: PilotDiagnostics, taskcards_dir: Path, label: str) -> None:

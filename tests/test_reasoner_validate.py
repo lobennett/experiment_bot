@@ -60,3 +60,27 @@ def test_validate_passes_on_method_empty():
     p["runtime"]["data_capture"]["method"] = ""
     p["runtime"]["data_capture"]["expression"] = ""
     validate_stage1_output(p)  # method="" is permitted (logs warning)
+
+
+def test_validate_fails_on_stimulus_with_empty_selector():
+    """Stage 1 must produce stimuli with non-empty detection.selector,
+    otherwise the executor's stimulus detection cannot fire."""
+    p = _complete_partial()
+    p["stimuli"] = [{"id": "x", "detection": {"method": "dom_query", "selector": ""},
+                      "response": {"condition": "x"}}]
+    with pytest.raises(Stage1ValidationError, match="detection.selector"):
+        validate_stage1_output(p)
+
+
+def test_validate_passes_on_stimulus_with_non_empty_selector():
+    p = _complete_partial()
+    p["stimuli"] = [{"id": "x",
+                      "detection": {"method": "dom_query", "selector": "#stim"},
+                      "response": {"condition": "x"}}]
+    validate_stage1_output(p)
+
+
+def test_validate_passes_on_no_stimuli_block():
+    """If 'stimuli' isn't present, validator shouldn't raise — that's a different error."""
+    p = _complete_partial()
+    validate_stage1_output(p)

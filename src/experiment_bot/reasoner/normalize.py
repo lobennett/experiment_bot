@@ -46,19 +46,25 @@ def _normalize_stimulus(s: dict) -> dict:
     """Coerce one stimulus dict into the strict StimulusConfig schema."""
     out = dict(s)
 
-    # 1. Identifier: id <- name <- condition
+    # 0. Block name: `detect` -> `detection` (LLM alias)
+    if "detection" not in out and "detect" in out:
+        out["detection"] = out.pop("detect")
+
+    # 1. Identifier: id <- name <- condition <- response.condition
     if "id" not in out:
         if "name" in out:
             out["id"] = out["name"]
         elif "condition" in out:
             out["id"] = out["condition"]
+        elif isinstance(out.get("response"), dict) and out["response"].get("condition"):
+            out["id"] = out["response"]["condition"]
         else:
             out["id"] = "unknown_stimulus"
 
     # 2. Description: ensure present
     out.setdefault("description", "")
 
-    # 3. Detection: type -> method, expression -> selector
+    # 3. Detection: type -> method, expression/value -> selector
     detection = dict(out.get("detection", {}))
     if "method" not in detection:
         if "type" in detection:
@@ -68,6 +74,8 @@ def _normalize_stimulus(s: dict) -> dict:
     if "selector" not in detection:
         if "expression" in detection:
             detection["selector"] = detection.pop("expression")
+        elif "value" in detection:
+            detection["selector"] = detection.pop("value")
         else:
             detection["selector"] = ""
     out["detection"] = detection

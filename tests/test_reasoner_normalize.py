@@ -43,6 +43,34 @@ def test_normalize_keeps_existing_detection_method():
     assert det["selector"] == "#stim"
 
 
+def test_normalize_maps_detection_value_to_selector():
+    """LLM sometimes uses `value` instead of `selector` (observed in SP2 expfactory regen)."""
+    p = {"stimuli": [{"id": "x", "detection": {"method": "dom_query", "value": "#stim"}, "response": {}}]}
+    out = normalize_partial(p)
+    det = out["stimuli"][0]["detection"]
+    assert det["method"] == "dom_query"
+    assert det["selector"] == "#stim"
+    assert "value" not in det
+
+
+def test_normalize_maps_detect_block_to_detection():
+    """LLM sometimes uses block name `detect` instead of `detection` (observed in SP2 expfactory_stroop regen)."""
+    p = {"stimuli": [{"id": "x", "detect": {"method": "js_eval", "value": "(function(){return true;})()"}, "response": {}}]}
+    out = normalize_partial(p)
+    stim = out["stimuli"][0]
+    assert "detect" not in stim
+    assert stim["detection"]["method"] == "js_eval"
+    assert stim["detection"]["selector"] == "(function(){return true;})()"
+
+
+def test_normalize_pulls_id_from_response_condition_when_top_level_missing():
+    """When LLM omits top-level name/condition/id, fall back to response.condition."""
+    p = {"stimuli": [{"detection": {"method": "js_eval", "selector": "x"},
+                      "response": {"condition": "congruent", "key": "f"}}]}
+    out = normalize_partial(p)
+    assert out["stimuli"][0]["id"] == "congruent"
+
+
 def test_normalize_fills_response_condition_from_top_level():
     p = {"stimuli": [{"condition": "go", "detection": {}, "response": {"key": "f"}}]}
     out = normalize_partial(p)

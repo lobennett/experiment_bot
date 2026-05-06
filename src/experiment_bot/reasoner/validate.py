@@ -58,3 +58,14 @@ def validate_stage1_output(partial: dict) -> None:
             f"runtime.data_capture.method must be 'js_expression', 'button_click', "
             f"or '', got {method!r}"
         )
+
+    # stimuli: each must have non-empty detection.selector so the executor can detect it
+    for stim in partial.get("stimuli", []):
+        sel = stim.get("detection", {}).get("selector", "")
+        if not sel:
+            raise Stage1ValidationError(
+                f"stimulus {stim.get('id', '<unnamed>')!r}: detection.selector is empty. "
+                f"The executor cannot detect this stimulus on the page. "
+                f"Provide a CSS selector (for method='dom_query') or JS expression "
+                f"(for method='js_eval'/'canvas_state')."
+            )

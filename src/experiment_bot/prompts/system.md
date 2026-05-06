@@ -35,11 +35,31 @@ For each possible stimulus, determine:
 
 **Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis. Name your `response_distributions` keys to match these condition labels.
 
+Each stimulus entry MUST have this exact JSON shape (key names matter — the executor reads `detection.selector` and the validator rejects empty selectors):
+
+```json
+{
+  "id": "<unique stimulus id, e.g. 'congruent'>",
+  "description": "<one-line plain-English description>",
+  "detection": {
+    "method": "dom_query" | "js_eval" | "text_content" | "canvas_state",
+    "selector": "<CSS selector for dom_query/text_content, or JS expression for js_eval/canvas_state — never empty>"
+  },
+  "response": {
+    "condition": "<condition label, usually same as id>",
+    "key": "<key string, e.g. 'f', or null when using response_key_js>",
+    "response_key_js": "<optional JS expression returning key string when key is null>"
+  }
+}
+```
+
+Do NOT use alternate key names like `detect`, `value`, `expression`, or `type` — use exactly `detection`, `selector`, `method`. The validator will reject any stimulus whose `detection.selector` is empty.
+
 Detection methods:
-- `dom_query`: CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
-- `js_eval`: JavaScript expression — truthy if returns a truthy value
-- `text_content`: CSS selector + pattern — truthy if element text contains pattern
-- `canvas_state`: JavaScript expression for canvas-based tasks — same as js_eval
+- `dom_query`: `selector` is a CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
+- `js_eval`: `selector` is a JavaScript expression — truthy if it returns a truthy value
+- `text_content`: `selector` is a CSS selector + pattern — truthy if element text contains pattern
+- `canvas_state`: `selector` is a JavaScript expression for canvas-based tasks — same as `js_eval`
 
 **IMPORTANT**: Identify ALL possible stimulus types. Missing a stimulus type will cause the bot to freeze. Order stimulus rules by detection priority — stimuli requiring response suppression should be detected BEFORE standard response stimuli when both may be simultaneously present.
 

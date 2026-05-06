@@ -214,6 +214,36 @@ def _save_diagnostic(diagnostics: PilotDiagnostics, taskcards_dir: Path, label: 
     (out_dir / "pilot.md").write_text(diagnostics.to_report())
 
 
+def _save_refinement_diff(
+    before: dict, after: dict, taskcards_dir: Path, label: str, attempt: int,
+) -> None:
+    """Persist a unified diff of the structural fields the bot changed
+    during a refinement attempt. Lives alongside pilot.md so the user
+    can audit what the refinement loop did at each step.
+    """
+    import difflib
+    out_dir = Path(taskcards_dir) / label
+    out_dir.mkdir(parents=True, exist_ok=True)
+    fields = ("stimuli", "navigation", "runtime", "task_specific",
+              "performance", "pilot_validation_config")
+    before_lines: list[str] = []
+    after_lines: list[str] = []
+    for f in fields:
+        before_lines.append(f"# {f}")
+        before_lines.extend(json.dumps(before.get(f, {}), indent=2).splitlines())
+        before_lines.append("")
+        after_lines.append(f"# {f}")
+        after_lines.extend(json.dumps(after.get(f, {}), indent=2).splitlines())
+        after_lines.append("")
+    diff = difflib.unified_diff(
+        before_lines, after_lines,
+        fromfile=f"before_attempt_{attempt}",
+        tofile=f"after_attempt_{attempt}",
+        lineterm="",
+    )
+    (out_dir / f"pilot_refinement_{attempt}.diff").write_text("\n".join(diff))
+
+
 async def run_stage6(
     client: LLMClient,
     partial: dict,
@@ -222,15 +252,20 @@ async def run_stage6(
     label: str,
     taskcards_dir: Path,
     headless: bool = True,
-    max_retries: int = 1,
+    max_retries: int = 2,
 ) -> tuple[dict, ReasoningStep]:
-    """Run pilot validation; refine on failure; persist diagnostic.
+    """Run pilot validation; refine on failure; persist diagnostic + diffs.
 
     Returns the (possibly refined) partial plus a ReasoningStep entry.
     Raises PilotValidationError if pilot fails after max_retries refinements.
+
+    For provenance, each refinement attempt's structural diff is saved to
+    `taskcards/<label>/pilot_refinement_<N>.diff` so the user can audit
+    exactly what the bot changed at each refinement step.
     """
     pilot_runner = PilotRunner()
     history: list[str] = []
+    evidence: list[str] = []
 
     for attempt in range(max_retries + 1):
         config = _partial_to_pilot_config(partial)
@@ -240,17 +275,31 @@ async def run_stage6(
             diagnostics = PilotDiagnostics.crashed(str(e))
 
         passed, reasons = _pilot_passed(diagnostics, config)
+        evidence.append(
+            f"attempt_{attempt + 1}: trials={diagnostics.trials_with_stimulus_match}, "
+            f"conditions={diagnostics.conditions_observed}, "
+            f"missing={diagnostics.conditions_missing}, "
+            f"anomalies={len(diagnostics.anomalies)}"
+        )
         if passed:
             _save_diagnostic(diagnostics, taskcards_dir, label)
-            inference = (
-                f"Pilot passed: {diagnostics.trials_with_stimulus_match} trials, "
-                f"conditions {diagnostics.conditions_observed}."
-                + (f" Refined {attempt} time(s)." if attempt > 0 else "")
-            )
+            if attempt == 0:
+                inference = (
+                    f"Pilot passed first attempt: "
+                    f"{diagnostics.trials_with_stimulus_match} trials matched, "
+                    f"conditions {diagnostics.conditions_observed} all observed."
+                )
+            else:
+                inference = (
+                    f"Pilot passed after {attempt} refinement(s): "
+                    f"{diagnostics.trials_with_stimulus_match} trials matched, "
+                    f"conditions {diagnostics.conditions_observed} all observed. "
+                    f"See pilot_refinement_*.diff for changes the bot made."
+                )
             return partial, ReasoningStep(
                 step="stage6_pilot",
                 inference=inference,
-                evidence_lines=[],
+                evidence_lines=evidence,
                 confidence="high",
             )
 
@@ -265,5 +314,7 @@ async def run_stage6(
                 + f"\n\nLatest diagnostic saved to {taskcards_dir}/{label}/pilot.md"
             )
 
-        # Refine and retry
+        # Refine and retry; capture the diff for provenance
+        before = copy.deepcopy(partial)
         partial = await _refine_partial(client, partial, diagnostics, bundle)
+        _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)

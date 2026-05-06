@@ -27,8 +27,8 @@ from experiment_bot.taskcard.types import TaskCard
 @click.option("--pilot-headed", is_flag=True, default=False,
               help="Run the Stage 6 pilot with a visible browser window "
                    "(default: headless).")
-@click.option("--pilot-max-retries", type=int, default=1,
-              help="Max refinement retries when Stage 6 pilot fails (default: 1).")
+@click.option("--pilot-max-retries", type=int, default=2,
+              help="Max refinement retries when Stage 6 pilot fails (default: 2).")
 @click.option("-v", "--verbose", is_flag=True, default=False)
 def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
          resume: bool, skip_pilot: bool, pilot_headed: bool,

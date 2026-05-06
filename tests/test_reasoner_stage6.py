@@ -128,7 +128,7 @@ async def test_stage6_refines_on_failure_then_passes(tmp_path):
         )
     assert step.step == "stage6_pilot"
     assert "passed" in step.inference.lower()
-    assert "refined 1 time" in step.inference.lower() or "refined 1" in step.inference.lower()
+    assert "1 refinement" in step.inference.lower() or "refinement(s)" in step.inference.lower()
     # Refinement spliced into the partial
     assert out["navigation"]["phases"], "navigation phases populated by refinement"
     # Task name preserved across refinement (refinement only touches structural fields)

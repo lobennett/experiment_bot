@@ -251,7 +251,11 @@ class BetweenSubjectJitterConfig:
 class PilotConfig:
     min_trials: int = 20
     target_conditions: list[str] = field(default_factory=list)
-    max_blocks: int = 1
+    # Pilot stops at this many FEEDBACK phase firings. Default 3 covers
+    # paradigms with a single-trial practice block followed by feedback,
+    # then the start of test (where the pilot will reach min_trials and
+    # exit naturally). Set to 1 for tasks that are a single block.
+    max_blocks: int = 3
     stimulus_container_selector: str = ""
     rationale: str = ""
 

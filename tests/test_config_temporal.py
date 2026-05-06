@@ -214,7 +214,7 @@ def test_pilot_config_defaults():
     pc = PilotConfig.from_dict({})
     assert pc.min_trials == 20
     assert pc.target_conditions == []
-    assert pc.max_blocks == 1
+    assert pc.max_blocks == 3  # bumped from 1: covers practice+early test
     assert pc.stimulus_container_selector == ""
 
 

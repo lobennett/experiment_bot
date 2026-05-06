@@ -5,8 +5,8 @@
     "prompt_sha256": "",
     "scraper_version": "1.0.0",
     "source_sha256": "",
-    "timestamp": "2026-05-05T18:24:07.140475+00:00",
-    "taskcard_sha256": "df7b1bfd29fd593d061fc872f247351be9a4c2e703dbe98a3382bae7674dcf83"
+    "timestamp": "2026-05-05T23:22:55.549952+00:00",
+    "taskcard_sha256": "5160e89567f8149b5dbbfca0fea5d019ea4480aa49e2056becffa021e6361702"
   },
   "task": {
     "name": "stroop_rdoc",
@@ -54,7 +54,7 @@
     "phases": [
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -62,15 +62,15 @@
       },
       {
         "phase": "",
-        "action": "",
-        "target": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
         "key": "",
         "steps": [],
         "duration_ms": 0
       },
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -801,9 +801,9 @@
       ],
       "rationale": "Post-error slowing of ~25-60 ms is consistently observed in Stroop and other conflict tasks (Rabbitt 1966; Laming 1979; Danielmeier & Ullsperger 2011). Reflects post-error cognitive control adjustment. Magnitude is at the lower end here because errors are rare (~3-7%) and the response window is short, so adjustments are largely strategic/control-based rather than dramatic.",
       "sensitivity": {
-        "enabled": "medium",
-        "slowing_ms_min": "medium",
-        "slowing_ms_max": "medium"
+        "enabled": "low",
+        "slowing_ms_min": "low",
+        "slowing_ms_max": "low"
       }
     },
     "post_interrupt_slowing": {
@@ -991,7 +991,7 @@
       "rt_mean_sd_ms": "high",
       "rt_condition_sd_ms": "medium",
       "sigma_tau_range": "medium",
-      "accuracy_sd": "low",
+      "accuracy_sd": "medium",
       "omission_sd": "low"
     }
   },

@@ -5,8 +5,8 @@
     "prompt_sha256": "",
     "scraper_version": "1.0.0",
     "source_sha256": "",
-    "timestamp": "2026-05-05T18:19:11.992977+00:00",
-    "taskcard_sha256": "4c345b48dc612405a2934ad284defb6b5f3c556a1044fa1706d04419c6e6c634"
+    "timestamp": "2026-05-05T23:24:18.129598+00:00",
+    "taskcard_sha256": "4069bb9a1c702bac12551427dca44d1926c8af1df634fcf74d67896702fce9ac"
   },
   "task": {
     "name": "Stroop Online (cognition.run)",
@@ -54,7 +54,7 @@
     "phases": [
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -62,10 +62,19 @@
       },
       {
         "phase": "",
-        "action": "",
+        "action": "repeat",
         "target": "",
         "key": "",
-        "steps": [],
+        "steps": [
+          {
+            "key": " ",
+            "action": "keypress",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          }
+        ],
         "duration_ms": 0
       }
     ]
@@ -425,8 +434,8 @@
       ],
       "rationale": "Trial-to-trial RTs in speeded choice tasks show low-to-moderate positive autocorrelation (lag-1 phi ~0.10-0.20) reflecting slow drifts in arousal, attention, and motor preparation. A phi of 0.15 is a typical value for healthy adults on short Stroop blocks.",
       "sensitivity": {
-        "enabled": "low",
-        "phi": "low"
+        "enabled": "medium",
+        "phi": "medium"
       }
     },
     "condition_repetition": {
@@ -967,7 +976,7 @@
     },
     "sensitivity": {
       "rt_mean_sd_ms": "high",
-      "rt_condition_sd_ms": "high",
+      "rt_condition_sd_ms": "medium",
       "sigma_tau_range": "medium",
       "accuracy_sd": "medium",
       "omission_sd": "low"
@@ -1011,7 +1020,7 @@
     {
       "step": "stage5_sensitivity",
       "input_hash": "",
-      "inference": "Tagged sensitivity on 30 parameters; 6 are high-sensitivity.",
+      "inference": "Tagged sensitivity on 30 parameters; 5 are high-sensitivity.",
       "evidence_lines": [],
       "confidence": "medium"
     }

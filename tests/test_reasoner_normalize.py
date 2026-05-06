@@ -123,7 +123,39 @@ def test_normalize_navigation_wraps_list():
 def test_normalize_navigation_preserves_phases_dict():
     p = {"navigation": {"phases": [{"phase": "x"}]}}
     out = normalize_partial(p)
-    assert out["navigation"] == {"phases": [{"phase": "x"}]}
+    # Original `phase` value is preserved; defaults for the strict schema are added.
+    assert out["navigation"]["phases"][0]["phase"] == "x"
+    assert out["navigation"]["phases"][0]["action"] == ""
+    assert out["navigation"]["phases"][0]["target"] == ""
+
+
+def test_normalize_navigation_phase_maps_type_to_action():
+    p = {"navigation": [{"type": "click", "selector": "#btn"}]}
+    out = normalize_partial(p)
+    phase = out["navigation"]["phases"][0]
+    assert phase["action"] == "click"
+    assert phase["target"] == "#btn"
+
+
+def test_normalize_navigation_phase_maps_duration_to_duration_ms():
+    p = {"navigation": [{"type": "wait", "duration": 500}]}
+    out = normalize_partial(p)
+    phase = out["navigation"]["phases"][0]
+    assert phase["action"] == "wait"
+    assert phase["duration_ms"] == 500
+
+
+def test_normalize_navigation_phase_maps_singleton_step_to_steps():
+    """LLM repeat action uses singleton `step`; we coerce to `steps` list."""
+    p = {"navigation": [{"type": "repeat", "times": 4, "step": {"type": "keypress", "key": " "}}]}
+    out = normalize_partial(p)
+    phase = out["navigation"]["phases"][0]
+    assert phase["action"] == "repeat"
+    assert isinstance(phase["steps"], list)
+    assert len(phase["steps"]) == 1
+    # The nested step's `type` was also normalized to `action`
+    assert phase["steps"][0]["action"] == "keypress"
+    assert phase["steps"][0]["key"] == " "
 
 
 def test_normalize_navigation_handles_none():

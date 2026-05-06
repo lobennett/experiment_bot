@@ -100,14 +100,54 @@ def _normalize_task(t: dict | None) -> dict:
 
 
 def _normalize_navigation(n) -> dict:
-    """Ensure navigation is shaped as {'phases': [...]}."""
+    """Ensure navigation is shaped as {'phases': [normalized_phase, ...]}."""
     if n is None:
         return {"phases": []}
     if isinstance(n, list):
-        return {"phases": n}
-    if isinstance(n, dict):
-        if "phases" in n:
-            return n
-        # No phases key — treat the whole dict as a single phase or empty
-        return {"phases": []}
-    return {"phases": []}
+        phases = n
+    elif isinstance(n, dict):
+        phases = n.get("phases", [])
+    else:
+        phases = []
+    return {"phases": [_normalize_navigation_phase(p) for p in phases]}
+
+
+def _normalize_navigation_phase(phase: dict) -> dict:
+    """Coerce one navigation phase dict into the strict NavigationPhase schema.
+
+    LLM aliases mapped:
+      - type -> action
+      - selector -> target
+      - duration -> duration_ms
+      - step (singleton, used in repeat) -> [step] in steps list
+    Sub-step lists in `steps` are recursively normalized.
+    """
+    out = dict(phase or {})
+    # type -> action
+    if "action" not in out and "type" in out:
+        out["action"] = out.pop("type")
+    # selector -> target
+    if "target" not in out and "selector" in out:
+        out["target"] = out.pop("selector")
+    # duration -> duration_ms
+    if "duration_ms" not in out and "duration" in out:
+        try:
+            out["duration_ms"] = int(out.pop("duration"))
+        except (TypeError, ValueError):
+            out["duration_ms"] = 0
+    # singleton `step` -> steps list (LLM uses this on `repeat` actions)
+    if "steps" not in out and "step" in out:
+        single = out.pop("step")
+        out["steps"] = [single] if single else []
+    # Ensure required string keys exist
+    out.setdefault("phase", "")
+    out.setdefault("action", "")
+    out.setdefault("target", "")
+    out.setdefault("key", "")
+    out.setdefault("duration_ms", 0)
+    # Recursively normalize sub-steps when phase action is `sequence` or `repeat`
+    if isinstance(out.get("steps"), list):
+        out["steps"] = [_normalize_navigation_phase(s) for s in out["steps"]]
+    else:
+        out["steps"] = []
+    return out

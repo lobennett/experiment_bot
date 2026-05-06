@@ -5,8 +5,8 @@
     "prompt_sha256": "",
     "scraper_version": "1.0.0",
     "source_sha256": "",
-    "timestamp": "2026-05-05T17:55:20.599581+00:00",
-    "taskcard_sha256": "703f2a488d020534c7e4755ad521a13e01c12c28fbeea401e8f5cf5732efc76c"
+    "timestamp": "2026-05-05T23:22:25.116154+00:00",
+    "taskcard_sha256": "65db990725b2b395ccd5f1a6376cbf6909fc3888a7a795592e076eee98206dae"
   },
   "task": {
     "name": "stop_signal_rdoc",
@@ -68,7 +68,7 @@
       {
         "phase": "",
         "action": "click",
-        "target": "",
+        "target": "#jspsych-fullscreen-btn",
         "key": "",
         "steps": [],
         "duration_ms": 0
@@ -79,7 +79,7 @@
         "target": "",
         "key": "",
         "steps": [],
-        "duration_ms": 0
+        "duration_ms": 500
       },
       {
         "phase": "",
@@ -95,12 +95,12 @@
         "target": "",
         "key": "",
         "steps": [],
-        "duration_ms": 0
+        "duration_ms": 500
       },
       {
         "phase": "",
         "action": "click",
-        "target": "",
+        "target": "#jspsych-instructions-next",
         "key": "",
         "steps": [],
         "duration_ms": 0
@@ -111,12 +111,12 @@
         "target": "",
         "key": "",
         "steps": [],
-        "duration_ms": 0
+        "duration_ms": 300
       },
       {
         "phase": "",
         "action": "click",
-        "target": "",
+        "target": "#jspsych-instructions-next",
         "key": "",
         "steps": [],
         "duration_ms": 0
@@ -127,12 +127,12 @@
         "target": "",
         "key": "",
         "steps": [],
-        "duration_ms": 0
+        "duration_ms": 300
       },
       {
         "phase": "",
         "action": "click",
-        "target": "",
+        "target": "#jspsych-instructions-next",
         "key": "",
         "steps": [],
         "duration_ms": 0
@@ -143,7 +143,7 @@
         "target": "",
         "key": "",
         "steps": [],
-        "duration_ms": 0
+        "duration_ms": 500
       }
     ]
   },
@@ -514,7 +514,7 @@
       "rationale": "Lag-1 autocorrelation of ~0.10-0.20 is a robust universal feature of trial-by-trial RT series in speeded-choice tasks, including stop-signal. Phi=0.15 is the central published estimate.",
       "sensitivity": {
         "enabled": "medium",
-        "phi": "medium"
+        "phi": "low"
       }
     },
     "condition_repetition": {
@@ -765,9 +765,9 @@
       ],
       "rationale": "Post-error slowing on the trial after a choice error is well documented in stop-signal go-trials (typical magnitude ~20-40 ms). The range covers individual differences while remaining within the meta-analytic central tendency.",
       "sensitivity": {
-        "enabled": "medium",
-        "slowing_ms_min": "medium",
-        "slowing_ms_max": "medium"
+        "enabled": "low",
+        "slowing_ms_min": "low",
+        "slowing_ms_max": "low"
       }
     },
     "post_interrupt_slowing": {
@@ -842,9 +842,9 @@
       ],
       "rationale": "Post-stop slowing (go-RT after a stop-signal trial relative to go-after-go) is one of the most reliably documented sequential effects in the stop-signal paradigm, with typical magnitudes of 20-60 ms regardless of inhibition success. This is paradigm-specific and empirically essential.",
       "sensitivity": {
-        "enabled": "high",
-        "slowing_ms_min": "high",
-        "slowing_ms_max": "high"
+        "enabled": "medium",
+        "slowing_ms_min": "medium",
+        "slowing_ms_max": "medium"
       }
     }
   },
@@ -1050,7 +1050,7 @@
     {
       "step": "stage5_sensitivity",
       "input_hash": "",
-      "inference": "Tagged sensitivity on 27 parameters; 7 are high-sensitivity.",
+      "inference": "Tagged sensitivity on 27 parameters; 4 are high-sensitivity.",
       "evidence_lines": [],
       "confidence": "medium"
     }

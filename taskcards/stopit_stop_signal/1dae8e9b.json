@@ -5,8 +5,8 @@
     "prompt_sha256": "",
     "scraper_version": "1.0.0",
     "source_sha256": "",
-    "timestamp": "2026-05-05T18:24:38.212402+00:00",
-    "taskcard_sha256": "53abe2b4f1166a35bce0e20303dacf51876e1ac13eff1051e917f69fb031183f"
+    "timestamp": "2026-05-05T23:23:36.454147+00:00",
+    "taskcard_sha256": "1dae8e9bc9b9dab57e653029e32996e9676b02e3e9fe8abdd40a3de96b6e2e76"
   },
   "task": {
     "name": "stop_signal_kywch_jspsych",
@@ -80,7 +80,7 @@
     "phases": [
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -88,15 +88,15 @@
       },
       {
         "phase": "",
-        "action": "",
-        "target": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
         "key": "",
         "steps": [],
         "duration_ms": 0
       },
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -104,15 +104,15 @@
       },
       {
         "phase": "",
-        "action": "",
-        "target": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
         "key": "",
         "steps": [],
         "duration_ms": 0
       },
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -120,15 +120,15 @@
       },
       {
         "phase": "",
-        "action": "",
-        "target": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
         "key": "",
         "steps": [],
         "duration_ms": 0
       },
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -136,7 +136,7 @@
       },
       {
         "phase": "",
-        "action": "",
+        "action": "keypress",
         "target": "",
         "key": " ",
         "steps": [],
@@ -144,7 +144,7 @@
       },
       {
         "phase": "",
-        "action": "",
+        "action": "wait",
         "target": "",
         "key": "",
         "steps": [],
@@ -563,7 +563,7 @@
       "sensitivity": {
         "mu": "high",
         "sigma": "medium",
-        "tau": "high"
+        "tau": "medium"
       }
     }
   },
@@ -746,7 +746,7 @@
       "sensitivity": {
         "enabled": "medium",
         "sd_ms": "medium",
-        "hurst": "low"
+        "hurst": "medium"
       }
     },
     "post_error_slowing": {
@@ -899,8 +899,8 @@
       "rationale": "Go-RT slowing of 20-60ms following stop-signal trials (regardless of inhibition outcome) is robustly documented (Verbruggen et al. 2008; Bissett & Logan 2011). Reflects strategic/proactive caution and is the canonical violation of race-model context-independence in stop-signal.",
       "sensitivity": {
         "enabled": "high",
-        "slowing_ms_min": "medium",
-        "slowing_ms_max": "medium"
+        "slowing_ms_min": "high",
+        "slowing_ms_max": "high"
       }
     }
   },
@@ -1105,7 +1105,7 @@
     {
       "step": "stage5_sensitivity",
       "input_hash": "",
-      "inference": "Tagged sensitivity on 28 parameters; 8 are high-sensitivity.",
+      "inference": "Tagged sensitivity on 28 parameters; 9 are high-sensitivity.",
       "evidence_lines": [],
       "confidence": "medium"
     }

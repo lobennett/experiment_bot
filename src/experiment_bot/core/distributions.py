@@ -200,9 +200,13 @@ class ResponseSampler:
             pink_buffer=self._pink_buffer,
         )
 
-        # Apply effects in the original legacy order to preserve byte-identical
-        # behavior. PES and post_interrupt_slowing are intentionally omitted:
-        # they are applied by executor.py after the sampler returns.
+        # Effects sum independently on `state` (none of them mutate state mid-
+        # iteration), so the order is mathematically commutative — it only
+        # affects floating-point summation rounding. The list is fixed for
+        # determinism and back-compat with existing tests; if a future
+        # paradigm needs a different order, the order is purely a code-level
+        # choice rather than a behavioral one. PES and post_interrupt_slowing
+        # are applied by executor.py after the sampler returns.
         _SAMPLER_EFFECT_ORDER = [
             "autocorrelation",
             "condition_repetition",
@@ -240,17 +244,16 @@ class ResponseSampler:
         elif self._samplers:
             sampler = next(iter(self._samplers.values()))
         else:
-            # No samplers — apply pink noise + drift without AR(1)/Gratton
-            rt = 500.0
-            if self._effects.fatigue_drift.enabled:
-                rt += self._trial_index * self._effects.fatigue_drift.drift_per_trial_ms
-            if self._pink_buffer is not None:
-                pink_idx = self._trial_index % len(self._pink_buffer)
-                rt += self._pink_buffer[pink_idx] * self._effects.pink_noise.sd_ms
-            rt = max(rt, self._floor_ms)
-            self._prev_condition = condition
-            self._trial_index += 1
-            return rt
+            # No samplers configured at all — should not happen in production
+            # (the Reasoner is required to emit at least one
+            # response_distribution per task). Raising here surfaces the
+            # configuration error instead of silently producing magic-
+            # number RTs.
+            raise ValueError(
+                f"ResponseSampler has no distributions configured; cannot sample RT for "
+                f"condition {condition!r}. Check that the TaskCard's response_distributions "
+                f"block is non-empty."
+            )
         raw_rt = sampler.sample()
         return self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
 

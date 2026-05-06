@@ -142,6 +142,7 @@ Analyze the source code to determine:
 Optional behavioral timing knobs (override defaults only when the task requires it):
 - `navigation_delay_ms` (default 1000): Pause before pressing a navigation-stimulus key. Increase if the page needs longer to register the keypress.
 - `attention_check_delay_ms` (default 1500): Pause before handling an attention check. Simulates reading time.
+- `rt_floor_ms` (default 150.0): Lower bound on sampled RTs in milliseconds — RTs faster than this are clipped up. The 150ms default reflects the conventional "fast-guess" cutoff (Whelan 2008) for choice-RT and conflict paradigms. **Override per paradigm class**: simple-RT tasks may have a lower floor (~80–100 ms), perceptual-threshold and slow-decision paradigms may have higher floors. Cite the paradigm-specific basis.
 - `completion_settle_ms` (default 2000): Pause after the trial loop ends, before data capture. Increase for tasks with long post-trial animations.
 - `trial_end_timeout_s` (default 5.0): Maximum seconds to wait for the response window to close between trials. Increase for tasks with unusually long inter-trial intervals.
 

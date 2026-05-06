@@ -21,20 +21,45 @@ from experiment_bot.taskcard.types import TaskCard
 @click.option("--work-dir", default=".reasoner_work", help="Where stage partials live")
 @click.option("--resume", is_flag=True, default=False,
               help="Resume from latest saved stage if present")
+@click.option("--skip-pilot", is_flag=True, default=False,
+              help="Skip Stage 6 (live-DOM pilot validation). Useful for "
+                   "fast iteration without launching a browser.")
+@click.option("--pilot-headed", is_flag=True, default=False,
+              help="Run the Stage 6 pilot with a visible browser window "
+                   "(default: headless).")
+@click.option("--pilot-max-retries", type=int, default=1,
+              help="Max refinement retries when Stage 6 pilot fails (default: 1).")
 @click.option("-v", "--verbose", is_flag=True, default=False)
 def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
-         resume: bool, verbose: bool):
-    """Run the 5-stage Reasoner against URL and produce a TaskCard."""
+         resume: bool, skip_pilot: bool, pilot_headed: bool,
+         pilot_max_retries: int, verbose: bool):
+    """Run the Reasoner against URL and produce a TaskCard.
+
+    Stages 1-5 produce structural and behavioral fields from source code +
+    literature. Stage 6 (pilot) validates the TaskCard against the live URL
+    via Playwright and refines on failure. Use --skip-pilot to disable Stage 6.
+    """
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
-    asyncio.run(_run(url, label, hint, Path(taskcards_dir), Path(work_dir), resume))
+    asyncio.run(_run(
+        url, label, hint, Path(taskcards_dir), Path(work_dir), resume,
+        skip_pilot=skip_pilot, pilot_headed=pilot_headed,
+        pilot_max_retries=pilot_max_retries,
+    ))
 
 
-async def _run(url, label, hint, taskcards_dir, work_dir, resume):
+async def _run(url, label, hint, taskcards_dir, work_dir, resume,
+               *, skip_pilot=False, pilot_headed=False, pilot_max_retries=1):
     from experiment_bot.reasoner.normalize import normalize_partial
     bundle = await scrape_experiment_source(url=url, hint=hint)
     client = build_default_client()
-    pipeline = ReasonerPipeline(client=client, work_dir=work_dir)
+    pipeline = ReasonerPipeline(
+        client=client, work_dir=work_dir,
+        run_pilot=not skip_pilot,
+        pilot_headless=not pilot_headed,
+        pilot_max_retries=pilot_max_retries,
+        taskcards_dir=taskcards_dir,
+    )
     final = await pipeline.run(bundle, label=label, resume=resume)
     if "schema_version" not in final:
         final = _wrap_for_taskcard(final, url)

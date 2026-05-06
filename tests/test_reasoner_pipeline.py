@@ -16,7 +16,7 @@ def bundle():
 @pytest.mark.asyncio
 async def test_pipeline_runs_all_5_stages(tmp_path, bundle):
     fake = AsyncMock()
-    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work")
+    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work", run_pilot=False)
     with patch("experiment_bot.reasoner.pipeline.run_stage1",
                new=AsyncMock(return_value=(
                    {"task": {"name": "x"}, "stimuli": [],
@@ -53,7 +53,7 @@ async def test_pipeline_runs_all_5_stages(tmp_path, bundle):
 @pytest.mark.asyncio
 async def test_pipeline_writes_partial_after_each_stage(tmp_path, bundle):
     fake = AsyncMock()
-    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work")
+    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work", run_pilot=False)
 
     async def stage1(client, b):
         return {"_stage": 1}, ReasoningStep(step="stage1_structural", inference="x")
@@ -86,7 +86,7 @@ async def test_pipeline_resumes_from_stage(tmp_path, bundle):
     async def stage5(client, p):
         return {**p, "_stage": 5}, ReasoningStep(step="stage5_sensitivity", inference="x")
 
-    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work")
+    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work", run_pilot=False)
     with patch("experiment_bot.reasoner.pipeline.run_stage3", new=stage3), \
          patch("experiment_bot.reasoner.pipeline.run_stage4", new=stage4), \
          patch("experiment_bot.reasoner.pipeline.run_stage5", new=stage5):
@@ -97,7 +97,7 @@ async def test_pipeline_resumes_from_stage(tmp_path, bundle):
 @pytest.mark.asyncio
 async def test_pipeline_resume_with_no_partial_starts_fresh(tmp_path, bundle):
     fake = AsyncMock()
-    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work")
+    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work", run_pilot=False)
 
     async def stage1(client, b):
         return {"fresh": True}, ReasoningStep(step="stage1_structural", inference="x")
@@ -128,7 +128,7 @@ async def test_pipeline_resume_with_no_partial_starts_fresh(tmp_path, bundle):
 async def test_pipeline_accumulates_reasoning_chain(tmp_path, bundle):
     """The pipeline collects one ReasoningStep per stage into _reasoning_chain."""
     fake = AsyncMock()
-    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work")
+    pipe = ReasonerPipeline(client=fake, work_dir=tmp_path / "work", run_pilot=False)
 
     async def stage1(client, b):
         return {"_stage": 1}, ReasoningStep(step="stage1_structural", inference="s1")

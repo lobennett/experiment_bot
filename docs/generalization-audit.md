@@ -1,6 +1,13 @@
 # Generalization Audit
 
 **Date:** 2026-05-06
+**Status:** All 13 findings resolved (commits `85a5a1b` through `480e516`).
+413 tests passing. The architecture now supports novel paradigms without
+code changes for: paradigm-class taxonomy, CSE condition labels, oracle
+pillars and metrics, distribution families, performance clip ranges,
+multi-trial PES decay, and effect-type extensibility. The validator-retry
+infrastructure (H4) prevents future LLM-output-shape regressions.
+
 **Scope:** Identify every place in the codebase where paradigm-specific or
 cognitive-control-shaped assumptions live, vs. universal mechanisms that
 generalize to any speeded-decision task. The chief concern: a reviewer asks

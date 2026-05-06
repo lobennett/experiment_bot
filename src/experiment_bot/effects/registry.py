@@ -83,6 +83,46 @@ def eligible_effects(paradigm_classes: list[str]) -> set[str]:
     return out
 
 
+def register_effect(
+    name: str,
+    handler: Callable[..., float],
+    applicable_paradigms: frozenset[str] | None = None,
+    params: dict[str, type] | None = None,
+    validation_metric: Callable[..., Any] | None = None,
+) -> EffectType:
+    """Register a new EffectType under ``name``. Returns the registered entry.
+
+    The effect registry is the bot's "standard library" of paradigm
+    behaviors. New paradigm classes that need effects beyond the seven
+    built-in entries (autocorrelation, fatigue_drift, post_error_slowing,
+    condition_repetition, pink_noise, post_interrupt_slowing,
+    congruency_sequence) can register their own handlers via this
+    function. The handler is a Python callable so the math is auditable;
+    the registration itself is a one-liner that doesn't require editing
+    this file.
+
+    `applicable_paradigms` defaults to ALL_PARADIGM_CLASSES (universal).
+    Pass a frozenset of class names to scope the effect to a specific
+    paradigm class. `params` is the effect's parameter schema (used by
+    Stage 2 to inform the LLM what fields to populate). `validation_metric`
+    is the callable the oracle uses to score this effect against
+    canonical norms; pass None if the effect is sampler-side only.
+
+    Raises KeyError if ``name`` already exists — overwriting an effect
+    silently would mask configuration errors.
+    """
+    if name in EFFECT_REGISTRY:
+        raise KeyError(f"effect_already_registered: {name!r} (use a different name)")
+    EFFECT_REGISTRY[name] = EffectType(
+        name=name,
+        params=params or {},
+        applicable_paradigms=applicable_paradigms or ALL_PARADIGM_CLASSES,
+        handler=handler,
+        validation_metric=validation_metric,
+    )
+    return EFFECT_REGISTRY[name]
+
+
 # ---------------------------------------------------------------------------
 # Wire handlers into the registry (Task A2)
 # ---------------------------------------------------------------------------

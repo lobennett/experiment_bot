@@ -8,14 +8,15 @@ trivially matching norms because both came from the same papers). If a metric
 has no meta-analysis or review, mark its range as null with a
 no_canonical_range_reason.
 
-Examples of acceptable sources:
-- Egner 2007 Trends in Cognitive Sciences (review of CSE)
-- Verbruggen et al. 2019 (consensus on SSRT methods)
-- Whelan 2008 (review of ex-Gaussian RT analysis)
+Examples of acceptable source types (NOT a hint about which to use for any
+specific class — choose sources appropriate to the class):
+- Trends in Cognitive Sciences / Annual Review reviews
+- Cochrane-style meta-analyses
+- Method-consensus papers from established working groups
 
 Output JSON conforming to this schema:
 {
-  "paradigm_class": "<class name>",
+  "paradigm_class": "<class name passed in>",
   "metrics": {
     "<metric_name>": {
       "<range_key>": [low, high],
@@ -28,19 +29,45 @@ Output JSON conforming to this schema:
   }
 }
 
-Required metrics for class "conflict":
-- rt_distribution (mu_range, sigma_range, tau_range)
-- between_subject_sd (mu_sd_range, sigma_sd_range, tau_sd_range)
-- lag1_autocorr (range as [low, high] correlation)
-- post_error_slowing (range_ms)
-- cse_magnitude (range_ms; can be NEGATIVE — facilitation is conventionally negative)
+## What to extract
 
-Required metrics for class "interrupt":
-- rt_distribution
-- between_subject_sd
-- lag1_autocorr
-- post_error_slowing
-- ssrt (range_ms; integration method)
+The paradigm_class name is provided as input. The vocabulary is
+open-ended — there is no closed list of recognized classes. Use your
+knowledge of the literature for whatever class name is provided to
+decide which metrics have well-established canonical ranges.
 
-If unsure about a value, prefer marking range null with reason rather than
-guessing. Return JSON only — no preamble or explanation.
+For ANY paradigm class, populate at minimum:
+
+1. **RT distribution shape** (typically `rt_distribution`): the central-
+   tendency and shape parameters of typical-healthy-adult RT in this
+   class. If the literature reports ex-Gaussian fits, use
+   `mu_range`, `sigma_range`, `tau_range`. If lognormal/Wald fits are
+   the convention for this paradigm, use the appropriate parameter names.
+   Cite the review/meta-analysis.
+
+2. **Between-subject variability** (typically `between_subject_sd`): the
+   standard deviation of those RT shape parameters across subjects in
+   typical samples. Same parameter naming as above with `_sd_range`
+   suffix when SD is reported across subjects.
+
+3. **Sequential effects** (one entry per documented effect): any
+   trial-to-trial dependencies the literature documents for this class.
+   Examples that may apply: `lag1_autocorr`, `post_error_slowing`,
+   `condition_repetition`, switch cost, masking effect, attentional
+   blink, learning curve. Use whatever metric names make sense given
+   the literature; the validation oracle dispatches by name.
+
+4. **Paradigm-specific signature metrics**: any metric that is a defining
+   measurement of this paradigm class in the literature. Examples:
+   `cse_magnitude` (for conflict), `ssrt` (for interrupt), drift rate
+   (for perceptual decision), N-1/N-2 switch cost (for task switching),
+   set-size effect (for working memory). Include only what the
+   literature for THIS class actually reports; don't import metrics from
+   other classes.
+
+If the literature for this class does NOT have a meta-analytic range
+for a metric you considered including, mark that metric's range as null
+with a `no_canonical_range_reason` ("no meta-analysis available",
+"primary studies disagree, no consensus", etc.). Do NOT guess.
+
+Return JSON only — no preamble or explanation.

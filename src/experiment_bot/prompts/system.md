@@ -10,17 +10,35 @@ Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON 
 
 Each task you analyze has a `task.paradigm_classes` field — a list of strings
 naming the abstract paradigm families this task belongs to. The vocabulary is
-open-ended; canonical values include:
+**open-ended**: choose whatever short class names best describe the cognitive
+operations the task taxes, drawing from your knowledge of the cognitive
+psychology / neuroscience literature. Classes you choose should:
 
-- `"conflict"` — interference paradigms (Stroop, Flanker, Simon).
-- `"interrupt"` — response-inhibition (stop-signal, go/no-go).
-- `"task_switching"` — task-set switching (cued or alternating).
-- `"memory"` — working-memory or list-recall (n-back, Sternberg).
-- `"speeded_choice"` — universal class for any speeded-response task.
+- Group tasks that share canonical sequential effects in the literature
+  (e.g. tasks with a manipulable interference dimension share the
+  congruency-sequence effect; tasks requiring response cancellation share
+  post-interrupt slowing).
+- Be specific enough to be useful (a class shared by all speeded tasks
+  isn't informative) but general enough to span paradigms across labs
+  (use the abstract class name from review articles, not the specific
+  paradigm name like "stroop_task" or "stop_signal_task").
+- Always include `"speeded_choice"` for any task involving timed
+  decisions, in addition to one or more specific classes.
+
+Examples drawn from common paradigms (NOT an exhaustive enumeration —
+propose new class names as warranted by the literature):
+- Stroop, Flanker, Simon, Eriksen → e.g. `["conflict", "speeded_choice"]`
+- stop-signal, go/no-go → e.g. `["interrupt", "speeded_choice"]`
+- task switching, cued switching → e.g. `["task_switching", "speeded_choice"]`
+- n-back, Sternberg → e.g. `["working_memory", "speeded_choice"]`
+- random-dot motion, perceptual decision → e.g. `["perceptual_decision", "speeded_choice"]`
 
 The classes are used to filter which paradigm-specific sequential effects
-(CSE, switch cost, list-length effect, etc.) apply to a given task in
-Stage 2's behavioral inference.
+apply to a given task in Stage 2's behavioral inference, and to look up
+the canonical norms file for validation. If you propose a new class
+name, the framework will look for `norms/<class_name>.json` — if it
+doesn't yet exist, the user can extract norms for that class via
+`experiment-bot-extract-norms --paradigm-class <class_name>`.
 
 ---
 

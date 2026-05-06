@@ -51,16 +51,13 @@ defaults.
 ## REQUIRED task metadata
 
 - `task.paradigm_classes` (list of strings) — abstract classes the paradigm
-  belongs to. Open-ended vocabulary; used to filter which paradigm-specific
-  sequential effects apply. Examples:
-  - `["conflict"]` for Stroop, Flanker, Simon, Eriksen tasks (anything with a
-    manipulable congruency dimension).
-  - `["interrupt"]` for stop-signal, go/no-go tasks.
-  - `["task_switching"]` for cued or alternating-runs paradigms.
-  - `["memory"]` for n-back, list-recall paradigms.
-  - `["speeded_choice"]` is the universal class — always include it for any
-    speeded-response paradigm. (Most tasks should have at least one specific
-    class plus `"speeded_choice"`.)
+  belongs to. **Open-ended vocabulary**: choose the abstract class names from
+  the literature that best describe the cognitive operations the task taxes.
+  Used to filter which paradigm-specific sequential effects apply and to look
+  up the canonical-norms file for validation. Always include
+  `"speeded_choice"` for any timed-decision task, plus one or more specific
+  classes drawn from review-article terminology. See system.md "Paradigm
+  classes" for examples and guidance on picking class names.
 """
 
 

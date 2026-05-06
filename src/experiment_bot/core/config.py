@@ -231,6 +231,12 @@ class BetweenSubjectJitterConfig:
     sigma_tau_range: list = field(default_factory=lambda: [1.0, 1.0])
     accuracy_sd: float = 0.0
     omission_sd: float = 0.0
+    # Plausible bounds for jittered accuracy / omission. Defaults reflect
+    # typical conflict/interrupt-task ranges; the Reasoner should override
+    # these per paradigm class — perceptual-threshold tasks need a lower
+    # accuracy floor, slow-paced tasks may need a higher omission ceiling.
+    accuracy_clip_range: list = field(default_factory=lambda: [0.60, 0.995])
+    omission_clip_range: list = field(default_factory=lambda: [0.0, 0.04])
     rationale: str = ""
 
     @classmethod

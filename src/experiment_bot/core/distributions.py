@@ -191,18 +191,21 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
                 dist.params["sigma"] *= rng.uniform(lo, hi)
                 dist.params["tau"] *= rng.uniform(lo, hi)
 
-    # Jitter per-condition accuracy values
+    # Jitter per-condition accuracy values, clipped to the configured
+    # plausibility range (Reasoner-determined per paradigm class).
     if bsj.accuracy_sd > 0:
+        acc_lo, acc_hi = bsj.accuracy_clip_range
         for cond, acc_base in config.performance.accuracy.items():
             config.performance.accuracy[cond] = float(
-                np.clip(acc_base + rng.normal(0, bsj.accuracy_sd), 0.60, 0.995)
+                np.clip(acc_base + rng.normal(0, bsj.accuracy_sd), acc_lo, acc_hi)
             )
 
-    # Jitter per-condition omission rates
+    # Jitter per-condition omission rates, clipped to the configured range.
     if bsj.omission_sd > 0:
+        om_lo, om_hi = bsj.omission_clip_range
         for cond, om_base in config.performance.omission_rate.items():
             config.performance.omission_rate[cond] = float(
-                np.clip(om_base + rng.normal(0, bsj.omission_sd), 0.0, 0.04)
+                np.clip(om_base + rng.normal(0, bsj.omission_sd), om_lo, om_hi)
             )
 
     return config

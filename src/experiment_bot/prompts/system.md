@@ -215,8 +215,10 @@ The `between_subject_jitter` object controls session-level parameter variation a
 - `rt_mean_sd_ms`: Standard deviation (ms) of a shared Gaussian shift applied identically to the `mu` parameter of ALL condition distributions. A single draw is shared across conditions, preserving inter-condition differences (e.g., switch costs) while shifting the overall speed level. Set to 0 to disable global speed jitter.
 - `rt_condition_sd_ms`: Standard deviation (ms) of an independent per-condition Gaussian shift applied to `mu` for each distribution separately (in addition to the shared shift). This allows conditions to vary slightly relative to each other across sessions.
 - `sigma_tau_range`: A two-element list `[lo, hi]` defining a uniform distribution. Each session, `sigma` and `tau` for every distribution are independently multiplied by a draw from `Uniform(lo, hi)`. Set to `[1.0, 1.0]` to disable shape jitter.
-- `accuracy_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's accuracy target. Clipped to [0.60, 0.995] after jitter.
-- `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate. Clipped to [0.0, 0.04] after jitter.
+- `accuracy_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's accuracy target.
+- `accuracy_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered accuracy values are clipped to. Defaults to `[0.60, 0.995]`, reflecting typical conflict/interrupt-task performance. **Override per paradigm class** — perceptual-threshold tasks may have a floor near chance (e.g. `[0.50, 0.85]`); psychophysics-staircase tasks converge to a known target (e.g. `[0.70, 0.85]` for a 75%-correct staircase). Cite the paradigm-specific basis.
+- `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate.
+- `omission_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered omission rates are clipped to. Defaults to `[0.0, 0.04]`, reflecting tightly-paced speeded tasks. **Override per paradigm class** — slow-paced or dual-task paradigms may have higher omission ceilings (e.g. `[0.0, 0.10]`); tasks with no response deadline may have higher still. Cite the paradigm-specific basis.
 - `rationale`: Free-text field for recording the basis for chosen jitter parameters.
 
 ### 12. Pilot Configuration

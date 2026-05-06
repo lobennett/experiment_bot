@@ -9,14 +9,39 @@ import click
 from experiment_bot.validation.oracle import validate_session_set
 
 
+def _load_cse_labels(taskcards_dir: Path, label: str) -> tuple[str, str] | None:
+    """Read TaskCard for `label`, extract CSE high/low conflict labels if present.
+
+    Returns None if the TaskCard doesn't exist, doesn't have CSE configured,
+    or doesn't supply both labels — the oracle will fall back to defaults.
+    """
+    try:
+        from experiment_bot.taskcard.loader import load_latest
+        tc = load_latest(taskcards_dir, label)
+    except FileNotFoundError:
+        return None
+    cse_pv = tc.temporal_effects.get("congruency_sequence")
+    if cse_pv is None:
+        return None
+    cse_value = cse_pv.value if hasattr(cse_pv, "value") else cse_pv
+    if not cse_value.get("enabled", False):
+        return None
+    high = cse_value.get("high_conflict_condition", "")
+    low = cse_value.get("low_conflict_condition", "")
+    if not high or not low:
+        return None
+    return (high, low)
+
+
 @click.command()
 @click.option("--paradigm-class", required=True, help="Paradigm class (conflict, interrupt, ...)")
 @click.option("--label", required=True, help="TaskCard label (matches output/{label}/)")
 @click.option("--norms-dir", default="norms", help="Directory holding norms/{class}.json files")
 @click.option("--output-dir", default="output", help="Where session subfolders live")
+@click.option("--taskcards-dir", default="taskcards", help="Where TaskCard JSONs live")
 @click.option("--reports-dir", default="validation", help="Where to write JSON reports")
 @click.option("-v", "--verbose", is_flag=True, default=False)
-def main(paradigm_class, label, norms_dir, output_dir, reports_dir, verbose):
+def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_dir, verbose):
     """Score bot sessions against published canonical norms; write a report."""
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -36,10 +61,13 @@ def main(paradigm_class, label, norms_dir, output_dir, reports_dir, verbose):
     if not session_dirs:
         raise click.ClickException(f"No session subdirs in {label_dir}")
 
+    cse_labels = _load_cse_labels(Path(taskcards_dir), label)
+
     report = validate_session_set(
         paradigm_class=paradigm_class,
         session_dirs=session_dirs,
         norms=norms,
+        cse_labels=cse_labels,
     )
 
     Path(reports_dir).mkdir(parents=True, exist_ok=True)

@@ -11,29 +11,39 @@ import numpy as np
 from scipy import optimize, stats
 
 
-def cse_magnitude(trials: list[dict]) -> float:
-    """Mean RT on incongruent-after-incongruent minus mean RT on incongruent-after-congruent.
+def cse_magnitude(
+    trials: list[dict],
+    high_conflict: str = "incongruent",
+    low_conflict: str = "congruent",
+) -> float:
+    """Mean RT on high-after-high minus mean RT on high-after-low.
 
     Negative values mean facilitation (the conventional CSE direction).
-    Returns NaN when either iI or cI pair set is empty (insufficient data).
+    Returns NaN when either pair set is empty (insufficient data).
+
+    The condition labels default to "incongruent"/"congruent" for back-
+    compat with Stroop-style TaskCards. Pass the actual labels from the
+    TaskCard's `temporal_effects.congruency_sequence.value` to make this
+    metric work on conflict paradigms with other label conventions
+    (e.g. "compatible"/"incompatible").
 
     Trials list element keys expected: "condition" (str) and "rt" (float).
     """
-    iI_rts: list[float] = []
-    cI_rts: list[float] = []
+    high_after_high: list[float] = []
+    high_after_low: list[float] = []
     for i, trial in enumerate(trials):
         if i == 0:
             continue
         prev = trials[i - 1]
-        if trial.get("condition") != "incongruent":
+        if trial.get("condition") != high_conflict:
             continue
-        if prev.get("condition") == "incongruent":
-            iI_rts.append(trial["rt"])
-        elif prev.get("condition") == "congruent":
-            cI_rts.append(trial["rt"])
-    if not iI_rts or not cI_rts:
+        if prev.get("condition") == high_conflict:
+            high_after_high.append(trial["rt"])
+        elif prev.get("condition") == low_conflict:
+            high_after_low.append(trial["rt"])
+    if not high_after_high or not high_after_low:
         return float("nan")
-    return mean(iI_rts) - mean(cI_rts)
+    return mean(high_after_high) - mean(high_after_low)
 
 
 def fit_ex_gaussian(rt_samples: list[float]) -> dict:

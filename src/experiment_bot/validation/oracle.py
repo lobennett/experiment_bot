@@ -102,6 +102,7 @@ def validate_session_set(
     paradigm_class: str,
     session_dirs: list[Path],
     norms: dict,
+    cse_labels: tuple[str, str] | None = None,
 ) -> ValidationReport:
     """Score bot sessions against published canonical norms.
 
@@ -109,6 +110,11 @@ def validate_session_set(
     individual_differences) plus an overall_pass = AND of gating-metric passes.
     Metrics whose published range is None (or list of nulls) are descriptive-
     only with pass_=None and do not contribute to gating.
+
+    `cse_labels`, when supplied, is `(high_conflict_condition, low_conflict_condition)`
+    — the Reasoner-chosen TaskCard labels for this paradigm's high/low conflict
+    trials. Without it, cse_magnitude defaults to 'incongruent'/'congruent'
+    (Stroop convention) and may report NaN on paradigms using other labels.
     """
     metrics_def: dict[str, dict] = norms.get("metrics", {})
 
@@ -175,7 +181,13 @@ def validate_session_set(
             for t in _load_session_log(s):
                 if not t.get("omission") and t.get("actual_rt_ms") is not None:
                     cse_trials.append({"condition": t.get("condition"), "rt": float(t["actual_rt_ms"])})
-        bot_cse = cse_magnitude(cse_trials) if cse_trials else float("nan")
+        if cse_labels:
+            high_label, low_label = cse_labels
+            bot_cse = cse_magnitude(
+                cse_trials, high_conflict=high_label, low_conflict=low_label,
+            ) if cse_trials else float("nan")
+        else:
+            bot_cse = cse_magnitude(cse_trials) if cse_trials else float("nan")
         rng = metrics_def["cse_magnitude"].get("range_ms")
         _add(seq_pillar, MetricResult(
             name="cse_magnitude",

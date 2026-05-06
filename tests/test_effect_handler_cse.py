@@ -72,3 +72,62 @@ def test_cse_in_registry():
     et = EFFECT_REGISTRY["congruency_sequence"]
     assert et.applicable_paradigms == frozenset({"conflict"})
     assert et.handler is not None
+
+
+# ---------------------------------------------------------------------------
+# Generalization (audit finding H1) — handler must operate on TaskCard-named
+# condition labels, not hardcoded "congruent"/"incongruent" strings.
+# ---------------------------------------------------------------------------
+
+def test_cse_uses_custom_condition_labels_for_facilitation():
+    """A conflict task using 'compatible'/'incompatible' labels still gets CSE."""
+    state = _make_state(prev_condition="incompatible", condition="incompatible")
+    rng = np.random.default_rng(0)
+    params = {
+        "enabled": True,
+        "sequence_facilitation_ms": 30.0,
+        "sequence_cost_ms": 30.0,
+        "high_conflict_condition": "incompatible",
+        "low_conflict_condition": "compatible",
+    }
+    delta = apply_cse(state, params, rng)
+    assert delta == -30.0
+
+
+def test_cse_uses_custom_condition_labels_for_cost():
+    state = _make_state(prev_condition="compatible", condition="incompatible")
+    rng = np.random.default_rng(0)
+    params = {
+        "enabled": True,
+        "sequence_facilitation_ms": 30.0,
+        "sequence_cost_ms": 30.0,
+        "high_conflict_condition": "incompatible",
+        "low_conflict_condition": "compatible",
+    }
+    delta = apply_cse(state, params, rng)
+    assert delta == 30.0
+
+
+def test_cse_does_not_fire_when_labels_dont_match_taskcard():
+    """If TaskCard labels are 'compatible'/'incompatible' but trial uses
+    'congruent'/'incongruent', CSE handler returns 0 (the trial's condition
+    doesn't match the configured high-conflict label)."""
+    state = _make_state(prev_condition="incongruent", condition="incongruent")
+    rng = np.random.default_rng(0)
+    params = {
+        "enabled": True,
+        "sequence_facilitation_ms": 30.0,
+        "sequence_cost_ms": 30.0,
+        "high_conflict_condition": "incompatible",
+        "low_conflict_condition": "compatible",
+    }
+    delta = apply_cse(state, params, rng)
+    assert delta == 0.0
+
+
+def test_cse_falls_back_to_default_labels_when_unspecified():
+    """For back-compat: if params omit the label keys, use 'incongruent'/'congruent'."""
+    state = _make_state(prev_condition="incongruent", condition="incongruent")
+    rng = np.random.default_rng(0)
+    delta = apply_cse(state, _params(facilitation=30.0), rng)
+    assert delta == -30.0

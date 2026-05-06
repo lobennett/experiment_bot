@@ -98,7 +98,16 @@ EFFECT_REGISTRY["post_interrupt_slowing"].handler = _h.apply_post_interrupt_slow
 
 EFFECT_REGISTRY["congruency_sequence"] = EffectType(
     name="congruency_sequence",
-    params={"sequence_facilitation_ms": float, "sequence_cost_ms": float},
+    params={
+        "sequence_facilitation_ms": float,
+        "sequence_cost_ms": float,
+        # Condition labels chosen by the Reasoner per task. The handler
+        # uses these instead of magic strings so paradigms with different
+        # condition naming conventions (e.g. "compatible"/"incompatible")
+        # work without code changes.
+        "high_conflict_condition": str,
+        "low_conflict_condition": str,
+    },
     applicable_paradigms=frozenset({"conflict"}),
     handler=_h.apply_cse,
     validation_metric=None,  # B3 fills in

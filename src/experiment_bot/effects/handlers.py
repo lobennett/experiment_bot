@@ -114,23 +114,31 @@ def apply_post_interrupt_slowing(state: SamplerState, cfg, rng) -> float:
 def apply_cse(state: SamplerState, params: dict, rng) -> float:
     """Congruency sequence effect (Gratton 1992; Egner 2007).
 
-    The conflict effect (incongruent − congruent RT) is REDUCED following
-    an incongruent trial vs following a congruent trial.
+    The conflict effect (high-conflict − low-conflict RT) is REDUCED
+    following a high-conflict trial vs following a low-conflict trial.
 
-    On incongruent current trials only:
-      - if previous was incongruent: subtract `sequence_facilitation_ms`
-      - if previous was congruent: add `sequence_cost_ms`
-    Congruent current trials are not modulated. Skipped after error trials
-    (error contamination).
+    The condition labels are taken from the TaskCard via
+    `params["high_conflict_condition"]` and `params["low_conflict_condition"]`,
+    so paradigms with non-Stroop labels (e.g. "compatible"/"incompatible",
+    "same"/"different") work without code changes. Defaults to
+    "incongruent"/"congruent" when params omit the keys (back-compat).
+
+    On high-conflict current trials only:
+      - if previous was high-conflict: subtract `sequence_facilitation_ms`
+      - if previous was low-conflict: add `sequence_cost_ms`
+    Low-conflict current trials are not modulated. Skipped after error
+    trials (error contamination).
     """
     if not params.get("enabled", False):
         return 0.0
     if state.prev_condition is None or state.prev_error:
         return 0.0
-    if state.condition != "incongruent":
+    high = params.get("high_conflict_condition", "incongruent")
+    low = params.get("low_conflict_condition", "congruent")
+    if state.condition != high:
         return 0.0
-    if state.prev_condition == "incongruent":
+    if state.prev_condition == high:
         return -float(params.get("sequence_facilitation_ms", 0.0))
-    if state.prev_condition == "congruent":
+    if state.prev_condition == low:
         return float(params.get("sequence_cost_ms", 0.0))
     return 0.0

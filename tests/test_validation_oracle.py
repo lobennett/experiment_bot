@@ -110,3 +110,62 @@ def test_oracle_empty_session_set_does_not_crash(tmp_path, fake_norms_conflict):
     assert report.overall_pass is False or all(
         not p.pass_ for p in report.pillar_results.values() if p.pass_ is not None
     )
+
+
+def _fake_session_dir_with_labels(
+    tmp_path: Path, mu: float, sigma: float, tau: float, n_trials: int, seed: int,
+    high_label: str, low_label: str,
+):
+    """Like _fake_session_dir but uses caller-provided condition labels."""
+    rng = np.random.default_rng(seed)
+    session_dir = tmp_path / f"session_{high_label}_{seed}"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    log = []
+    for i in range(n_trials):
+        rt = rng.normal(mu, sigma) + rng.exponential(tau)
+        # Pattern: low, high, high, low, high, high, ... → produces high-after-low and high-after-high pairs
+        cond = high_label if i % 3 != 0 else low_label
+        log.append({
+            "trial": i, "stimulus_id": "x",
+            "condition": cond, "response_key": "z",
+            "actual_rt_ms": float(rt),
+            "intended_error": False, "omission": False,
+        })
+    (session_dir / "bot_log.json").write_text(json.dumps(log))
+    return session_dir
+
+
+def test_oracle_uses_taskcard_cse_labels(tmp_path, fake_norms_conflict):
+    """Oracle reads CSE condition labels from cse_labels arg, not magic strings.
+
+    Bot logs use 'compatible'/'incompatible' (Eriksen-style) instead of
+    'congruent'/'incongruent'. Without cse_labels passed in, the metric
+    would compute NaN (no trials match the default 'incongruent'/'congruent').
+    With cse_labels=("incompatible", "compatible"), it computes a real value.
+    """
+    sessions = [
+        _fake_session_dir_with_labels(
+            tmp_path, 500, 60, 80, n_trials=200, seed=s,
+            high_label="incompatible", low_label="compatible",
+        )
+        for s in range(3)
+    ]
+    # Without cse_labels: should report NaN (no incongruent/congruent trials)
+    report_default = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=fake_norms_conflict,
+    )
+    seq = report_default.pillar_results["sequential"].metrics
+    assert "cse_magnitude" in seq
+    assert seq["cse_magnitude"].bot_value is None  # NaN → None
+
+    # With cse_labels: should compute a real value
+    report_custom = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=fake_norms_conflict,
+        cse_labels=("incompatible", "compatible"),
+    )
+    seq_custom = report_custom.pillar_results["sequential"].metrics
+    assert seq_custom["cse_magnitude"].bot_value is not None  # finite value

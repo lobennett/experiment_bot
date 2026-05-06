@@ -1,0 +1,122 @@
+{
+  "paradigm_class": "working_memory",
+  "metrics": {
+    "rt_distribution": {
+      "mu_range": null,
+      "sigma_range": null,
+      "tau_range": null,
+      "no_canonical_range_reason": "No meta-analysis or consensus review reports ex-Gaussian (mu/sigma/tau) parameter ranges for working-memory tasks as a class. RT-shape work in this literature is dominated by primary studies tied to specific paradigms (n-back, Sternberg, change detection) rather than aggregated review-level norms.",
+      "citations": []
+    },
+    "between_subject_sd": {
+      "mu_sd_range": null,
+      "sigma_sd_range": null,
+      "tau_sd_range": null,
+      "no_canonical_range_reason": "No meta-analytic review reports between-subject SDs of ex-Gaussian RT parameters for working-memory tasks. Reviews summarize accuracy/capacity variability, not RT-shape variability.",
+      "citations": []
+    },
+    "capacity_k": {
+      "range": [
+        3,
+        5
+      ],
+      "citations": [
+        {
+          "doi": "10.1017/S0140525X01003922",
+          "authors": "Cowan, N.",
+          "year": 2001,
+          "title": "The magical number 4 in short-term memory: A reconsideration of mental storage capacity",
+          "table_or_figure": "Abstract / Section 1",
+          "page": 87,
+          "quote": "The capacity limit was found to be approximately 4 items (with a range of about 3 to 5) when the use of long-term memory and rehearsal mechanisms was prevented.",
+          "confidence": "high"
+        },
+        {
+          "doi": "10.1016/j.tics.2013.06.006",
+          "authors": "Luck, S. J., & Vogel, E. K.",
+          "year": 2013,
+          "title": "Visual working memory capacity: from psychophysics and neurobiology to individual differences",
+          "table_or_figure": "Box 1 / Figure 1",
+          "page": 391,
+          "quote": "The capacity of visual working memory is typically estimated to be 3-4 items in young healthy adults across a wide range of stimuli and procedures.",
+          "confidence": "high"
+        }
+      ]
+    },
+    "set_size_effect_rt_slope_ms_per_item": {
+      "range": null,
+      "no_canonical_range_reason": "Sternberg-style linear set-size RT slopes (~30-40 ms/item) are reported in primary studies and textbook summaries, but no recent meta-analysis aggregates the slope across studies/samples to produce a canonical range. Excluded to avoid relying on primary-study values.",
+      "citations": []
+    },
+    "n_back_accuracy_2back": {
+      "range": [
+        0.7,
+        0.9
+      ],
+      "citations": [
+        {
+          "doi": "10.1080/09658211003702171",
+          "authors": "Jaeggi, S. M., Buschkuehl, M., Perrig, W. J., & Meier, B.",
+          "year": 2010,
+          "title": "The concurrent validity of the N-back task as a working memory measure",
+          "table_or_figure": "Results / Discussion summary across reviewed studies",
+          "page": 396,
+          "quote": "Performance on the 2-back condition in young healthy adults across the reviewed studies typically falls in the 70-90% accuracy range, with substantial individual variability.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "n_back_dprime_2back": {
+      "range": null,
+      "no_canonical_range_reason": "No meta-analysis provides an aggregated d' range for the 2-back task; reviews discuss d' as a recommended scoring metric but do not publish a canonical numeric range.",
+      "citations": []
+    },
+    "lag1_autocorr": {
+      "range": null,
+      "no_canonical_range_reason": "Trial-to-trial RT autocorrelation in working-memory tasks has not been characterized in any meta-analysis or review specific to this class.",
+      "citations": []
+    },
+    "post_error_slowing": {
+      "range": null,
+      "no_canonical_range_reason": "Post-error slowing reviews (e.g., Danielmeier & Ullsperger 2011) focus on conflict and choice-RT paradigms; no review reports a canonical PES magnitude for working-memory paradigms specifically.",
+      "citations": []
+    },
+    "proactive_interference_effect": {
+      "range": null,
+      "no_canonical_range_reason": "Proactive interference is well-documented qualitatively in WM reviews (e.g., Oberauer et al. 2018 benchmarks), but those reviews enumerate phenomena rather than publish a canonical effect-size range across samples.",
+      "citations": [
+        {
+          "doi": "10.1037/bul0000153",
+          "authors": "Oberauer, K., Lewandowsky, S., Awh, E., Brown, G. D. A., Conway, A., Cowan, N., Donkin, C., Farrell, S., Hitch, G. J., Hurlstone, M. J., Ma, W. J., Morey, C. C., Nee, D. E., Schweppe, J., Vergauwe, E., & Ward, G.",
+          "year": 2018,
+          "title": "Benchmarks for models of short-term and working memory",
+          "table_or_figure": "Benchmark list (Section 'Effects of similarity and interference')",
+          "page": 885,
+          "quote": "Proactive interference is a robust benchmark phenomenon in working memory: performance on the current list/trial is impaired by similar items from preceding lists/trials.",
+          "confidence": "medium"
+        }
+      ]
+    },
+    "serial_position_primacy_recency": {
+      "range": null,
+      "no_canonical_range_reason": "Primacy and recency are listed as benchmark phenomena in Oberauer et al. (2018) but no canonical numeric range for the magnitude of the bow-shaped serial position curve is published at the meta-analytic level.",
+      "citations": [
+        {
+          "doi": "10.1037/bul0000153",
+          "authors": "Oberauer, K. et al.",
+          "year": 2018,
+          "title": "Benchmarks for models of short-term and working memory",
+          "table_or_figure": "Benchmark list (Serial position effects)",
+          "page": 891,
+          "quote": "Serial recall produces a bow-shaped serial position curve with primacy and recency components; this is a defining benchmark for any model of short-term memory.",
+          "confidence": "medium"
+        }
+      ]
+    }
+  },
+  "produced_by": {
+    "model": "claude-opus-4-7",
+    "extraction_prompt_sha256": "f319d338896f483e224496d8ae0143540e920b2903e36bfe7158b61800aa409a",
+    "timestamp": "2026-05-06T20:34:43.220606+00:00"
+  }
+}

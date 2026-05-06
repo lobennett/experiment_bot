@@ -287,6 +287,26 @@ class TaskExecutor:
                 logger.info("Entering trial loop...")
                 await self._trial_loop(page)
 
+                # Hard-fail when the trial loop captured zero trials.
+                # This catches the silent-failure mode where the bot can't
+                # reach the experiment (stuck on instructions, navigation
+                # incomplete, stimulus detector doesn't match the live DOM,
+                # required JS state never set, etc.). Without this guard
+                # the executor writes empty bot_log.json and exits 0,
+                # which obscures real configuration problems behind
+                # "successful" runs.
+                if self._trial_count == 0:
+                    raise RuntimeError(
+                        "Executor captured 0 trials. The bot did not reach "
+                        "the experiment's trial stage. Common causes: "
+                        "navigation.phases is incomplete (bot couldn't click "
+                        "past instructions), stimulus.detection.selector "
+                        "doesn't match the live DOM, or required runtime JS "
+                        "state (e.g. window.* variables) is never set. "
+                        "Inspect the screenshot, the bot log, and "
+                        "experiment_data.* in the run dir."
+                    )
+
                 # Phase 3: Wait for completion and data
                 logger.info("Waiting for task completion...")
                 await self._wait_for_completion(page)

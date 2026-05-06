@@ -1,9 +1,11 @@
 """Validation oracle: scores bot sessions against published canonical norms.
 
-Reads bot output (bot_log.json per session) plus a norms dict. Computes
-universal metrics (RT distribution shape, lag-1 autocorr, PES, population SD)
-and paradigm-specific metrics (CSE for conflict, SSRT for interrupt) where
-applicable. Reports per-pillar pass/fail.
+Reads bot output (bot_log.json per session) plus a norms dict. Dispatches
+each metric in the norms file through a registry that maps metric name ->
+(pillar, computer, sub_keys). Pillars accumulate dynamically based on
+which metrics appear in the norms file — adding a new metric for a
+novel paradigm class means registering one entry, not editing this
+oracle.
 
 NULL-range metrics (no canonical meta-analytic range) are descriptive-only:
 the oracle reports the bot's computed value alongside a null range and
@@ -11,10 +13,11 @@ pass_=None — never gating overall pass/fail.
 """
 from __future__ import annotations
 import json
+import logging
 import math
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 import numpy as np
 
@@ -22,6 +25,8 @@ from experiment_bot.effects.validation_metrics import (
     cse_magnitude, fit_ex_gaussian, lag1_autocorrelation,
     population_sd_per_param, post_error_slowing_magnitude,
 )
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -98,6 +103,125 @@ def _annotate_correct(trial: dict) -> dict:
     return {**trial, "correct": correct, "rt": float(rt) if rt is not None else None}
 
 
+# ---------------------------------------------------------------------------
+# Metric dispatch registry
+# ---------------------------------------------------------------------------
+#
+# Each entry maps a metric name (as it appears in a norms file) to:
+#   - pillar:   string name of the pillar this metric belongs to. Pillars
+#               accumulate dynamically; novel pillars (e.g. "speed_accuracy")
+#               work without code changes.
+#   - compute:  callable that given (session_dirs, ctx) returns either:
+#                 * a single float (single-value metric), or
+#                 * a dict[str, float] (multi-value metric, one MetricResult
+#                   per sub-key).
+#   - sub_keys: None for single-value metrics; for multi-value metrics, the
+#               list of sub-keys mapped to range-keys via `range_key_fmt`.
+#   - range_key:        the field in the norms entry holding the published
+#                       range (used when sub_keys is None). E.g. "range_ms".
+#   - range_key_fmt:    when sub_keys is non-None, a format string mapping
+#                       each sub-key to its corresponding norms-entry field.
+#                       E.g. "{key}_range" → "mu_range", "sigma_range", ...
+#   - result_name_fmt:  when sub_keys is non-None, a format string for the
+#                       MetricResult.name. E.g. "{key}_sd" or "{key}".
+#
+# Adding a new metric for a novel paradigm class means appending one entry
+# here plus a `compute` function. The norms file declares which metrics
+# (and which pillars) apply; the oracle iterates over the norms file rather
+# than running hardcoded if-blocks.
+
+
+@dataclass
+class MetricSpec:
+    pillar: str
+    compute: Callable[[list[Path], dict], Any]
+    sub_keys: list[str] | None = None
+    range_key: str = "range"
+    range_key_fmt: str = "{key}_range"
+    result_name_fmt: str = "{key}"
+
+
+def _compute_rt_distribution(session_dirs: list[Path], ctx: dict) -> dict:
+    rts = _gather_bot_rts(session_dirs)
+    return fit_ex_gaussian(rts) if rts else {
+        "mu": float("nan"), "sigma": float("nan"), "tau": float("nan")
+    }
+
+
+def _compute_lag1(session_dirs: list[Path], ctx: dict) -> float:
+    rts = _gather_bot_rts(session_dirs)
+    return lag1_autocorrelation(rts) if rts else float("nan")
+
+
+def _compute_pes(session_dirs: list[Path], ctx: dict) -> float:
+    all_trials: list[dict] = []
+    for s in session_dirs:
+        for t in _load_session_log(s):
+            all_trials.append(_annotate_correct(t))
+    valid = [t for t in all_trials if t.get("rt") is not None]
+    return post_error_slowing_magnitude(valid) if valid else float("nan")
+
+
+def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
+    cse_labels = ctx.get("cse_labels")
+    cse_trials: list[dict] = []
+    for s in session_dirs:
+        for t in _load_session_log(s):
+            if not t.get("omission") and t.get("actual_rt_ms") is not None:
+                cse_trials.append({"condition": t.get("condition"),
+                                    "rt": float(t["actual_rt_ms"])})
+    if not cse_trials:
+        return float("nan")
+    if cse_labels:
+        high, low = cse_labels
+        return cse_magnitude(cse_trials, high_conflict=high, low_conflict=low)
+    return cse_magnitude(cse_trials)
+
+
+def _compute_between_subject_sd(session_dirs: list[Path], ctx: dict) -> dict:
+    per_session_fits = []
+    for s in session_dirs:
+        rts = _gather_bot_rts([s])
+        if rts:
+            per_session_fits.append(fit_ex_gaussian(rts))
+    if len(per_session_fits) < 2:
+        return {"mu": float("nan"), "sigma": float("nan"), "tau": float("nan")}
+    return population_sd_per_param(per_session_fits)
+
+
+METRIC_REGISTRY: dict[str, MetricSpec] = {
+    "rt_distribution": MetricSpec(
+        pillar="rt_distribution",
+        compute=_compute_rt_distribution,
+        sub_keys=["mu", "sigma", "tau"],
+        range_key_fmt="{key}_range",
+        result_name_fmt="{key}",
+    ),
+    "lag1_autocorr": MetricSpec(
+        pillar="sequential",
+        compute=_compute_lag1,
+        range_key="range",
+    ),
+    "post_error_slowing": MetricSpec(
+        pillar="sequential",
+        compute=_compute_pes,
+        range_key="range_ms",
+    ),
+    "cse_magnitude": MetricSpec(
+        pillar="sequential",
+        compute=_compute_cse,
+        range_key="range_ms",
+    ),
+    "between_subject_sd": MetricSpec(
+        pillar="individual_differences",
+        compute=_compute_between_subject_sd,
+        sub_keys=["mu", "sigma", "tau"],
+        range_key_fmt="{key}_sd_range",
+        result_name_fmt="{key}_sd",
+    ),
+}
+
+
 def validate_session_set(
     paradigm_class: str,
     session_dirs: list[Path],
@@ -106,125 +230,75 @@ def validate_session_set(
 ) -> ValidationReport:
     """Score bot sessions against published canonical norms.
 
-    Returns a ValidationReport with three pillars (rt_distribution, sequential,
-    individual_differences) plus an overall_pass = AND of gating-metric passes.
-    Metrics whose published range is None (or list of nulls) are descriptive-
-    only with pass_=None and do not contribute to gating.
+    Iterates over the norms file's metrics dict, dispatching each through
+    METRIC_REGISTRY. Pillars accumulate dynamically based on which metrics
+    appear; new pillars (e.g. "speed_accuracy") and new metrics work
+    without code changes here — register a `MetricSpec` and the norms file
+    declares which apply per paradigm class.
 
-    `cse_labels`, when supplied, is `(high_conflict_condition, low_conflict_condition)`
-    — the Reasoner-chosen TaskCard labels for this paradigm's high/low conflict
-    trials. Without it, cse_magnitude defaults to 'incongruent'/'congruent'
-    (Stroop convention) and may report NaN on paradigms using other labels.
+    `cse_labels`, when supplied, is `(high_conflict_condition, low_conflict_condition)`.
+    The Reasoner-chosen labels override the metric's defaults
+    ('incongruent'/'congruent') for paradigms with non-Stroop label
+    conventions.
     """
     metrics_def: dict[str, dict] = norms.get("metrics", {})
+    pillars: dict[str, PillarResult] = {}
+    ctx = {"cse_labels": cse_labels}
 
-    # Helpers for pillar accumulation
-    rt_pillar = PillarResult(pillar="rt_distribution", metrics={}, pass_=True)
-    seq_pillar = PillarResult(pillar="sequential", metrics={}, pass_=True)
-    ind_pillar = PillarResult(pillar="individual_differences", metrics={}, pass_=True)
+    def _pillar(name: str) -> PillarResult:
+        if name not in pillars:
+            pillars[name] = PillarResult(pillar=name, metrics={}, pass_=True)
+        return pillars[name]
 
     def _add(pillar: PillarResult, mr: MetricResult) -> None:
         pillar.metrics[mr.name] = mr
         if mr.pass_ is False:
             pillar.pass_ = False
 
-    # Pillar 1: RT distribution
-    rt_def = metrics_def.get("rt_distribution", {})
-    if rt_def:
-        all_rts = _gather_bot_rts(session_dirs)
-        fit = fit_ex_gaussian(all_rts) if all_rts else {"mu": float("nan"), "sigma": float("nan"), "tau": float("nan")}
-        for param in ("mu", "sigma", "tau"):
-            range_key = f"{param}_range"
-            rng = rt_def.get(range_key)
-            value = fit[param]
-            pass_ = _in_range(value, rng)
-            _add(rt_pillar, MetricResult(
-                name=param, bot_value=value if not math.isnan(value) else None,
-                published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-                pass_=pass_,
-                citations=rt_def.get("citations", []),
-            ))
+    for metric_name, metric_def in metrics_def.items():
+        spec = METRIC_REGISTRY.get(metric_name)
+        if spec is None:
+            logger.warning(
+                "Unknown metric %r in norms file (no registered MetricSpec); "
+                "skipping. Register one in oracle.METRIC_REGISTRY to compute it.",
+                metric_name,
+            )
+            continue
 
-    # Pillar 2: Sequential effects
-    if "lag1_autocorr" in metrics_def:
-        rts = _gather_bot_rts(session_dirs)
-        bot_lag1 = lag1_autocorrelation(rts) if rts else float("nan")
-        rng = metrics_def["lag1_autocorr"].get("range")
-        _add(seq_pillar, MetricResult(
-            name="lag1_autocorr",
-            bot_value=bot_lag1 if not math.isnan(bot_lag1) else None,
-            published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-            pass_=_in_range(bot_lag1, rng),
-            citations=metrics_def["lag1_autocorr"].get("citations", []),
-        ))
+        pillar = _pillar(spec.pillar)
+        value = spec.compute(session_dirs, ctx)
+        citations = metric_def.get("citations", [])
 
-    if "post_error_slowing" in metrics_def:
-        all_trials: list[dict] = []
-        for s in session_dirs:
-            for t in _load_session_log(s):
-                all_trials.append(_annotate_correct(t))
-        # Filter out trials where rt could not be determined
-        valid_trials = [t for t in all_trials if t.get("rt") is not None]
-        bot_pes = post_error_slowing_magnitude(valid_trials) if valid_trials else float("nan")
-        rng = metrics_def["post_error_slowing"].get("range_ms")
-        _add(seq_pillar, MetricResult(
-            name="post_error_slowing",
-            bot_value=bot_pes if not math.isnan(bot_pes) else None,
-            published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-            pass_=_in_range(bot_pes, rng),
-            citations=metrics_def["post_error_slowing"].get("citations", []),
-        ))
-
-    if "cse_magnitude" in metrics_def:
-        cse_trials: list[dict] = []
-        for s in session_dirs:
-            for t in _load_session_log(s):
-                if not t.get("omission") and t.get("actual_rt_ms") is not None:
-                    cse_trials.append({"condition": t.get("condition"), "rt": float(t["actual_rt_ms"])})
-        if cse_labels:
-            high_label, low_label = cse_labels
-            bot_cse = cse_magnitude(
-                cse_trials, high_conflict=high_label, low_conflict=low_label,
-            ) if cse_trials else float("nan")
-        else:
-            bot_cse = cse_magnitude(cse_trials) if cse_trials else float("nan")
-        rng = metrics_def["cse_magnitude"].get("range_ms")
-        _add(seq_pillar, MetricResult(
-            name="cse_magnitude",
-            bot_value=bot_cse if not math.isnan(bot_cse) else None,
-            published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-            pass_=_in_range(bot_cse, rng),
-            citations=metrics_def["cse_magnitude"].get("citations", []),
-        ))
-
-    # Pillar 3: Individual differences (population SD)
-    bsd_def = metrics_def.get("between_subject_sd", {})
-    if bsd_def:
-        per_session_fits = []
-        for s in session_dirs:
-            rts = _gather_bot_rts([s])
-            if rts:
-                per_session_fits.append(fit_ex_gaussian(rts))
-        sds = population_sd_per_param(per_session_fits) if len(per_session_fits) >= 2 else {
-            "mu": float("nan"), "sigma": float("nan"), "tau": float("nan")
-        }
-        for param in ("mu", "sigma", "tau"):
-            range_key = f"{param}_sd_range"
-            rng = bsd_def.get(range_key)
-            value = sds[param]
-            _add(ind_pillar, MetricResult(
-                name=f"{param}_sd",
-                bot_value=value if not math.isnan(value) else None,
+        if spec.sub_keys is None:
+            # Single-value metric
+            rng = metric_def.get(spec.range_key)
+            float_value = value if not (isinstance(value, float) and math.isnan(value)) else None
+            _add(pillar, MetricResult(
+                name=metric_name,
+                bot_value=float_value,
                 published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
                 pass_=_in_range(value, rng),
-                citations=bsd_def.get("citations", []),
+                citations=citations,
             ))
+        else:
+            # Multi-value metric: emit one MetricResult per sub-key
+            for key in spec.sub_keys:
+                rng_field = spec.range_key_fmt.format(key=key)
+                rng = metric_def.get(rng_field)
+                sub_value = value.get(key, float("nan")) if isinstance(value, dict) else float("nan")
+                bot_v = sub_value if not (isinstance(sub_value, float) and math.isnan(sub_value)) else None
+                _add(pillar, MetricResult(
+                    name=spec.result_name_fmt.format(key=key),
+                    bot_value=bot_v,
+                    published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
+                    pass_=_in_range(sub_value, rng),
+                    citations=citations,
+                ))
 
     # Overall pass: AND of all gating metric passes (None = ignored).
-    pillars = [rt_pillar, seq_pillar, ind_pillar]
     overall = True
     has_any_gate = False
-    for p in pillars:
+    for p in pillars.values():
         for m in p.metrics.values():
             if m.pass_ is False:
                 overall = False
@@ -235,11 +309,7 @@ def validate_session_set(
 
     return ValidationReport(
         paradigm_class=paradigm_class,
-        pillar_results={
-            "rt_distribution": rt_pillar,
-            "sequential": seq_pillar,
-            "individual_differences": ind_pillar,
-        },
+        pillar_results=pillars,
         overall_pass=overall,
         summary=f"paradigm_class={paradigm_class} pass={overall}",
     )

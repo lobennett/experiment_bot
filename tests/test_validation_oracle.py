@@ -135,6 +135,84 @@ def _fake_session_dir_with_labels(
     return session_dir
 
 
+# ---------------------------------------------------------------------------
+# Data-driven oracle (audit findings M5/M6) — pillars and metrics from norms file
+# ---------------------------------------------------------------------------
+
+def test_oracle_unknown_metric_is_logged_not_crashed(tmp_path, fake_norms_conflict, caplog):
+    """A metric in the norms file with no registered MetricSpec should be
+    logged as a warning, not crash the oracle."""
+    norms = dict(fake_norms_conflict)
+    norms["metrics"] = dict(norms["metrics"])
+    norms["metrics"]["my_brand_new_metric"] = {"range_ms": [10, 20], "citations": []}
+    sessions = [_fake_session_dir(tmp_path, 500, 60, 80, n_trials=200, seed=s) for s in range(2)]
+    with caplog.at_level("WARNING"):
+        report = validate_session_set(
+            paradigm_class="conflict",
+            session_dirs=sessions,
+            norms=norms,
+        )
+    # Existing metrics still validate
+    assert "rt_distribution" in report.pillar_results
+    # Warning surfaced
+    assert any("my_brand_new_metric" in rec.message for rec in caplog.records)
+
+
+def test_oracle_supports_arbitrary_pillar_name():
+    """Registering a metric under a novel pillar name should produce a pillar
+    of that name in the report (no hardcoded pillar list)."""
+    from experiment_bot.validation.oracle import (
+        METRIC_REGISTRY, MetricSpec, validate_session_set,
+    )
+    # Register a fake metric under a novel pillar; remove after the test
+    METRIC_REGISTRY["dummy_speed_accuracy"] = MetricSpec(
+        pillar="speed_accuracy_tradeoff",
+        compute=lambda session_dirs, ctx: 0.42,
+        range_key="range",
+    )
+    try:
+        norms = {
+            "paradigm_class": "novel_class",
+            "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+            "metrics": {"dummy_speed_accuracy": {"range": [0.4, 0.5], "citations": []}},
+        }
+        report = validate_session_set(
+            paradigm_class="novel_class",
+            session_dirs=[],
+            norms=norms,
+        )
+        assert "speed_accuracy_tradeoff" in report.pillar_results
+        pillar = report.pillar_results["speed_accuracy_tradeoff"]
+        assert "dummy_speed_accuracy" in pillar.metrics
+        assert pillar.metrics["dummy_speed_accuracy"].bot_value == 0.42
+        assert pillar.metrics["dummy_speed_accuracy"].pass_ is True  # 0.42 in [0.4, 0.5]
+    finally:
+        METRIC_REGISTRY.pop("dummy_speed_accuracy", None)
+
+
+def test_oracle_pillars_dict_omits_unused_pillars(tmp_path):
+    """If a norms file only declares rt_distribution metrics, the oracle
+    shouldn't include sequential or individual_differences pillars."""
+    norms_minimal = {
+        "paradigm_class": "minimal",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {
+            "rt_distribution": {
+                "mu_range": [430, 580], "sigma_range": [40, 90], "tau_range": [50, 130],
+                "citations": [],
+            },
+        },
+    }
+    sessions = [_fake_session_dir(tmp_path, 500, 60, 80, n_trials=200, seed=s) for s in range(2)]
+    report = validate_session_set(
+        paradigm_class="minimal",
+        session_dirs=sessions,
+        norms=norms_minimal,
+    )
+    # Only rt_distribution pillar should be present
+    assert set(report.pillar_results.keys()) == {"rt_distribution"}
+
+
 def test_oracle_uses_taskcard_cse_labels(tmp_path, fake_norms_conflict):
     """Oracle reads CSE condition labels from cse_labels arg, not magic strings.
 

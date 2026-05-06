@@ -232,12 +232,36 @@ non-claim; reviewers should weigh them as such.
   not full distributions), but it is a weaker test than KS/Wasserstein
   against a human reference distribution would be.
 
-- **L6. The bot does not run a pre-flight pilot.** The
-  `PilotDiagnostics` system in `src/experiment_bot/core/pilot.py`
-  exists but is not wired into the Reasoner or the Executor's
-  pre-deployment path. Each session runs the full task immediately,
-  with the hard-fail-on-zero-trials guard catching the worst silent
-  failures but not earlier.
+- **L6. Pilot integration is shipped with two known gaps.** The
+  Reasoner's Stage 6 runs `PilotRunner` against the live URL after
+  Stage 5, captures diagnostics, and refines structural fields on
+  failure (commit `f02c0ab` and follow-ups). Empirical run on the
+  four dev paradigms surfaced two pilot-side limitations:
+
+  - **L6a (Reasoner navigation completeness).** The Stage 1+ Reasoner
+    sometimes emits navigation phases that get past the fullscreen
+    prompt but not through the subsequent instruction-screen sequence.
+    Pilot fails with "0 trials, page stuck on instructions". The
+    refinement loop (default `max_retries=1`) doesn't always recover
+    within one retry. expfactory_stroop hits this; the same TaskCard
+    runs successfully under the executor (which has different
+    timing/tolerance).
+
+  - **L6b (Pilot multi-block stop criterion).** Pilot exits at the
+    first FEEDBACK phase (default `max_blocks=1`), so on a paradigm
+    whose practice block is a single trial followed by feedback,
+    pilot reports 1/16 trials and fails. stopit_stop_signal hits this.
+    Increasing `max_blocks` per paradigm via `pilot_validation_config`
+    would address it but requires the Reasoner to anticipate paradigm
+    block structure.
+
+  Pilot-validated TaskCards (where pilot passed) carry a
+  `taskcards/<label>/pilot.md` artifact with match rates, condition
+  coverage, and DOM snapshots — that artifact is the load-bearing
+  defensibility evidence. Where pilot failed, the TaskCard is still
+  present and has been verified by executor smoke runs (a different
+  evidence path), but the pilot.md records the diagnostic so the
+  failure mode is auditable.
 
 - **L7. The dev paradigm sample is small and not stratified.** The
   four dev paradigms cover two paradigm classes (conflict, interrupt).

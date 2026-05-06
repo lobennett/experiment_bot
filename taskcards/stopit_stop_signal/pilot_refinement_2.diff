@@ -1,0 +1,11 @@
+--- before_attempt_2
++++ after_attempt_2
+@@ -182,7 +182,7 @@
+   "key_map": {
+     "go_left": "ArrowLeft",
+     "go_right": "ArrowRight",
+-    "stop_signal": "withhold"
++    "stop_signal": null
+   },
+   "trial_timing": {
+     "max_response_time_ms": 1250,

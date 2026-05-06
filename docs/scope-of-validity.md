@@ -232,36 +232,39 @@ non-claim; reviewers should weigh them as such.
   not full distributions), but it is a weaker test than KS/Wasserstein
   against a human reference distribution would be.
 
-- **L6. Pilot integration is shipped with two known gaps.** The
-  Reasoner's Stage 6 runs `PilotRunner` against the live URL after
-  Stage 5, captures diagnostics, and refines structural fields on
-  failure (commit `f02c0ab` and follow-ups). Empirical run on the
-  four dev paradigms surfaced two pilot-side limitations:
+- **L6. Pilot integration is shipped and passes for all four dev
+  paradigms.** The Reasoner's Stage 6 runs `PilotRunner` against the
+  live URL after Stage 5, captures diagnostics (selector match rates,
+  condition coverage, DOM snapshots, phase firings), and refines
+  structural fields on failure with up to `pilot_max_retries`
+  refinements (CLI default 2). Each refinement attempt's structural
+  diff is persisted to `taskcards/<label>/pilot_refinement_<N>.diff`
+  alongside `pilot.md`. The Stage 6 reasoning step in the TaskCard
+  records `attempt_<N>` evidence for each pilot run.
 
-  - **L6a (Reasoner navigation completeness).** The Stage 1+ Reasoner
-    sometimes emits navigation phases that get past the fullscreen
-    prompt but not through the subsequent instruction-screen sequence.
-    Pilot fails with "0 trials, page stuck on instructions". The
-    refinement loop (default `max_retries=1`) doesn't always recover
-    within one retry. expfactory_stroop hits this; the same TaskCard
-    runs successfully under the executor (which has different
-    timing/tolerance).
+  Empirical result on the four dev paradigms (current TaskCards):
+  - expfactory_stop_signal (`7efedfd1.json`): pilot passed first
+    attempt — 99 trials, both conditions (go, stop) observed.
+  - expfactory_stroop (`6829e941.json`): pilot passed first attempt —
+    46 trials, both conditions observed.
+  - stopit_stop_signal (`9de8a663.json`): pilot passed first attempt —
+    16 trials, all three conditions (go_left, go_right, stop_signal)
+    observed (stop_signal first appeared at trial 16).
+  - cognitionrun_stroop (`39b7fb4e.json`): pilot passed first attempt —
+    8 trials, both conditions observed.
 
-  - **L6b (Pilot multi-block stop criterion).** Pilot exits at the
-    first FEEDBACK phase (default `max_blocks=1`), so on a paradigm
-    whose practice block is a single trial followed by feedback,
-    pilot reports 1/16 trials and fails. stopit_stop_signal hits this.
-    Increasing `max_blocks` per paradigm via `pilot_validation_config`
-    would address it but requires the Reasoner to anticipate paradigm
-    block structure.
+  Two pilot-side gaps surfaced during integration and were closed:
+  pilot's `max_blocks` is now advisory rather than a hard stop (it
+  was breaking out at first FEEDBACK on paradigms with trial-by-trial
+  feedback), and pilot's keypress logic now filters the
+  withhold-response sentinels the executor already filtered (it was
+  crashing trying to press `"withhold"` literally on stop-signal
+  trials).
 
-  Pilot-validated TaskCards (where pilot passed) carry a
-  `taskcards/<label>/pilot.md` artifact with match rates, condition
-  coverage, and DOM snapshots — that artifact is the load-bearing
-  defensibility evidence. Where pilot failed, the TaskCard is still
-  present and has been verified by executor smoke runs (a different
-  evidence path), but the pilot.md records the diagnostic so the
-  failure mode is auditable.
+  The held-out n-back paradigm has not been re-piloted under these
+  fixes; the held-out result remains as documented in
+  `docs/heldout-nback-test.md` and is the next empirical generalization
+  test once additional held-out paradigms are added (§6).
 
 - **L7. The dev paradigm sample is small and not stratified.** The
   four dev paradigms cover two paradigm classes (conflict, interrupt).

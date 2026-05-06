@@ -1,0 +1,208 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -3,88 +3,134 @@
+   {
+     "name": "stop_left",
+     "detection": {
+-      "type": "js_eval",
+-      "expression": "(function(){var el=document.querySelector('#jspsych-image-keyboard-response-stimulus'); return !!(el && el.src && el.src.indexOf('stop_left') !== -1);})()"
++      "method": "js_eval",
++      "selector": "(function(){if(typeof jsPsych==='undefined')return false;var ct=jsPsych.currentTrial();if(!ct||ct.type!=='custom-stop-signal-plugin')return false;if(!ct.data||ct.data.signal!=='yes'||ct.data.stim!=='left')return false;var el=document.querySelector('#jspsych-image-keyboard-response-stimulus');return !!(el && el.src && el.src.indexOf('fix.png')===-1);})()"
+     },
+     "response": {
+       "key": null,
+       "condition": "stop_signal"
+-    }
++    },
++    "id": "stop_left",
++    "description": ""
+   },
+   {
+     "name": "stop_right",
+     "detection": {
+-      "type": "js_eval",
+-      "expression": "(function(){var el=document.querySelector('#jspsych-image-keyboard-response-stimulus'); return !!(el && el.src && el.src.indexOf('stop_right') !== -1);})()"
++      "method": "js_eval",
++      "selector": "(function(){if(typeof jsPsych==='undefined')return false;var ct=jsPsych.currentTrial();if(!ct||ct.type!=='custom-stop-signal-plugin')return false;if(!ct.data||ct.data.signal!=='yes'||ct.data.stim!=='right')return false;var el=document.querySelector('#jspsych-image-keyboard-response-stimulus');return !!(el && el.src && el.src.indexOf('fix.png')===-1);})()"
+     },
+     "response": {
+       "key": null,
+       "condition": "stop_signal"
+-    }
++    },
++    "id": "stop_right",
++    "description": ""
+   },
+   {
+     "name": "go_left",
+     "detection": {
+-      "type": "js_eval",
+-      "expression": "(function(){var el=document.querySelector('#jspsych-image-keyboard-response-stimulus'); return !!(el && el.src && el.src.indexOf('go_left') !== -1);})()"
++      "method": "js_eval",
++      "selector": "(function(){if(typeof jsPsych==='undefined')return false;var ct=jsPsych.currentTrial();if(!ct||ct.type!=='custom-stop-signal-plugin')return false;if(!ct.data||ct.data.signal!=='no'||ct.data.stim!=='left')return false;var el=document.querySelector('#jspsych-image-keyboard-response-stimulus');return !!(el && el.src && el.src.indexOf('fix.png')===-1);})()"
+     },
+     "response": {
+       "key": "ArrowLeft",
+       "condition": "go_left"
+-    }
++    },
++    "id": "go_left",
++    "description": ""
+   },
+   {
+     "name": "go_right",
+     "detection": {
+-      "type": "js_eval",
+-      "expression": "(function(){var el=document.querySelector('#jspsych-image-keyboard-response-stimulus'); return !!(el && el.src && el.src.indexOf('go_right') !== -1);})()"
++      "method": "js_eval",
++      "selector": "(function(){if(typeof jsPsych==='undefined')return false;var ct=jsPsych.currentTrial();if(!ct||ct.type!=='custom-stop-signal-plugin')return false;if(!ct.data||ct.data.signal!=='no'||ct.data.stim!=='right')return false;var el=document.querySelector('#jspsych-image-keyboard-response-stimulus');return !!(el && el.src && el.src.indexOf('fix.png')===-1);})()"
+     },
+     "response": {
+       "key": "ArrowRight",
+       "condition": "go_right"
+-    }
++    },
++    "id": "go_right",
++    "description": ""
+   }
+ ]
+ 
+ # navigation
+-[
+-  {
+-    "type": "wait",
+-    "duration_ms": 3000
+-  },
+-  {
+-    "type": "click",
+-    "selector": "#jspsych-fullscreen-btn"
+-  },
+-  {
+-    "type": "wait",
+-    "duration_ms": 1500
+-  },
+-  {
+-    "type": "click",
+-    "selector": "#jspsych-instructions-next"
+-  },
+-  {
+-    "type": "wait",
+-    "duration_ms": 600
+-  },
+-  {
+-    "type": "click",
+-    "selector": "#jspsych-instructions-next"
+-  },
+-  {
+-    "type": "wait",
+-    "duration_ms": 600
+-  },
+-  {
+-    "type": "keypress",
+-    "key": " "
+-  },
+-  {
+-    "type": "wait",
+-    "duration_ms": 2500
+-  }
+-]
++{
++  "phases": [
++    {
++      "duration_ms": 3000,
++      "action": "wait",
++      "phase": "",
++      "target": "",
++      "key": "",
++      "steps": []
++    },
++    {
++      "action": "click",
++      "target": "#jspsych-fullscreen-btn",
++      "phase": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "duration_ms": 1500,
++      "action": "wait",
++      "phase": "",
++      "target": "",
++      "key": "",
++      "steps": []
++    },
++    {
++      "action": "click",
++      "target": "#jspsych-instructions-next",
++      "phase": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "duration_ms": 600,
++      "action": "wait",
++      "phase": "",
++      "target": "",
++      "key": "",
++      "steps": []
++    },
++    {
++      "action": "click",
++      "target": "#jspsych-instructions-next",
++      "phase": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "duration_ms": 600,
++      "action": "wait",
++      "phase": "",
++      "target": "",
++      "key": "",
++      "steps": []
++    },
++    {
++      "key": " ",
++      "action": "keypress",
++      "phase": "",
++      "target": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "duration_ms": 2500,
++      "action": "wait",
++      "phase": "",
++      "target": "",
++      "key": "",
++      "steps": []
++    }
++  ]
++}
+ 
+ # runtime
+ {
+@@ -126,7 +172,9 @@
+   "completion_wait_ms": 2000,
+   "max_no_stimulus_polls": 200,
+   "navigation_delay_ms": 1000,
+-  "completion_settle_ms": 2000
++  "completion_settle_ms": 2000,
++  "attention_check": {},
++  "timing": {}
+ }
+ 
+ # task_specific
+@@ -167,6 +215,9 @@
+     "go_left": 0.005,
+     "go_right": 0.005,
+     "stop_signal": 0.0
++  },
++  "accuracy": {
++    "default": 0.95
+   }
+ }
+ 

@@ -19,7 +19,18 @@ from typing import Any
 
 @dataclass
 class SamplerState:
-    """Snapshot of per-trial sampler state passed to every handler."""
+    """Snapshot of per-trial sampler state passed to every handler.
+
+    `expected_rt` is the sampler's population-mean RT, used by handlers
+    that need a baseline (e.g. autocorrelation). Each sampler family
+    computes it from its parameters: ex-Gaussian = mu + tau,
+    lognormal = exp(mu + sigma^2/2), shifted-Wald = shift + boundary/drift.
+
+    `mu`, `sigma`, `tau` are kept for back-compat with handlers/tests
+    that reference ex-Gaussian parameters directly. For non-ex-Gaussian
+    samplers they are 0.0; handlers that need a generic mean should use
+    `expected_rt` instead.
+    """
 
     mu: float
     sigma: float
@@ -31,6 +42,7 @@ class SamplerState:
     prev_interrupt_detected: bool
     condition: str
     pink_buffer: Any | None = None  # numpy array or None
+    expected_rt: float = 0.0
 
 
 # ---------------------------------------------------------------------------
@@ -38,14 +50,20 @@ class SamplerState:
 # ---------------------------------------------------------------------------
 
 def apply_autocorrelation(state: SamplerState, cfg, rng) -> float:
-    """AR(1) pull: drift current RT toward previous RT."""
+    """AR(1) pull: drift current RT toward previous RT.
+
+    Uses `state.expected_rt` (population mean) as the baseline. For
+    back-compat, falls back to `state.mu + state.tau` (ex-Gaussian
+    convention) when `expected_rt` is 0.0 — which it is for any
+    SamplerState constructed without specifying it.
+    """
     if not cfg.enabled:
         return 0.0
     if state.prev_rt is None:
         return 0.0
     if cfg.phi <= 0:
         return 0.0
-    mean_rt = state.mu + state.tau
+    mean_rt = state.expected_rt or (state.mu + state.tau)
     deviation = state.prev_rt - mean_rt
     return cfg.phi * deviation
 

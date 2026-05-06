@@ -196,3 +196,92 @@ def test_jitter_no_config_no_jitter():
     rng = np.random.default_rng(42)
     jittered = jitter_distributions(config, rng)
     assert jittered.response_distributions["go"].params["mu"] == 450.0
+
+
+# ---------------------------------------------------------------------------
+# Alternative distributions (audit finding M3)
+# ---------------------------------------------------------------------------
+
+def test_lognormal_sampler_returns_finite_positive_rt():
+    from experiment_bot.core.distributions import LogNormalSampler
+    s = LogNormalSampler(mu=6.2, sigma=0.3, seed=42)
+    samples = [s.sample() for _ in range(100)]
+    assert all(rt > 0 for rt in samples)
+    assert 200 < np.mean(samples) < 1500
+
+
+def test_lognormal_sampler_expected_rt():
+    from experiment_bot.core.distributions import LogNormalSampler
+    s = LogNormalSampler(mu=6.2, sigma=0.3, seed=42)
+    expected = float(np.exp(6.2 + 0.3 ** 2 / 2.0))
+    assert abs(s.expected_rt - expected) < 1e-6
+
+
+def test_shifted_wald_sampler_returns_rt_above_shift():
+    from experiment_bot.core.distributions import ShiftedWaldSampler
+    s = ShiftedWaldSampler(drift_rate=0.5, boundary=200.0, shift_ms=200.0, seed=42)
+    samples = [s.sample() for _ in range(100)]
+    assert all(rt >= 200.0 for rt in samples)
+
+
+def test_shifted_wald_sampler_expected_rt():
+    from experiment_bot.core.distributions import ShiftedWaldSampler
+    s = ShiftedWaldSampler(drift_rate=0.5, boundary=200.0, shift_ms=200.0, seed=42)
+    assert s.expected_rt == 600.0
+
+
+def test_response_sampler_dispatches_lognormal():
+    from experiment_bot.core.distributions import ResponseSampler, LogNormalSampler
+    from experiment_bot.core.config import DistributionConfig
+    distributions = {
+        "default": DistributionConfig(distribution="lognormal", params={"mu": 6.2, "sigma": 0.3}),
+    }
+    sampler = ResponseSampler(distributions, seed=42)
+    rt = sampler.sample_rt("default")
+    assert 150 < rt < 5000
+    assert isinstance(sampler._samplers["default"], LogNormalSampler)
+
+
+def test_response_sampler_dispatches_shifted_wald():
+    from experiment_bot.core.distributions import ResponseSampler, ShiftedWaldSampler
+    from experiment_bot.core.config import DistributionConfig
+    distributions = {
+        "default": DistributionConfig(
+            distribution="shifted_wald",
+            params={"drift_rate": 0.5, "boundary": 200.0, "shift_ms": 200.0},
+        ),
+    }
+    sampler = ResponseSampler(distributions, seed=42)
+    rt = sampler.sample_rt("default")
+    assert 150 < rt < 5000
+    assert isinstance(sampler._samplers["default"], ShiftedWaldSampler)
+
+
+def test_response_sampler_unknown_distribution_raises():
+    import pytest
+    from experiment_bot.core.distributions import ResponseSampler
+    from experiment_bot.core.config import DistributionConfig
+    distributions = {
+        "default": DistributionConfig(distribution="unicorn", params={"x": 1.0}),
+    }
+    with pytest.raises(ValueError, match="Unknown distribution"):
+        ResponseSampler(distributions, seed=42)
+
+
+def test_autocorrelation_uses_expected_rt_for_non_ex_gaussian():
+    """Autocorrelation should center on expected_rt, not (mu + tau)
+    which is ex-Gaussian-specific."""
+    from experiment_bot.effects.handlers import SamplerState, apply_autocorrelation
+    from experiment_bot.core.config import AutocorrelationConfig
+
+    cfg = AutocorrelationConfig(enabled=True, phi=0.5)
+    state = SamplerState(
+        mu=0.0, sigma=0.0, tau=0.0,
+        expected_rt=600.0,
+        prev_rt=700.0,
+        prev_condition="x", trial_index=1,
+        prev_error=False, prev_interrupt_detected=False,
+        condition="x",
+    )
+    delta = apply_autocorrelation(state, cfg, None)
+    assert delta == 50.0

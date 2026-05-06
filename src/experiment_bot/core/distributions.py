@@ -26,6 +26,101 @@ class ExGaussianSampler:
         exponential = self._rng.exponential(self.tau)
         return float(gaussian + exponential)
 
+    @property
+    def expected_rt(self) -> float:
+        """Population mean of the ex-Gaussian: mu + tau."""
+        return self.mu + self.tau
+
+
+class LogNormalSampler:
+    """Lognormal RT sampler.
+
+    Some perception/decision paradigms fit lognormal RTs better than
+    ex-Gaussian. Parameterized by `mu` and `sigma` of the underlying
+    normal (i.e. the parameters numpy.random.lognormal expects).
+
+    The Reasoner picks this distribution by setting
+    `response_distributions.<cond>.value.distribution = "lognormal"` with
+    `params = {"mu": ..., "sigma": ...}`.
+    """
+
+    def __init__(self, mu: float, sigma: float, seed: int | None = None):
+        self.mu = mu
+        self.sigma = sigma
+        self._rng = np.random.default_rng(seed)
+
+    def sample(self) -> float:
+        return float(self._rng.lognormal(self.mu, self.sigma))
+
+    @property
+    def expected_rt(self) -> float:
+        """Population mean of lognormal: exp(mu + sigma^2 / 2)."""
+        return float(np.exp(self.mu + self.sigma ** 2 / 2.0))
+
+
+class ShiftedWaldSampler:
+    """Shifted-Wald (inverse-Gaussian) RT sampler.
+
+    Used for diffusion-style speeded decisions; the shift parameter
+    captures non-decision time. Parameterized by `drift_rate`,
+    `boundary` (inverse mean parameter), and `shift_ms`. Returns
+    the sampled RT in milliseconds.
+
+    Approximation via numpy.random.wald (inverse Gaussian) plus shift.
+    The Reasoner picks this distribution by setting
+    `response_distributions.<cond>.value.distribution = "shifted_wald"`
+    with `params = {"drift_rate": ..., "boundary": ..., "shift_ms": ...}`.
+    """
+
+    def __init__(self, drift_rate: float, boundary: float, shift_ms: float, seed: int | None = None):
+        self.drift_rate = drift_rate
+        self.boundary = boundary
+        self.shift_ms = shift_ms
+        self._rng = np.random.default_rng(seed)
+
+    def sample(self) -> float:
+        # Inverse Gaussian: mean = boundary / drift_rate, scale = boundary**2
+        # numpy.random.wald takes (mean, scale)
+        mean = self.boundary / max(self.drift_rate, 1e-6)
+        scale = self.boundary ** 2
+        decision_time = self._rng.wald(mean, scale)
+        return float(decision_time + self.shift_ms)
+
+    @property
+    def expected_rt(self) -> float:
+        """Population mean: shift_ms + boundary / drift_rate."""
+        return float(self.shift_ms + self.boundary / max(self.drift_rate, 1e-6))
+
+
+def _build_sampler(dist_config: "DistributionConfig", seed: int | None):
+    """Construct the appropriate sampler for a DistributionConfig.
+
+    Dispatches by `dist_config.distribution`:
+      - "ex_gaussian"   → ExGaussianSampler(mu, sigma, tau)
+      - "lognormal"     → LogNormalSampler(mu, sigma)
+      - "shifted_wald"  → ShiftedWaldSampler(drift_rate, boundary, shift_ms)
+
+    Raises ValueError for unknown distribution names. The Reasoner picks
+    the distribution per condition based on which family the literature
+    reports for the paradigm.
+    """
+    name = dist_config.distribution
+    p = dist_config.params
+    if name == "ex_gaussian":
+        return ExGaussianSampler(mu=p["mu"], sigma=p["sigma"], tau=p["tau"], seed=seed)
+    if name == "lognormal":
+        return LogNormalSampler(mu=p["mu"], sigma=p["sigma"], seed=seed)
+    if name == "shifted_wald":
+        return ShiftedWaldSampler(
+            drift_rate=p["drift_rate"], boundary=p["boundary"],
+            shift_ms=p["shift_ms"], seed=seed,
+        )
+    raise ValueError(
+        f"Unknown distribution {name!r} (supported: ex_gaussian, lognormal, shifted_wald). "
+        f"Add a sampler class + dispatch entry in core/distributions.py if your paradigm "
+        f"requires a different family."
+    )
+
 
 def _generate_pink_noise(n: int, hurst: float, rng: np.random.Generator) -> np.ndarray:
     """Spectral synthesis of fractional Gaussian noise (1/f^alpha)."""
@@ -70,16 +165,10 @@ class ResponseSampler:
             self._pink_buffer = None
 
         for condition, dist_config in distributions.items():
-            if dist_config.distribution == "ex_gaussian":
-                self._samplers[condition] = ExGaussianSampler(
-                    mu=dist_config.params["mu"],
-                    sigma=dist_config.params["sigma"],
-                    tau=dist_config.params["tau"],
-                    seed=seed,
-                )
+            self._samplers[condition] = _build_sampler(dist_config, seed)
 
     def _apply_temporal_effects(
-        self, raw_rt: float, sampler: ExGaussianSampler, condition: str,
+        self, raw_rt: float, sampler, condition: str,
         skip_condition_repetition: bool = False,
     ) -> float:
         """Apply sequential temporal effects to a raw RT sample.
@@ -89,13 +178,19 @@ class ResponseSampler:
         sample_rt_with_fallback; their registry handlers return 0.0 here
         because prev_error and prev_interrupt_detected are always False in
         the sampler's SamplerState.
+
+        Sampler-family-specific attributes (mu/sigma/tau for ex-Gaussian)
+        are read defensively so non-ex-Gaussian samplers (lognormal,
+        shifted-Wald) work too. `expected_rt` is the family-agnostic mean
+        used by handlers like autocorrelation.
         """
         rt = raw_rt
 
         state = SamplerState(
-            mu=sampler.mu,
-            sigma=sampler.sigma,
-            tau=sampler.tau,
+            mu=getattr(sampler, "mu", 0.0),
+            sigma=getattr(sampler, "sigma", 0.0),
+            tau=getattr(sampler, "tau", 0.0),
+            expected_rt=getattr(sampler, "expected_rt", 0.0),
             prev_rt=self._prev_rt,
             prev_condition=self._prev_condition,
             trial_index=self._trial_index,

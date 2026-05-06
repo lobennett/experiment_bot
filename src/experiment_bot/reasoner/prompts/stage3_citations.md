@@ -11,10 +11,16 @@ task. For EACH parameter, produce:
 
 Return a JSON object keyed by `<section>/<key>/<param>`:
 {
-  "response_distributions/congruent/mu": {
+  "response_distributions/<condition_label>/mu": {
     "citations": [...],
-    "literature_range": {"mu": [560, 620]},
-    "between_subject_sd": {"mu": 40}
+    "literature_range": {"mu": [<low>, <high>]},
+    "between_subject_sd": {"mu": <sd_value>}
   },
   ...
 }
+
+The bracketed placeholders above (`<condition_label>`, `<low>`, `<high>`,
+`<sd_value>`) are deliberately not concrete numbers. Derive every numeric
+range and SD from the literature you cite — do not pattern-match on any
+example value, and do not pull values from your training prior; they
+must be traceable to the citations you list for that parameter.

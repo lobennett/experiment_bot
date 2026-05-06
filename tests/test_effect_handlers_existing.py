@@ -101,6 +101,69 @@ def test_fatigue_drift_via_registry():
         assert 150 < rt < 10000, f"RT {rt} out of range"
 
 
+# ---------------------------------------------------------------------------
+# Multi-trial PES decay (audit finding M2)
+# ---------------------------------------------------------------------------
+
+def test_compute_pes_delta_default_one_trial_behavior():
+    """Empty decay_weights defaults to one-trial PES — only the most recent
+    error contributes."""
+    from experiment_bot.effects.handlers import compute_pes_delta
+    rng = np.random.default_rng(42)
+    delta = compute_pes_delta(
+        decay_weights=[],
+        recent_errors=[True, True, True],  # most recent first
+        rng=rng,
+        slowing_ms_min=30.0,
+        slowing_ms_max=80.0,
+    )
+    # Default = [1.0] → only first error counts
+    assert 30.0 <= delta <= 80.0
+
+
+def test_compute_pes_delta_zero_when_no_recent_error():
+    from experiment_bot.effects.handlers import compute_pes_delta
+    rng = np.random.default_rng(0)
+    delta = compute_pes_delta(
+        decay_weights=[1.0, 0.5, 0.25],
+        recent_errors=[False, False, False],
+        rng=rng,
+        slowing_ms_min=30.0,
+        slowing_ms_max=80.0,
+    )
+    assert delta == 0.0
+
+
+def test_compute_pes_delta_multi_trial_decay_sums_contributions():
+    """All three recent trials are errors — total is sum of weighted contributions."""
+    from experiment_bot.effects.handlers import compute_pes_delta
+    rng = np.random.default_rng(0)
+    delta = compute_pes_delta(
+        decay_weights=[1.0, 0.5, 0.25],
+        recent_errors=[True, True, True],
+        rng=rng,
+        slowing_ms_min=40.0,
+        slowing_ms_max=40.0,  # zero variance — easy expected value
+    )
+    # weight sum * 40ms = 1.75 * 40 = 70
+    assert delta == 70.0
+
+
+def test_compute_pes_delta_truncates_at_window_size():
+    """recent_errors longer than decay_weights → only weighted prefix counts."""
+    from experiment_bot.effects.handlers import compute_pes_delta
+    rng = np.random.default_rng(0)
+    delta = compute_pes_delta(
+        decay_weights=[1.0],  # only consider 1 trial back
+        recent_errors=[False, True, True],  # most recent NOT error, but 2 back is
+        rng=rng,
+        slowing_ms_min=40.0,
+        slowing_ms_max=40.0,
+    )
+    # weight[0]=1.0 paired with recent_errors[0]=False → 0
+    assert delta == 0.0
+
+
 def test_post_interrupt_slowing_via_registry():
     # Like PES, post_interrupt_slowing is applied by the executor. Verify the
     # handler is wired and callable.

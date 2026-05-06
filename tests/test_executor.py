@@ -598,7 +598,7 @@ def test_post_interrupt_exclusive_with_pes():
     source = inspect.getsource(TaskExecutor._execute_trial)
     # Find the interrupt check and verify elif for error slowing
     assert "if self._prev_interrupt_detected" in source
-    assert "elif self._prev_trial_error" in source
+    assert "elif te.post_error_slowing.enabled and any(self._recent_errors)" in source
 
 
 def test_post_error_slowing_reads_from_config():

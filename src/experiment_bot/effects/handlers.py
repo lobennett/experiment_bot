@@ -62,16 +62,48 @@ def apply_post_error_slowing(state: SamplerState, cfg, rng) -> float:
 
     Note: In the current architecture this effect is applied by the
     executor (``executor.py``) *after* calling ``sample_rt_with_fallback``,
-    so this handler is wired into the registry but is not called from
-    ``ResponseSampler._apply_temporal_effects``.  It is provided here so
-    that the registry is the single source of truth and future refactors can
-    move the call site into the sampler.
+    via :func:`compute_pes_delta` so that multi-trial decay can be expressed.
+    This wrapper exists for the registry's benefit and matches the legacy
+    one-trial behavior.
     """
     if not cfg.enabled:
         return 0.0
     if not state.prev_error or state.prev_interrupt_detected:
         return 0.0
     return float(rng.uniform(cfg.slowing_ms_min, cfg.slowing_ms_max))
+
+
+def compute_pes_delta(
+    decay_weights: list,
+    recent_errors,
+    rng,
+    slowing_ms_min: float,
+    slowing_ms_max: float,
+) -> float:
+    """Compute the PES contribution for the current trial given a decay profile.
+
+    `recent_errors` is an iterable of booleans where index 0 is the most-recent
+    completed trial, index 1 is two trials back, etc. (i.e. `appendleft`-fed
+    deque). `decay_weights[i]` is the weight applied to the i-th most-recent
+    trial's error contribution.
+
+    When `decay_weights` is empty, defaults to ``[1.0]`` (one-trial PES — the
+    historical behavior). When non-empty, the bot's PES contribution is the
+    weighted sum across the recent window:
+
+        sum(weight_i * uniform(ms_min, ms_max) if recent_errors[i] else 0)
+
+    Each error draws its own uniform sample (so a 3-trial-back error can add
+    a different bump than a 1-trial-back error). Sum of weights does not
+    need to equal 1 — the literature defines what's plausible per paradigm.
+    """
+    if not decay_weights:
+        decay_weights = [1.0]
+    total = 0.0
+    for w, was_err in zip(decay_weights, recent_errors):
+        if was_err:
+            total += float(w) * float(rng.uniform(slowing_ms_min, slowing_ms_max))
+    return total
 
 
 def apply_condition_repetition(state: SamplerState, cfg, rng) -> float:

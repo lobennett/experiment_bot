@@ -136,6 +136,15 @@ class PostErrorSlowingConfig:
     enabled: bool = False
     slowing_ms_min: float = 0.0
     slowing_ms_max: float = 0.0
+    # decay_weights: optional weight per recent trial (most recent first).
+    # Empty list (default) = single-trial PES (the historical default).
+    # [1.0] = explicit 1-trial decay (identical to default).
+    # [1.0, 0.6, 0.3] = 3-trial decay; the contribution from a trial N back
+    #   is `weight_N * uniform(slowing_ms_min, slowing_ms_max) if recent_errors[N] else 0`.
+    # This lets the Reasoner declare a paradigm-specific decay profile from
+    # literature (e.g. Notebaert 2009's multi-trial decay) instead of being
+    # locked to 1-trial behavior. Sum of weights does not need to equal 1.
+    decay_weights: list = field(default_factory=list)
     rationale: str = ""
 
     @classmethod

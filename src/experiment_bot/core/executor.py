@@ -88,7 +88,13 @@ class TaskExecutor:
         self._navigator = InstructionNavigator()
         self._writer = OutputWriter()
         self._trial_count = 0
-        self._prev_trial_error = False
+        # Rolling window of recent error flags (most recent first / appendleft).
+        # Sized to len(decay_weights) so multi-trial PES decay can address all
+        # weighted positions; default 1 preserves historical one-trial PES.
+        from collections import deque
+        pes_cfg = config.temporal_effects.post_error_slowing
+        window_size = max(1, len(pes_cfg.decay_weights))
+        self._recent_errors: deque[bool] = deque(maxlen=window_size)
         self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
@@ -546,7 +552,7 @@ class TaskExecutor:
                 "actual_rt_ms": None,
                 "omission": True,
             })
-            self._prev_trial_error = True
+            self._recent_errors.appendleft(True)
             self._prev_interrupt_detected = False
             await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
             return
@@ -572,10 +578,14 @@ class TaskExecutor:
                 te.post_interrupt_slowing.slowing_ms_min,
                 te.post_interrupt_slowing.slowing_ms_max,
             )
-        elif self._prev_trial_error and te.post_error_slowing.enabled:
-            rt_ms += self._rng.uniform(
-                te.post_error_slowing.slowing_ms_min,
-                te.post_error_slowing.slowing_ms_max,
+        elif te.post_error_slowing.enabled and any(self._recent_errors):
+            from experiment_bot.effects.handlers import compute_pes_delta
+            rt_ms += compute_pes_delta(
+                decay_weights=te.post_error_slowing.decay_weights,
+                recent_errors=self._recent_errors,
+                rng=self._rng,
+                slowing_ms_min=te.post_error_slowing.slowing_ms_min,
+                slowing_ms_max=te.post_error_slowing.slowing_ms_max,
             )
 
         # Cap RT at the task's max response window (prevents late keypresses)
@@ -612,7 +622,7 @@ class TaskExecutor:
                     "actual_rt_ms": None,
                     "omission": False,
                 })
-                self._prev_trial_error = False
+                self._recent_errors.appendleft(False)
                 self._prev_interrupt_detected = True
                 await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
                 return
@@ -642,7 +652,7 @@ class TaskExecutor:
                     "actual_rt_ms": round(actual_rt, 1),
                     "omission": False,
                 })
-                self._prev_trial_error = True
+                self._recent_errors.appendleft(True)
                 self._prev_interrupt_detected = True
                 return
 
@@ -675,7 +685,7 @@ class TaskExecutor:
                 "rt_distribution": rt_condition,
                 "cue": cue,
             })
-            self._prev_trial_error = False
+            self._recent_errors.appendleft(False)
             self._prev_interrupt_detected = False
             return
 
@@ -695,7 +705,7 @@ class TaskExecutor:
             "rt_distribution": rt_condition,
             "cue": cue,
         })
-        self._prev_trial_error = is_error
+        self._recent_errors.appendleft(is_error)
         self._prev_interrupt_detected = False
 
     async def _handle_attention_check(self, page: Page) -> None:

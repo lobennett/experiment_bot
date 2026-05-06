@@ -408,6 +408,20 @@ class TaskExecutor:
                             pass
                     for key in ab.advance_keys:
                         await page.keyboard.press(key)
+                    # Also try clicking any LLM-identified feedback/advance selectors
+                    # (e.g. "Next" / "Continue" buttons). Reuses the selectors the
+                    # Reasoner already wrote into the TaskCard — no paradigm-specific
+                    # knowledge added here. Helps recover when navigation.phases is
+                    # incomplete and the page expects clicks rather than keypresses.
+                    for selector in ab.feedback_selectors:
+                        try:
+                            locator = page.locator(selector).first
+                            if await locator.is_visible(timeout=200):
+                                await locator.click(timeout=500)
+                                logger.info(f"Clicked advance selector: {selector}")
+                                break
+                        except Exception:
+                            continue
                     # Also try exit pager key at double the interval
                     if ab.exit_pager_key and consecutive_misses % (ab.advance_interval_polls * 2) == 0:
                         await asyncio.sleep(0.5)

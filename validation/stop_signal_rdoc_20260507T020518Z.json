@@ -1,0 +1,65 @@
+{
+  "paradigm_class": "interrupt",
+  "overall_pass": false,
+  "summary": "paradigm_class=interrupt pass=False",
+  "pillar_results": {
+    "rt_distribution": {
+      "pass": true,
+      "metrics": {
+        "mu": {
+          "bot_value": 467.43983080612736,
+          "published_range": null,
+          "pass": null
+        },
+        "sigma": {
+          "bot_value": 96.90601961740741,
+          "published_range": null,
+          "pass": null
+        },
+        "tau": {
+          "bot_value": 86.74245792360404,
+          "published_range": null,
+          "pass": null
+        }
+      }
+    },
+    "individual_differences": {
+      "pass": true,
+      "metrics": {
+        "mu_sd": {
+          "bot_value": 0.6927116506274901,
+          "published_range": null,
+          "pass": null
+        },
+        "sigma_sd": {
+          "bot_value": 42.67264491904116,
+          "published_range": null,
+          "pass": null
+        },
+        "tau_sd": {
+          "bot_value": 6.774782623241822,
+          "published_range": null,
+          "pass": null
+        }
+      }
+    },
+    "sequential": {
+      "pass": false,
+      "metrics": {
+        "lag1_autocorr": {
+          "bot_value": -0.02753324996524002,
+          "published_range": null,
+          "pass": null
+        },
+        "post_error_slowing": {
+          "bot_value": 50.758578431372484,
+          "published_range": [
+            10,
+            50
+          ],
+          "pass": false
+        }
+      }
+    }
+  }
+}

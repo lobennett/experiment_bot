@@ -7,6 +7,7 @@ from pathlib import Path
 import click
 
 from experiment_bot.validation.oracle import validate_session_set
+from experiment_bot.validation.platform_adapters import adapter_for_label
 
 
 def _load_cse_labels(taskcards_dir: Path, label: str) -> tuple[str, str] | None:
@@ -62,12 +63,24 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         raise click.ClickException(f"No session subdirs in {label_dir}")
 
     cse_labels = _load_cse_labels(Path(taskcards_dir), label)
+    trial_loader = adapter_for_label(label)
+    if trial_loader is None:
+        click.echo(
+            f"WARNING: no platform-data adapter registered for label "
+            f"'{label}'. Falling back to bot_log.json (may over-/under-"
+            f"count platform trials). Add an adapter in "
+            f"validation/platform_adapters.py to fix.",
+            err=True,
+        )
+    else:
+        click.echo(f"Using platform-data adapter for label '{label}'.")
 
     report = validate_session_set(
         paradigm_class=paradigm_class,
         session_dirs=session_dirs,
         norms=norms,
         cse_labels=cse_labels,
+        trial_loader=trial_loader,
     )
 
     Path(reports_dir).mkdir(parents=True, exist_ok=True)

@@ -72,35 +72,61 @@ def _in_range(value, range_) -> bool | None:
     return float(lo) <= float(value) <= float(hi)
 
 
-def _load_session_log(session_dir: Path) -> list[dict]:
+def _default_bot_log_loader(session_dir: Path) -> list[dict]:
+    """Default trial loader: reads bot_log.json and produces canonical
+    trial dicts (condition, rt, correct, omission). Used as a fallback
+    when no platform-data adapter is registered for the label.
+
+    Note: bot_log.json reflects the bot's own polling-loop matches, which
+    can over- or under-count actual platform trials depending on
+    paradigm-specific stimulus-detection granularity. Prefer a platform
+    adapter from `validation/platform_adapters.py` when available.
+    """
     log_path = Path(session_dir) / "bot_log.json"
     if not log_path.exists():
         return []
     try:
-        return json.loads(log_path.read_text())
+        raw = json.loads(log_path.read_text())
     except (OSError, json.JSONDecodeError):
         return []
+    out: list[dict] = []
+    for t in raw:
+        rt = t.get("actual_rt_ms")
+        if rt is None and "rt" in t:
+            rt = t.get("rt")
+        try:
+            rt_float = float(rt) if rt is not None else None
+        except (TypeError, ValueError):
+            rt_float = None
+        omission = bool(t.get("omission", False)) or rt_float is None
+        # bot_log records intended_error; if False the bot pressed the
+        # correct key, if True it deliberately pressed a wrong one
+        correct = (not t.get("intended_error", False)) and not omission
+        out.append({
+            "condition": t.get("condition") or "",
+            "rt": rt_float,
+            "correct": correct,
+            "omission": omission,
+        })
+    return out
 
 
-def _gather_bot_rts(sessions: list[Path], condition: str | None = None) -> list[float]:
+def _gather_rts(
+    sessions: list[Path],
+    trial_loader,
+    condition: str | None = None,
+) -> list[float]:
     out: list[float] = []
     for s in sessions:
-        for trial in _load_session_log(s):
+        for trial in trial_loader(s):
             if trial.get("omission"):
                 continue
             if condition and trial.get("condition") != condition:
                 continue
-            rt = trial.get("actual_rt_ms")
+            rt = trial.get("rt")
             if rt is not None:
                 out.append(float(rt))
     return out
-
-
-def _annotate_correct(trial: dict) -> dict:
-    """Attach a 'correct' bool and normalize 'rt' key from bot log format."""
-    correct = not trial.get("intended_error", False) and not trial.get("omission", False)
-    rt = trial.get("rt") if "rt" in trial else trial.get("actual_rt_ms")
-    return {**trial, "correct": correct, "rt": float(rt) if rt is not None else None}
 
 
 # ---------------------------------------------------------------------------
@@ -142,34 +168,36 @@ class MetricSpec:
 
 
 def _compute_rt_distribution(session_dirs: list[Path], ctx: dict) -> dict:
-    rts = _gather_bot_rts(session_dirs)
+    loader = ctx["trial_loader"]
+    rts = _gather_rts(session_dirs, loader)
     return fit_ex_gaussian(rts) if rts else {
         "mu": float("nan"), "sigma": float("nan"), "tau": float("nan")
     }
 
 
 def _compute_lag1(session_dirs: list[Path], ctx: dict) -> float:
-    rts = _gather_bot_rts(session_dirs)
+    loader = ctx["trial_loader"]
+    rts = _gather_rts(session_dirs, loader)
     return lag1_autocorrelation(rts) if rts else float("nan")
 
 
 def _compute_pes(session_dirs: list[Path], ctx: dict) -> float:
+    loader = ctx["trial_loader"]
     all_trials: list[dict] = []
     for s in session_dirs:
-        for t in _load_session_log(s):
-            all_trials.append(_annotate_correct(t))
+        all_trials.extend(loader(s))
     valid = [t for t in all_trials if t.get("rt") is not None]
     return post_error_slowing_magnitude(valid) if valid else float("nan")
 
 
 def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
+    loader = ctx["trial_loader"]
     cse_labels = ctx.get("cse_labels")
     cse_trials: list[dict] = []
     for s in session_dirs:
-        for t in _load_session_log(s):
-            if not t.get("omission") and t.get("actual_rt_ms") is not None:
-                cse_trials.append({"condition": t.get("condition"),
-                                    "rt": float(t["actual_rt_ms"])})
+        for t in loader(s):
+            if not t.get("omission") and t.get("rt") is not None:
+                cse_trials.append({"condition": t.get("condition"), "rt": float(t["rt"])})
     if not cse_trials:
         return float("nan")
     if cse_labels:
@@ -179,9 +207,10 @@ def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
 
 
 def _compute_between_subject_sd(session_dirs: list[Path], ctx: dict) -> dict:
+    loader = ctx["trial_loader"]
     per_session_fits = []
     for s in session_dirs:
-        rts = _gather_bot_rts([s])
+        rts = _gather_rts([s], loader)
         if rts:
             per_session_fits.append(fit_ex_gaussian(rts))
     if len(per_session_fits) < 2:
@@ -227,6 +256,7 @@ def validate_session_set(
     session_dirs: list[Path],
     norms: dict,
     cse_labels: tuple[str, str] | None = None,
+    trial_loader=None,
 ) -> ValidationReport:
     """Score bot sessions against published canonical norms.
 
@@ -240,10 +270,20 @@ def validate_session_set(
     The Reasoner-chosen labels override the metric's defaults
     ('incongruent'/'congruent') for paradigms with non-Stroop label
     conventions.
+
+    `trial_loader`, when supplied, is a callable
+    `(session_dir: Path) -> list[trial_dict]` returning canonical trial
+    records `{condition, rt, correct, omission}`. The CLI passes a
+    platform-data adapter from `validation/platform_adapters.py` here so
+    metrics are computed against the experiment's own data export rather
+    than `bot_log.json` (which can over-/under-count platform trials).
+    Defaults to `_default_bot_log_loader` for back-compat.
     """
     metrics_def: dict[str, dict] = norms.get("metrics", {})
     pillars: dict[str, PillarResult] = {}
-    ctx = {"cse_labels": cse_labels}
+    if trial_loader is None:
+        trial_loader = _default_bot_log_loader
+    ctx = {"cse_labels": cse_labels, "trial_loader": trial_loader}
 
     def _pillar(name: str) -> PillarResult:
         if name not in pillars:

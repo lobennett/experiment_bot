@@ -50,15 +50,17 @@ def lag1_pair_contrast(
 
 def cse_magnitude(
     trials: list[dict],
-    high_conflict: str = "incongruent",
-    low_conflict: str = "congruent",
+    high_conflict: str,
+    low_conflict: str,
 ) -> float:
     """Conflict-paradigm convenience wrapper around `lag1_pair_contrast`.
 
     Computes mean RT(high-after-high) − mean RT(high-after-low). The
     bot's runtime mechanism is the generic `lag1_pair_modulation`;
     this metric name is retained because the conflict literature uses
-    "CSE magnitude" as the standard name for this contrast.
+    "CSE magnitude" as the standard name for this contrast. Labels
+    are required — the wrapper does not assume any specific condition
+    vocabulary.
     """
     return lag1_pair_contrast(
         trials,

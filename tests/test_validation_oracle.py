@@ -213,13 +213,12 @@ def test_oracle_pillars_dict_omits_unused_pillars(tmp_path):
     assert set(report.pillar_results.keys()) == {"rt_distribution"}
 
 
-def test_oracle_uses_taskcard_cse_labels(tmp_path, fake_norms_conflict):
-    """Oracle reads CSE condition labels from cse_labels arg, not magic strings.
+def test_oracle_uses_taskcard_contrast_labels(tmp_path, fake_norms_conflict):
+    """Oracle reads contrast labels from contrast_labels arg; without them
+    the CSE metric returns NaN (no paradigm-specific defaults).
 
-    Bot logs use 'compatible'/'incompatible' (Eriksen-style) instead of
-    'congruent'/'incongruent'. Without cse_labels passed in, the metric
-    would compute NaN (no trials match the default 'incongruent'/'congruent').
-    With cse_labels=("incompatible", "compatible"), it computes a real value.
+    Bot logs use 'compatible'/'incompatible'. Without labels the metric
+    has nothing to anchor to; with labels it computes a real value.
     """
     sessions = [
         _fake_session_dir_with_labels(
@@ -228,7 +227,8 @@ def test_oracle_uses_taskcard_cse_labels(tmp_path, fake_norms_conflict):
         )
         for s in range(3)
     ]
-    # Without cse_labels: should report NaN (no incongruent/congruent trials)
+    # Without contrast_labels: should report NaN (oracle does not assume
+    # any specific condition vocabulary)
     report_default = validate_session_set(
         paradigm_class="conflict",
         session_dirs=sessions,
@@ -238,12 +238,12 @@ def test_oracle_uses_taskcard_cse_labels(tmp_path, fake_norms_conflict):
     assert "cse_magnitude" in seq
     assert seq["cse_magnitude"].bot_value is None  # NaN → None
 
-    # With cse_labels: should compute a real value
+    # With contrast_labels: should compute a real value
     report_custom = validate_session_set(
         paradigm_class="conflict",
         session_dirs=sessions,
         norms=fake_norms_conflict,
-        cse_labels=("incompatible", "compatible"),
+        contrast_labels=("incompatible", "compatible"),
     )
     seq_custom = report_custom.pillar_results["sequential"].metrics
     assert seq_custom["cse_magnitude"].bot_value is not None  # finite value

@@ -10,25 +10,48 @@ from experiment_bot.validation.oracle import validate_session_set
 from experiment_bot.validation.platform_adapters import adapter_for_label
 
 
-def _load_cse_labels(taskcards_dir: Path, label: str) -> tuple[str, str] | None:
-    """Read TaskCard for `label`, extract CSE high/low conflict labels if present.
+def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, str] | None:
+    """Extract (high, low) condition labels from the TaskCard's
+    `lag1_pair_modulation.modulation_table`, when configured.
 
-    Returns None if the TaskCard doesn't exist, doesn't have CSE configured,
-    or doesn't supply both labels — the oracle will fall back to defaults.
+    The oracle uses this for the conflict-class CSE contrast. The bot's
+    library is paradigm-agnostic; labels come entirely from the
+    TaskCard's modulation_table, which the Reasoner emits per task.
+    Returns None if the TaskCard is absent, the mechanism is disabled,
+    or the table doesn't define a clear (high-after-high, low-after-high)
+    pair.
+
+    Convention: the entry with `prev == curr` and a negative `delta_ms`
+    identifies the high-conflict label (facilitation on repetition);
+    the entry with `prev != curr` and a positive `delta_ms` identifies
+    the low-conflict label (cost on alternation). Tables that don't
+    follow this convention return None and the metric is computed as
+    NaN.
     """
     try:
         from experiment_bot.taskcard.loader import load_latest
         tc = load_latest(taskcards_dir, label)
     except FileNotFoundError:
         return None
-    cse_pv = tc.temporal_effects.get("congruency_sequence")
-    if cse_pv is None:
+    pv = tc.temporal_effects.get("lag1_pair_modulation")
+    if pv is None:
         return None
-    cse_value = cse_pv.value if hasattr(cse_pv, "value") else cse_pv
-    if not cse_value.get("enabled", False):
+    value = pv.value if hasattr(pv, "value") else pv
+    if not value.get("enabled", False):
         return None
-    high = cse_value.get("high_conflict_condition", "")
-    low = cse_value.get("low_conflict_condition", "")
+    table = value.get("modulation_table") or []
+    high = None
+    low = None
+    for entry in table:
+        prev = entry.get("prev")
+        curr = entry.get("curr")
+        delta = entry.get("delta_ms")
+        if prev is None or curr is None or delta is None:
+            continue
+        if prev == curr and delta < 0:
+            high = curr
+        elif prev != curr and delta > 0:
+            low = prev
     if not high or not low:
         return None
     return (high, low)
@@ -62,7 +85,7 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
     if not session_dirs:
         raise click.ClickException(f"No session subdirs in {label_dir}")
 
-    cse_labels = _load_cse_labels(Path(taskcards_dir), label)
+    contrast_labels = _load_lag1_contrast_labels(Path(taskcards_dir), label)
     trial_loader = adapter_for_label(label)
     if trial_loader is None:
         click.echo(
@@ -79,7 +102,7 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         paradigm_class=paradigm_class,
         session_dirs=session_dirs,
         norms=norms,
-        cse_labels=cse_labels,
+        contrast_labels=contrast_labels,
         trial_loader=trial_loader,
     )
 

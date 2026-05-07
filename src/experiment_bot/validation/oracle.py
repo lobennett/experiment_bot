@@ -191,8 +191,16 @@ def _compute_pes(session_dirs: list[Path], ctx: dict) -> float:
 
 
 def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
+    """Compute the conflict-paradigm CSE contrast using the labels declared
+    in the TaskCard's `lag1_pair_modulation.modulation_table`. Returns NaN
+    when no labels are supplied — the oracle does not assume any specific
+    condition vocabulary.
+    """
     loader = ctx["trial_loader"]
-    cse_labels = ctx.get("cse_labels")
+    contrast = ctx.get("contrast_labels")
+    if not contrast:
+        return float("nan")
+    high, low = contrast
     cse_trials: list[dict] = []
     for s in session_dirs:
         for t in loader(s):
@@ -200,10 +208,7 @@ def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
                 cse_trials.append({"condition": t.get("condition"), "rt": float(t["rt"])})
     if not cse_trials:
         return float("nan")
-    if cse_labels:
-        high, low = cse_labels
-        return cse_magnitude(cse_trials, high_conflict=high, low_conflict=low)
-    return cse_magnitude(cse_trials)
+    return cse_magnitude(cse_trials, high_conflict=high, low_conflict=low)
 
 
 def _compute_between_subject_sd(session_dirs: list[Path], ctx: dict) -> dict:
@@ -255,7 +260,7 @@ def validate_session_set(
     paradigm_class: str,
     session_dirs: list[Path],
     norms: dict,
-    cse_labels: tuple[str, str] | None = None,
+    contrast_labels: tuple[str, str] | None = None,
     trial_loader=None,
 ) -> ValidationReport:
     """Score bot sessions against published canonical norms.
@@ -266,10 +271,11 @@ def validate_session_set(
     without code changes here — register a `MetricSpec` and the norms file
     declares which apply per paradigm class.
 
-    `cse_labels`, when supplied, is `(high_conflict_condition, low_conflict_condition)`.
-    The Reasoner-chosen labels override the metric's defaults
-    ('incongruent'/'congruent') for paradigms with non-Stroop label
-    conventions.
+    `contrast_labels`, when supplied, is the (high, low) pair of condition
+    labels driving any 2-back contrast metric (e.g. cse_magnitude). The
+    CLI extracts these from the TaskCard's
+    `lag1_pair_modulation.modulation_table`; oracle does not assume any
+    specific condition vocabulary.
 
     `trial_loader`, when supplied, is a callable
     `(session_dir: Path) -> list[trial_dict]` returning canonical trial
@@ -283,7 +289,7 @@ def validate_session_set(
     pillars: dict[str, PillarResult] = {}
     if trial_loader is None:
         trial_loader = _default_bot_log_loader
-    ctx = {"cse_labels": cse_labels, "trial_loader": trial_loader}
+    ctx = {"contrast_labels": contrast_labels, "trial_loader": trial_loader}
 
     def _pillar(name: str) -> PillarResult:
         if name not in pillars:

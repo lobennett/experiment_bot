@@ -133,15 +133,25 @@ class TaskExecutor:
     def _is_withhold_sentinel(value: object) -> bool:
         """Return True if *value* represents a withhold / no-key-press instruction.
 
-        Handles None, empty string, and the case-insensitive strings "none" and
-        "null" that Claude's JS expressions legitimately return when a trial
-        requires response suppression.
+        Handles None, empty string, the case-insensitive strict sentinels
+        ("none", "null", "withhold", …), and compound strings that contain
+        a strict sentinel as a whole word — e.g. the Reasoner sometimes
+        emits creative phrases like "withhold (null)" or "no_response (null)"
+        when refining a TaskCard. The compound is tokenized on non-word
+        characters; if any token is a strict sentinel, the value is treated
+        as a withhold instruction. Real Playwright key names ("ArrowLeft",
+        "Space", letter keys) tokenize to themselves and never match.
         """
         if value is None:
             return True
         if not isinstance(value, str):
             return False
-        return value.strip().lower() in TaskExecutor._WITHHOLD_SENTINELS
+        cleaned = value.strip().lower()
+        if cleaned in TaskExecutor._WITHHOLD_SENTINELS:
+            return True
+        import re
+        tokens = re.split(r"\W+", cleaned)
+        return any(t and t in TaskExecutor._WITHHOLD_SENTINELS for t in tokens)
 
     async def _resolve_response_key(self, match: StimulusMatch, page: Page | None = None) -> str | None:
         """Resolve the actual key to press for a stimulus match.

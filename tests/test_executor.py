@@ -1038,6 +1038,28 @@ def test_attention_check_conditions_attribute_is_config_driven():
 # ---------------------------------------------------------------------------
 
 
+@pytest.mark.parametrize("compound", [
+    "withhold (null)",
+    "no_response (null)",
+    "WITHHOLD (NULL)",
+    "withhold null",
+    "null/withhold",
+])
+def test_is_withhold_sentinel_handles_compound_strings(compound):
+    """When the Reasoner emits explanatory parentheticals or compound
+    sentinel phrases, the executor should still recognize them as
+    withhold instructions instead of trying to press them as keys."""
+    assert TaskExecutor._is_withhold_sentinel(compound) is True
+
+
+@pytest.mark.parametrize("real_key", [
+    "ArrowLeft", "ArrowRight", "Space", "Enter", "f", "j", ",", ".",
+])
+def test_is_withhold_sentinel_does_not_overmatch_real_keys(real_key):
+    """Real Playwright key names must not be misclassified as withhold."""
+    assert TaskExecutor._is_withhold_sentinel(real_key) is False
+
+
 @pytest.mark.parametrize("sentinel", [
     "withhold", "none", "null", "", "skip", "pass", "noresponse",
     "no_response", "no_key", "nokey", "suppress",

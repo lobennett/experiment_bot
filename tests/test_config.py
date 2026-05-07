@@ -323,7 +323,7 @@ _TASKCARD_LABELS = [
 def test_taskcard_has_advance_keys(label):
     """advance_keys must be non-empty in every TaskCard (required since Task 5)."""
     from experiment_bot.taskcard.loader import load_latest
-    if not (Path("taskcards") / label).exists():
+    if not list((Path("taskcards") / label).glob("*.json")):
         pytest.skip(f"{label} TaskCard not present")
     tc = load_latest(Path("taskcards"), label=label)
     keys = tc.runtime.advance_behavior.advance_keys
@@ -334,7 +334,7 @@ def test_taskcard_has_advance_keys(label):
 def test_taskcard_has_feedback_fallback_keys(label):
     """feedback_fallback_keys must be non-empty in every TaskCard (required since Task 5)."""
     from experiment_bot.taskcard.loader import load_latest
-    if not (Path("taskcards") / label).exists():
+    if not list((Path("taskcards") / label).glob("*.json")):
         pytest.skip(f"{label} TaskCard not present")
     tc = load_latest(Path("taskcards"), label=label)
     keys = tc.runtime.advance_behavior.feedback_fallback_keys
@@ -348,7 +348,7 @@ def test_taskcard_has_feedback_fallback_keys(label):
 def test_taskcard_failure_rt_cap_fraction_when_stop_signal(label):
     """failure_rt_cap_fraction must be non-zero for stop-signal tasks (required since Task 5)."""
     from experiment_bot.taskcard.loader import load_latest
-    if not (Path("taskcards") / label).exists():
+    if not list((Path("taskcards") / label).glob("*.json")):
         pytest.skip(f"{label} TaskCard not present")
     tc = load_latest(Path("taskcards"), label=label)
     if not tc.runtime.trial_interrupt.detection_condition:
@@ -363,7 +363,7 @@ def test_taskcard_failure_rt_cap_fraction_when_stop_signal(label):
 def test_taskcard_inhibit_wait_ms_when_stop_signal(label):
     """inhibit_wait_ms must be non-zero for stop-signal tasks (required since Task 5)."""
     from experiment_bot.taskcard.loader import load_latest
-    if not (Path("taskcards") / label).exists():
+    if not list((Path("taskcards") / label).glob("*.json")):
         pytest.skip(f"{label} TaskCard not present")
     tc = load_latest(Path("taskcards"), label=label)
     if not tc.runtime.trial_interrupt.detection_condition:

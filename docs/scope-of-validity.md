@@ -272,6 +272,21 @@ non-claim; reviewers should weigh them as such.
   (open paradigm-class taxonomy, data-driven oracle) but verified
   empirically only by the n-back held-out test (working_memory class).
 
+- **L8. The validation oracle currently reads `bot_log.json`, not the
+  platform-native data export.** Per-session bot trial counts in
+  `bot_log.json` reflect stimulus-detection events from the bot's
+  polling loop, which over-counts on paradigms with fixation/ITI
+  events the bot's selectors match (expfactory_stop_signal: 412 bot
+  logs vs 180 real trials) and under-counts on paradigms with rapid
+  trial-to-trial transitions (stopit_stop_signal: 155 bot logs vs
+  256 real trials). The platform's own `experiment_data.{csv,json}`
+  is the authoritative trial-level record. Until the oracle is
+  updated to read from there, the validation pass/fail per pillar
+  is computed against a non-authoritative trial set; treat the
+  current per-pillar verdicts as preliminary. The empirical
+  observation that all 4 paradigms ran to full platform-recorded
+  length is independent of this limitation and is unaffected.
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

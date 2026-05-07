@@ -14,19 +14,19 @@ def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, st
     """Extract (high, low) condition labels from the TaskCard's
     `lag1_pair_modulation.modulation_table`, when configured.
 
-    The oracle uses this for the conflict-class CSE contrast. The bot's
-    library is paradigm-agnostic; labels come entirely from the
-    TaskCard's modulation_table, which the Reasoner emits per task.
-    Returns None if the TaskCard is absent, the mechanism is disabled,
+    Generic over paradigm — the function reads whatever labels the
+    Reasoner emits in the modulation_table, with no condition vocabulary
+    baked in. The oracle passes these labels via `contrast_labels` to
+    any 2-back contrast metric (e.g. the conflict-class `cse_magnitude`).
+    Returns None when the TaskCard is absent, the mechanism is disabled,
     or the table doesn't define a clear (high-after-high, low-after-high)
-    pair.
+    pair — the dependent metric then computes as NaN.
 
     Convention: the entry with `prev == curr` and a negative `delta_ms`
-    identifies the high-conflict label (facilitation on repetition);
-    the entry with `prev != curr` and a positive `delta_ms` identifies
-    the low-conflict label (cost on alternation). Tables that don't
-    follow this convention return None and the metric is computed as
-    NaN.
+    identifies the high label (facilitation on repetition); the entry
+    with `prev != curr` and a positive `delta_ms` identifies the low
+    label (cost on alternation). Tables that don't follow this
+    convention return None.
     """
     try:
         from experiment_bot.taskcard.loader import load_latest

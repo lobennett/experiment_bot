@@ -191,10 +191,16 @@ def _compute_pes(session_dirs: list[Path], ctx: dict) -> float:
 
 
 def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
-    """Compute the conflict-paradigm CSE contrast using the labels declared
-    in the TaskCard's `lag1_pair_modulation.modulation_table`. Returns NaN
-    when no labels are supplied — the oracle does not assume any specific
+    """Dispatch function for the `cse_magnitude` norms-file metric. The
+    contrast itself is the generic 2-back computation — mean RT on
+    high-after-high trials minus mean RT on high-after-low — over the
+    (high, low) labels supplied via `ctx['contrast_labels']`. Returns
+    NaN when no labels are supplied; the oracle assumes no specific
     condition vocabulary.
+
+    `cse_magnitude` is retained as the metric NAME because the conflict
+    literature uses it as the standard term; the implementation has no
+    paradigm-specific assumptions.
     """
     loader = ctx["trial_loader"]
     contrast = ctx.get("contrast_labels")

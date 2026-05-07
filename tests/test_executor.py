@@ -585,7 +585,7 @@ def test_build_interrupt_check_js_combines_multiple_stimuli():
     assert "stop_right" in js
 
 
-def test_post_interrupt_slowing_state_initialized():
+def test_prev_interrupt_detected_state_initialized():
     """Executor starts with _prev_interrupt_detected = False."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     executor = TaskExecutor(config, seed=42)

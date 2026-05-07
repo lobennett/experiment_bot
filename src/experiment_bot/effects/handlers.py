@@ -76,7 +76,7 @@ def apply_fatigue_drift(state: SamplerState, cfg, rng) -> float:
 
 
 def apply_condition_repetition(state: SamplerState, cfg, rng) -> float:
-    """Gratton effect: faster on repetitions, slower on alternations."""
+    """Binary repetition modulation: faster on repetitions, slower on alternations."""
     if not cfg.enabled:
         return 0.0
     if state.prev_condition is None:
@@ -111,18 +111,16 @@ def apply_lag1_pair_modulation(state: SamplerState, cfg, rng) -> float:
     by (previous_condition, current_condition).
 
     The bot's standard library does not name any specific paradigm
-    effect (CSE, Gratton, sequence priming, etc.). Each is a
-    *configuration* of this generic mechanism: the TaskCard supplies
-    a modulation_table mapping condition-pair tuples to RT-delta
-    values, and the handler applies the matching entry.
+    effect. The TaskCard supplies a modulation_table mapping
+    condition-pair tuples to RT-delta values, and the handler applies
+    the matching entry.
 
     Cfg fields:
       - `enabled` (bool): off by default; the TaskCard must opt in.
       - `skip_after_error` (bool, default True): if True, no
-        modulation is applied on the trial after an error. The
-        canonical CSE protocol skips post-error trials (error
-        contamination); paradigms whose literature does not
-        require this can override.
+        modulation is applied on the trial after an error. Suppresses
+        the error-contamination confound when the literature for a
+        paradigm requires it.
       - `modulation_table` (list of dicts): each entry has:
           - `prev` (str): the previous trial's condition label
           - `curr` (str): the current trial's condition label
@@ -133,11 +131,7 @@ def apply_lag1_pair_modulation(state: SamplerState, cfg, rng) -> float:
         First matching entry wins. Entries that don't specify
         either form contribute 0.
 
-    Configurations: CSE for Stroop is e.g. modulation_table =
-    [{prev: incongruent, curr: incongruent, delta_ms: -50},
-     {prev: congruent, curr: incongruent, delta_ms: 20}].
-    Trial-by-trial repetition priming would be a different table.
-    Tasks with no 2-back interaction simply leave enabled=False.
+    Tasks with no documented 2-back interaction leave enabled=False.
     """
     if not _cfg_get(cfg, "enabled", False):
         return 0.0
@@ -162,11 +156,11 @@ def apply_lag1_pair_modulation(state: SamplerState, cfg, rng) -> float:
 
 def apply_post_event_slowing(state: SamplerState, cfg, rng) -> float:
     """Generic post-event slowing: RT slowing on the trial following a
-    triggering event (error, successful inhibition, etc.).
+    triggering event.
 
-    Subsumes both classical post-error slowing (PES) and post-
-    inhibition slowing under one mechanism. The bot's library has no
-    paradigm-specific event names; events are configured per task.
+    The bot's library has no paradigm-specific event names; events are
+    configured per task. Each trigger maps a runtime event (`error` or
+    `interrupt`) to a uniform-random slowing distribution.
 
     Cfg fields:
       - `enabled` (bool): off by default.
@@ -185,8 +179,8 @@ def apply_post_event_slowing(state: SamplerState, cfg, rng) -> float:
             When omitted or empty, single-trial behavior applies.
           - `exclusive_with_prior_triggers` (bool, default True):
             when True, this trigger only fires if no earlier trigger
-            in the list matched. This implements priority semantics
-            (e.g. "interrupt takes priority over error").
+            in the list matched. The TaskCard expresses priority
+            semantics by ordering the triggers list.
 
     Tasks with no post-event slowing leave enabled=False.
     """

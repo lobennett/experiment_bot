@@ -14,31 +14,26 @@ naming the abstract paradigm families this task belongs to. The vocabulary is
 operations the task taxes, drawing from your knowledge of the cognitive
 psychology / neuroscience literature. Classes you choose should:
 
-- Group tasks that share canonical sequential effects in the literature
-  (e.g. tasks with a manipulable interference dimension share the
-  congruency-sequence effect; tasks requiring response cancellation share
-  post-interrupt slowing).
+- Group tasks that share canonical sequential, distributional, or
+  contingency effects in the meta-analytic literature for that class.
 - Be specific enough to be useful (a class shared by all speeded tasks
-  isn't informative) but general enough to span paradigms across labs
-  (use the abstract class name from review articles, not the specific
-  paradigm name like "stroop_task" or "stop_signal_task").
+  isn't informative) but general enough to span paradigms across labs.
+  Use the abstract class name from review articles or meta-analyses,
+  not the specific paradigm name (e.g. avoid `stroop_task`,
+  `stop_signal_task`).
 - Always include `"speeded_choice"` for any task involving timed
   decisions, in addition to one or more specific classes.
 
-Examples drawn from common paradigms (NOT an exhaustive enumeration —
-propose new class names as warranted by the literature):
-- Stroop, Flanker, Simon, Eriksen → e.g. `["conflict", "speeded_choice"]`
-- stop-signal, go/no-go → e.g. `["interrupt", "speeded_choice"]`
-- task switching, cued switching → e.g. `["task_switching", "speeded_choice"]`
-- n-back, Sternberg → e.g. `["working_memory", "speeded_choice"]`
-- random-dot motion, perceptual decision → e.g. `["perceptual_decision", "speeded_choice"]`
-
-The classes are used to filter which paradigm-specific sequential effects
-apply to a given task in Stage 2's behavioral inference, and to look up
-the canonical norms file for validation. If you propose a new class
-name, the framework will look for `norms/<class_name>.json` — if it
-doesn't yet exist, the user can extract norms for that class via
+The class names you choose should be those used in review articles or
+meta-analyses for grouping paradigms with shared effect signatures.
+Do not invent new class names when an established one applies. Propose
+a new class name only when the literature for this paradigm does not
+fit any established grouping; in that case, the framework will look
+for `norms/<class_name>.json` and the user can extract norms via
 `experiment-bot-extract-norms --paradigm-class <class_name>`.
+
+The classes are used to look up the canonical norms file for validation
+(`norms/<class_name>.json`).
 
 ---
 
@@ -178,8 +173,8 @@ If the experiment has attention checks:
 If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
 - `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
 - `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
-- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Commission errors on interrupt trials occur when the response is initiated before the interrupt signal has time to suppress it, so commission-error RTs cluster in the early portion of the response window. Derive this fraction from (a) the task's own definition of the response window or stop-signal delay staircase in the source code, and (b) primary-source literature on commission-error RT distributions for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
-- `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's stop-signal delay (SSD) or response window; do not leave this at 0 or inhibition trials will proceed immediately.
+- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Commission errors on interrupt trials occur when the response is initiated before the interrupt signal has time to suppress it, so commission-error RTs cluster in the early portion of the response window. Derive this fraction from (a) the task's own definition of the response window or signal-delay schedule in the source code, and (b) primary-source literature on commission-error RT distributions for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
+- `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's signal-delay schedule or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
 **Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
 
@@ -205,17 +200,13 @@ The `temporal_effects` object controls sequential dependencies in RT across tria
 - `modulation_table` (list of dicts): each entry has `prev` (str: previous condition label), `curr` (str: current condition label), and either `delta_ms` (fixed RT delta in ms, can be negative for facilitation) or `delta_ms_min` + `delta_ms_max` (uniform-random delta sampled per trial). First matching entry wins.
 - `skip_after_error` (bool, default true): if true, no modulation on the trial after an error. The conventional "error contamination" guard.
 
-  Examples (configurations of this generic mechanism — the bot's code does not name them):
-  - Stroop / Flanker / Simon-style congruency-sequence facilitation:
-    `[{prev: "incongruent", curr: "incongruent", delta_ms: -50}, {prev: "congruent", curr: "incongruent", delta_ms: 20}]`
-  - Sequential priming, target/non-target adjacency effects, etc. — same shape, different labels.
+  Schema example (abstract labels — the bot's code does not assume any specific condition vocabulary):
+  `[{prev: "<high_label>", curr: "<high_label>", delta_ms: <facilitation_ms>}, {prev: "<low_label>", curr: "<high_label>", delta_ms: <cost_ms>}]`. Use the actual condition labels from this task's `response_distributions`, and use signs and magnitudes drawn from the literature for THIS paradigm class.
 
-**`post_event_slowing`** — Generic post-event RT slowing. The mechanism applies a uniform-random RT delta whenever a configured triggering event was detected on the previous trial. Configure one entry per literature-documented event type (`error`, `interrupt`); list them in priority order so the first match wins.
-- `triggers` (list of dicts): each entry has `event` (str: one of `"error"` for post-error slowing or `"interrupt"` for post-inhibition slowing), `slowing_ms_min`, `slowing_ms_max` (uniform-random RT addition in ms), and `exclusive_with_prior_triggers` (bool, default true).
+**`post_event_slowing`** — Generic post-event RT slowing. The mechanism applies a uniform-random RT delta whenever a configured triggering event was detected on the previous trial. Configure one entry per literature-documented event type; list them in priority order so the first match wins.
+- `triggers` (list of dicts): each entry has `event` (str — one of `"error"` or `"interrupt"`, matching the runtime sources `prev_error` and `prev_interrupt_detected`), `slowing_ms_min`, `slowing_ms_max` (uniform-random RT addition in ms), and `exclusive_with_prior_triggers` (bool, default true).
 
-  Examples:
-  - Standard PES alone: `[{event: "error", slowing_ms_min: 10, slowing_ms_max: 50}]`.
-  - Interrupt-priority over error (typical for stop-signal): `[{event: "interrupt", slowing_ms_min: 80, slowing_ms_max: 200}, {event: "error", slowing_ms_min: 10, slowing_ms_max: 50}]`.
+  Schema example: `[{event: "<event_type>", slowing_ms_min: <min_ms>, slowing_ms_max: <max_ms>, exclusive_with_prior_triggers: true}, ...]`. Configure as many entries as the literature for this paradigm class documents; leave the list empty otherwise.
 
 ### 11. Between-Subject Jitter Schema (mechanical descriptions)
 

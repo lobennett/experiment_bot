@@ -24,11 +24,10 @@ class EffectType:
 
 
 # Generic universal mechanisms only. The bot's library does not name
-# any paradigm-specific effect (CSE, Gratton, post-interrupt-slowing,
-# etc.) — each is a *configuration* of a generic mechanism that the
-# Reasoner emits in the TaskCard from its literature scrape. Adding
-# new mechanisms is a `register_effect()` call; never required for
-# adding new paradigms.
+# any paradigm-specific effect — each is a *configuration* of a
+# generic mechanism that the Reasoner emits in the TaskCard from its
+# literature scrape. Adding new paradigms does not require editing
+# this file; new mechanisms are introduced via `register_effect()`.
 EFFECT_REGISTRY: dict[str, EffectType] = {
     "autocorrelation": EffectType(
         name="autocorrelation",
@@ -58,10 +57,10 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
         handler=None,
         validation_metric=None,
     ),
-    # Generic 2-back interaction. Subsumes CSE, sequential priming,
-    # and any other mechanism whose RT delta is determined by the
-    # (prev_condition, current_condition) pair. The Reasoner supplies
-    # a modulation_table per task; effect inactive when table empty.
+    # Generic 2-back interaction. Any mechanism whose RT delta is
+    # determined by the (prev_condition, current_condition) pair fits
+    # this shape. The Reasoner supplies a modulation_table per task;
+    # effect inactive when table empty.
     "lag1_pair_modulation": EffectType(
         name="lag1_pair_modulation",
         params={
@@ -72,8 +71,7 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
         handler=None,
         validation_metric=None,
     ),
-    # Generic post-event slowing. Subsumes both post-error and
-    # post-inhibition slowing. The Reasoner supplies a list of
+    # Generic post-event slowing. The Reasoner supplies a list of
     # triggers (event types + slowing distributions) per task.
     "post_event_slowing": EffectType(
         name="post_event_slowing",
@@ -177,7 +175,7 @@ EFFECT_REGISTRY["condition_repetition"].config_class = ConditionRepetitionConfig
 EFFECT_REGISTRY["pink_noise"].config_class = PinkNoiseConfig
 
 # Validation-metric assignment: lag1_pair_contrast is the generic
-# 2-back contrast computation. Specific paradigm-named metrics
-# (cse_magnitude for conflict tasks) are configured per norms file
-# in the oracle's METRIC_REGISTRY rather than baked into the effect.
+# 2-back contrast computation. Norms files declare which specific
+# contrasts apply per paradigm class via the oracle's METRIC_REGISTRY,
+# without baking paradigm vocabulary into the effect itself.
 EFFECT_REGISTRY["lag1_pair_modulation"].validation_metric = lag1_pair_contrast

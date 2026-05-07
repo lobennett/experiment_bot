@@ -20,12 +20,9 @@ def lag1_pair_contrast(
     """Generic lag-1 contrast: mean RT on (curr=focal_curr ∧ prev=prev_a)
     minus mean RT on (curr=focal_curr ∧ prev=prev_b).
 
-    The bot's library does not name any specific paradigm metric. CSE
-    for Stroop is one configuration:
-        focal_curr="incongruent", prev_a="incongruent", prev_b="congruent"
-    in which case a negative return indicates facilitation (high after
-    high faster than high after low). Other paradigms with 2-back
-    interactions configure different labels.
+    The bot's library does not name any specific paradigm metric.
+    Callers supply whatever labels the TaskCard's
+    `lag1_pair_modulation.modulation_table` defines for THIS paradigm.
 
     Returns NaN when either pair set is empty (insufficient data).
 

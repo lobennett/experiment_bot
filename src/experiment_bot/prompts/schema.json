@@ -154,7 +154,7 @@
         },
         "lag1_pair_modulation": {
           "type": "object",
-          "description": "Generic 2-back condition-pair RT modulation. Configure one entry per literature-documented (prev_condition, current_condition) transition. Subsumes paradigm-specific effects like CSE (Stroop/Flanker), sequential priming, and any other lag-1 pair-keyed effect.",
+          "description": "Generic 2-back condition-pair RT modulation. Configure one entry per literature-documented (prev_condition, current_condition) transition. The bot's library does not name any specific paradigm effect; supply the condition labels and magnitudes from the literature for THIS paradigm class.",
           "properties": {
             "enabled": {"type": "boolean"},
             "skip_after_error": {"type": "boolean", "default": true, "description": "If true, no modulation on the trial following an error (canonical error-contamination guard)"},
@@ -178,7 +178,7 @@
         },
         "post_event_slowing": {
           "type": "object",
-          "description": "Generic post-event RT slowing. Configure one trigger per documented event type (error, interrupt). Subsumes paradigm-specific effects like classical post-error slowing (PES) and post-inhibition slowing.",
+          "description": "Generic post-event RT slowing. Configure one trigger per literature-documented event type. Available event sources from the runtime: 'error' and 'interrupt'. Use the magnitudes and trigger-priority ordering documented in the literature for THIS paradigm class.",
           "properties": {
             "enabled": {"type": "boolean"},
             "triggers": {

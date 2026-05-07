@@ -135,7 +135,7 @@ class TaskExecutor:
 
         Handles None, empty string, and the case-insensitive strings "none" and
         "null" that Claude's JS expressions legitimately return when a trial
-        requires response suppression (e.g. stop-signal withhold trials).
+        requires response suppression.
         """
         if value is None:
             return True
@@ -568,7 +568,7 @@ class TaskExecutor:
     async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
         """Execute a single trial with probabilistic interrupt handling.
 
-        For tasks with a trial interrupt (e.g. stop signal), polls for the
+        For tasks with a configured `runtime.trial_interrupt`, polls for the
         interrupt stimulus during the RT wait. If detected, uses configured
         accuracy to decide inhibition success/failure probabilistically,
         producing race-model-valid behavior.
@@ -618,13 +618,10 @@ class TaskExecutor:
         skip_cond_rep = self._prev_interrupt_detected and _has_interrupt_trigger
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition, skip_condition_repetition=skip_cond_rep)
 
-        # Post-event slowing (generic mechanism). Subsumes both classical
-        # post-error slowing and post-inhibition (interrupt) slowing under
-        # one configured handler. Trigger priority is encoded in the
-        # TaskCard's triggers list (typically interrupt > error). For
-        # back-compat with TaskCards still emitting separate
-        # post_error_slowing / post_interrupt_slowing entries, the
-        # normalize layer merges them into post_event_slowing form.
+        # Post-event slowing (generic mechanism). Trigger priority is
+        # encoded in the TaskCard's `triggers` list — the executor
+        # invokes the handler with the current SamplerState and lets
+        # the trigger ordering decide the magnitude.
         from experiment_bot.effects.handlers import (
             apply_post_event_slowing, SamplerState as _SS,
         )

@@ -19,7 +19,7 @@ class ClaudeCLIClient:
         self,
         claude_binary: str = "claude",
         model: str = "claude-opus-4-7",
-        timeout_s: float = 600.0,
+        timeout_s: float = 1200.0,
     ):
         self._binary = claude_binary
         self._model = model

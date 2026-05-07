@@ -69,6 +69,7 @@ def read_expfactory_stop_signal(session_dir: Path) -> list[dict]:
             "rt": rt,
             "correct": r.get("correct_trial") == "1",
             "omission": rt is None,
+            "ssd": _safe_float(r.get("SSD")),
         })
     return out
 
@@ -128,6 +129,7 @@ def read_stopit_stop_signal(session_dir: Path) -> list[dict]:
             "rt": rt,
             "correct": _is_truthy_str(r.get("correct")),
             "omission": rt is None,
+            "ssd": _safe_float(r.get("SSD")),
         })
     return out
 

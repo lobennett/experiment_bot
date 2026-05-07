@@ -24,6 +24,7 @@ import numpy as np
 from experiment_bot.effects.validation_metrics import (
     cse_magnitude, fit_ex_gaussian, lag1_autocorrelation,
     population_sd_per_param, post_error_slowing_magnitude,
+    ssrt_integration,
 )
 
 logger = logging.getLogger(__name__)
@@ -217,6 +218,46 @@ def _compute_cse(session_dirs: list[Path], ctx: dict) -> float:
     return cse_magnitude(cse_trials, high_conflict=high, low_conflict=low)
 
 
+def _compute_ssrt(session_dirs: list[Path], ctx: dict) -> float:
+    """Dispatch function for the `ssrt` norms-file metric. Implements the
+    integration-method estimate of stop-signal reaction time:
+
+        SSRT = nth_percentile(go_RT_distribution, p_respond_given_stop) - mean_SSD
+
+    The trial loader must surface `ssd` (numeric, ms) on stop trials and
+    a `condition` field where stop trials are tagged `"stop"` and go
+    trials are tagged `"go"`. Stop-signal platform adapters in
+    `validation/platform_adapters.py` populate these from the platform's
+    own data export.
+
+    Returns NaN when there are insufficient go trials, no stop trials,
+    or no SSD samples available.
+    """
+    loader = ctx["trial_loader"]
+    go_rts: list[float] = []
+    stop_responded = 0
+    stop_total = 0
+    ssd_samples: list[float] = []
+    for s in session_dirs:
+        for t in loader(s):
+            cond = t.get("condition")
+            if cond == "go":
+                if t.get("rt") is not None:
+                    go_rts.append(float(t["rt"]))
+            elif cond == "stop":
+                stop_total += 1
+                if not t.get("omission"):
+                    stop_responded += 1
+                ssd = t.get("ssd")
+                if ssd is not None:
+                    ssd_samples.append(float(ssd))
+    if not go_rts or stop_total == 0 or not ssd_samples:
+        return float("nan")
+    p_respond = stop_responded / stop_total
+    mean_ssd = sum(ssd_samples) / len(ssd_samples)
+    return ssrt_integration(go_rts, p_respond, mean_ssd)
+
+
 def _compute_between_subject_sd(session_dirs: list[Path], ctx: dict) -> dict:
     loader = ctx["trial_loader"]
     per_session_fits = []
@@ -250,6 +291,11 @@ METRIC_REGISTRY: dict[str, MetricSpec] = {
     "cse_magnitude": MetricSpec(
         pillar="sequential",
         compute=_compute_cse,
+        range_key="range_ms",
+    ),
+    "ssrt": MetricSpec(
+        pillar="signature_metric",
+        compute=_compute_ssrt,
         range_key="range_ms",
     ),
     "between_subject_sd": MetricSpec(

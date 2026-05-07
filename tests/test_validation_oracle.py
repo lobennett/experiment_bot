@@ -247,3 +247,102 @@ def test_oracle_uses_taskcard_contrast_labels(tmp_path, fake_norms_conflict):
     )
     seq_custom = report_custom.pillar_results["sequential"].metrics
     assert seq_custom["cse_magnitude"].bot_value is not None  # finite value
+
+
+# ---------------------------------------------------------------------------
+# SSRT dispatch — analysis-side wiring of the integration-method estimate
+# ---------------------------------------------------------------------------
+
+def _fake_stop_signal_session(tmp_path: Path, mu_go: float, sigma_go: float,
+                               n_go: int, n_stop: int, p_respond: float,
+                               mean_ssd: float, seed: int) -> Path:
+    """Write a session whose trial loader exposes go/stop trials with SSD."""
+    rng = np.random.default_rng(seed)
+    session_dir = tmp_path / f"session_ss_{seed}"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    log: list[dict] = []
+    for i in range(n_go):
+        rt = float(rng.normal(mu_go, sigma_go))
+        log.append({"trial": i, "stimulus_id": "go", "condition": "go",
+                    "response_key": "z", "actual_rt_ms": rt,
+                    "intended_error": False, "omission": False})
+    for j in range(n_stop):
+        ssd = float(rng.normal(mean_ssd, 5.0))
+        responded = rng.random() < p_respond
+        rt = float(rng.normal(mu_go - 30, sigma_go)) if responded else None
+        log.append({"trial": n_go + j, "stimulus_id": "stop", "condition": "stop",
+                    "response_key": "z" if responded else None,
+                    "actual_rt_ms": rt, "intended_error": False,
+                    "omission": not responded, "ssd": ssd})
+    (session_dir / "bot_log.json").write_text(json.dumps(log))
+    return session_dir
+
+
+def _ssd_aware_loader(session_dir: Path) -> list[dict]:
+    """Test loader that surfaces ssd alongside the canonical fields."""
+    log = json.loads((session_dir / "bot_log.json").read_text())
+    out = []
+    for t in log:
+        out.append({
+            "condition": t.get("condition"),
+            "rt": t.get("actual_rt_ms"),
+            "correct": True,
+            "omission": t.get("omission", False),
+            "ssd": t.get("ssd"),
+        })
+    return out
+
+
+def test_oracle_computes_ssrt_when_norms_declare_it(tmp_path):
+    """A norms file declaring `ssrt` should drive _compute_ssrt and produce
+    a finite value when the loader surfaces go-RTs and SSD-tagged stop
+    trials."""
+    norms = {
+        "paradigm_class": "interrupt",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {"ssrt": {"range_ms": [180, 280], "citations": []}},
+    }
+    sessions = [
+        _fake_stop_signal_session(
+            tmp_path, mu_go=550, sigma_go=80, n_go=80, n_stop=40,
+            p_respond=0.5, mean_ssd=300, seed=s,
+        )
+        for s in range(3)
+    ]
+    report = validate_session_set(
+        paradigm_class="interrupt",
+        session_dirs=sessions,
+        norms=norms,
+        trial_loader=_ssd_aware_loader,
+    )
+    assert "signature_metric" in report.pillar_results
+    sig = report.pillar_results["signature_metric"].metrics
+    assert "ssrt" in sig
+    # Finite value (not NaN); rough range — Verbruggen's method on
+    # mu_go=550, p_respond=0.5, mean_ssd=300 should give roughly mu_go - mean_ssd ≈ 250ms.
+    assert sig["ssrt"].bot_value is not None
+    assert 100 < sig["ssrt"].bot_value < 400
+
+
+def test_oracle_ssrt_returns_nan_without_ssd_or_stop_trials(tmp_path):
+    """SSRT computation has no paradigm defaults: missing data → NaN, not
+    silent fallback."""
+    # Loader returns trials with no stop trials (all go)
+    def go_only_loader(session_dir):
+        return [{"condition": "go", "rt": 500.0, "correct": True,
+                 "omission": False, "ssd": None}] * 50
+
+    norms = {
+        "paradigm_class": "interrupt",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {"ssrt": {"range_ms": [180, 280], "citations": []}},
+    }
+    session_dir = tmp_path / "session_no_stop"
+    session_dir.mkdir()
+    report = validate_session_set(
+        paradigm_class="interrupt",
+        session_dirs=[session_dir],
+        norms=norms,
+        trial_loader=go_only_loader,
+    )
+    assert report.pillar_results["signature_metric"].metrics["ssrt"].bot_value is None

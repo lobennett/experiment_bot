@@ -11,39 +11,61 @@ import numpy as np
 from scipy import optimize, stats
 
 
+def lag1_pair_contrast(
+    trials: list[dict],
+    focal_curr: str,
+    prev_a: str,
+    prev_b: str,
+) -> float:
+    """Generic lag-1 contrast: mean RT on (curr=focal_curr ∧ prev=prev_a)
+    minus mean RT on (curr=focal_curr ∧ prev=prev_b).
+
+    The bot's library does not name any specific paradigm metric. CSE
+    for Stroop is one configuration:
+        focal_curr="incongruent", prev_a="incongruent", prev_b="congruent"
+    in which case a negative return indicates facilitation (high after
+    high faster than high after low). Other paradigms with 2-back
+    interactions configure different labels.
+
+    Returns NaN when either pair set is empty (insufficient data).
+
+    Trials list element keys expected: "condition" (str) and "rt" (float).
+    """
+    a_pairs: list[float] = []
+    b_pairs: list[float] = []
+    for i, trial in enumerate(trials):
+        if i == 0:
+            continue
+        if trial.get("condition") != focal_curr:
+            continue
+        prev = trials[i - 1]
+        if prev.get("condition") == prev_a:
+            a_pairs.append(trial["rt"])
+        elif prev.get("condition") == prev_b:
+            b_pairs.append(trial["rt"])
+    if not a_pairs or not b_pairs:
+        return float("nan")
+    return mean(a_pairs) - mean(b_pairs)
+
+
 def cse_magnitude(
     trials: list[dict],
     high_conflict: str = "incongruent",
     low_conflict: str = "congruent",
 ) -> float:
-    """Mean RT on high-after-high minus mean RT on high-after-low.
+    """Conflict-paradigm convenience wrapper around `lag1_pair_contrast`.
 
-    Negative values mean facilitation (the conventional CSE direction).
-    Returns NaN when either pair set is empty (insufficient data).
-
-    The condition labels default to "incongruent"/"congruent" for back-
-    compat with Stroop-style TaskCards. Pass the actual labels from the
-    TaskCard's `temporal_effects.congruency_sequence.value` to make this
-    metric work on conflict paradigms with other label conventions
-    (e.g. "compatible"/"incompatible").
-
-    Trials list element keys expected: "condition" (str) and "rt" (float).
+    Computes mean RT(high-after-high) − mean RT(high-after-low). The
+    bot's runtime mechanism is the generic `lag1_pair_modulation`;
+    this metric name is retained because the conflict literature uses
+    "CSE magnitude" as the standard name for this contrast.
     """
-    high_after_high: list[float] = []
-    high_after_low: list[float] = []
-    for i, trial in enumerate(trials):
-        if i == 0:
-            continue
-        prev = trials[i - 1]
-        if trial.get("condition") != high_conflict:
-            continue
-        if prev.get("condition") == high_conflict:
-            high_after_high.append(trial["rt"])
-        elif prev.get("condition") == low_conflict:
-            high_after_low.append(trial["rt"])
-    if not high_after_high or not high_after_low:
-        return float("nan")
-    return mean(high_after_high) - mean(high_after_low)
+    return lag1_pair_contrast(
+        trials,
+        focal_curr=high_conflict,
+        prev_a=high_conflict,
+        prev_b=low_conflict,
+    )
 
 
 def fit_ex_gaussian(rt_samples: list[float]) -> dict:

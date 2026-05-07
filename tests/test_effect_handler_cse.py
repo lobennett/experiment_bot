@@ -66,11 +66,13 @@ def test_cse_skipped_when_disabled():
     assert delta == 0.0
 
 
-def test_cse_in_registry():
-    from experiment_bot.effects.registry import EFFECT_REGISTRY
-    assert "congruency_sequence" in EFFECT_REGISTRY
-    et = EFFECT_REGISTRY["congruency_sequence"]
-    assert et.applicable_paradigms == frozenset({"conflict"})
+def test_lag1_pair_modulation_in_registry():
+    """The bot's library has the generic mechanism, not paradigm-named CSE."""
+    from experiment_bot.effects.registry import EFFECT_REGISTRY, ALL_PARADIGM_CLASSES
+    assert "lag1_pair_modulation" in EFFECT_REGISTRY
+    assert "congruency_sequence" not in EFFECT_REGISTRY
+    et = EFFECT_REGISTRY["lag1_pair_modulation"]
+    assert et.applicable_paradigms == ALL_PARADIGM_CLASSES
     assert et.handler is not None
 
 
@@ -138,10 +140,14 @@ def test_cse_falls_back_to_default_labels_when_unspecified():
 # (not dead code). Audit finding from cse-sign-flip-diagnostic.md.
 # ---------------------------------------------------------------------------
 
-def test_cse_fires_through_sampler_for_conflict_paradigm():
-    """When ResponseSampler is given paradigm_classes including 'conflict'
-    and temporal_effects.congruency_sequence enabled, the i-after-i pair
-    RT should be measurably lower than the i-after-c pair RT."""
+def test_lag1_pair_modulation_fires_through_sampler():
+    """When ResponseSampler is given temporal_effects.lag1_pair_modulation
+    enabled with a CSE-style modulation table, the i-after-i pair RT
+    should be measurably lower than the i-after-c pair RT.
+
+    CSE is one configuration of the generic mechanism; the bot's code
+    doesn't name it. The TaskCard supplies the modulation table.
+    """
     from experiment_bot.core.distributions import ResponseSampler
     from experiment_bot.core.config import (
         DistributionConfig, TemporalEffectsConfig,
@@ -158,15 +164,17 @@ def test_cse_fires_through_sampler_for_conflict_paradigm():
             params={"mu": 500, "sigma": 30, "tau": 60},
         ),
     }
-    # Use SimpleNamespace to inject CSE config directly
-    cse_cfg = SimpleNamespace(
+    # Configure CSE as a modulation table — paradigm-specific config of the
+    # generic mechanism. Bot's code doesn't know this is "CSE".
+    lag1_cfg = SimpleNamespace(
         enabled=True,
-        sequence_facilitation_ms=50.0,
-        sequence_cost_ms=20.0,
-        high_conflict_condition="incongruent",
-        low_conflict_condition="congruent",
+        skip_after_error=True,
+        modulation_table=[
+            {"prev": "incongruent", "curr": "incongruent", "delta_ms": -50.0},
+            {"prev": "congruent", "curr": "incongruent", "delta_ms": 20.0},
+        ],
     )
-    effects = TemporalEffectsConfig(congruency_sequence=cse_cfg)
+    effects = TemporalEffectsConfig(lag1_pair_modulation=lag1_cfg)
     sampler = ResponseSampler(
         distributions, temporal_effects=effects, seed=42,
         paradigm_classes=["conflict"],
@@ -198,9 +206,10 @@ def test_cse_fires_through_sampler_for_conflict_paradigm():
     )
 
 
-def test_cse_does_not_fire_for_non_conflict_paradigm():
-    """If paradigm_classes doesn't include 'conflict', CSE handler should
-    NOT run even when temporal_effects.congruency_sequence is configured."""
+def test_lag1_pair_modulation_inactive_when_table_empty():
+    """All effects are now universal mechanisms; whether they apply is
+    determined by whether the TaskCard configures them. A task with
+    enabled=False (or no modulation_table) gets no modulation."""
     from experiment_bot.core.distributions import ResponseSampler
     from experiment_bot.core.config import (
         DistributionConfig, TemporalEffectsConfig,
@@ -217,30 +226,22 @@ def test_cse_does_not_fire_for_non_conflict_paradigm():
             params={"mu": 500, "sigma": 30, "tau": 60},
         ),
     }
-    cse_cfg = SimpleNamespace(
-        enabled=True,
-        sequence_facilitation_ms=200.0,  # large so we'd see it if applied
-        sequence_cost_ms=200.0,
-        high_conflict_condition="incongruent",
-        low_conflict_condition="congruent",
+    # Effect disabled — no table provided.
+    effects = TemporalEffectsConfig(
+        lag1_pair_modulation=SimpleNamespace(enabled=False, modulation_table=[]),
     )
-    effects = TemporalEffectsConfig(congruency_sequence=cse_cfg)
     sampler = ResponseSampler(
         distributions, temporal_effects=effects, seed=42,
-        paradigm_classes=["interrupt"],  # NOT 'conflict'
+        paradigm_classes=["interrupt"],  # paradigm class no longer gates effects
     )
-
-    rt1 = sampler.sample_rt("incongruent")
-    rt2 = sampler.sample_rt("incongruent")  # this would be heavily modulated if CSE ran
-    rt3 = sampler.sample_rt("congruent")
-    rt4 = sampler.sample_rt("incongruent")  # also would be heavily modulated
-
-    # If CSE ran with -200/+200ms, rt2 vs rt4 would differ by ~400ms.
-    # If CSE doesn't run (paradigm filter excludes it), they should be
-    # within sampling noise (a few hundred ms is conceivable but not 400+
-    # systematically). We assert no CSE: check that the iI pair (rt2)
-    # isn't 100ms+ faster than the cI pair (rt4) — if the filter worked,
-    # both are pure samples.
-    assert abs(rt2 - rt4) < 200, (
-        f"rt2={rt2}, rt4={rt4} — CSE seems to be firing for non-conflict paradigm"
+    # Drive trials; without a modulation table, no delta is applied.
+    rts = [sampler.sample_rt(c) for c in
+           ["incongruent", "incongruent", "congruent", "incongruent",
+            "incongruent", "congruent"]]
+    # All RTs should be from the raw ex-Gaussian sample distribution.
+    # If a 200ms modulation were applied, we'd see clusters with much
+    # larger deltas. Assert all RTs are within a generous range of each other.
+    assert max(rts) - min(rts) < 500, (
+        f"RTs vary too much ({max(rts)-min(rts):.1f}ms) — modulation may be "
+        f"applying when it should be inactive"
     )

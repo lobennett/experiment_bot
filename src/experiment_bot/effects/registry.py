@@ -23,7 +23,12 @@ class EffectType:
     config_class: type | None = None
 
 
-# Skeleton: existing 6 effects, handler/validator None for now.
+# Generic universal mechanisms only. The bot's library does not name
+# any paradigm-specific effect (CSE, Gratton, post-interrupt-slowing,
+# etc.) — each is a *configuration* of a generic mechanism that the
+# Reasoner emits in the TaskCard from its literature scrape. Adding
+# new mechanisms is a `register_effect()` call; never required for
+# adding new paradigms.
 EFFECT_REGISTRY: dict[str, EffectType] = {
     "autocorrelation": EffectType(
         name="autocorrelation",
@@ -35,13 +40,6 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
     "fatigue_drift": EffectType(
         name="fatigue_drift",
         params={"drift_per_trial_ms": float},
-        applicable_paradigms=ALL_PARADIGM_CLASSES,
-        handler=None,
-        validation_metric=None,
-    ),
-    "post_error_slowing": EffectType(
-        name="post_error_slowing",
-        params={"slowing_ms_min": float, "slowing_ms_max": float},
         applicable_paradigms=ALL_PARADIGM_CLASSES,
         handler=None,
         validation_metric=None,
@@ -60,9 +58,28 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
         handler=None,
         validation_metric=None,
     ),
-    "post_interrupt_slowing": EffectType(
-        name="post_interrupt_slowing",
-        params={"slowing_ms_min": float, "slowing_ms_max": float},
+    # Generic 2-back interaction. Subsumes CSE, sequential priming,
+    # and any other mechanism whose RT delta is determined by the
+    # (prev_condition, current_condition) pair. The Reasoner supplies
+    # a modulation_table per task; effect inactive when table empty.
+    "lag1_pair_modulation": EffectType(
+        name="lag1_pair_modulation",
+        params={
+            "modulation_table": list,  # list of {prev, curr, delta_ms or delta_ms_min/max}
+            "skip_after_error": bool,
+        },
+        applicable_paradigms=ALL_PARADIGM_CLASSES,
+        handler=None,
+        validation_metric=None,
+    ),
+    # Generic post-event slowing. Subsumes both post-error and
+    # post-inhibition slowing. The Reasoner supplies a list of
+    # triggers (event types + slowing distributions) per task.
+    "post_event_slowing": EffectType(
+        name="post_event_slowing",
+        params={
+            "triggers": list,  # list of {event, slowing_ms_min, slowing_ms_max, ...}
+        },
         applicable_paradigms=ALL_PARADIGM_CLASSES,
         handler=None,
         validation_metric=None,
@@ -134,43 +151,31 @@ def register_effect(
 # Wire handlers into the registry (Task A2)
 # ---------------------------------------------------------------------------
 from experiment_bot.effects import handlers as _h  # noqa: E402
-from experiment_bot.effects.validation_metrics import cse_magnitude  # noqa: E402
+from experiment_bot.effects.validation_metrics import lag1_pair_contrast  # noqa: E402
 
 EFFECT_REGISTRY["autocorrelation"].handler = _h.apply_autocorrelation
 EFFECT_REGISTRY["fatigue_drift"].handler = _h.apply_fatigue_drift
-EFFECT_REGISTRY["post_error_slowing"].handler = _h.apply_post_error_slowing
 EFFECT_REGISTRY["condition_repetition"].handler = _h.apply_condition_repetition
 EFFECT_REGISTRY["pink_noise"].handler = _h.apply_pink_noise
-EFFECT_REGISTRY["post_interrupt_slowing"].handler = _h.apply_post_interrupt_slowing
+EFFECT_REGISTRY["lag1_pair_modulation"].handler = _h.apply_lag1_pair_modulation
+EFFECT_REGISTRY["post_event_slowing"].handler = _h.apply_post_event_slowing
 
-# Wire typed config classes for the canonical six effects so
+# Wire typed config classes for the canonical mechanisms so
 # TemporalEffectsConfig.from_dict instantiates them with full type info.
+# The two new generic mechanisms (lag1_pair_modulation, post_event_slowing)
+# don't have typed config classes — their cfgs are SimpleNamespaces
+# wrapping the TaskCard dict. New mechanisms can register without one.
 from experiment_bot.core.config import (  # noqa: E402
-    AutocorrelationConfig, FatigueDriftConfig, PostErrorSlowingConfig,
-    ConditionRepetitionConfig, PinkNoiseConfig, PostInterruptSlowingConfig,
+    AutocorrelationConfig, FatigueDriftConfig,
+    ConditionRepetitionConfig, PinkNoiseConfig,
 )
 EFFECT_REGISTRY["autocorrelation"].config_class = AutocorrelationConfig
 EFFECT_REGISTRY["fatigue_drift"].config_class = FatigueDriftConfig
-EFFECT_REGISTRY["post_error_slowing"].config_class = PostErrorSlowingConfig
 EFFECT_REGISTRY["condition_repetition"].config_class = ConditionRepetitionConfig
 EFFECT_REGISTRY["pink_noise"].config_class = PinkNoiseConfig
-EFFECT_REGISTRY["post_interrupt_slowing"].config_class = PostInterruptSlowingConfig
 
-EFFECT_REGISTRY["congruency_sequence"] = EffectType(
-    name="congruency_sequence",
-    params={
-        "sequence_facilitation_ms": float,
-        "sequence_cost_ms": float,
-        # Condition labels chosen by the Reasoner per task. The handler
-        # uses these instead of magic strings so paradigms with different
-        # condition naming conventions (e.g. "compatible"/"incompatible")
-        # work without code changes.
-        "high_conflict_condition": str,
-        "low_conflict_condition": str,
-    },
-    applicable_paradigms=frozenset({"conflict"}),
-    handler=_h.apply_cse,
-    validation_metric=None,  # B3 fills in
-)
-
-EFFECT_REGISTRY["congruency_sequence"].validation_metric = cse_magnitude
+# Validation-metric assignment: lag1_pair_contrast is the generic
+# 2-back contrast computation. Specific paradigm-named metrics
+# (cse_magnitude for conflict tasks) are configured per norms file
+# in the oracle's METRIC_REGISTRY rather than baked into the effect.
+EFFECT_REGISTRY["lag1_pair_modulation"].validation_metric = lag1_pair_contrast

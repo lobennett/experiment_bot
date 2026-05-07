@@ -17,7 +17,92 @@ def normalize_partial(partial: dict) -> dict:
     p["navigation"] = _normalize_navigation(p.get("navigation"))
     p["runtime"] = _normalize_runtime(p.get("runtime", {}))
     p["performance"] = _normalize_performance(p.get("performance", {}))
+    if "temporal_effects" in p or "response_distributions" in p:
+        # Migrate old paradigm-shaped effect names to generic mechanisms
+        p["temporal_effects"] = _migrate_temporal_effects(
+            p.get("temporal_effects", {})
+        )
     return p
+
+
+def _unwrap_value(entry):
+    """ParameterValue-like dicts have shape {value: {...}, ...}; unwrap to
+    just the value dict for migration. Returns the dict to read fields
+    from, plus the surrounding envelope to preserve."""
+    if isinstance(entry, dict) and "value" in entry and isinstance(entry["value"], dict):
+        return entry["value"], entry
+    return (entry if isinstance(entry, dict) else {}), {}
+
+
+def _migrate_temporal_effects(te: dict) -> dict:
+    """Convert paradigm-shaped TaskCard effect entries (congruency_sequence,
+    post_error_slowing, post_interrupt_slowing) into the generic
+    mechanism shapes (lag1_pair_modulation, post_event_slowing).
+
+    The bot's effect library only knows generic mechanisms. Old TaskCards
+    that emit paradigm-named entries get their config translated here so
+    they keep working without regeneration.
+    """
+    if not isinstance(te, dict):
+        return te
+    out = dict(te)
+
+    # 1. congruency_sequence → lag1_pair_modulation
+    if "congruency_sequence" in out and "lag1_pair_modulation" not in out:
+        cse_value, cse_envelope = _unwrap_value(out.pop("congruency_sequence"))
+        high = cse_value.get("high_conflict_condition", "incongruent") or "incongruent"
+        low = cse_value.get("low_conflict_condition", "congruent") or "congruent"
+        fac = cse_value.get("sequence_facilitation_ms", 0.0) or 0.0
+        cost = cse_value.get("sequence_cost_ms", 0.0) or 0.0
+        new_value = {
+            "enabled": cse_value.get("enabled", False),
+            "skip_after_error": True,
+            "modulation_table": [
+                {"prev": high, "curr": high, "delta_ms": -float(fac)},
+                {"prev": low, "curr": high, "delta_ms": float(cost)},
+            ],
+        }
+        out["lag1_pair_modulation"] = (
+            {**cse_envelope, "value": new_value} if cse_envelope else new_value
+        )
+
+    # 2. post_error_slowing + post_interrupt_slowing → post_event_slowing
+    if (("post_error_slowing" in out or "post_interrupt_slowing" in out)
+            and "post_event_slowing" not in out):
+        triggers = []
+        envelope = {}
+        # Interrupt takes priority over error in the historical executor;
+        # encode that by listing it first in the triggers list.
+        if "post_interrupt_slowing" in out:
+            pi_value, pi_env = _unwrap_value(out.pop("post_interrupt_slowing"))
+            envelope = pi_env or envelope
+            if pi_value.get("enabled", False):
+                triggers.append({
+                    "event": "interrupt",
+                    "slowing_ms_min": pi_value.get("slowing_ms_min", 0.0),
+                    "slowing_ms_max": pi_value.get("slowing_ms_max", 0.0),
+                    "exclusive_with_prior_triggers": True,
+                })
+        if "post_error_slowing" in out:
+            pe_value, pe_env = _unwrap_value(out.pop("post_error_slowing"))
+            envelope = envelope or pe_env
+            if pe_value.get("enabled", False):
+                triggers.append({
+                    "event": "error",
+                    "slowing_ms_min": pe_value.get("slowing_ms_min", 0.0),
+                    "slowing_ms_max": pe_value.get("slowing_ms_max", 0.0),
+                    "decay_weights": pe_value.get("decay_weights", []) or [],
+                    "exclusive_with_prior_triggers": True,
+                })
+        new_value = {
+            "enabled": bool(triggers),
+            "triggers": triggers,
+        }
+        out["post_event_slowing"] = (
+            {**envelope, "value": new_value} if envelope else new_value
+        )
+
+    return out
 
 
 def _normalize_runtime(r: dict | None) -> dict:

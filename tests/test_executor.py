@@ -592,21 +592,25 @@ def test_post_interrupt_slowing_state_initialized():
     assert executor._prev_interrupt_detected is False
 
 
-def test_post_interrupt_exclusive_with_pes():
-    """Post-interrupt slowing and PES are mutually exclusive (if/elif)."""
+def test_executor_invokes_post_event_slowing():
+    """The executor's trial loop applies post-event slowing via the
+    generic mechanism (apply_post_event_slowing). Trigger priority
+    (interrupt vs error) is encoded in the TaskCard's triggers list,
+    not in inline if/elif logic in the executor."""
     import inspect
     source = inspect.getsource(TaskExecutor._execute_trial)
-    # Find the interrupt check and verify elif for error slowing
-    assert "if self._prev_interrupt_detected" in source
-    assert "elif te.post_error_slowing.enabled and any(self._recent_errors)" in source
+    assert "apply_post_event_slowing" in source
+    assert "te.post_event_slowing" in source
+    # Should NOT have hardcoded paradigm-specific names
+    assert "te.post_interrupt_slowing" not in source
+    assert "te.post_error_slowing" not in source
 
 
-def test_post_error_slowing_reads_from_config():
-    """Post-error slowing magnitude comes from temporal_effects config."""
+def test_post_event_slowing_reads_from_config():
+    """Post-event slowing magnitudes come from the temporal_effects config."""
     import inspect
     source = inspect.getsource(TaskExecutor._execute_trial)
-    assert "post_error_slowing" in source
-    assert "post_interrupt_slowing" in source
+    assert "post_event_slowing" in source
 
 
 def test_executor_sampler_receives_temporal_effects():

@@ -17,32 +17,33 @@ STAGE2_RESPONSE = """
 
 
 @pytest.mark.asyncio
-async def test_stage2_prompt_includes_cse_for_conflict_paradigm():
+async def test_stage2_prompt_does_not_inject_paradigm_named_effects():
+    """The bot's library has no paradigm-specific effect names. The
+    Stage 2 catalog should never mention CSE, post_error_slowing, or
+    post_interrupt_slowing — only generic mechanisms."""
     fake = AsyncMock()
     fake.complete = AsyncMock(return_value=LLMResponse(text=STAGE2_RESPONSE))
     partial = {"task": {"name": "Stroop", "paradigm_classes": ["conflict", "speeded_choice"]}}
     await run_stage2(client=fake, partial=partial)
     user_msg = fake.complete.await_args.kwargs["user"]
-    assert "congruency_sequence" in user_msg
-    assert "conflict" in user_msg
+    # No paradigm-named effects in the catalog
+    assert "`congruency_sequence`" not in user_msg
+    assert "`post_error_slowing`" not in user_msg
+    assert "`post_interrupt_slowing`" not in user_msg
 
 
 @pytest.mark.asyncio
-async def test_stage2_prompt_excludes_cse_for_interrupt_paradigm():
+async def test_stage2_prompt_includes_generic_mechanisms_for_any_paradigm():
+    """Stage 2 catalog includes generic mechanisms (lag1_pair_modulation,
+    post_event_slowing) for any paradigm class. The Reasoner decides per
+    task which to enable based on literature, not on paradigm-class
+    pre-filtering."""
     fake = AsyncMock()
     fake.complete = AsyncMock(return_value=LLMResponse(text=STAGE2_RESPONSE))
-    partial = {"task": {"name": "Stop Signal", "paradigm_classes": ["interrupt", "speeded_choice"]}}
-    await run_stage2(client=fake, partial=partial)
-    user_msg = fake.complete.await_args.kwargs["user"]
-    assert "congruency_sequence" not in user_msg
-
-
-@pytest.mark.asyncio
-async def test_stage2_prompt_includes_universal_effects_for_any_paradigm():
-    fake = AsyncMock()
-    fake.complete = AsyncMock(return_value=LLMResponse(text=STAGE2_RESPONSE))
-    partial = {"task": {"name": "x", "paradigm_classes": ["interrupt"]}}
-    await run_stage2(client=fake, partial=partial)
-    user_msg = fake.complete.await_args.kwargs["user"]
-    assert "autocorrelation" in user_msg
-    assert "post_error_slowing" in user_msg
+    for classes in (["conflict", "speeded_choice"], ["interrupt"], ["working_memory"]):
+        partial = {"task": {"name": "x", "paradigm_classes": classes}}
+        await run_stage2(client=fake, partial=partial)
+        user_msg = fake.complete.await_args.kwargs["user"]
+        assert "lag1_pair_modulation" in user_msg, f"missing for {classes}"
+        assert "post_event_slowing" in user_msg, f"missing for {classes}"
+        assert "autocorrelation" in user_msg, f"missing for {classes}"

@@ -90,12 +90,11 @@ class TaskExecutor:
         self._writer = OutputWriter()
         self._trial_count = 0
         # Rolling window of recent error flags (most recent first / appendleft).
-        # Sized to len(decay_weights) so multi-trial PES decay can address all
-        # weighted positions; default 1 preserves historical one-trial PES.
+        # Default 1-trial window. Future generic mechanisms that need a
+        # longer history can read this state field; today the
+        # post_event_slowing handler only consults the most recent trial.
         from collections import deque
-        pes_cfg = config.temporal_effects.post_error_slowing
-        window_size = max(1, len(pes_cfg.decay_weights))
-        self._recent_errors: deque[bool] = deque(maxlen=window_size)
+        self._recent_errors: deque[bool] = deque(maxlen=8)
         self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
@@ -604,24 +603,41 @@ class TaskExecutor:
         rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
         is_error = not is_correct
         te = self._config.temporal_effects
-        skip_cond_rep = self._prev_interrupt_detected and te.post_interrupt_slowing.enabled
+        # Suppress condition_repetition on the trial after an interrupt, but
+        # only when the post_event_slowing config has an "interrupt" trigger
+        # (suggesting the literature for this paradigm couples post-interrupt
+        # slowing with reset of the condition-repetition prior).
+        _pe_cfg = te.post_event_slowing
+        _has_interrupt_trigger = any(
+            (t.get("event") if isinstance(t, dict) else getattr(t, "event", None)) == "interrupt"
+            for t in (
+                _pe_cfg.triggers if hasattr(_pe_cfg, "triggers")
+                else (_pe_cfg.get("triggers", []) if isinstance(_pe_cfg, dict) else [])
+            )
+        )
+        skip_cond_rep = self._prev_interrupt_detected and _has_interrupt_trigger
         rt_ms = self._sampler.sample_rt_with_fallback(rt_condition, skip_condition_repetition=skip_cond_rep)
 
-        # Sequential slowing effects (mutually exclusive — most specific wins)
-        if self._prev_interrupt_detected and te.post_interrupt_slowing.enabled:
-            rt_ms += self._rng.uniform(
-                te.post_interrupt_slowing.slowing_ms_min,
-                te.post_interrupt_slowing.slowing_ms_max,
-            )
-        elif te.post_error_slowing.enabled and any(self._recent_errors):
-            from experiment_bot.effects.handlers import compute_pes_delta
-            rt_ms += compute_pes_delta(
-                decay_weights=te.post_error_slowing.decay_weights,
-                recent_errors=self._recent_errors,
-                rng=self._rng,
-                slowing_ms_min=te.post_error_slowing.slowing_ms_min,
-                slowing_ms_max=te.post_error_slowing.slowing_ms_max,
-            )
+        # Post-event slowing (generic mechanism). Subsumes both classical
+        # post-error slowing and post-inhibition (interrupt) slowing under
+        # one configured handler. Trigger priority is encoded in the
+        # TaskCard's triggers list (typically interrupt > error). For
+        # back-compat with TaskCards still emitting separate
+        # post_error_slowing / post_interrupt_slowing entries, the
+        # normalize layer merges them into post_event_slowing form.
+        from experiment_bot.effects.handlers import (
+            apply_post_event_slowing, SamplerState as _SS,
+        )
+        post_event_state = _SS(
+            mu=0.0, sigma=0.0, tau=0.0, expected_rt=0.0,
+            prev_rt=None, prev_condition=None, trial_index=self._trial_count,
+            prev_error=any(self._recent_errors),
+            prev_interrupt_detected=self._prev_interrupt_detected,
+            condition=condition, pink_buffer=None,
+        )
+        rt_ms += apply_post_event_slowing(
+            post_event_state, te.post_event_slowing, self._rng
+        )
 
         # Cap RT at the task's max response window (prevents late keypresses)
         max_response_ms = self._config.task_specific.get(

@@ -34,12 +34,14 @@ def test_cse_magnitude_returns_nan_with_insufficient_data():
     assert math.isnan(result)
 
 
-def test_cse_magnitude_in_registry():
-    """The registry's congruency_sequence entry has cse_magnitude as its validation_metric."""
+def test_lag1_pair_modulation_validation_metric_in_registry():
+    """The bot's library has the generic lag1_pair_contrast metric, not
+    paradigm-named cse_magnitude. cse_magnitude is a thin wrapper for
+    callers that want the conflict-paradigm conventional name."""
     from experiment_bot.effects.registry import EFFECT_REGISTRY
-    et = EFFECT_REGISTRY["congruency_sequence"]
-    assert et.validation_metric is not None
-    assert et.validation_metric is cse_magnitude
+    from experiment_bot.effects.validation_metrics import lag1_pair_contrast
+    et = EFFECT_REGISTRY["lag1_pair_modulation"]
+    assert et.validation_metric is lag1_pair_contrast
 
 
 # ---------------------------------------------------------------------------

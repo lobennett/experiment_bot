@@ -36,22 +36,26 @@ def test_autocorrelation_handler_via_registry_produces_finite_output():
         assert 150 < rt < 5000, f"RT {rt} out of range"
 
 
-def test_post_error_slowing_via_registry():
-    # PES is applied by the executor, not the sampler.  Verify the handler
-    # is registered and callable, and that sampling without error state does
-    # not crash.
-    effects = TemporalEffectsConfig(
-        post_error_slowing=PostErrorSlowingConfig(
-            enabled=True, slowing_ms_min=30, slowing_ms_max=80
-        ),
+def test_post_event_slowing_via_registry():
+    """post_event_slowing is the generic mechanism that subsumes both
+    classical PES and post-inhibition slowing. Verify the handler is
+    registered and fires with the right delta when the configured
+    event matches."""
+    from types import SimpleNamespace
+    cfg = SimpleNamespace(
+        enabled=True,
+        triggers=[
+            {"event": "error", "slowing_ms_min": 30.0, "slowing_ms_max": 80.0},
+        ],
     )
+    effects = TemporalEffectsConfig(post_event_slowing=cfg)
     sampler = ResponseSampler(_make_dist(), temporal_effects=effects, seed=42)
     rt0 = sampler.sample_rt("default")
     rt1 = sampler.sample_rt("default")
     assert 150 < rt0 < 5000
     assert 150 < rt1 < 5000
 
-    # Also exercise the handler directly via the registry to prove it is wired.
+    # Also exercise the handler directly via the registry.
     from experiment_bot.effects.handlers import SamplerState
     from experiment_bot.effects.registry import EFFECT_REGISTRY
     state = SamplerState(
@@ -62,10 +66,9 @@ def test_post_error_slowing_via_registry():
         condition="default",
         pink_buffer=None,
     )
-    cfg = effects.post_error_slowing
     rng = np.random.default_rng(99)
-    delta = EFFECT_REGISTRY["post_error_slowing"].handler(state, cfg, rng)
-    assert 30 <= delta <= 80, f"PES delta {delta} outside [30, 80]"
+    delta = EFFECT_REGISTRY["post_event_slowing"].handler(state, cfg, rng)
+    assert 30 <= delta <= 80, f"post-event-slowing delta {delta} outside [30, 80]"
 
 
 def test_pink_noise_via_registry():
@@ -164,13 +167,20 @@ def test_compute_pes_delta_truncates_at_window_size():
     assert delta == 0.0
 
 
-def test_post_interrupt_slowing_via_registry():
-    # Like PES, post_interrupt_slowing is applied by the executor. Verify the
-    # handler is wired and callable.
+def test_post_event_slowing_with_interrupt_trigger():
+    """post_event_slowing fires for the 'interrupt' event when
+    prev_interrupt_detected is True. This is the generic mechanism
+    that subsumes classical post-inhibition slowing."""
+    from types import SimpleNamespace
     from experiment_bot.effects.handlers import SamplerState
     from experiment_bot.effects.registry import EFFECT_REGISTRY
 
-    cfg = PostInterruptSlowingConfig(enabled=True, slowing_ms_min=50, slowing_ms_max=150)
+    cfg = SimpleNamespace(
+        enabled=True,
+        triggers=[
+            {"event": "interrupt", "slowing_ms_min": 50.0, "slowing_ms_max": 150.0},
+        ],
+    )
     state = SamplerState(
         mu=500, sigma=50, tau=80,
         prev_rt=520.0, prev_condition="default",
@@ -180,5 +190,36 @@ def test_post_interrupt_slowing_via_registry():
         pink_buffer=None,
     )
     rng = np.random.default_rng(7)
-    delta = EFFECT_REGISTRY["post_interrupt_slowing"].handler(state, cfg, rng)
-    assert 50 <= delta <= 150, f"PIS delta {delta} outside [50, 150]"
+    delta = EFFECT_REGISTRY["post_event_slowing"].handler(state, cfg, rng)
+    assert 50 <= delta <= 150, f"post-event-slowing delta {delta} outside [50, 150]"
+
+
+def test_post_event_slowing_priority_interrupt_over_error():
+    """When both error and interrupt are configured, the trigger listed
+    first wins (typically interrupt). This implements the historical
+    'interrupt takes priority over error' semantics through generic
+    config rather than hardcoded executor logic."""
+    from types import SimpleNamespace
+    from experiment_bot.effects.handlers import SamplerState, apply_post_event_slowing
+
+    cfg = SimpleNamespace(
+        enabled=True,
+        triggers=[
+            {"event": "interrupt", "slowing_ms_min": 100.0, "slowing_ms_max": 100.0,
+             "exclusive_with_prior_triggers": True},
+            {"event": "error", "slowing_ms_min": 30.0, "slowing_ms_max": 30.0,
+             "exclusive_with_prior_triggers": True},
+        ],
+    )
+    state = SamplerState(
+        mu=500, sigma=50, tau=80,
+        prev_rt=520.0, prev_condition="default",
+        trial_index=2,
+        prev_error=True, prev_interrupt_detected=True,  # both fired
+        condition="default",
+        pink_buffer=None,
+    )
+    rng = np.random.default_rng(0)
+    delta = apply_post_event_slowing(state, cfg, rng)
+    # Should be the interrupt's 100ms (first trigger wins), not error's 30ms.
+    assert delta == 100.0, f"Expected 100ms (interrupt priority); got {delta}"

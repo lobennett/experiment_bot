@@ -171,37 +171,134 @@ def _cfg_get(cfg, name: str, default=None):
     return getattr(cfg, name, default)
 
 
-def apply_cse(state: SamplerState, cfg, rng) -> float:
-    """Congruency sequence effect (Gratton 1992; Egner 2007).
+def apply_lag1_pair_modulation(state: SamplerState, cfg, rng) -> float:
+    """Generic lag-1 trial-pair modulation: arbitrary RT delta indexed
+    by (previous_condition, current_condition).
 
-    The conflict effect (high-conflict − low-conflict RT) is REDUCED
-    following a high-conflict trial vs following a low-conflict trial.
+    The bot's standard library does not name any specific paradigm
+    effect (CSE, Gratton, sequence priming, etc.). Each is a
+    *configuration* of this generic mechanism: the TaskCard supplies
+    a modulation_table mapping condition-pair tuples to RT-delta
+    values, and the handler applies the matching entry.
 
-    The condition labels are taken from the TaskCard via
-    `cfg.high_conflict_condition` and `cfg.low_conflict_condition`,
-    so paradigms with non-Stroop labels (e.g. "compatible"/"incompatible",
-    "same"/"different") work without code changes. Defaults to
-    "incongruent"/"congruent" when fields are missing or empty (back-compat).
+    Cfg fields:
+      - `enabled` (bool): off by default; the TaskCard must opt in.
+      - `skip_after_error` (bool, default True): if True, no
+        modulation is applied on the trial after an error. The
+        canonical CSE protocol skips post-error trials (error
+        contamination); paradigms whose literature does not
+        require this can override.
+      - `modulation_table` (list of dicts): each entry has:
+          - `prev` (str): the previous trial's condition label
+          - `curr` (str): the current trial's condition label
+          - One of:
+            - `delta_ms` (float): fixed RT delta in ms
+            - `delta_ms_min` and `delta_ms_max` (floats): uniform-
+              random RT delta sampled at trial time
+        First matching entry wins. Entries that don't specify
+        either form contribute 0.
 
-    On high-conflict current trials only:
-      - if previous was high-conflict: subtract `sequence_facilitation_ms`
-      - if previous was low-conflict: add `sequence_cost_ms`
-    Low-conflict current trials are not modulated. Skipped after error
-    trials (error contamination).
-
-    `cfg` may be a typed dataclass instance, a SimpleNamespace, or a
-    raw dict (test fixtures often use dicts). `_cfg_get` reads either.
+    Configurations: CSE for Stroop is e.g. modulation_table =
+    [{prev: incongruent, curr: incongruent, delta_ms: -50},
+     {prev: congruent, curr: incongruent, delta_ms: 20}].
+    Trial-by-trial repetition priming would be a different table.
+    Tasks with no 2-back interaction simply leave enabled=False.
     """
     if not _cfg_get(cfg, "enabled", False):
         return 0.0
-    if state.prev_condition is None or state.prev_error:
+    if state.prev_condition is None:
+        return 0.0
+    if _cfg_get(cfg, "skip_after_error", True) and state.prev_error:
+        return 0.0
+    table = _cfg_get(cfg, "modulation_table", []) or []
+    for entry in table:
+        prev = entry.get("prev") if isinstance(entry, dict) else getattr(entry, "prev", None)
+        curr = entry.get("curr") if isinstance(entry, dict) else getattr(entry, "curr", None)
+        if state.prev_condition != prev or state.condition != curr:
+            continue
+        get = entry.get if isinstance(entry, dict) else (lambda k, default=None: getattr(entry, k, default))
+        if get("delta_ms_min") is not None and get("delta_ms_max") is not None:
+            return float(rng.uniform(get("delta_ms_min"), get("delta_ms_max")))
+        if get("delta_ms") is not None:
+            return float(get("delta_ms"))
+        return 0.0
+    return 0.0
+
+
+def apply_post_event_slowing(state: SamplerState, cfg, rng) -> float:
+    """Generic post-event slowing: RT slowing on the trial following a
+    triggering event (error, successful inhibition, etc.).
+
+    Subsumes both classical post-error slowing (PES) and post-
+    inhibition slowing under one mechanism. The bot's library has no
+    paradigm-specific event names; events are configured per task.
+
+    Cfg fields:
+      - `enabled` (bool): off by default.
+      - `triggers` (list of dicts in priority order): first matching
+        trigger wins. Each trigger has:
+          - `event` (str): one of "error" or "interrupt" (matches
+            SamplerState's `prev_error` and `prev_interrupt_detected`
+            respectively).
+          - `slowing_ms_min`, `slowing_ms_max` (floats): uniform-
+            random slowing in ms.
+          - `decay_weights` (list[float], optional): per-position
+            weights when multi-trial decay is documented in the
+            literature for this paradigm. The most recent N trials
+            (oldest first in `state.recent_*`) are weighted; only
+            error-event triggers consult decay_weights for now.
+            When omitted or empty, single-trial behavior applies.
+          - `exclusive_with_prior_triggers` (bool, default True):
+            when True, this trigger only fires if no earlier trigger
+            in the list matched. This implements priority semantics
+            (e.g. "interrupt takes priority over error").
+
+    Tasks with no post-event slowing leave enabled=False.
+    """
+    if not _cfg_get(cfg, "enabled", False):
+        return 0.0
+    triggers = _cfg_get(cfg, "triggers", []) or []
+    matched_already = False
+    for trigger in triggers:
+        get = trigger.get if isinstance(trigger, dict) else (lambda k, default=None: getattr(trigger, k, default))
+        event = get("event")
+        if get("exclusive_with_prior_triggers", True) and matched_already:
+            continue
+        # Check whether this trigger's event fired
+        fired = False
+        if event == "interrupt" and state.prev_interrupt_detected:
+            fired = True
+        elif event == "error" and state.prev_error:
+            fired = True
+        if not fired:
+            continue
+        matched_already = True
+        ms_min = float(get("slowing_ms_min", 0.0) or 0.0)
+        ms_max = float(get("slowing_ms_max", 0.0) or 0.0)
+        return float(rng.uniform(ms_min, ms_max))
+    return 0.0
+
+
+def apply_cse(state: SamplerState, cfg, rng) -> float:
+    """Deprecated. Retained for callers that still pass the old
+    CSE-shaped config (high_conflict_condition / low_conflict_condition
+    + sequence_facilitation_ms / sequence_cost_ms). Internally
+    converts to the generic lag-1 modulation shape and delegates.
+    Stage 2 should now emit `lag1_pair_modulation` directly.
+    """
+    if not _cfg_get(cfg, "enabled", False):
         return 0.0
     high = _cfg_get(cfg, "high_conflict_condition", "") or "incongruent"
     low = _cfg_get(cfg, "low_conflict_condition", "") or "congruent"
-    if state.condition != high:
-        return 0.0
-    if state.prev_condition == high:
-        return -float(_cfg_get(cfg, "sequence_facilitation_ms", 0.0))
-    if state.prev_condition == low:
-        return float(_cfg_get(cfg, "sequence_cost_ms", 0.0))
-    return 0.0
+    fac = _cfg_get(cfg, "sequence_facilitation_ms", 0.0)
+    cost = _cfg_get(cfg, "sequence_cost_ms", 0.0)
+    from types import SimpleNamespace
+    shimmed = SimpleNamespace(
+        enabled=True,
+        skip_after_error=True,
+        modulation_table=[
+            {"prev": high, "curr": high, "delta_ms": -float(fac)},
+            {"prev": low, "curr": high, "delta_ms": float(cost)},
+        ],
+    )
+    return apply_lag1_pair_modulation(state, shimmed, rng)

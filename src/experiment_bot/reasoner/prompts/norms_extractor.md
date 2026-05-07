@@ -52,10 +52,12 @@ For ANY paradigm class, populate at minimum:
 
 3. **Sequential effects** (one entry per documented effect): any
    trial-to-trial dependencies the literature documents for this class.
-   Examples that may apply: `lag1_autocorr`, `post_error_slowing`,
-   `condition_repetition`, switch cost, masking effect, attentional
-   blink, learning curve. Use whatever metric names make sense given
-   the literature; the validation oracle dispatches by name.
+   Use the metric name the meta-analysis itself uses (e.g.
+   `post_error_slowing`, `switch_cost`, `masking_effect`,
+   `attentional_blink`, `learning_curve`, `lag1_autocorr`). These are
+   literature-convention metric NAMES, not bot-library mechanisms —
+   the validation oracle dispatches by name. Include only effects
+   whose literature for THIS class is established.
 
 4. **Paradigm-specific signature metrics**: any metric that is a defining
    measurement of this paradigm class in the literature. Examples:

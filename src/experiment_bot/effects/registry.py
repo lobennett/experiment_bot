@@ -116,14 +116,16 @@ def register_effect(
 ) -> EffectType:
     """Register a new EffectType under ``name``. Returns the registered entry.
 
-    The effect registry is the bot's "standard library" of paradigm
-    behaviors. New paradigm classes that need effects beyond the seven
-    built-in entries (autocorrelation, fatigue_drift, post_error_slowing,
-    condition_repetition, pink_noise, post_interrupt_slowing,
-    congruency_sequence) can register their own handlers via this
-    function. The handler is a Python callable so the math is auditable;
-    the registration itself is a one-liner that doesn't require editing
-    this file.
+    The effect registry is the bot's "standard library" of generic
+    temporal mechanisms. The six built-ins (autocorrelation,
+    fatigue_drift, condition_repetition, pink_noise,
+    lag1_pair_modulation, post_event_slowing) are intended to cover
+    most speeded-decision paradigms via per-task configuration. A new
+    mechanism is justified only if at least two paradigms with
+    distinct paradigm-class memberships would use it; otherwise it is
+    a configuration of an existing mechanism. Mechanisms must be named
+    in mechanism vocabulary (not paradigm vocabulary) and read all
+    paradigm-specific data from the cfg argument.
 
     `applicable_paradigms` defaults to ALL_PARADIGM_CLASSES (universal).
     Pass a frozenset of class names to scope the effect to a specific

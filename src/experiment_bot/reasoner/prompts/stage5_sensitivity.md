@@ -6,7 +6,7 @@ Output a JSON object keyed by parameter path, value in
 {"high", "medium", "low"}:
 
 {
-  "response_distributions/congruent/mu": "high",
-  "response_distributions/congruent/sigma": "medium",
+  "response_distributions/<condition_label>/mu": "high",
+  "response_distributions/<condition_label>/sigma": "medium",
   ...
 }

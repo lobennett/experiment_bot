@@ -10,7 +10,7 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 
 
 def _enumerate_parameters(partial: dict) -> list[str]:
-    """Return paths like 'response_distributions/congruent/mu'.
+    """Return paths like 'response_distributions/<condition>/mu'.
 
     The 'enabled' subkey of temporal effects is excluded — it's a boolean,
     not a numeric parameter that needs literature grounding.

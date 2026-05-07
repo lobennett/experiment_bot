@@ -84,6 +84,7 @@ class TaskExecutor:
             temporal_effects=config.temporal_effects,
             floor_ms=config.runtime.timing.rt_floor_ms,
             seed=seed,
+            paradigm_classes=getattr(config.task, "paradigm_classes", None) or [],
         )
         self._navigator = InstructionNavigator()
         self._writer = OutputWriter()

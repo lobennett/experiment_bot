@@ -200,28 +200,86 @@ class PostInterruptSlowingConfig:
         return asdict(self)
 
 
-@dataclass
 class TemporalEffectsConfig:
-    autocorrelation: AutocorrelationConfig = field(default_factory=AutocorrelationConfig)
-    fatigue_drift: FatigueDriftConfig = field(default_factory=FatigueDriftConfig)
-    post_error_slowing: PostErrorSlowingConfig = field(default_factory=PostErrorSlowingConfig)
-    condition_repetition: ConditionRepetitionConfig = field(default_factory=ConditionRepetitionConfig)
-    pink_noise: PinkNoiseConfig = field(default_factory=PinkNoiseConfig)
-    post_interrupt_slowing: PostInterruptSlowingConfig = field(default_factory=PostInterruptSlowingConfig)
+    """Open registry of effect configurations.
+
+    Each registered effect (in `effects.registry.EFFECT_REGISTRY`) has a
+    config entry here, populated either as a typed dataclass instance
+    (when the registry declares `config_class`) or as a `SimpleNamespace`
+    built from the raw dict (when no config_class is declared). Adding a
+    new effect — registering its handler with `register_effect()` — does
+    NOT require editing this class. The sampler iterates the registry
+    and looks up configs by name; missing entries yield a default
+    "disabled" SimpleNamespace so handlers short-circuit cleanly.
+
+    The class accepts named-effect kwargs in `__init__` for convenience
+    when constructing in tests/code:
+        TemporalEffectsConfig(autocorrelation=AutocorrelationConfig(enabled=True, phi=0.3))
+    """
+
+    def __init__(self, **kwargs):
+        # Storage keyed by registry effect name. Accepts either typed
+        # dataclass instances or SimpleNamespace objects.
+        self._effects: dict[str, object] = dict(kwargs)
 
     @classmethod
-    def from_dict(cls, d: dict) -> TemporalEffectsConfig:
-        return cls(
-            autocorrelation=AutocorrelationConfig.from_dict(d.get("autocorrelation", {})),
-            fatigue_drift=FatigueDriftConfig.from_dict(d.get("fatigue_drift", {})),
-            post_error_slowing=PostErrorSlowingConfig.from_dict(d.get("post_error_slowing", {})),
-            condition_repetition=ConditionRepetitionConfig.from_dict(d.get("condition_repetition", {})),
-            pink_noise=PinkNoiseConfig.from_dict(d.get("pink_noise", {})),
-            post_interrupt_slowing=PostInterruptSlowingConfig.from_dict(d.get("post_interrupt_slowing", {})),
-        )
+    def from_dict(cls, d: dict) -> "TemporalEffectsConfig":
+        from types import SimpleNamespace
+        from experiment_bot.effects.registry import EFFECT_REGISTRY
+
+        out = cls()
+        # For each registered effect, instantiate via its config_class if
+        # available, otherwise wrap the dict as a SimpleNamespace so
+        # attribute access works in the handler.
+        d = d or {}
+        for name, et in EFFECT_REGISTRY.items():
+            sub = d.get(name, {})
+            cfg_class = getattr(et, "config_class", None)
+            if cfg_class is not None and isinstance(sub, dict):
+                out._effects[name] = cfg_class.from_dict(sub)
+            elif isinstance(sub, dict):
+                out._effects[name] = SimpleNamespace(**sub)
+            else:
+                out._effects[name] = sub
+        # Pass through any non-registry effects the caller emitted
+        for name in d:
+            if name not in out._effects:
+                out._effects[name] = (SimpleNamespace(**d[name])
+                                       if isinstance(d[name], dict) else d[name])
+        return out
+
+    def get(self, name: str):
+        """Return the config for `name`, or None if not present."""
+        return self._effects.get(name)
+
+    def __getattr__(self, name: str):
+        # Backward-compat: `te.autocorrelation` returns the stored config;
+        # if no config is stored, returns a disabled-by-default
+        # SimpleNamespace so handlers short-circuit cleanly.
+        # Dunder names (__deepcopy__, __reduce__, etc.) MUST raise so
+        # Python's protocol probes (copy.deepcopy, pickle) fall back
+        # cleanly — returning a SimpleNamespace fakes a callable and
+        # crashes deepcopy.
+        if name.startswith("_"):
+            raise AttributeError(name)
+        if name in self._effects:
+            return self._effects[name]
+        from types import SimpleNamespace
+        return SimpleNamespace(enabled=False)
 
     def to_dict(self) -> dict:
-        return asdict(self)
+        from dataclasses import is_dataclass, asdict as _asdict
+        out: dict = {}
+        for k, v in self._effects.items():
+            if hasattr(v, "to_dict"):
+                out[k] = v.to_dict()
+            elif is_dataclass(v):
+                out[k] = _asdict(v)
+            elif hasattr(v, "__dict__"):
+                out[k] = dict(vars(v))
+            else:
+                out[k] = v
+        return out
 
 
 @dataclass

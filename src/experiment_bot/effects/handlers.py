@@ -161,34 +161,47 @@ def apply_post_interrupt_slowing(state: SamplerState, cfg, rng) -> float:
     return float(rng.uniform(cfg.slowing_ms_min, cfg.slowing_ms_max))
 
 
-def apply_cse(state: SamplerState, params: dict, rng) -> float:
+def _cfg_get(cfg, name: str, default=None):
+    """Read `name` from a config that may be a dict OR a typed
+    dataclass / SimpleNamespace. Lets handlers accept either shape
+    so callers don't have to convert.
+    """
+    if isinstance(cfg, dict):
+        return cfg.get(name, default)
+    return getattr(cfg, name, default)
+
+
+def apply_cse(state: SamplerState, cfg, rng) -> float:
     """Congruency sequence effect (Gratton 1992; Egner 2007).
 
     The conflict effect (high-conflict − low-conflict RT) is REDUCED
     following a high-conflict trial vs following a low-conflict trial.
 
     The condition labels are taken from the TaskCard via
-    `params["high_conflict_condition"]` and `params["low_conflict_condition"]`,
+    `cfg.high_conflict_condition` and `cfg.low_conflict_condition`,
     so paradigms with non-Stroop labels (e.g. "compatible"/"incompatible",
     "same"/"different") work without code changes. Defaults to
-    "incongruent"/"congruent" when params omit the keys (back-compat).
+    "incongruent"/"congruent" when fields are missing or empty (back-compat).
 
     On high-conflict current trials only:
       - if previous was high-conflict: subtract `sequence_facilitation_ms`
       - if previous was low-conflict: add `sequence_cost_ms`
     Low-conflict current trials are not modulated. Skipped after error
     trials (error contamination).
+
+    `cfg` may be a typed dataclass instance, a SimpleNamespace, or a
+    raw dict (test fixtures often use dicts). `_cfg_get` reads either.
     """
-    if not params.get("enabled", False):
+    if not _cfg_get(cfg, "enabled", False):
         return 0.0
     if state.prev_condition is None or state.prev_error:
         return 0.0
-    high = params.get("high_conflict_condition", "incongruent")
-    low = params.get("low_conflict_condition", "congruent")
+    high = _cfg_get(cfg, "high_conflict_condition", "") or "incongruent"
+    low = _cfg_get(cfg, "low_conflict_condition", "") or "congruent"
     if state.condition != high:
         return 0.0
     if state.prev_condition == high:
-        return -float(params.get("sequence_facilitation_ms", 0.0))
+        return -float(_cfg_get(cfg, "sequence_facilitation_ms", 0.0))
     if state.prev_condition == low:
-        return float(params.get("sequence_cost_ms", 0.0))
+        return float(_cfg_get(cfg, "sequence_cost_ms", 0.0))
     return 0.0

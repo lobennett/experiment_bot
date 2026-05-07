@@ -131,3 +131,116 @@ def test_cse_falls_back_to_default_labels_when_unspecified():
     rng = np.random.default_rng(0)
     delta = apply_cse(state, _params(facilitation=30.0), rng)
     assert delta == -30.0
+
+
+# ---------------------------------------------------------------------------
+# End-to-end through the sampler — verifies CSE is actually wired in
+# (not dead code). Audit finding from cse-sign-flip-diagnostic.md.
+# ---------------------------------------------------------------------------
+
+def test_cse_fires_through_sampler_for_conflict_paradigm():
+    """When ResponseSampler is given paradigm_classes including 'conflict'
+    and temporal_effects.congruency_sequence enabled, the i-after-i pair
+    RT should be measurably lower than the i-after-c pair RT."""
+    from experiment_bot.core.distributions import ResponseSampler
+    from experiment_bot.core.config import (
+        DistributionConfig, TemporalEffectsConfig,
+    )
+    from types import SimpleNamespace
+
+    distributions = {
+        "congruent": DistributionConfig(
+            distribution="ex_gaussian",
+            params={"mu": 500, "sigma": 30, "tau": 60},
+        ),
+        "incongruent": DistributionConfig(
+            distribution="ex_gaussian",
+            params={"mu": 500, "sigma": 30, "tau": 60},
+        ),
+    }
+    # Use SimpleNamespace to inject CSE config directly
+    cse_cfg = SimpleNamespace(
+        enabled=True,
+        sequence_facilitation_ms=50.0,
+        sequence_cost_ms=20.0,
+        high_conflict_condition="incongruent",
+        low_conflict_condition="congruent",
+    )
+    effects = TemporalEffectsConfig(congruency_sequence=cse_cfg)
+    sampler = ResponseSampler(
+        distributions, temporal_effects=effects, seed=42,
+        paradigm_classes=["conflict"],
+    )
+
+    # Drive a short alternating sequence and accumulate iI vs cI pair RTs
+    iI_rts = []
+    cI_rts = []
+    prev_cond = None
+    prev_rt = None
+    for cond in ["congruent", "incongruent", "incongruent", "congruent",
+                 "incongruent", "incongruent", "congruent", "incongruent",
+                 "incongruent", "congruent"]:
+        rt = sampler.sample_rt(cond)
+        if cond == "incongruent" and prev_cond == "incongruent":
+            iI_rts.append(rt)
+        elif cond == "incongruent" and prev_cond == "congruent":
+            cI_rts.append(rt)
+        prev_cond = cond
+        prev_rt = rt
+
+    # iI should be faster (facilitated by 50ms); cI should be slower (+20ms).
+    # With seed=42 and 3 iI + 3 cI pairs, the difference should be clearly
+    # negative even with sampling noise.
+    assert iI_rts and cI_rts
+    assert sum(iI_rts) / len(iI_rts) < sum(cI_rts) / len(cI_rts), (
+        f"iI mean {sum(iI_rts)/len(iI_rts):.1f} >= cI mean {sum(cI_rts)/len(cI_rts):.1f} "
+        f"— CSE handler is not firing through sampler"
+    )
+
+
+def test_cse_does_not_fire_for_non_conflict_paradigm():
+    """If paradigm_classes doesn't include 'conflict', CSE handler should
+    NOT run even when temporal_effects.congruency_sequence is configured."""
+    from experiment_bot.core.distributions import ResponseSampler
+    from experiment_bot.core.config import (
+        DistributionConfig, TemporalEffectsConfig,
+    )
+    from types import SimpleNamespace
+
+    distributions = {
+        "congruent": DistributionConfig(
+            distribution="ex_gaussian",
+            params={"mu": 500, "sigma": 30, "tau": 60},
+        ),
+        "incongruent": DistributionConfig(
+            distribution="ex_gaussian",
+            params={"mu": 500, "sigma": 30, "tau": 60},
+        ),
+    }
+    cse_cfg = SimpleNamespace(
+        enabled=True,
+        sequence_facilitation_ms=200.0,  # large so we'd see it if applied
+        sequence_cost_ms=200.0,
+        high_conflict_condition="incongruent",
+        low_conflict_condition="congruent",
+    )
+    effects = TemporalEffectsConfig(congruency_sequence=cse_cfg)
+    sampler = ResponseSampler(
+        distributions, temporal_effects=effects, seed=42,
+        paradigm_classes=["interrupt"],  # NOT 'conflict'
+    )
+
+    rt1 = sampler.sample_rt("incongruent")
+    rt2 = sampler.sample_rt("incongruent")  # this would be heavily modulated if CSE ran
+    rt3 = sampler.sample_rt("congruent")
+    rt4 = sampler.sample_rt("incongruent")  # also would be heavily modulated
+
+    # If CSE ran with -200/+200ms, rt2 vs rt4 would differ by ~400ms.
+    # If CSE doesn't run (paradigm filter excludes it), they should be
+    # within sampling noise (a few hundred ms is conceivable but not 400+
+    # systematically). We assert no CSE: check that the iI pair (rt2)
+    # isn't 100ms+ faster than the cI pair (rt4) — if the filter worked,
+    # both are pure samples.
+    assert abs(rt2 - rt4) < 200, (
+        f"rt2={rt2}, rt4={rt4} — CSE seems to be firing for non-conflict paradigm"
+    )

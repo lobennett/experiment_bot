@@ -10,7 +10,7 @@ from experiment_bot.core.config import (
     TaskConfig,
     TemporalEffectsConfig,
 )
-from experiment_bot.effects.registry import EFFECT_REGISTRY
+from experiment_bot.effects.registry import EFFECT_REGISTRY, eligible_effects
 from experiment_bot.effects.handlers import SamplerState
 
 
@@ -138,21 +138,32 @@ def _generate_pink_noise(n: int, hurst: float, rng: np.random.Generator) -> np.n
 
 
 class ResponseSampler:
+    # Effects that are applied by the executor AFTER the sampler returns,
+    # not by the sampler itself. Their handlers receive a SamplerState
+    # whose prev_error / prev_interrupt_detected fields are always
+    # False inside the sampler — which is correct for these effects to
+    # produce zero contribution there. The executor invokes them with
+    # the right state at the right point in the trial loop.
+    _EXECUTOR_APPLIED_EFFECTS = frozenset({"post_error_slowing", "post_interrupt_slowing"})
+
     def __init__(
         self,
         distributions: dict[str, DistributionConfig],
         temporal_effects: TemporalEffectsConfig | None = None,
         floor_ms: float = 150.0,
         seed: int | None = None,
+        paradigm_classes: list[str] | None = None,
     ):
         if temporal_effects is None:
             temporal_effects = TemporalEffectsConfig()
         self._effects = temporal_effects
+        self._paradigm_classes = list(paradigm_classes or [])
         self._floor_ms = floor_ms
         self._prev_condition: str | None = None
         self._prev_rt: float | None = None
         self._trial_index: int = 0
         self._samplers: dict[str, ExGaussianSampler] = {}
+        self._rng = np.random.default_rng(seed)
 
         # Pink noise buffer
         if self._effects.pink_noise.enabled:
@@ -200,29 +211,29 @@ class ResponseSampler:
             pink_buffer=self._pink_buffer,
         )
 
-        # Effects sum independently on `state` (none of them mutate state mid-
-        # iteration), so the order is mathematically commutative — it only
-        # affects floating-point summation rounding. The list is fixed for
-        # determinism and back-compat with existing tests; if a future
-        # paradigm needs a different order, the order is purely a code-level
-        # choice rather than a behavioral one. PES and post_interrupt_slowing
-        # are applied by executor.py after the sampler returns.
-        _SAMPLER_EFFECT_ORDER = [
-            "autocorrelation",
-            "condition_repetition",
-            "pink_noise",
-            "fatigue_drift",
-        ]
-        for name in _SAMPLER_EFFECT_ORDER:
-            effect_type = EFFECT_REGISTRY.get(name)
-            if effect_type is None or effect_type.handler is None:
+        # Iterate the effect registry, paradigm-class-filtered. Each
+        # registered handler whose `applicable_paradigms` matches the
+        # task's classes (or that's universal) gets invoked with its
+        # config from `self._effects`. Handlers are commutative on
+        # `state` (none mutate it mid-iteration), so iteration order
+        # only affects floating-point summation. PES and
+        # post_interrupt_slowing are applied by executor.py after the
+        # sampler returns; they're skipped here.
+        eligible = eligible_effects(self._paradigm_classes)
+        for name in EFFECT_REGISTRY:  # registry-insertion order for determinism
+            if name not in eligible:
+                continue
+            if name in self._EXECUTOR_APPLIED_EFFECTS:
+                continue
+            effect_type = EFFECT_REGISTRY[name]
+            if effect_type.handler is None:
                 continue
             if name == "condition_repetition" and skip_condition_repetition:
                 continue
-            cfg = getattr(self._effects, name, None)
+            cfg = self._effects.get(name)
             if cfg is None:
                 continue
-            rt += effect_type.handler(state, cfg, None)
+            rt += effect_type.handler(state, cfg, self._rng)
 
         rt = max(rt, self._floor_ms)
         self._prev_rt = rt

@@ -14,6 +14,13 @@ class EffectType:
     applicable_paradigms: frozenset[str]
     handler: Callable[..., float] | None        # filled in by Task A2
     validation_metric: Callable[..., Any] | None  # filled in by later tasks
+    # Optional typed dataclass for the effect's configuration. When set,
+    # `TemporalEffectsConfig.from_dict` instantiates this class for the
+    # effect's sub-dict; the handler then receives a typed instance via
+    # attribute access. When None, the sub-dict is wrapped in a
+    # SimpleNamespace so attribute access still works without a typed
+    # contract. New effects can register without providing one.
+    config_class: type | None = None
 
 
 # Skeleton: existing 6 effects, handler/validator None for now.
@@ -135,6 +142,19 @@ EFFECT_REGISTRY["post_error_slowing"].handler = _h.apply_post_error_slowing
 EFFECT_REGISTRY["condition_repetition"].handler = _h.apply_condition_repetition
 EFFECT_REGISTRY["pink_noise"].handler = _h.apply_pink_noise
 EFFECT_REGISTRY["post_interrupt_slowing"].handler = _h.apply_post_interrupt_slowing
+
+# Wire typed config classes for the canonical six effects so
+# TemporalEffectsConfig.from_dict instantiates them with full type info.
+from experiment_bot.core.config import (  # noqa: E402
+    AutocorrelationConfig, FatigueDriftConfig, PostErrorSlowingConfig,
+    ConditionRepetitionConfig, PinkNoiseConfig, PostInterruptSlowingConfig,
+)
+EFFECT_REGISTRY["autocorrelation"].config_class = AutocorrelationConfig
+EFFECT_REGISTRY["fatigue_drift"].config_class = FatigueDriftConfig
+EFFECT_REGISTRY["post_error_slowing"].config_class = PostErrorSlowingConfig
+EFFECT_REGISTRY["condition_repetition"].config_class = ConditionRepetitionConfig
+EFFECT_REGISTRY["pink_noise"].config_class = PinkNoiseConfig
+EFFECT_REGISTRY["post_interrupt_slowing"].config_class = PostInterruptSlowingConfig
 
 EFFECT_REGISTRY["congruency_sequence"] = EffectType(
     name="congruency_sequence",

@@ -89,6 +89,76 @@ def test_temporal_effects_round_trip():
 
 
 # ---------------------------------------------------------------------------
+# Migration of paradigm-named effects on TaskCard load
+# (regression: existing TaskCards on disk use old names; the executor's
+# _taskcard_to_config feeds the raw `value` dicts to
+# TemporalEffectsConfig.from_dict — migration must happen there.)
+# ---------------------------------------------------------------------------
+
+
+def test_from_dict_migrates_congruency_sequence_to_lag1_pair_modulation():
+    """Old TaskCard with `congruency_sequence` → executor sees a populated
+    `lag1_pair_modulation` so CSE actually fires through the sampler."""
+    raw = {
+        "congruency_sequence": {
+            "enabled": True,
+            "high_conflict_condition": "incongruent",
+            "low_conflict_condition": "congruent",
+            "sequence_facilitation_ms": 25.0,
+            "sequence_cost_ms": 18.0,
+        }
+    }
+    cfg = TemporalEffectsConfig.from_dict(raw)
+    assert cfg.lag1_pair_modulation.enabled is True
+    table = cfg.lag1_pair_modulation.modulation_table
+    assert {"prev": "incongruent", "curr": "incongruent",
+            "delta_ms": -25.0} in table
+    assert {"prev": "congruent", "curr": "incongruent",
+            "delta_ms": 18.0} in table
+
+
+def test_from_dict_migrates_post_error_and_post_interrupt_slowing():
+    """Old TaskCard with both legacy slowing entries → unified
+    post_event_slowing with interrupt-priority triggers list."""
+    raw = {
+        "post_error_slowing": {
+            "enabled": True,
+            "slowing_ms_min": 30.0,
+            "slowing_ms_max": 60.0,
+        },
+        "post_interrupt_slowing": {
+            "enabled": True,
+            "slowing_ms_min": 80.0,
+            "slowing_ms_max": 200.0,
+        },
+    }
+    cfg = TemporalEffectsConfig.from_dict(raw)
+    assert cfg.post_event_slowing.enabled is True
+    triggers = cfg.post_event_slowing.triggers
+    assert triggers[0]["event"] == "interrupt"  # priority order
+    assert triggers[1]["event"] == "error"
+
+
+def test_from_dict_migration_idempotent():
+    """Running migration twice (e.g., reasoner already migrated, then
+    from_dict re-migrates) doesn't duplicate effects."""
+    raw = {
+        "congruency_sequence": {
+            "enabled": True,
+            "high_conflict_condition": "incongruent",
+            "low_conflict_condition": "congruent",
+            "sequence_facilitation_ms": 25.0,
+            "sequence_cost_ms": 18.0,
+        }
+    }
+    cfg1 = TemporalEffectsConfig.from_dict(raw)
+    # Round-trip and re-load.
+    cfg2 = TemporalEffectsConfig.from_dict(cfg1.to_dict())
+    assert cfg2.lag1_pair_modulation.enabled is True
+    assert len(cfg2.lag1_pair_modulation.modulation_table) == 2
+
+
+# ---------------------------------------------------------------------------
 # BetweenSubjectJitterConfig tests
 # ---------------------------------------------------------------------------
 

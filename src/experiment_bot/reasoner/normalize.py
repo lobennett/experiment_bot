@@ -17,15 +17,7 @@ def normalize_partial(partial: dict) -> dict:
     p["navigation"] = _normalize_navigation(p.get("navigation"))
     p["runtime"] = _normalize_runtime(p.get("runtime", {}))
     p["performance"] = _normalize_performance(p.get("performance", {}))
-    if "temporal_effects" in p or "response_distributions" in p:
-        # Migrate old paradigm-shaped effect names to generic mechanisms
-        p["temporal_effects"] = _migrate_temporal_effects(
-            p.get("temporal_effects", {})
-        )
     return p
-
-
-from experiment_bot.core.config import _migrate_legacy_effect_names as _migrate_temporal_effects  # noqa: E402,F401
 
 
 def _normalize_runtime(r: dict | None) -> dict:

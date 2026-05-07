@@ -161,93 +161,6 @@ class PinkNoiseConfig:
         return asdict(self)
 
 
-def _unwrap_param_value(entry):
-    """ParameterValue-shaped dicts have {value: {...}, literature_range, ...};
-    unwrap to the inner value. Raw config dicts pass through unchanged.
-    Returns (inner_dict, surrounding_envelope) so the migration can
-    preserve provenance fields when they're present.
-    """
-    if isinstance(entry, dict) and "value" in entry and isinstance(entry["value"], dict):
-        return entry["value"], entry
-    return (entry if isinstance(entry, dict) else {}), {}
-
-
-def _migrate_legacy_effect_names(te: dict) -> dict:
-    """Translate paradigm-named effect entries into generic mechanisms.
-
-    Handles both shapes seen in the codebase:
-    - Reasoner-output envelopes: {value: {...}, literature_range: ..., ...}
-      (preserved with the new value installed)
-    - Executor-projected raw config dicts: {enabled: ..., field: ...}
-      (passed through as the new mechanism's value)
-
-    Idempotent: if the new mechanism key is already present, the legacy
-    entry is left alone (and dropped) to avoid stomping fresh data.
-    """
-    if not isinstance(te, dict):
-        return te
-    out = dict(te)
-
-    # 1. congruency_sequence → lag1_pair_modulation
-    if "congruency_sequence" in out and "lag1_pair_modulation" not in out:
-        cse_value, envelope = _unwrap_param_value(out.pop("congruency_sequence"))
-        high = cse_value.get("high_conflict_condition", "incongruent") or "incongruent"
-        low = cse_value.get("low_conflict_condition", "congruent") or "congruent"
-        fac = cse_value.get("sequence_facilitation_ms", 0.0) or 0.0
-        cost = cse_value.get("sequence_cost_ms", 0.0) or 0.0
-        new_value = {
-            "enabled": cse_value.get("enabled", False),
-            "skip_after_error": True,
-            "modulation_table": [
-                {"prev": high, "curr": high, "delta_ms": -float(fac)},
-                {"prev": low, "curr": high, "delta_ms": float(cost)},
-            ],
-        }
-        out["lag1_pair_modulation"] = (
-            {**envelope, "value": new_value} if envelope else new_value
-        )
-    elif "congruency_sequence" in out:
-        out.pop("congruency_sequence")
-
-    # 2. post_error_slowing + post_interrupt_slowing → post_event_slowing
-    has_legacy = "post_error_slowing" in out or "post_interrupt_slowing" in out
-    if has_legacy and "post_event_slowing" not in out:
-        triggers = []
-        envelope = {}
-        # Interrupt takes priority over error in the historical executor;
-        # encode that by listing it first in the triggers list.
-        if "post_interrupt_slowing" in out:
-            pi_value, pi_env = _unwrap_param_value(out.pop("post_interrupt_slowing"))
-            envelope = pi_env or envelope
-            if pi_value.get("enabled", False):
-                triggers.append({
-                    "event": "interrupt",
-                    "slowing_ms_min": pi_value.get("slowing_ms_min", 0.0),
-                    "slowing_ms_max": pi_value.get("slowing_ms_max", 0.0),
-                    "exclusive_with_prior_triggers": True,
-                })
-        if "post_error_slowing" in out:
-            pe_value, pe_env = _unwrap_param_value(out.pop("post_error_slowing"))
-            envelope = envelope or pe_env
-            if pe_value.get("enabled", False):
-                triggers.append({
-                    "event": "error",
-                    "slowing_ms_min": pe_value.get("slowing_ms_min", 0.0),
-                    "slowing_ms_max": pe_value.get("slowing_ms_max", 0.0),
-                    "decay_weights": pe_value.get("decay_weights", []) or [],
-                    "exclusive_with_prior_triggers": True,
-                })
-        new_value = {"enabled": bool(triggers), "triggers": triggers}
-        out["post_event_slowing"] = (
-            {**envelope, "value": new_value} if envelope else new_value
-        )
-    elif has_legacy:
-        out.pop("post_error_slowing", None)
-        out.pop("post_interrupt_slowing", None)
-
-    return out
-
-
 class TemporalEffectsConfig:
     """Open registry of effect configurations.
 
@@ -276,13 +189,7 @@ class TemporalEffectsConfig:
         from experiment_bot.effects.registry import EFFECT_REGISTRY
 
         out = cls()
-        # Migrate paradigm-named entries from older TaskCards into the
-        # generic-mechanism shape before parsing. The bot's library only
-        # knows generic mechanisms (per CLAUDE.md G2), so on-disk
-        # TaskCards with `congruency_sequence` / `post_error_slowing` /
-        # `post_interrupt_slowing` get translated here at load time.
-        # Idempotent: running on already-migrated dicts is a no-op.
-        d = _migrate_legacy_effect_names(d or {})
+        d = d or {}
         for name, et in EFFECT_REGISTRY.items():
             sub = d.get(name, {})
             cfg_class = getattr(et, "config_class", None)

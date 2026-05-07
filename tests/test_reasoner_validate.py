@@ -211,15 +211,64 @@ def test_stage2_validate_skips_disabled_mechanisms():
     validate_stage2_schema(partial)  # no raise
 
 
-def test_stage2_validate_ignores_unknown_mechanisms():
-    """Effect registry is open — unknown mechanisms aren't in schema.json
-    and the validator should not raise on them."""
+def test_stage2_validate_rejects_unknown_mechanism_names():
+    """Mechanisms not registered in the runtime are dead — silently
+    ignored by the executor. The validator must reject any key that
+    isn't in EFFECT_REGISTRY."""
     partial = {
         "temporal_effects": {
             "some_future_mechanism": _wrap_value({"enabled": True, "foo": "bar"}),
         }
     }
-    validate_stage2_schema(partial)  # no raise
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    assert "some_future_mechanism" in str(exc.value)
+    assert "unknown mechanism" in str(exc.value)
+
+
+def test_stage2_validate_rejects_old_paradigm_named_keys():
+    """Regression: cognitionrun_stroop regen emitted the pre-refactor
+    paradigm names (`congruency_sequence`, `post_error_slowing`,
+    `post_interrupt_slowing`). The runtime no longer recognizes any
+    of these — flagging them prevents silently-non-firing TaskCards."""
+    partial = {
+        "temporal_effects": {
+            "congruency_sequence": _wrap_value({
+                "enabled": True, "sequence_facilitation_ms": 18,
+                "sequence_cost_ms": 18,
+            }),
+            "post_error_slowing": _wrap_value({
+                "enabled": True, "slowing_ms_min": 10, "slowing_ms_max": 50,
+            }),
+            "post_interrupt_slowing": _wrap_value({"enabled": False}),
+        }
+    }
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    msg = str(exc.value)
+    assert "congruency_sequence" in msg
+    assert "post_error_slowing" in msg
+    assert "post_interrupt_slowing" in msg
+
+
+def test_stage2_validate_accepts_registered_mechanisms_without_schema_entry():
+    """If a mechanism is registered via register_effect() but isn't yet
+    described in schema.json, validate against the registry only — no
+    shape check, but the key passes through cleanly."""
+    from experiment_bot.effects.registry import EFFECT_REGISTRY, register_effect
+    # Register a fake mechanism for the duration of the test.
+    register_effect("dummy_runtime_only", handler=lambda *a: 0.0)
+    try:
+        partial = {
+            "temporal_effects": {
+                "dummy_runtime_only": _wrap_value(
+                    {"enabled": True, "anything": 42}
+                ),
+            }
+        }
+        validate_stage2_schema(partial)  # no raise
+    finally:
+        EFFECT_REGISTRY.pop("dummy_runtime_only", None)
 
 
 def test_stage2_validate_accepts_well_formed_lag1_pair_modulation():

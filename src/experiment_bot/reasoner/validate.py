@@ -71,16 +71,32 @@ def validate_stage2_schema(partial: dict) -> None:
     props = schema.get("properties", {})
     errors: list[tuple[str, str]] = []
 
-    # temporal_effects: each known mechanism's value object against its
-    # subschema. Unknown mechanism names are ignored — the registry is
-    # open by design and new mechanisms register without editing schema.
+    # temporal_effects: every key must be a registered mechanism (or, if
+    # extending via register_effect() in code, a key listed in schema).
+    # An unrecognized key means the runtime won't apply the effect — the
+    # same configured-but-non-firing failure mode that motivated this
+    # validator. Common cause: LLM regressing to old paradigm-named keys
+    # like `congruency_sequence` / `post_error_slowing` that were
+    # removed from the registry.
     te_props = props.get("temporal_effects", {}).get("properties", {})
+    from experiment_bot.effects.registry import EFFECT_REGISTRY
+    known_mechanisms = set(te_props.keys()) | set(EFFECT_REGISTRY.keys())
     for mech, entry in (partial.get("temporal_effects") or {}).items():
+        if mech not in known_mechanisms:
+            errors.append((
+                f"temporal_effects.{mech}",
+                f"unknown mechanism {mech!r}; the bot's library exposes "
+                f"only: {sorted(known_mechanisms)}. The runtime will "
+                f"silently ignore any key not in this list.",
+            ))
+            continue
         if mech not in te_props:
+            # Registered in code but not in schema — accept without
+            # shape check (no jsonschema definition to enforce).
             continue
         value = _value_only(entry)
-        # Skip if the mechanism is disabled — the LLM may emit a
-        # placeholder value with no other fields, and that's fine.
+        # Skip shape check if the mechanism is disabled — the LLM may
+        # emit a placeholder value with no other fields, and that's fine.
         if isinstance(value, dict) and value.get("enabled") is False:
             continue
         try:

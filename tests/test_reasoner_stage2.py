@@ -16,8 +16,9 @@ STAGE2_RESPONSE = """
   },
   "performance_omission_rate": {"congruent": 0.005, "incongruent": 0.005},
   "temporal_effects": {
-    "post_error_slowing": {"value": {"enabled": true, "slowing_ms_min": 30, "slowing_ms_max": 80},
-                           "rationale": "Rabbitt 1966"}
+    "post_event_slowing": {"value": {"enabled": true, "triggers": [
+        {"event": "error", "slowing_ms_min": 30, "slowing_ms_max": 80}
+    ]}, "rationale": "Rabbitt 1966"}
   },
   "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60, "accuracy_sd": 0.02},
                               "rationale": "individual differences"}
@@ -32,7 +33,7 @@ async def test_stage2_appends_behavioral_to_partial():
     partial = {"task": {"name": "Stroop"}, "performance": {"accuracy": {"congruent": 0.97}}}
     out, step = await run_stage2(client=fake, partial=partial)
     assert out["response_distributions"]["congruent"]["value"]["mu"] == 580
-    assert out["temporal_effects"]["post_error_slowing"]["value"]["enabled"] is True
+    assert out["temporal_effects"]["post_event_slowing"]["value"]["enabled"] is True
     # partial is preserved
     assert out["task"]["name"] == "Stroop"
     # omission rates merged into performance

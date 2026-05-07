@@ -1,0 +1,151 @@
+--- before_attempt_2
++++ after_attempt_2
+@@ -1,29 +1,99 @@
+ # stimuli
+ [
+   {
+-    "id": "congruent",
+-    "description": "Color word printed in a matching color (e.g., 'red' rendered in red).",
+-    "detection": {
+-      "method": "js_eval",
+-      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','blue','yellow'].includes(text)) return false; const cs = getComputedStyle(el).color; const colorMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; const color = colorMap[cs]; return !!color && color === text; })()"
+-    },
+-    "response": {
+-      "condition": "congruent",
+-      "key": null,
+-      "response_key_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return null; const cs = getComputedStyle(el).color; const keyMap = {'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'}; return keyMap[cs] || null; })()"
+-    }
+-  },
+-  {
+-    "id": "incongruent",
+-    "description": "Color word printed in a non-matching color (e.g., 'red' rendered in blue).",
+-    "detection": {
+-      "method": "js_eval",
+-      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','blue','yellow'].includes(text)) return false; const cs = getComputedStyle(el).color; const colorMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; const color = colorMap[cs]; return !!color && color !== text; })()"
+-    },
+-    "response": {
+-      "condition": "incongruent",
+-      "key": null,
+-      "response_key_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return null; const cs = getComputedStyle(el).color; const keyMap = {'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'}; return keyMap[cs] || null; })()"
++    "id": "congruent_red",
++    "description": "Word 'red' rendered in red.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'red') return false; return getComputedStyle(el).color === 'rgb(255, 0, 0)'; })()"
++    },
++    "response": {
++      "condition": "congruent",
++      "key": "r"
++    }
++  },
++  {
++    "id": "congruent_green",
++    "description": "Word 'green' rendered in green.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'green') return false; return getComputedStyle(el).color === 'rgb(0, 128, 0)'; })()"
++    },
++    "response": {
++      "condition": "congruent",
++      "key": "g"
++    }
++  },
++  {
++    "id": "congruent_blue",
++    "description": "Word 'blue' rendered in blue.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'blue') return false; return getComputedStyle(el).color === 'rgb(0, 0, 255)'; })()"
++    },
++    "response": {
++      "condition": "congruent",
++      "key": "b"
++    }
++  },
++  {
++    "id": "congruent_yellow",
++    "description": "Word 'yellow' rendered in yellow.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'yellow') return false; return getComputedStyle(el).color === 'rgb(255, 255, 0)'; })()"
++    },
++    "response": {
++      "condition": "congruent",
++      "key": "y"
++    }
++  },
++  {
++    "id": "incongruent_red",
++    "description": "Color word printed in red where the word is not 'red'.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['green','blue','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(255, 0, 0)'; })()"
++    },
++    "response": {
++      "condition": "incongruent",
++      "key": "r"
++    }
++  },
++  {
++    "id": "incongruent_green",
++    "description": "Color word printed in green where the word is not 'green'.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','blue','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(0, 128, 0)'; })()"
++    },
++    "response": {
++      "condition": "incongruent",
++      "key": "g"
++    }
++  },
++  {
++    "id": "incongruent_blue",
++    "description": "Color word printed in blue where the word is not 'blue'.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(0, 0, 255)'; })()"
++    },
++    "response": {
++      "condition": "incongruent",
++      "key": "b"
++    }
++  },
++  {
++    "id": "incongruent_yellow",
++    "description": "Color word printed in yellow where the word is not 'yellow'.",
++    "detection": {
++      "method": "js_eval",
++      "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','blue'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(255, 255, 0)'; })()"
++    },
++    "response": {
++      "condition": "incongruent",
++      "key": "y"
+     }
+   }
+ ]
+@@ -125,7 +195,15 @@
+ {
+   "key_map": {
+     "congruent": "dynamic",
+-    "incongruent": "dynamic"
++    "incongruent": "dynamic",
++    "congruent_red": "r",
++    "congruent_green": "g",
++    "congruent_blue": "b",
++    "congruent_yellow": "y",
++    "incongruent_red": "r",
++    "incongruent_green": "g",
++    "incongruent_blue": "b",
++    "incongruent_yellow": "y"
+   },
+   "trial_timing": {
+     "fixation_ms": 500,
+@@ -146,7 +224,7 @@
+     "b",
+     "y"
+   ],
+-  "rationale": "Source code defines `var n_trials = 15` and `choices: ['r','g','b','y']`. The response key maps to the first letter of the displayed COLOR (not the word), so the key-to-condition mapping is dynamic and resolved at runtime via response_key_js. Fixation duration 500ms, ITI 250ms, no trial_duration on the stimulus trial (response_ends_trial defaults true, no response deadline)."
++  "rationale": "Source defines `var n_trials = 15` and `choices: ['r','g','b','y']`. The response key is the first letter of the displayed COLOR (not the word). Pilot runner only honors the static `response.key` per stimulus (it does not evaluate `response_key_js`), so the two-condition \u00d7 dynamic-key design left the bot with no key to press and the experiment stuck on trial 1. Fixed by splitting each condition into four per-color sub-stimuli (congruent_{red,green,blue,yellow} and incongruent_{red,green,blue,yellow}), each with a static `key`. Conditions still group as `congruent`/`incongruent` for analysis. Computed-style RGB targets: red=rgb(255,0,0), green=rgb(0,128,0), blue=rgb(0,0,255), yellow=rgb(255,255,0)."
+ }
+ 
+ # performance

@@ -1,0 +1,111 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -54,39 +54,57 @@
+ {
+   "phases": [
+     {
++      "phase": "fullscreen",
+       "description": "Enter fullscreen mode (jspsych-fullscreen plugin button)",
+       "action": "click",
+       "target": "#jspsych-fullscreen-btn",
+-      "phase": "",
+       "key": "",
+       "duration_ms": 0,
+       "steps": []
+     },
+     {
++      "phase": "wait_fullscreen",
+       "description": "Allow fullscreen transition + plugin delay_after (1000 ms) before instructions render",
+       "action": "wait",
++      "target": "",
++      "key": "",
+       "duration_ms": 1500,
+-      "phase": "",
+-      "target": "",
+-      "key": "",
+-      "steps": []
+-    },
+-    {
+-      "description": "Advance instructions page 1 -> page 2",
++      "steps": []
++    },
++    {
++      "phase": "instructions_page1",
++      "description": "Advance instructions page 1 -> page 2 (click Next button)",
+       "action": "click",
+       "target": "#jspsych-instructions-next",
+-      "phase": "",
+-      "key": "",
+-      "duration_ms": 0,
+-      "steps": []
+-    },
+-    {
+-      "description": "Advance instructions page 2 -> end of instructions trial",
++      "key": "",
++      "duration_ms": 500,
++      "steps": []
++    },
++    {
++      "phase": "instructions_page2",
++      "description": "Advance instructions page 2 -> end of instructions trial (click Next button)",
+       "action": "click",
+       "target": "#jspsych-instructions-next",
+-      "phase": "",
+-      "key": "",
+-      "duration_ms": 0,
++      "key": "",
++      "duration_ms": 500,
++      "steps": []
++    },
++    {
++      "phase": "block_start",
++      "description": "Press space to begin practice block. After instructions, the block_procedure shows a block_start trial (html-keyboard-response with stimulus 'Press space to begin.', choices ['space']) that requires a space keypress to advance. Pilot evidence: DOM after navigation showed '<p>Press space to begin.</p>' inside #jspsych-html-keyboard-response-stimulus and the run timed out at 300s without progressing.",
++      "action": "keypress",
++      "target": "",
++      "key": " ",
++      "duration_ms": 500,
++      "steps": []
++    },
++    {
++      "phase": "get_ready",
++      "description": "Wait through the block_get_ready trial ('Get ready...', fixed 2000 ms via trial_duration) so the first practice stimulus has rendered before the main detection loop begins polling.",
++      "action": "wait",
++      "target": "",
++      "key": "",
++      "duration_ms": 2500,
+       "steps": []
+     }
+   ]
+@@ -96,10 +114,10 @@
+ {
+   "phase_detection": {
+     "complete": "document.body.innerText.includes('Thank you for your participation')",
+-    "loading": "typeof jsPsych === 'undefined' || document.body.innerText.trim().length === 0",
+-    "instructions": "document.querySelector('#jspsych-instructions-next') !== null || /Press space to begin/i.test(document.body.innerText)",
++    "loading": "typeof jsPsych === 'undefined' || !!document.querySelector('#jspsych-fullscreen-btn')",
++    "instructions": "document.querySelector('#jspsych-instructions-next') !== null",
+     "attention_check": "false",
+-    "feedback": "/GO TRIALS|STOP-SIGNAL TRIALS/i.test(document.body.innerText) || document.querySelector('#timer') !== null",
++    "feedback": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');var t=el?(el.innerText||''):'';return /GO TRIALS|STOP-SIGNAL TRIALS|Press space to begin|Press space to continue|correct response|incorrect response|too slow|too fast|correct stop|remember/i.test(t) || document.querySelector('#timer') !== null;})()",
+     "practice": "typeof block_ind !== 'undefined' && block_ind === 0",
+     "test": "typeof block_ind !== 'undefined' && block_ind > 0"
+   },
+@@ -119,12 +137,15 @@
+       " "
+     ],
+     "feedback_fallback_keys": [
+-      "p",
+-      " "
++      " ",
++      "p"
+     ],
+     "pre_keypress_js": "var d=document.querySelector('.jspsych-display-element');if(d){d.focus();}",
+     "exit_pager_key": "",
+-    "feedback_selectors": []
++    "feedback_selectors": [
++      "#jspsych-instructions-next",
++      "#jspsych-fullscreen-btn"
++    ]
+   },
+   "data_capture": {
+     "method": "js_expression",

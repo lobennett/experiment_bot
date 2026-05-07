@@ -1,0 +1,62 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -30,7 +30,49 @@
+ 
+ # navigation
+ {
+-  "phases": []
++  "phases": [
++    {
++      "phase": "instructions",
++      "action": "sequence",
++      "steps": [
++        {
++          "action": "press",
++          "key": " ",
++          "phase": "",
++          "target": "",
++          "duration_ms": 0,
++          "steps": []
++        },
++        {
++          "action": "press",
++          "key": " ",
++          "phase": "",
++          "target": "",
++          "duration_ms": 0,
++          "steps": []
++        },
++        {
++          "action": "press",
++          "key": " ",
++          "phase": "",
++          "target": "",
++          "duration_ms": 0,
++          "steps": []
++        },
++        {
++          "action": "press",
++          "key": " ",
++          "phase": "",
++          "target": "",
++          "duration_ms": 0,
++          "steps": []
++        }
++      ],
++      "target": "",
++      "key": "",
++      "duration_ms": 0
++    }
++  ]
+ }
+ 
+ # runtime
+@@ -45,7 +87,7 @@
+     "test": "!document.getElementById('jspsych-data-display') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus')"
+   },
+   "timing": {
+-    "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus')",
++    "response_window_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); return ['red','green','blue','yellow'].includes(text); })()",
+     "trial_context_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return ''; const text = (el.textContent || '').trim(); const cs = getComputedStyle(el).color; const colorMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; return 'word=' + text + ' color=' + (colorMap[cs] || cs); })()",
+     "completion_wait_ms": 2000,
+     "max_no_stimulus_polls": 500,

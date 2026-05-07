@@ -1,16 +1,37 @@
 from __future__ import annotations
 import copy
 import json
+import logging
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.stage1_structural import _extract_json
+from experiment_bot.reasoner.validate import (
+    Stage2SchemaError, validate_stage2_schema,
+)
 from experiment_bot.taskcard.types import ReasoningStep
+
+logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
+# How many times Stage 2 self-corrects via validator-feedback before
+# the pipeline gives up. The first attempt is the initial generation;
+# each retry feeds the validator's error list back as a refinement
+# turn so the LLM can fix the schema violations on its own.
+STAGE2_MAX_REFINEMENTS = 3
+
 
 async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
-    """Stage 2: behavioral parameters as point estimates with rationale."""
+    """Stage 2: behavioral parameters as point estimates with rationale.
+
+    After each LLM call, the output's schema is validated against
+    schema.json (temporal-effect mechanism shapes, between-subject
+    jitter shape). If validation fails, the validator's error list is
+    appended to the user prompt as a refinement turn and Stage 2 is
+    re-called; this self-corrects the LLM's output without prescribing
+    paradigm-specific content. After STAGE2_MAX_REFINEMENTS attempts,
+    the last validation error propagates.
+    """
     from experiment_bot.effects.registry import EFFECT_REGISTRY
 
     system = (PROMPTS_DIR / "stage2_behavioral.md").read_text()
@@ -48,13 +69,48 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         + "\n\nProduce the behavioral parameters as instructed in the system "
         "prompt. Enable mechanisms ONLY when supported by the literature."
     )
-    resp = await client.complete(system=system, user=user, output_format="json")
-    behavioral = json.loads(_extract_json(resp.text))
+    user_msg = user
+    last_error: Stage2SchemaError | None = None
+    n_refinements = 0
+    for attempt in range(1, STAGE2_MAX_REFINEMENTS + 1):
+        resp = await client.complete(system=system, user=user_msg, output_format="json")
+        behavioral = json.loads(_extract_json(resp.text))
+        candidate = copy.deepcopy(partial)
+        candidate["response_distributions"] = behavioral["response_distributions"]
+        candidate["temporal_effects"] = behavioral.get("temporal_effects", {})
+        candidate["between_subject_jitter"] = behavioral.get("between_subject_jitter", {})
+        try:
+            validate_stage2_schema(candidate)
+        except Stage2SchemaError as e:
+            last_error = e
+            n_refinements = attempt
+            if attempt == STAGE2_MAX_REFINEMENTS:
+                logger.warning(
+                    "Stage 2 still has schema violations after %d refinement "
+                    "attempts; surfacing error.", attempt,
+                )
+                raise
+            logger.info(
+                "Stage 2 attempt %d failed schema validation; refining. "
+                "Errors:\n%s", attempt, str(e),
+            )
+            user_msg = (
+                user
+                + "\n\n## Validation errors from previous attempt\n"
+                "Your previous output failed runtime-schema validation. The "
+                "executor reads specific field names and enum values; using "
+                "alternative names or compounds means the configured effect "
+                "will not fire at runtime. Fix every error below and "
+                "regenerate the full Stage 2 JSON. Do not change which "
+                "mechanisms you enable; only the SHAPE of each enabled "
+                "mechanism's value object.\n\n"
+                + str(e)
+            )
+            continue
+        # Validation passed.
+        break
 
-    result = copy.deepcopy(partial)
-    result["response_distributions"] = behavioral["response_distributions"]
-    result["temporal_effects"] = behavioral.get("temporal_effects", {})
-    result["between_subject_jitter"] = behavioral.get("between_subject_jitter", {})
+    result = candidate
     om = behavioral.get("performance_omission_rate", {})
     result.setdefault("performance", {})["omission_rate"] = om
 
@@ -63,12 +119,15 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         1 for e in behavioral.get("temporal_effects", {}).values()
         if e.get("value", {}).get("enabled")
     )
+    inference = (
+        f"Produced ex-Gaussian (mu/sigma/tau) parameters for {n_conditions} "
+        f"conditions; enabled {n_effects_enabled} temporal effects."
+    )
+    if n_refinements:
+        inference += f" Self-corrected after {n_refinements} schema-validation refinement(s)."
     step = ReasoningStep(
         step="stage2_behavioral",
-        inference=(
-            f"Produced ex-Gaussian (mu/sigma/tau) parameters for {n_conditions} "
-            f"conditions; enabled {n_effects_enabled} temporal effects."
-        ),
+        inference=inference,
         evidence_lines=[],
         confidence="medium",
     )

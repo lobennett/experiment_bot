@@ -163,6 +163,7 @@
               "description": "List of modulation entries. First entry whose (prev, curr) matches the current trial wins.",
               "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "prev": {"type": "string", "description": "Previous trial's condition label"},
                   "curr": {"type": "string", "description": "Current trial's condition label"},
@@ -170,7 +171,11 @@
                   "delta_ms_min": {"type": "number", "description": "Lower bound of uniform-random RT delta in ms"},
                   "delta_ms_max": {"type": "number", "description": "Upper bound of uniform-random RT delta in ms"}
                 },
-                "required": ["prev", "curr"]
+                "required": ["prev", "curr"],
+                "anyOf": [
+                  {"required": ["delta_ms"]},
+                  {"required": ["delta_ms_min", "delta_ms_max"]}
+                ]
               }
             },
             "rationale": {"type": "string"}
@@ -186,13 +191,14 @@
               "description": "List of triggers in priority order. First matching trigger wins (when exclusive_with_prior_triggers is true, the default).",
               "items": {
                 "type": "object",
+                "additionalProperties": false,
                 "properties": {
                   "event": {"type": "string", "enum": ["error", "interrupt"], "description": "Triggering event detected on the previous trial"},
                   "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Lower bound of uniform-random RT addition in ms"},
                   "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Upper bound of uniform-random RT addition in ms"},
                   "exclusive_with_prior_triggers": {"type": "boolean", "default": true, "description": "If true, this trigger only fires when no earlier trigger in the list matched"}
                 },
-                "required": ["event"]
+                "required": ["event", "slowing_ms_min", "slowing_ms_max"]
               }
             },
             "rationale": {"type": "string"}

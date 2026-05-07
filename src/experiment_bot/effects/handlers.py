@@ -75,55 +75,6 @@ def apply_fatigue_drift(state: SamplerState, cfg, rng) -> float:
     return state.trial_index * cfg.drift_per_trial_ms
 
 
-def apply_post_error_slowing(state: SamplerState, cfg, rng) -> float:
-    """Uniform-random RT slowing following an error trial.
-
-    Note: In the current architecture this effect is applied by the
-    executor (``executor.py``) *after* calling ``sample_rt_with_fallback``,
-    via :func:`compute_pes_delta` so that multi-trial decay can be expressed.
-    This wrapper exists for the registry's benefit and matches the legacy
-    one-trial behavior.
-    """
-    if not cfg.enabled:
-        return 0.0
-    if not state.prev_error or state.prev_interrupt_detected:
-        return 0.0
-    return float(rng.uniform(cfg.slowing_ms_min, cfg.slowing_ms_max))
-
-
-def compute_pes_delta(
-    decay_weights: list,
-    recent_errors,
-    rng,
-    slowing_ms_min: float,
-    slowing_ms_max: float,
-) -> float:
-    """Compute the PES contribution for the current trial given a decay profile.
-
-    `recent_errors` is an iterable of booleans where index 0 is the most-recent
-    completed trial, index 1 is two trials back, etc. (i.e. `appendleft`-fed
-    deque). `decay_weights[i]` is the weight applied to the i-th most-recent
-    trial's error contribution.
-
-    When `decay_weights` is empty, defaults to ``[1.0]`` (one-trial PES — the
-    historical behavior). When non-empty, the bot's PES contribution is the
-    weighted sum across the recent window:
-
-        sum(weight_i * uniform(ms_min, ms_max) if recent_errors[i] else 0)
-
-    Each error draws its own uniform sample (so a 3-trial-back error can add
-    a different bump than a 1-trial-back error). Sum of weights does not
-    need to equal 1 — the literature defines what's plausible per paradigm.
-    """
-    if not decay_weights:
-        decay_weights = [1.0]
-    total = 0.0
-    for w, was_err in zip(decay_weights, recent_errors):
-        if was_err:
-            total += float(w) * float(rng.uniform(slowing_ms_min, slowing_ms_max))
-    return total
-
-
 def apply_condition_repetition(state: SamplerState, cfg, rng) -> float:
     """Gratton effect: faster on repetitions, slower on alternations."""
     if not cfg.enabled:
@@ -143,22 +94,6 @@ def apply_pink_noise(state: SamplerState, cfg, rng) -> float:
         return 0.0
     n = len(state.pink_buffer)
     return float(state.pink_buffer[state.trial_index % n] * cfg.sd_ms)
-
-
-def apply_post_interrupt_slowing(state: SamplerState, cfg, rng) -> float:
-    """Uniform-random RT slowing following a trial interrupt.
-
-    Note: In the current architecture this effect is applied by the
-    executor (``executor.py``) *after* calling ``sample_rt_with_fallback``,
-    so this handler is wired into the registry but is not called from
-    ``ResponseSampler._apply_temporal_effects``.  It is provided here so
-    that the registry is the single source of truth.
-    """
-    if not cfg.enabled:
-        return 0.0
-    if not state.prev_interrupt_detected:
-        return 0.0
-    return float(rng.uniform(cfg.slowing_ms_min, cfg.slowing_ms_max))
 
 
 def _cfg_get(cfg, name: str, default=None):
@@ -279,26 +214,3 @@ def apply_post_event_slowing(state: SamplerState, cfg, rng) -> float:
     return 0.0
 
 
-def apply_cse(state: SamplerState, cfg, rng) -> float:
-    """Deprecated. Retained for callers that still pass the old
-    CSE-shaped config (high_conflict_condition / low_conflict_condition
-    + sequence_facilitation_ms / sequence_cost_ms). Internally
-    converts to the generic lag-1 modulation shape and delegates.
-    Stage 2 should now emit `lag1_pair_modulation` directly.
-    """
-    if not _cfg_get(cfg, "enabled", False):
-        return 0.0
-    high = _cfg_get(cfg, "high_conflict_condition", "") or "incongruent"
-    low = _cfg_get(cfg, "low_conflict_condition", "") or "congruent"
-    fac = _cfg_get(cfg, "sequence_facilitation_ms", 0.0)
-    cost = _cfg_get(cfg, "sequence_cost_ms", 0.0)
-    from types import SimpleNamespace
-    shimmed = SimpleNamespace(
-        enabled=True,
-        skip_after_error=True,
-        modulation_table=[
-            {"prev": high, "curr": high, "delta_ms": -float(fac)},
-            {"prev": low, "curr": high, "delta_ms": float(cost)},
-        ],
-    )
-    return apply_lag1_pair_modulation(state, shimmed, rng)

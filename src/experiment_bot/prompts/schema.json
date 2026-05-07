@@ -134,15 +134,6 @@
             "rationale": {"type": "string"}
           }
         },
-        "post_error_slowing": {
-          "type": "object",
-          "properties": {
-            "enabled": {"type": "boolean"},
-            "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Minimum RT increase (ms) after an error"},
-            "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Maximum RT increase (ms) after an error"},
-            "rationale": {"type": "string"}
-          }
-        },
         "condition_repetition": {
           "type": "object",
           "properties": {
@@ -161,12 +152,49 @@
             "rationale": {"type": "string"}
           }
         },
-        "post_interrupt_slowing": {
+        "lag1_pair_modulation": {
           "type": "object",
+          "description": "Generic 2-back condition-pair RT modulation. Configure one entry per literature-documented (prev_condition, current_condition) transition. Subsumes paradigm-specific effects like CSE (Stroop/Flanker), sequential priming, and any other lag-1 pair-keyed effect.",
           "properties": {
             "enabled": {"type": "boolean"},
-            "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Minimum RT increase (ms) after a trial interrupt"},
-            "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Maximum RT increase (ms) after a trial interrupt"},
+            "skip_after_error": {"type": "boolean", "default": true, "description": "If true, no modulation on the trial following an error (canonical error-contamination guard)"},
+            "modulation_table": {
+              "type": "array",
+              "description": "List of modulation entries. First entry whose (prev, curr) matches the current trial wins.",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "prev": {"type": "string", "description": "Previous trial's condition label"},
+                  "curr": {"type": "string", "description": "Current trial's condition label"},
+                  "delta_ms": {"type": "number", "description": "Fixed RT delta in ms (negative = facilitation, positive = cost). Use this OR delta_ms_min+delta_ms_max."},
+                  "delta_ms_min": {"type": "number", "description": "Lower bound of uniform-random RT delta in ms"},
+                  "delta_ms_max": {"type": "number", "description": "Upper bound of uniform-random RT delta in ms"}
+                },
+                "required": ["prev", "curr"]
+              }
+            },
+            "rationale": {"type": "string"}
+          }
+        },
+        "post_event_slowing": {
+          "type": "object",
+          "description": "Generic post-event RT slowing. Configure one trigger per documented event type (error, interrupt). Subsumes paradigm-specific effects like classical post-error slowing (PES) and post-inhibition slowing.",
+          "properties": {
+            "enabled": {"type": "boolean"},
+            "triggers": {
+              "type": "array",
+              "description": "List of triggers in priority order. First matching trigger wins (when exclusive_with_prior_triggers is true, the default).",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "event": {"type": "string", "enum": ["error", "interrupt"], "description": "Triggering event detected on the previous trial"},
+                  "slowing_ms_min": {"type": "number", "minimum": 0, "description": "Lower bound of uniform-random RT addition in ms"},
+                  "slowing_ms_max": {"type": "number", "minimum": 0, "description": "Upper bound of uniform-random RT addition in ms"},
+                  "exclusive_with_prior_triggers": {"type": "boolean", "default": true, "description": "If true, this trigger only fires when no earlier trigger in the list matched"}
+                },
+                "required": ["event"]
+              }
+            },
             "rationale": {"type": "string"}
           }
         }

@@ -1,4 +1,4 @@
-"""Tests for Task 1 and Task 2: temporal effect dataclasses and TaskConfig wiring."""
+"""Tests for temporal effect dataclasses and TaskConfig wiring."""
 import pytest
 from experiment_bot.core.config import (
     TaskConfig,
@@ -7,10 +7,8 @@ from experiment_bot.core.config import (
     TemporalEffectsConfig,
     AutocorrelationConfig,
     FatigueDriftConfig,
-    PostErrorSlowingConfig,
     ConditionRepetitionConfig,
     PinkNoiseConfig,
-    PostInterruptSlowingConfig,
     BetweenSubjectJitterConfig,
     PilotConfig,
 )
@@ -22,14 +20,15 @@ from experiment_bot.core.config import (
 
 
 def test_temporal_effects_all_disabled_by_default():
-    """All sub-configs are disabled by default."""
+    """All registered effects are disabled by default (no effects on tasks
+    that don't configure them — see CLAUDE.md G3)."""
     cfg = TemporalEffectsConfig()
     assert cfg.autocorrelation.enabled is False
     assert cfg.fatigue_drift.enabled is False
-    assert cfg.post_error_slowing.enabled is False
     assert cfg.condition_repetition.enabled is False
     assert cfg.pink_noise.enabled is False
-    assert cfg.post_interrupt_slowing.enabled is False
+    assert cfg.lag1_pair_modulation.enabled is False
+    assert cfg.post_event_slowing.enabled is False
 
 
 def test_temporal_effects_from_dict_partial():
@@ -48,18 +47,29 @@ def test_temporal_effects_from_dict_partial():
 
 def test_temporal_effects_round_trip():
     """to_dict -> from_dict preserves all values."""
+    from types import SimpleNamespace
     cfg = TemporalEffectsConfig(
         autocorrelation=AutocorrelationConfig(enabled=True, phi=0.25, rationale="AR1"),
         fatigue_drift=FatigueDriftConfig(enabled=True, drift_per_trial_ms=0.15, rationale="drift"),
-        post_error_slowing=PostErrorSlowingConfig(
-            enabled=True, slowing_ms_min=20.0, slowing_ms_max=60.0, rationale="PES"
-        ),
         condition_repetition=ConditionRepetitionConfig(
-            enabled=True, facilitation_ms=8.0, cost_ms=8.0, rationale="Gratton"
+            enabled=True, facilitation_ms=8.0, cost_ms=8.0, rationale="cond-rep"
         ),
         pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, hurst=0.75, rationale="1/f"),
-        post_interrupt_slowing=PostInterruptSlowingConfig(
-            enabled=True, slowing_ms_min=30.0, slowing_ms_max=80.0, rationale="post-stop"
+        # Generic mechanisms use SimpleNamespace cfg (no typed dataclass).
+        lag1_pair_modulation=SimpleNamespace(
+            enabled=True, skip_after_error=True,
+            modulation_table=[
+                {"prev": "incongruent", "curr": "incongruent", "delta_ms": -50.0},
+            ],
+            rationale="CSE-style",
+        ),
+        post_event_slowing=SimpleNamespace(
+            enabled=True,
+            triggers=[
+                {"event": "interrupt", "slowing_ms_min": 80.0, "slowing_ms_max": 200.0},
+                {"event": "error", "slowing_ms_min": 10.0, "slowing_ms_max": 50.0},
+            ],
+            rationale="interrupt + PES",
         ),
     )
     d = cfg.to_dict()
@@ -67,14 +77,15 @@ def test_temporal_effects_round_trip():
     assert restored.autocorrelation.enabled is True
     assert restored.autocorrelation.phi == 0.25
     assert restored.fatigue_drift.drift_per_trial_ms == 0.15
-    assert restored.post_error_slowing.slowing_ms_min == 20.0
-    assert restored.post_error_slowing.slowing_ms_max == 60.0
     assert restored.condition_repetition.facilitation_ms == 8.0
     assert restored.condition_repetition.cost_ms == 8.0
     assert restored.pink_noise.sd_ms == 12.0
     assert restored.pink_noise.hurst == 0.75
-    assert restored.post_interrupt_slowing.slowing_ms_min == 30.0
-    assert restored.post_interrupt_slowing.slowing_ms_max == 80.0
+    # Generic mechanism configs round-trip as SimpleNamespace
+    assert restored.lag1_pair_modulation.enabled is True
+    assert restored.lag1_pair_modulation.modulation_table[0]["delta_ms"] == -50.0
+    assert restored.post_event_slowing.enabled is True
+    assert len(restored.post_event_slowing.triggers) == 2
 
 
 # ---------------------------------------------------------------------------

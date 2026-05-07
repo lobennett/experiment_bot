@@ -1,6 +1,11 @@
+"""Tests for the generic lag1_pair_modulation mechanism. CSE is one
+configuration of this mechanism — the bot's library does not name CSE.
+Tests below verify the generic mechanism's behavior using a CSE-style
+modulation table as the worked example."""
 import numpy as np
 import pytest
-from experiment_bot.effects.handlers import SamplerState, apply_cse
+from types import SimpleNamespace
+from experiment_bot.effects.handlers import SamplerState, apply_lag1_pair_modulation
 
 
 def _make_state(prev_condition, condition, prev_error=False):
@@ -15,54 +20,65 @@ def _make_state(prev_condition, condition, prev_error=False):
     )
 
 
-def _params(facilitation=30.0, cost=30.0, enabled=True):
-    return {"enabled": enabled, "sequence_facilitation_ms": facilitation, "sequence_cost_ms": cost}
+def _cse_style_cfg(facilitation_ms=30.0, cost_ms=30.0, enabled=True,
+                   skip_after_error=True):
+    """A CSE-style configuration of the generic lag1_pair_modulation
+    mechanism. Tests below verify the generic mechanism's behavior
+    on this canonical configuration."""
+    return SimpleNamespace(
+        enabled=enabled,
+        skip_after_error=skip_after_error,
+        modulation_table=[
+            {"prev": "incongruent", "curr": "incongruent",
+             "delta_ms": -facilitation_ms},
+            {"prev": "congruent", "curr": "incongruent",
+             "delta_ms": cost_ms},
+        ],
+    )
 
 
-def test_cse_no_modulation_when_first_trial():
+def test_no_modulation_when_first_trial():
     state = _make_state(prev_condition=None, condition="incongruent")
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(), rng)
     assert delta == 0.0
 
 
-def test_cse_facilitation_on_iI_pair():
-    """Incongruent-after-incongruent: facilitation (negative delta)."""
+def test_facilitation_on_high_after_high_pair():
+    """High-conflict-after-high-conflict: negative delta (facilitation)."""
     state = _make_state(prev_condition="incongruent", condition="incongruent")
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(facilitation=30.0), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(facilitation_ms=30.0), rng)
     assert delta == -30.0
 
 
-def test_cse_cost_on_cI_pair():
-    """Incongruent-after-congruent: cost (positive delta)."""
+def test_cost_on_high_after_low_pair():
+    """High-conflict-after-low-conflict: positive delta (cost)."""
     state = _make_state(prev_condition="congruent", condition="incongruent")
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(cost=30.0), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(cost_ms=30.0), rng)
     assert delta == 30.0
 
 
-def test_cse_no_modulation_on_congruent_current():
-    """Current trial congruent: no CSE applies."""
+def test_no_modulation_when_curr_does_not_match_table():
+    """Current condition not in any table entry's curr field: no modulation."""
     state = _make_state(prev_condition="incongruent", condition="congruent")
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(), rng)
     assert delta == 0.0
 
 
-def test_cse_skipped_after_error():
-    """Post-error trials skip CSE."""
+def test_skipped_after_error_when_skip_after_error_true():
     state = _make_state(prev_condition="incongruent", condition="incongruent", prev_error=True)
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(facilitation=30.0), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(facilitation_ms=30.0), rng)
     assert delta == 0.0
 
 
-def test_cse_skipped_when_disabled():
-    """Disabled effect returns 0 even on a valid pair."""
+def test_skipped_when_disabled():
     state = _make_state(prev_condition="incongruent", condition="incongruent")
     rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(enabled=False), rng)
+    delta = apply_lag1_pair_modulation(state, _cse_style_cfg(enabled=False), rng)
     assert delta == 0.0
 
 
@@ -77,67 +93,31 @@ def test_lag1_pair_modulation_in_registry():
 
 
 # ---------------------------------------------------------------------------
-# Generalization (audit finding H1) — handler must operate on TaskCard-named
-# condition labels, not hardcoded "congruent"/"incongruent" strings.
+# Custom condition labels — the generic mechanism doesn't know any specific
+# condition vocabulary; labels are looked up directly in the modulation table.
 # ---------------------------------------------------------------------------
 
-def test_cse_uses_custom_condition_labels_for_facilitation():
-    """A conflict task using 'compatible'/'incompatible' labels still gets CSE."""
+def test_modulation_uses_custom_condition_labels():
+    """Generic mechanism works with arbitrary condition labels (e.g.,
+    'compatible'/'incompatible' for a conflict task that doesn't use the
+    'congruent'/'incongruent' vocabulary)."""
     state = _make_state(prev_condition="incompatible", condition="incompatible")
     rng = np.random.default_rng(0)
-    params = {
-        "enabled": True,
-        "sequence_facilitation_ms": 30.0,
-        "sequence_cost_ms": 30.0,
-        "high_conflict_condition": "incompatible",
-        "low_conflict_condition": "compatible",
-    }
-    delta = apply_cse(state, params, rng)
-    assert delta == -30.0
-
-
-def test_cse_uses_custom_condition_labels_for_cost():
-    state = _make_state(prev_condition="compatible", condition="incompatible")
-    rng = np.random.default_rng(0)
-    params = {
-        "enabled": True,
-        "sequence_facilitation_ms": 30.0,
-        "sequence_cost_ms": 30.0,
-        "high_conflict_condition": "incompatible",
-        "low_conflict_condition": "compatible",
-    }
-    delta = apply_cse(state, params, rng)
-    assert delta == 30.0
-
-
-def test_cse_does_not_fire_when_labels_dont_match_taskcard():
-    """If TaskCard labels are 'compatible'/'incompatible' but trial uses
-    'congruent'/'incongruent', CSE handler returns 0 (the trial's condition
-    doesn't match the configured high-conflict label)."""
-    state = _make_state(prev_condition="incongruent", condition="incongruent")
-    rng = np.random.default_rng(0)
-    params = {
-        "enabled": True,
-        "sequence_facilitation_ms": 30.0,
-        "sequence_cost_ms": 30.0,
-        "high_conflict_condition": "incompatible",
-        "low_conflict_condition": "compatible",
-    }
-    delta = apply_cse(state, params, rng)
-    assert delta == 0.0
-
-
-def test_cse_falls_back_to_default_labels_when_unspecified():
-    """For back-compat: if params omit the label keys, use 'incongruent'/'congruent'."""
-    state = _make_state(prev_condition="incongruent", condition="incongruent")
-    rng = np.random.default_rng(0)
-    delta = apply_cse(state, _params(facilitation=30.0), rng)
+    cfg = SimpleNamespace(
+        enabled=True,
+        skip_after_error=True,
+        modulation_table=[
+            {"prev": "incompatible", "curr": "incompatible", "delta_ms": -30.0},
+            {"prev": "compatible", "curr": "incompatible", "delta_ms": 30.0},
+        ],
+    )
+    delta = apply_lag1_pair_modulation(state, cfg, rng)
     assert delta == -30.0
 
 
 # ---------------------------------------------------------------------------
-# End-to-end through the sampler — verifies CSE is actually wired in
-# (not dead code). Audit finding from cse-sign-flip-diagnostic.md.
+# End-to-end through the sampler — verifies the generic mechanism is wired
+# (not dead code). Origin: cse-sign-flip-diagnostic.md.
 # ---------------------------------------------------------------------------
 
 def test_lag1_pair_modulation_fires_through_sampler():

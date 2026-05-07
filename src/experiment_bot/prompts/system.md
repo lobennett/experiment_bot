@@ -183,31 +183,39 @@ If the task has trials where a signal requires the participant to withhold or ca
 
 **Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
 
-### 10. Temporal Effects Schema (mechanical descriptions)
+### 10. Temporal Effects Schema (generic mechanisms)
 
-The `temporal_effects` object controls sequential dependencies in RT across trials. Each sub-object has an `enabled` boolean, numeric parameters, and a `rationale` string.
+The `temporal_effects` object controls sequential dependencies in RT across trials. The bot's library contains **generic mechanisms only** — no paradigm-specific effects. Each is a *configuration* you supply per task from the literature for THIS paradigm. Each sub-object has an `enabled` boolean, mechanism-specific parameters, and a `rationale` string. Leave a mechanism disabled when the literature for the paradigm does not document it.
 
-**`autocorrelation`** — AR(1) serial dependency: each trial's RT is pulled toward the previous trial's RT. Mechanism: the deviation of the previous RT from the condition mean is multiplied by `phi` and added to the current RT. `phi` = 0.0 means no serial dependency; `phi` = 1.0 means the current RT is fully determined by the previous RT's deviation.
-- `phi`: AR(1) coefficient (0–1). Controls the strength of trial-to-trial RT carry-over.
+**`autocorrelation`** — AR(1) serial dependency: each trial's RT is pulled toward the previous trial's RT. The deviation of the previous RT from the condition mean is multiplied by `phi` and added to the current RT.
+- `phi`: AR(1) coefficient (0–1). 0 = no carry-over; 1 = current RT fully determined by previous deviation.
 
-**`fatigue_drift`** — Slow monotonic increase in RT across the entire session. Mechanism: `drift_per_trial_ms` is multiplied by the absolute trial index and added to each sampled RT. Accumulates linearly over the full experiment.
-- `drift_per_trial_ms`: Milliseconds added per trial (cumulative). Positive values produce a gradual RT increase from first to last trial.
+**`fatigue_drift`** — Linear monotonic drift in RT across trials. `drift_per_trial_ms` × trial index is added to each sampled RT.
+- `drift_per_trial_ms`: ms added per trial (cumulative).
 
-**`post_error_slowing`** — RT increase on the trial immediately following an incorrect response. Mechanism: after an error trial, a uniform random sample from [`slowing_ms_min`, `slowing_ms_max`] is added to the next trial's RT. This effect is mutually exclusive with `post_interrupt_slowing` (the most specific condition wins).
-- `slowing_ms_min`: Lower bound of the post-error RT addition (ms).
-- `slowing_ms_max`: Upper bound of the post-error RT addition (ms).
+**`condition_repetition`** — Same-vs-different binary condition transition. If current condition matches previous, subtract `facilitation_ms`; otherwise add `cost_ms`.
+- `facilitation_ms`: RT reduction when condition repeats.
+- `cost_ms`: RT increase when condition switches.
 
-**`condition_repetition`** — Trial-to-trial condition transition effect. Mechanism: if the current condition matches the previous condition, `facilitation_ms` is subtracted from the RT (repetition benefit); if the condition switches, `cost_ms` is added (switch cost). Condition repetition checking is automatically suppressed on the trial following an interrupt.
-- `facilitation_ms`: RT reduction (ms) when the same condition repeats.
-- `cost_ms`: RT increase (ms) when the condition switches.
+**`pink_noise`** — Long-range 1/f temporal correlations. A pre-generated fractional Gaussian noise buffer indexed by trial number, scaled by `sd_ms`.
+- `sd_ms`: SD of the pink-noise contribution (ms).
+- `hurst`: Hurst exponent (0.5–1.0). > 0.5 = persistent autocorrelation; 0.5 = white noise.
 
-**`pink_noise`** — Long-range temporal correlations (1/f noise) in RT fluctuations. Mechanism: a pre-generated fractional Gaussian noise buffer (spectral synthesis) is indexed by trial number; the noise value at each trial is multiplied by `sd_ms` and added to the RT. This creates slow-wave RT fluctuations that persist across many trials, mimicking empirically observed 1/f structure in human RT series.
-- `sd_ms`: Standard deviation of the pink noise contribution in milliseconds. Controls the amplitude of long-range fluctuations.
-- `hurst`: Hurst exponent (0.5–1.0). Values above 0.5 produce persistent (positively autocorrelated) fluctuations; 0.5 is pure white noise; 1.0 is maximally persistent. Must be > 0 when enabled.
+**`lag1_pair_modulation`** — Generic lag-1 condition-pair RT modulation. The mechanism applies an RT delta whenever the (previous_condition, current_condition) pair matches an entry in `modulation_table`. Configure ONE entry per literature-documented transition; leave the table empty if no 2-back interaction is documented.
+- `modulation_table` (list of dicts): each entry has `prev` (str: previous condition label), `curr` (str: current condition label), and either `delta_ms` (fixed RT delta in ms, can be negative for facilitation) or `delta_ms_min` + `delta_ms_max` (uniform-random delta sampled per trial). First matching entry wins.
+- `skip_after_error` (bool, default true): if true, no modulation on the trial after an error. The conventional "error contamination" guard.
 
-**`post_interrupt_slowing`** — RT increase on the trial immediately following a successful inhibition (interrupt trial). Mechanism: after a trial where the interrupt signal was detected and successfully inhibited, a uniform random sample from [`slowing_ms_min`, `slowing_ms_max`] is added to the next trial's RT. Takes priority over `post_error_slowing` when both conditions could apply.
-- `slowing_ms_min`: Lower bound of the post-interrupt RT addition (ms).
-- `slowing_ms_max`: Upper bound of the post-interrupt RT addition (ms).
+  Examples (configurations of this generic mechanism — the bot's code does not name them):
+  - Stroop / Flanker / Simon-style congruency-sequence facilitation:
+    `[{prev: "incongruent", curr: "incongruent", delta_ms: -50}, {prev: "congruent", curr: "incongruent", delta_ms: 20}]`
+  - Sequential priming, target/non-target adjacency effects, etc. — same shape, different labels.
+
+**`post_event_slowing`** — Generic post-event RT slowing. The mechanism applies a uniform-random RT delta whenever a configured triggering event was detected on the previous trial. Configure one entry per literature-documented event type (`error`, `interrupt`); list them in priority order so the first match wins.
+- `triggers` (list of dicts): each entry has `event` (str: one of `"error"` for post-error slowing or `"interrupt"` for post-inhibition slowing), `slowing_ms_min`, `slowing_ms_max` (uniform-random RT addition in ms), and `exclusive_with_prior_triggers` (bool, default true).
+
+  Examples:
+  - Standard PES alone: `[{event: "error", slowing_ms_min: 10, slowing_ms_max: 50}]`.
+  - Interrupt-priority over error (typical for stop-signal): `[{event: "interrupt", slowing_ms_min: 80, slowing_ms_max: 200}, {event: "error", slowing_ms_min: 10, slowing_ms_max: 50}]`.
 
 ### 11. Between-Subject Jitter Schema (mechanical descriptions)
 

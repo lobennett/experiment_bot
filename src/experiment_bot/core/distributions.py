@@ -139,12 +139,11 @@ def _generate_pink_noise(n: int, hurst: float, rng: np.random.Generator) -> np.n
 
 class ResponseSampler:
     # Effects that are applied by the executor AFTER the sampler returns,
-    # not by the sampler itself. Their handlers receive a SamplerState
-    # whose prev_error / prev_interrupt_detected fields are always
-    # False inside the sampler — which is correct for these effects to
-    # produce zero contribution there. The executor invokes them with
-    # the right state at the right point in the trial loop.
-    _EXECUTOR_APPLIED_EFFECTS = frozenset({"post_error_slowing", "post_interrupt_slowing"})
+    # not by the sampler itself. The executor invokes them with the
+    # right SamplerState (`prev_error`, `prev_interrupt_detected`) at
+    # the right point in the trial loop. The sampler skips them in its
+    # iteration to avoid double-invocation.
+    _EXECUTOR_APPLIED_EFFECTS = frozenset({"post_event_slowing"})
 
     def __init__(
         self,
@@ -184,11 +183,10 @@ class ResponseSampler:
     ) -> float:
         """Apply sequential temporal effects to a raw RT sample.
 
-        Iterates the effect registry in insertion order. PES and
-        post_interrupt_slowing are applied by the executor after calling
-        sample_rt_with_fallback; their registry handlers return 0.0 here
-        because prev_error and prev_interrupt_detected are always False in
-        the sampler's SamplerState.
+        Iterates the effect registry in insertion order. Effects in
+        ``_EXECUTOR_APPLIED_EFFECTS`` (currently ``post_event_slowing``)
+        are applied by the executor at the right point in the trial
+        loop and skipped here.
 
         Sampler-family-specific attributes (mu/sigma/tau for ex-Gaussian)
         are read defensively so non-ex-Gaussian samplers (lognormal,
@@ -216,9 +214,10 @@ class ResponseSampler:
         # task's classes (or that's universal) gets invoked with its
         # config from `self._effects`. Handlers are commutative on
         # `state` (none mutate it mid-iteration), so iteration order
-        # only affects floating-point summation. PES and
-        # post_interrupt_slowing are applied by executor.py after the
-        # sampler returns; they're skipped here.
+        # only affects floating-point summation. Effects in
+        # `_EXECUTOR_APPLIED_EFFECTS` (post_event_slowing) are applied
+        # by executor.py after the sampler returns; they're skipped
+        # here to avoid double-invocation.
         eligible = eligible_effects(self._paradigm_classes)
         for name in EFFECT_REGISTRY:  # registry-insertion order for determinism
             if name not in eligible:

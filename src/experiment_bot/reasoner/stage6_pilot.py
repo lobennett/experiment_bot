@@ -16,6 +16,7 @@ import copy
 import json
 import logging
 from pathlib import Path
+from typing import Callable
 
 from experiment_bot.core.config import (
     NavigationConfig, PerformanceConfig, PilotConfig, RuntimeConfig,
@@ -253,11 +254,19 @@ async def run_stage6(
     taskcards_dir: Path,
     headless: bool = True,
     max_retries: int = 2,
+    save_partial: Callable[[dict], None] | None = None,
 ) -> tuple[dict, ReasoningStep]:
     """Run pilot validation; refine on failure; persist diagnostic + diffs.
 
     Returns the (possibly refined) partial plus a ReasoningStep entry.
     Raises PilotValidationError if pilot fails after max_retries refinements.
+
+    `save_partial`, when supplied, is called with the refined partial
+    after each refinement attempt. The pipeline passes a callback that
+    overwrites stage5.json so subsequent `--resume` runs pick up the
+    refinements rather than re-walking them from the unrefined state.
+    Without this, every resume burns a fresh refinement budget on the
+    same problem.
 
     For provenance, each refinement attempt's structural diff is saved to
     `taskcards/<label>/pilot_refinement_<N>.diff` so the user can audit
@@ -314,7 +323,13 @@ async def run_stage6(
                 + f"\n\nLatest diagnostic saved to {taskcards_dir}/{label}/pilot.md"
             )
 
-        # Refine and retry; capture the diff for provenance
+        # Refine and retry; capture the diff for provenance.
         before = copy.deepcopy(partial)
         partial = await _refine_partial(client, partial, diagnostics, bundle)
         _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)
+        # Persist the refined partial back to the resume point so that
+        # if Stage 6 hard-fails on a later attempt, --resume continues
+        # from the refined state instead of re-discovering the same
+        # navigation / detection refinements from scratch.
+        if save_partial is not None:
+            save_partial(partial)

@@ -90,12 +90,16 @@ class ReasonerPipeline:
             partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 5, partial)
         if self._run_pilot and start_after < 6:
+            # Persist refinements back to the resume point so a Stage 6
+            # hard-fail can be picked up by --resume from the refined
+            # state rather than re-walking refinements from scratch.
             partial, step = await run_stage6(
                 self._client, partial, bundle,
                 label=label,
                 taskcards_dir=self._taskcards_dir,
                 headless=self._pilot_headless,
                 max_retries=self._pilot_max_retries,
+                save_partial=lambda p: self._save(label, 5, p),
             )
             partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 6, partial)

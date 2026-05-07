@@ -161,6 +161,75 @@ async def test_stage6_raises_after_max_retries_exhausted(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_stage6_persists_refinements_via_save_partial_callback(tmp_path):
+    """When pilot fails and run_stage6 raises, the save_partial callback
+    must have been invoked after each refinement so --resume can pick
+    up the refined state. Without persistence each resume re-walks the
+    same refinements from scratch."""
+    fake_client = AsyncMock()
+    # Each refinement returns a non-empty modification so the partial
+    # changes between attempts.
+    fake_client.complete = AsyncMock(side_effect=[
+        LLMResponse(text='{"refined_attempt_1": "added_navigation"}'),
+        LLMResponse(text='{"refined_attempt_1": "added_navigation",'
+                         ' "refined_attempt_2": "fixed_detection"}'),
+    ])
+    partial = _stage5_partial()
+
+    saved_partials: list[dict] = []
+    def cb(p: dict) -> None:
+        # Record a deep snapshot so we can verify refinements accumulated.
+        import copy
+        saved_partials.append(copy.deepcopy(p))
+
+    with patch("experiment_bot.reasoner.stage6_pilot.PilotRunner") as pr_cls, \
+         patch("experiment_bot.reasoner.stage6_pilot._refine_partial") as refine_mock:
+        pr = AsyncMock()
+        pr.run = AsyncMock(return_value=_failing_diagnostic())
+        pr_cls.return_value = pr
+        # Each refinement adds a marker key so we can verify it propagated.
+        async def fake_refine(client, p, diag, bundle):
+            import copy
+            new_p = copy.deepcopy(p)
+            new_p[f"_refinement_{len(saved_partials) + 1}"] = "applied"
+            return new_p
+        refine_mock.side_effect = fake_refine
+        with pytest.raises(PilotValidationError):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=2,
+                save_partial=cb,
+            )
+    # 2 retries → 2 refinements → 2 callback invocations.
+    assert len(saved_partials) == 2
+    # Refinements accumulate: callback 1 sees refinement 1; callback 2 sees both.
+    assert "_refinement_1" in saved_partials[0]
+    assert "_refinement_1" in saved_partials[1]
+    assert "_refinement_2" in saved_partials[1]
+
+
+@pytest.mark.asyncio
+async def test_stage6_save_partial_optional(tmp_path):
+    """save_partial defaults to None and is not required for stage 6 to
+    function. Existing call sites without the kwarg still work."""
+    fake_client = AsyncMock()
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text="{}"))
+    partial = _stage5_partial()
+    with patch("experiment_bot.reasoner.stage6_pilot.PilotRunner") as pr_cls:
+        pr = AsyncMock()
+        pr.run = AsyncMock(return_value=_passing_diagnostic())
+        pr_cls.return_value = pr
+        # No save_partial kwarg → must not raise.
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True,
+        )
+    assert step.step == "stage6_pilot"
+
+
+@pytest.mark.asyncio
 async def test_stage6_persists_diagnostic_to_taskcards_dir(tmp_path):
     """Pilot diagnostic markdown is saved alongside the TaskCard JSON."""
     fake_client = AsyncMock()

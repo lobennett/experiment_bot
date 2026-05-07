@@ -70,11 +70,37 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         "prompt. Enable mechanisms ONLY when supported by the literature."
     )
     user_msg = user
-    last_error: Stage2SchemaError | None = None
     n_refinements = 0
     for attempt in range(1, STAGE2_MAX_REFINEMENTS + 1):
         resp = await client.complete(system=system, user=user_msg, output_format="json")
-        behavioral = json.loads(_extract_json(resp.text))
+        # Parse step: refinement turns sometimes produce malformed JSON
+        # (e.g., truncated output, missing comma). Treat parse errors the
+        # same way as schema errors — feed the parser's message back to
+        # the LLM and try again, within the same refinement budget.
+        try:
+            behavioral = json.loads(_extract_json(resp.text))
+        except json.JSONDecodeError as e:
+            n_refinements = attempt
+            if attempt == STAGE2_MAX_REFINEMENTS:
+                logger.warning(
+                    "Stage 2 still produced unparseable JSON after %d "
+                    "attempts; surfacing error.", attempt,
+                )
+                raise
+            logger.info(
+                "Stage 2 attempt %d returned non-parseable JSON; refining. "
+                "Error: %s", attempt, e,
+            )
+            user_msg = (
+                user
+                + "\n\n## Parse error from previous attempt\n"
+                "Your previous output could not be parsed as JSON: "
+                f"`{e.msg}` at line {e.lineno}, column {e.colno}. "
+                "Regenerate the complete Stage 2 JSON, ensuring valid "
+                "syntax (no trailing commas, all strings closed, no "
+                "unterminated objects/arrays).\n"
+            )
+            continue
         candidate = copy.deepcopy(partial)
         candidate["response_distributions"] = behavioral["response_distributions"]
         candidate["temporal_effects"] = behavioral.get("temporal_effects", {})
@@ -82,7 +108,6 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         try:
             validate_stage2_schema(candidate)
         except Stage2SchemaError as e:
-            last_error = e
             n_refinements = attempt
             if attempt == STAGE2_MAX_REFINEMENTS:
                 logger.warning(

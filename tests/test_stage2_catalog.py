@@ -79,6 +79,36 @@ async def test_stage2_self_corrects_via_validator_feedback():
 
 
 @pytest.mark.asyncio
+async def test_stage2_self_corrects_on_json_parse_error():
+    """If the LLM returns malformed JSON on a refinement turn, Stage 2
+    should feed the parse error back and try again rather than crashing
+    the whole pipeline."""
+    truncated = '{"response_distributions": {"default": {"distribution":'  # cut off
+    good_response = """{
+      "response_distributions": {"default": {"distribution": "ex_gaussian",
+        "value": {"mu": 500, "sigma": 60, "tau": 80}, "rationale": ""}},
+      "performance_omission_rate": {"default": 0.005},
+      "temporal_effects": {"post_event_slowing": {"value": {"enabled": true,
+        "triggers": [{"event": "error",
+                      "slowing_ms_min": 10, "slowing_ms_max": 50}]
+      }, "rationale": ""}},
+      "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60}, "rationale": ""}
+    }"""
+    fake = AsyncMock()
+    fake.complete = AsyncMock(side_effect=[
+        LLMResponse(text=truncated),
+        LLMResponse(text=good_response),
+    ])
+    partial = {"task": {"name": "x", "paradigm_classes": ["conflict"]}}
+    result, step = await run_stage2(client=fake, partial=partial)
+    assert fake.complete.await_count == 2
+    second_user = fake.complete.await_args_list[1].kwargs["user"]
+    assert "Parse error from previous attempt" in second_user
+    # Final result is the good one.
+    assert result["temporal_effects"]["post_event_slowing"]["value"]["enabled"]
+
+
+@pytest.mark.asyncio
 async def test_stage2_propagates_error_after_max_refinements():
     """When the LLM keeps emitting schema violations, Stage 2 raises
     Stage2SchemaError after the cap so the pipeline doesn't silently

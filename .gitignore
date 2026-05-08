@@ -20,3 +20,8 @@ data/human/stop_signal.csv
 data/human/stroop.csv
 .reasoner_work/
 .reasoner-logs/
+# Per-run validation artifacts. Production validation reports (under
+# validation/ at top level) should be committed; smoke / debug subdirs
+# are regeneratable and shouldn't churn git history.
+output_smoke/
+validation/smoke_*/

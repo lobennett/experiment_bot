@@ -180,13 +180,26 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   version (parse_with_retry did not fire — SP4a's Stage 3 failure was
   likely transient LLM noise). Tag `sp4b-complete`. ✓ Complete.
 - **SP4** (continuing backlog): residual gaps in
-  `docs/sp4b-results.md`. Highest priority: Stage 6 pilot
-  bot-fidelity (n-back's "0 stimulus matches" finding from SP4a) —
-  the gap between "TaskCard produced" and "TaskCard runs against the
-  live URL". Plus Tier 2/3 items at `docs/sp4-stage2-robustness.md`
-  (canonicalization layer, two-pass Stage 2 split, schema-as-canonical
-  autogeneration) and the `_extract_json` ownership cleanup. Each
-  its own brainstorm/spec/plan cycle when prioritized.
+  `docs/sp4b-results.md`. Tier 2/3 items at
+  `docs/sp4-stage2-robustness.md` (canonicalization layer, two-pass
+  Stage 2 split, schema-as-canonical autogeneration) and the
+  `_extract_json` ownership cleanup. Each its own brainstorm/spec/
+  plan cycle when prioritized.
+- **SP5**: Held-out behavioral measurement — completed the SP3-original
+  deliverable. 5 sessions × Flanker + 5 sessions × n-back, with
+  paradigm adapters (`read_expfactory_flanker`, `read_expfactory_n_back`
+  with N/A warmup-trial filter), validated against `norms/conflict.json`
+  and `norms/working_memory.json`. **Flanker rt_distribution falls
+  fully within published conflict-class meta-analytic ranges** on a
+  paradigm never tuned against — strongest empirical generalization
+  evidence yet. n-back metrics literature-typical. One real fidelity
+  gap: Flanker post_error_slowing -7.23ms (facilitation) vs expected
+  +10-50ms (n-back's PES correct at +16.30ms in same framework, so
+  paradigm-specific). Tag `sp5-complete`. ✓ Complete.
+- **SP6** (planned): investigate Flanker PES sign-flip — likely
+  related to lag1_pair_modulation runtime-vs-TaskCard label mismatch
+  (Item 3 in `docs/sp2-validation-followups.md`). Highest-priority
+  fidelity-gap from SP5.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

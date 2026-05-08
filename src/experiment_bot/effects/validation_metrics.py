@@ -75,6 +75,13 @@ def fit_ex_gaussian(rt_samples: list[float]) -> dict:
     """
     samples = np.asarray(rt_samples, dtype=float)
     samples = samples[np.isfinite(samples)]
+    # Drop physiologically implausible RTs before fitting. Sub-150ms
+    # responses are anticipation/early-press artifacts (faster than the
+    # fastest documented choice-RT floor); >5000ms responses are timeout
+    # bookkeeping artifacts. The ex-Gaussian fitter assumes a single
+    # latent process; outliers from anticipations or timer glitches
+    # corrupt the fit (Nelder-Mead and L-BFGS-B both walk to bounds).
+    samples = samples[(samples >= 150.0) & (samples <= 5000.0)]
     if len(samples) < 5:
         return {"mu": float("nan"), "sigma": float("nan"), "tau": float("nan")}
 
@@ -96,8 +103,18 @@ def fit_ex_gaussian(rt_samples: list[float]) -> dict:
         max(float(np.std(samples)) * 0.7, 5.0),
         max(float(np.std(samples)) * 0.7, 5.0),
     ]
-    result = optimize.minimize(neg_log_lik, x0=x0, method="Nelder-Mead",
-                               options={"maxiter": 5000, "xatol": 0.01, "fatol": 0.01})
+    # Bounds keep the optimizer in physiologically plausible RT space.
+    # Without bounds, Nelder-Mead can wander into mu = -1e22 / sigma = 2e22
+    # territory on noisy data — the log-likelihood evaluates to +inf there
+    # but Nelder-Mead's simplex can land on it during the search and
+    # report it as the minimum. L-BFGS-B respects the bounds.
+    bounds = [(50.0, 5000.0), (1.0, 1000.0), (1.0, 2000.0)]
+    result = optimize.minimize(
+        neg_log_lik, x0=x0, method="L-BFGS-B", bounds=bounds,
+        options={"maxiter": 5000, "ftol": 1e-6},
+    )
+    if not result.success or not np.all(np.isfinite(result.x)):
+        return {"mu": float("nan"), "sigma": float("nan"), "tau": float("nan")}
     return {"mu": float(result.x[0]), "sigma": float(result.x[1]), "tau": float(result.x[2])}
 
 

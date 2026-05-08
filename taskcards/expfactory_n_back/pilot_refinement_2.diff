@@ -1,0 +1,126 @@
+--- before_attempt_2
++++ after_attempt_2
+@@ -5,12 +5,12 @@
+     "description": "1-back trial where the current letter matches the letter shown 1 trial ago (case-insensitive).",
+     "detection": {
+       "method": "js_eval",
+-      "selector": "window.delay === 1 && window.nbackCondition === 'match' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++      "selector": "(typeof window.delay!=='undefined' && window.delay===1) && (typeof window.nbackCondition==='string' && window.nbackCondition==='match') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
+     },
+     "response": {
+       "condition": "match_1back",
+       "key": null,
+-      "response_key_js": "window.correctResponse"
++      "response_key_js": "(typeof window.correctResponse!=='undefined'?window.correctResponse:null)"
+     }
+   },
+   {
+@@ -18,12 +18,12 @@
+     "description": "1-back trial where the current letter does NOT match the letter shown 1 trial ago.",
+     "detection": {
+       "method": "js_eval",
+-      "selector": "window.delay === 1 && window.nbackCondition === 'mismatch' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++      "selector": "(typeof window.delay!=='undefined' && window.delay===1) && (typeof window.nbackCondition==='string' && window.nbackCondition==='mismatch') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
+     },
+     "response": {
+       "condition": "mismatch_1back",
+       "key": null,
+-      "response_key_js": "window.correctResponse"
++      "response_key_js": "(typeof window.correctResponse!=='undefined'?window.correctResponse:null)"
+     }
+   },
+   {
+@@ -31,12 +31,12 @@
+     "description": "2-back trial where the current letter matches the letter shown 2 trials ago (case-insensitive).",
+     "detection": {
+       "method": "js_eval",
+-      "selector": "window.delay === 2 && window.nbackCondition === 'match' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++      "selector": "(typeof window.delay!=='undefined' && window.delay===2) && (typeof window.nbackCondition==='string' && window.nbackCondition==='match') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
+     },
+     "response": {
+       "condition": "match_2back",
+       "key": null,
+-      "response_key_js": "window.correctResponse"
++      "response_key_js": "(typeof window.correctResponse!=='undefined'?window.correctResponse:null)"
+     }
+   },
+   {
+@@ -44,12 +44,12 @@
+     "description": "2-back trial where the current letter does NOT match the letter shown 2 trials ago.",
+     "detection": {
+       "method": "js_eval",
+-      "selector": "window.delay === 2 && window.nbackCondition === 'mismatch' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++      "selector": "(typeof window.delay!=='undefined' && window.delay===2) && (typeof window.nbackCondition==='string' && window.nbackCondition==='mismatch') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
+     },
+     "response": {
+       "condition": "mismatch_2back",
+       "key": null,
+-      "response_key_js": "window.correctResponse"
++      "response_key_js": "(typeof window.correctResponse!=='undefined'?window.correctResponse:null)"
+     }
+   }
+ ]
+@@ -77,7 +77,7 @@
+       "name": "instructions_feedback",
+       "detection": {
+         "method": "js_eval",
+-        "selector": "!!(document.querySelector('#jspsych-html-keyboard-response-stimulus') && document.querySelector('#jspsych-html-keyboard-response-stimulus').innerHTML.toLowerCase().indexOf('press <i>enter</i>') !== -1) && !document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el)return false;if(el.querySelector('img'))return false;return el.innerHTML.toLowerCase().indexOf('press <i>enter</i>')!==-1;})()"
+       },
+       "action": {
+         "type": "key_press",
+@@ -104,6 +104,22 @@
+       "key": "",
+       "duration_ms": 0,
+       "steps": []
++    },
++    {
++      "name": "block_feedback",
++      "detection": {
++        "method": "js_eval",
++        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el)return false;if(el.querySelector('img'))return false;var t=el.innerHTML.toLowerCase();return t.indexOf('press <i>enter</i>')!==-1 || t.indexOf('press enter')!==-1;})()"
++      },
++      "action": {
++        "type": "key_press",
++        "key": "Enter"
++      },
++      "phase": "",
++      "target": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
+     }
+   ]
+ }
+@@ -112,14 +128,14 @@
+ {
+   "phase_detection": {
+     "complete": "!!document.querySelector('#finished_message')",
+-    "loading": "!!document.querySelector('#jspsych-fullscreen-btn')",
++    "loading": "false",
+     "instructions": "!!document.querySelector('#jspsych-instructions-next')",
+     "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')",
+-    "feedback": "!!(document.querySelector('#jspsych-html-keyboard-response-stimulus') && document.querySelector('#jspsych-html-keyboard-response-stimulus').innerHTML.toLowerCase().indexOf('press <i>enter</i>') !== -1)",
+-    "practice": "window.expStage === 'practice' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')",
+-    "test": "window.expStage === 'test' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
+-  },
+-  "trial_context_js": "JSON.stringify({letter: window.probe, delay: window.delay, condition: window.nbackCondition, block_num: (window.expStage === 'practice' ? window.practiceCount : window.testCount)})",
++    "feedback": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el)return false;if(el.querySelector('img'))return false;return el.innerHTML.toLowerCase().indexOf('press <i>enter</i>')!==-1;})()",
++    "practice": "(typeof window.expStage==='string') && window.expStage==='practice' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')",
++    "test": "(typeof window.expStage==='string') && window.expStage==='test' && !!document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++  },
++  "trial_context_js": "JSON.stringify({letter: (typeof window.probe!=='undefined'?window.probe:null), delay: (typeof window.delay!=='undefined'?window.delay:null), condition: (typeof window.nbackCondition!=='undefined'?window.nbackCondition:null), block_num: (window.expStage==='practice'?(typeof window.practiceCount!=='undefined'?window.practiceCount:null):(typeof window.testCount!=='undefined'?window.testCount:null))})",
+   "completion_wait_ms": 3000,
+   "completion_settle_ms": 2000,
+   "max_no_stimulus_polls": 300,
+@@ -131,7 +147,9 @@
+     "feedback_fallback_keys": [
+       "Enter"
+     ],
+-    "feedback_selectors": [],
++    "feedback_selectors": [
++      "#jspsych-html-keyboard-response-stimulus"
++    ],
+     "pre_keypress_js": ""
+   },
+   "data_capture": {

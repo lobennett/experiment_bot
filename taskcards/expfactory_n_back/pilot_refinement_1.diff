@@ -1,0 +1,60 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -56,7 +56,56 @@
+ 
+ # navigation
+ {
+-  "phases": []
++  "phases": [
++    {
++      "name": "fullscreen_prompt",
++      "detection": {
++        "method": "css",
++        "selector": "#jspsych-fullscreen-btn"
++      },
++      "action": {
++        "type": "click",
++        "selector": "#jspsych-fullscreen-btn"
++      },
++      "phase": "",
++      "target": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "name": "instructions_feedback",
++      "detection": {
++        "method": "js_eval",
++        "selector": "!!(document.querySelector('#jspsych-html-keyboard-response-stimulus') && document.querySelector('#jspsych-html-keyboard-response-stimulus').innerHTML.toLowerCase().indexOf('press <i>enter</i>') !== -1) && !document.querySelector('#jspsych-html-keyboard-response-stimulus img')"
++      },
++      "action": {
++        "type": "key_press",
++        "key": "Enter"
++      },
++      "phase": "",
++      "target": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "name": "instructions_pages",
++      "detection": {
++        "method": "css",
++        "selector": "#jspsych-instructions-next"
++      },
++      "action": {
++        "type": "click",
++        "selector": "#jspsych-instructions-next"
++      },
++      "phase": "",
++      "target": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    }
++  ]
+ }
+ 
+ # runtime

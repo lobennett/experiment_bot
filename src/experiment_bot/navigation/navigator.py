@@ -49,13 +49,22 @@ class InstructionNavigator:
             logger.info(f"Skipping unknown/meta action: {phase.action}")
 
     async def _do_click(self, page: Page, target: str) -> None:
+        """Click ``target`` if it appears within a short timeout.
+
+        Re-raises on timeout so a `repeat` loop can break out — otherwise the
+        bot stays in instruction-clicking mode for ~10s × N missing targets,
+        and the platform keeps running trials it never sees. The 1.5s timeout
+        is deliberately tight: if the element is going to appear it does so
+        within a fraction of a second on a normal experiment page.
+        """
         await self._inject_reading_delay()
         locator = page.locator(target).first
         try:
-            await locator.wait_for(state="visible", timeout=10000)
+            await locator.wait_for(state="visible", timeout=1500)
             await locator.click()
         except PlaywrightError as e:
-            logger.warning(f"Click target not found, skipping: {target} ({e})")
+            logger.info(f"Click target not visible (skipping): {target}")
+            raise
 
     async def _do_press(self, page: Page, key: str) -> None:
         await self._inject_reading_delay()

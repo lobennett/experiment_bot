@@ -360,7 +360,20 @@ class TaskExecutor:
         while True:
             phase = await detect_phase(page, self._config.runtime.phase_detection)
             if phase == TaskPhase.COMPLETE:
-                logger.info("Task complete detected")
+                # Capture the page state that triggered completion so post-hoc
+                # diagnosis can tell genuine completion from a false-positive
+                # (e.g., inter-block instruction text matching the LLM's
+                # text-based completion heuristic).
+                try:
+                    body_snippet = await page.evaluate(
+                        "(document.body.innerText || '').slice(0, 400)"
+                    )
+                except Exception:
+                    body_snippet = "<page unavailable>"
+                logger.info(
+                    "Task complete detected at trial=%d. Body text: %r",
+                    self._trial_count, body_snippet,
+                )
                 break
 
             if phase == TaskPhase.ATTENTION_CHECK:

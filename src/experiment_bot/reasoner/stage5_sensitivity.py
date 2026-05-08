@@ -3,7 +3,7 @@ import copy
 import json
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
-from experiment_bot.reasoner.stage1_structural import _extract_json
+from experiment_bot.reasoner.parse_retry import parse_with_retry
 from experiment_bot.taskcard.types import ReasoningStep
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
@@ -13,8 +13,9 @@ async def run_stage5(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
     """Stage 5: sensitivity tags per parameter."""
     system = (PROMPTS_DIR / "stage5_sensitivity.md").read_text()
     user = "## Behavioral parameters\n" + json.dumps(partial, indent=2)
-    resp = await client.complete(system=system, user=user, output_format="json")
-    tags_map = json.loads(_extract_json(resp.text))
+    tags_map = await parse_with_retry(
+        client, system=system, user=user, stage_name="stage5_sensitivity",
+    )
 
     result = copy.deepcopy(partial)
     for path, level in tags_map.items():

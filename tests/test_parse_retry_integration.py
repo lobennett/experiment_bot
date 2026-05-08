@@ -57,3 +57,30 @@ async def test_stage3_recovers_from_empty_first_response():
     # Two LLM calls made (first failed, second succeeded).
     assert len(client.prompts_received) == 2
     assert "Parse error from previous attempt" in client.prompts_received[1]
+
+
+@pytest.mark.asyncio
+async def test_stage5_recovers_from_empty_first_response():
+    from experiment_bot.reasoner.stage5_sensitivity import run_stage5
+
+    valid_tags = {
+        "response_distributions/go/mu": "high",
+    }
+    client = _StubClient(["", json.dumps(valid_tags)])
+
+    partial = {
+        "response_distributions": {
+            "go": {
+                "distribution": "ex_gaussian",
+                "value": {"mu": 500},
+            }
+        },
+        "temporal_effects": {},
+        "between_subject_jitter": {"value": {}},
+    }
+    result, step = await run_stage5(client, partial)
+
+    # Sensitivity tag merged into response_distributions.go (or wherever Stage 5 puts it).
+    # The exact merge target is implementation-specific; just assert two calls happened.
+    assert len(client.prompts_received) == 2
+    assert "Parse error from previous attempt" in client.prompts_received[1]

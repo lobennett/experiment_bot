@@ -171,12 +171,22 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   Stage 2; new failure modes surfaced downstream (Stage 3 in Flanker,
   Stage 6 pilot in n-back) per `docs/sp4a-results.md`. Tag
   `sp4a-complete`. ✓ Complete.
-- **SP4** (continuing backlog): Tier 2/3 items at
-  `docs/sp4-stage2-robustness.md` (canonicalization layer, two-pass
-  Stage 2 split, schema-as-canonical autogeneration). Plus SP4b
-  candidates from SP4a's held-out re-run: Stage 3 parse-retry path,
-  Stage 6 pilot bot-fidelity for held-out paradigms. Each its own
-  brainstorm/spec/plan cycle when prioritized.
+- **SP4b**: parse-retry class fix — single shared `parse_with_retry`
+  helper applied to Stages 1, 3, 5, 6 (pilot refinement) and the
+  norms_extractor; Stage 2 unchanged. Internal CI: 501 passed (was
+  492); +9 tests covering helper, per-stage integration, and Stage 1
+  parse/validation-retry independence. External: Flanker held-out
+  re-run produces a TaskCard for the first time under any framework
+  version (parse_with_retry did not fire — SP4a's Stage 3 failure was
+  likely transient LLM noise). Tag `sp4b-complete`. ✓ Complete.
+- **SP4** (continuing backlog): residual gaps in
+  `docs/sp4b-results.md`. Highest priority: Stage 6 pilot
+  bot-fidelity (n-back's "0 stimulus matches" finding from SP4a) —
+  the gap between "TaskCard produced" and "TaskCard runs against the
+  live URL". Plus Tier 2/3 items at `docs/sp4-stage2-robustness.md`
+  (canonicalization layer, two-pass Stage 2 split, schema-as-canonical
+  autogeneration) and the `_extract_json` ownership cleanup. Each
+  its own brainstorm/spec/plan cycle when prioritized.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

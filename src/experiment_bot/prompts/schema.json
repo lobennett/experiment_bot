@@ -61,15 +61,54 @@
       "properties": {
         "accuracy": {
           "type": "object",
-          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
-          "description": "Per-condition accuracy (0-1). Keys are condition names from stimuli."
+          "additionalProperties": {
+            "oneOf": [
+              {"type": "number", "minimum": 0, "maximum": 1},
+              {
+                "type": "object",
+                "properties": {
+                  "value": {"type": "number", "minimum": 0, "maximum": 1},
+                  "rationale": {"type": "string"}
+                },
+                "required": ["value"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": "Per-condition accuracy (0-1). Keys are condition names from stimuli. Each value is either a bare number or a {value, rationale} envelope."
         },
         "omission_rate": {
           "type": "object",
-          "additionalProperties": {"type": "number", "minimum": 0, "maximum": 1},
-          "description": "Per-condition omission rate (0-1). Keys are condition names."
+          "additionalProperties": {
+            "oneOf": [
+              {"type": "number", "minimum": 0, "maximum": 1},
+              {
+                "type": "object",
+                "properties": {
+                  "value": {"type": "number", "minimum": 0, "maximum": 1},
+                  "rationale": {"type": "string"}
+                },
+                "required": ["value"],
+                "additionalProperties": false
+              }
+            ]
+          },
+          "description": "Per-condition omission rate (0-1). Keys are condition names. Each value is either a bare number or a {value, rationale} envelope."
         },
-        "practice_accuracy": {"type": "number", "minimum": 0, "maximum": 1}
+        "practice_accuracy": {
+          "oneOf": [
+            {"type": "number", "minimum": 0, "maximum": 1},
+            {
+              "type": "object",
+              "properties": {
+                "value": {"type": "number", "minimum": 0, "maximum": 1},
+                "rationale": {"type": "string"}
+              },
+              "required": ["value"],
+              "additionalProperties": false
+            }
+          ]
+        }
       }
     },
     "navigation": {

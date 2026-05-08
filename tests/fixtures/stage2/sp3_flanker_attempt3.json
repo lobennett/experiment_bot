@@ -1,0 +1,51 @@
+{
+  "task": {"name": "attention_network_test_flanker", "paradigm_classes": ["conflict"]},
+  "stimuli": [],
+  "response_distributions": {
+    "congruent": {
+      "distribution": "ex_gaussian",
+      "value": {"mu": 420, "sigma": 35, "tau": 90},
+      "rationale": "Population norms for congruent flanker trials."
+    },
+    "incongruent": {
+      "distribution": "ex_gaussian",
+      "value": {"mu": 480, "sigma": 40, "tau": 110},
+      "rationale": "Population norms for incongruent flanker trials."
+    }
+  },
+  "performance": {
+    "accuracy": {"congruent": 0.97, "incongruent": null},
+    "omission_rate": {"congruent": 0.01, "incongruent": 0.02},
+    "practice_accuracy": 0.95
+  },
+  "temporal_effects": {
+    "lag1_pair_modulation": {
+      "value": {
+        "enabled": true,
+        "modulation_table": [
+          {"prev_condition": "incongruent", "curr_condition": "incongruent", "rt_offset_ms": -25},
+          {"prev_condition": "congruent", "curr_condition": "incongruent", "rt_offset_ms": 0}
+        ]
+      },
+      "rationale": "Conflict adaptation effect."
+    },
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": ["error"]
+      },
+      "rationale": "Post-error slowing on conflict tasks."
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 50,
+      "rt_condition_sd_ms": 30,
+      "sigma_tau_range": [0.8, 1.2],
+      "accuracy_sd": 0.02,
+      "omission_sd": 0.01,
+      "accuracy_clip_range": [0.85, 1.0],
+      "omission_clip_range": [0.0, 0.1]
+    }
+  }
+}

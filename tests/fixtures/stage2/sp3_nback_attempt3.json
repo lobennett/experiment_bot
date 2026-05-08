@@ -1,0 +1,51 @@
+{
+  "task": {"name": "n_back_rdoc", "paradigm_classes": ["working_memory"]},
+  "stimuli": [],
+  "response_distributions": {
+    "match": {
+      "distribution": "ex_gaussian",
+      "value": {"mu": 540, "sigma": 50, "tau": 130},
+      "rationale": "Population norms for match trials."
+    },
+    "mismatch": {
+      "distribution": "ex_gaussian",
+      "value": {"mu": 580, "sigma": 55, "tau": 140},
+      "rationale": "Population norms for mismatch trials."
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "match": 0.86,
+      "mismatch": {"target": 0.93, "rationale": "Correct rejection rates on non-match trials."}
+    },
+    "omission_rate": {"match": 0.02, "mismatch": 0.01},
+    "practice_accuracy": 0.85
+  },
+  "temporal_effects": {
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": ["error"]
+      },
+      "rationale": "Post-error slowing on n-back."
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "match": ".",
+      "mismatch": ",",
+      "rationale": "Match/mismatch key assignment is counterbalanced across participants via window.efVars.group_index. The assignment is materialized at trial start in window.possibleResponses; response_key_js reads the live mapping."
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 60,
+      "rt_condition_sd_ms": 35,
+      "sigma_tau_range": [0.8, 1.2],
+      "accuracy_sd": 0.03,
+      "omission_sd": 0.01,
+      "accuracy_clip_range": [0.7, 1.0],
+      "omission_clip_range": [0.0, 0.1]
+    }
+  }
+}

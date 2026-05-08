@@ -21,6 +21,41 @@ PROMPTS_DIR = Path(__file__).parent / "prompts"
 STAGE2_MAX_REFINEMENTS = 3
 
 
+# Slot-extraction rule for refinement preservation. Each top-level path
+# in Stage2SchemaError.errors collapses to one of these slot patterns;
+# refinement re-prompts only the failing slots and locks the rest.
+_SLOT_RULES: list[tuple[str, int]] = [
+    # (path-prefix-after-split, depth-of-slot-segments)
+    ("temporal_effects", 2),       # temporal_effects.<mech>
+    ("performance", 2),            # performance.<sub>
+    ("task_specific", 2),          # task_specific.<key>
+    ("response_distributions", 2), # response_distributions.<cond>
+    ("between_subject_jitter", 1), # between_subject_jitter (whole)
+]
+
+
+def _extract_failing_slots(errors: list[tuple[str, str]]) -> list[str]:
+    """Map a list of (path, message) validation errors to the deduped,
+    sorted set of slot keys whose contents need regeneration.
+
+    See the SP4a spec's slot-extraction rule. Multiple errors within
+    one slot collapse to a single slot entry.
+    """
+    slots: set[str] = set()
+    for path, _ in errors:
+        segments = path.split(".")
+        if not segments:
+            continue
+        head = segments[0]
+        depth = next(
+            (d for prefix, d in _SLOT_RULES if prefix == head),
+            1,  # default: collapse to top-level segment
+        )
+        slot = ".".join(segments[:depth])
+        slots.add(slot)
+    return sorted(slots)
+
+
 async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 2: behavioral parameters as point estimates with rationale.
 

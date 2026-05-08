@@ -29,43 +29,54 @@ Reference: spec at `docs/superpowers/specs/2026-05-08-sp3-flanker-nback-heldout-
 ## Task 0: Set up SP3 worktree
 
 **Files:**
-- Branch: `sp3/heldout-validation` off tag `sp2-complete`
+- Worktree: `.worktrees/sp3` on branch `sp3/heldout-validation`, branched off tag `sp2.5-complete`
 
-- [ ] **Step 1: Verify clean starting point**
+`sp2.5-complete` is the post-SP2.5-hardening framework state at commit
+`577f685`. It includes the navigator fix and run-metadata
+instrumentation that brought bot go-trial accuracy from 77.5% to 95%
+on the dev paradigms. The original `sp2-complete` tag predates these
+fixes; do **not** branch off it. The sp3 branch additionally
+cherry-picks the spec and this plan from `sp2/behavioral-fidelity`,
+so both docs are present in the working tree.
+
+Steps 1-3 below have already been executed by the controller and are
+checked off. Subsequent tasks assume the worktree exists at
+`.worktrees/sp3` and the engineer is operating inside it.
+
+- [x] **Step 1: Tag `sp2.5-complete` at `577f685`** (controller)
+- [x] **Step 2: `git worktree add .worktrees/sp3 -b sp3/heldout-validation sp2.5-complete`** (controller)
+- [x] **Step 3: Cherry-pick spec + plan commits onto sp3** (controller)
+
+- [ ] **Step 4: Verify the worktree's clean state**
 
 ```bash
+cd /Users/lobennett/grants/r01_rdoc/projects/experiment_bot/.worktrees/sp3
 git status
-git tag -l | grep sp2-complete
+git log --oneline -5
 ```
 
-Expected: clean working tree, `sp2-complete` tag present.
+Expected: clean working tree on `sp3/heldout-validation`; recent log shows the two cherry-picked docs commits on top of `577f685`.
 
-- [ ] **Step 2: Create branch off sp2-complete**
+- [ ] **Step 5: Install dependencies in the new worktree**
 
 ```bash
-git checkout sp2-complete
-git checkout -b sp3/heldout-validation
+uv sync
 ```
 
-Expected: now on `sp3/heldout-validation` branch.
+Expected: dependencies installed into `.worktrees/sp3/.venv`.
 
-- [ ] **Step 3: Verify tests pass on this branch**
+- [ ] **Step 6: Verify tests pass on this branch**
 
 ```bash
 uv run pytest 2>&1 | tail -3
 ```
 
-Expected: `468 passed, 1 skipped` (matches sp2-complete state).
+Expected: `468 passed, 1 skipped` (matches sp2.5-complete state).
 
-- [ ] **Step 4: Create the SP3 validation reports directory**
+- [ ] **Step 7: Create the SP3 validation reports directory + placeholder**
 
 ```bash
 mkdir -p validation/sp3_heldout
-```
-
-- [ ] **Step 5: Commit the directory placeholder**
-
-```bash
 touch validation/sp3_heldout/.gitkeep
 git add validation/sp3_heldout/.gitkeep
 git commit -m "chore(sp3): create validation/sp3_heldout/ for held-out reports"

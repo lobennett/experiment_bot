@@ -34,12 +34,13 @@ def _load_schema() -> dict:
 
 
 def _value_only(node):
-    """Stage 2 wraps each parameter in a {value: {...}, citations, ...}
-    envelope. The runtime schema describes the inner value object. This
-    helper unwraps an envelope to its value dict; non-envelope dicts pass
-    through unchanged so the schema can apply.
+    """Stage 2 wraps each parameter in a {value: <inner>, rationale, ...}
+    envelope. Some envelopes wrap dict values (temporal_effects.*); some
+    wrap bare numbers (performance.*) — both are valid since SP4a's
+    schema generalization. This helper unwraps either shape; non-envelope
+    nodes pass through unchanged so the validator can still apply.
     """
-    if isinstance(node, dict) and "value" in node and isinstance(node["value"], dict):
+    if isinstance(node, dict) and "value" in node:
         return node["value"]
     return node
 

@@ -76,3 +76,21 @@ def test_schema_accepts_envelope_omission_rate():
 def test_schema_accepts_envelope_practice_accuracy():
     partial = _minimal_partial(**{"performance.practice_accuracy": {"value": 0.9, "rationale": "x"}})
     validate_stage2_schema(partial)  # no raise
+
+
+def test_value_only_unwraps_dict_envelope():
+    from experiment_bot.reasoner.validate import _value_only
+    assert _value_only({"value": {"a": 1}, "rationale": "x"}) == {"a": 1}
+
+
+def test_value_only_unwraps_number_envelope():
+    """SP4a addition: envelope with bare-number value (e.g., performance.accuracy)."""
+    from experiment_bot.reasoner.validate import _value_only
+    assert _value_only({"value": 0.95, "rationale": "x"}) == 0.95
+
+
+def test_value_only_passthrough_for_non_envelope():
+    from experiment_bot.reasoner.validate import _value_only
+    assert _value_only({"a": 1, "b": 2}) == {"a": 1, "b": 2}
+    assert _value_only(0.95) == 0.95
+    assert _value_only("plain string") == "plain string"

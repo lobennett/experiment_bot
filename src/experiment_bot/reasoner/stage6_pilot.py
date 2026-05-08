@@ -25,7 +25,7 @@ from experiment_bot.core.config import (
 from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.normalize import normalize_partial
-from experiment_bot.reasoner.stage1_structural import _extract_json
+from experiment_bot.reasoner.parse_retry import parse_with_retry
 from experiment_bot.reasoner.validate import validate_stage1_output
 from experiment_bot.taskcard.types import ReasoningStep
 
@@ -168,8 +168,9 @@ async def _refine_partial(
         diagnostic_report=diagnostics.to_report(),
         source_summary=source_summary,
     )
-    resp = await client.complete(system="", user=user, output_format="json")
-    refined = json.loads(_extract_json(resp.text))
+    refined = await parse_with_retry(
+        client, system="", user=user, stage_name="stage6_pilot_refinement",
+    )
 
     # Splice: deep-merge dict-shaped fields so a partial runtime fix from
     # the LLM (e.g. only data_capture.method changed) doesn't clobber the

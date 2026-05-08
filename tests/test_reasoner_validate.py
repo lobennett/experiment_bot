@@ -271,6 +271,96 @@ def test_stage2_validate_accepts_registered_mechanisms_without_schema_entry():
         EFFECT_REGISTRY.pop("dummy_runtime_only", None)
 
 
+# ---------------------------------------------------------------------------
+# performance.accuracy / .omission_rate — runtime contract is float ∈ [0,1]
+# ---------------------------------------------------------------------------
+
+
+def test_stage2_validate_accepts_well_formed_performance():
+    partial = {
+        "performance": {
+            "accuracy": {"congruent": 0.97, "incongruent": 0.92},
+            "omission_rate": {"congruent": 0.005, "incongruent": 0.01},
+        }
+    }
+    validate_stage2_schema(partial)  # no raise
+
+
+def test_stage2_validate_rejects_nested_accuracy_dict():
+    """Regression: stopit_stop_signal regen emitted accuracy.<cond> as
+    {target, rationale} dicts; PerformanceConfig.get_accuracy returned
+    a dict and the trial loop crashed with TypeError comparing
+    random() < dict."""
+    partial = {
+        "performance": {
+            "accuracy": {
+                "go": {"target": 0.97,
+                       "rationale": "Verbruggen 2019 consensus."},
+                "stop_signal": {"target": 0.5, "rationale": "..."},
+            },
+            "omission_rate": {"go": 0.02, "stop_signal": 0.0},
+        }
+    }
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    assert "performance.accuracy" in str(exc.value)
+
+
+def test_stage2_validate_rejects_accuracy_out_of_range():
+    partial = {
+        "performance": {
+            "accuracy": {"go": 1.5},  # not a probability
+            "omission_rate": {"go": 0.0},
+        }
+    }
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    assert "performance.accuracy" in str(exc.value)
+
+
+# ---------------------------------------------------------------------------
+# task_specific.key_map — runtime contract is short alphanumeric key string
+# ---------------------------------------------------------------------------
+
+
+@pytest.mark.parametrize("good_value", [
+    "f", "j", " ", ".", "ArrowLeft", "ArrowRight", "Space", "Enter",
+    "dynamic", "dynamic_mapping", "withhold", "null", "",
+])
+def test_stage2_validate_accepts_real_key_strings(good_value):
+    partial = {"task_specific": {"key_map": {"go": good_value}}}
+    validate_stage2_schema(partial)  # no raise
+
+
+def test_stage2_validate_rejects_descriptive_prose_in_key_map():
+    """Regression: stopit_stop_signal regen emitted
+    task_specific.key_map.go = 'dynamic (ArrowLeft for left arrow, ...
+    resolved per stimulus_id)'. The executor presses values literally,
+    so this triggered Playwright `Keyboard.press: Unknown key`."""
+    partial = {
+        "task_specific": {
+            "key_map": {
+                "go": "dynamic (ArrowLeft for left arrow, ArrowRight for "
+                      "right arrow; resolved per stimulus_id)",
+                "stop_signal": "withhold (null)",
+            }
+        }
+    }
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    assert "task_specific.key_map" in str(exc.value)
+
+
+def test_stage2_validate_rejects_overlong_key_string():
+    partial = {
+        "task_specific": {
+            "key_map": {"go": "x" * 50},
+        }
+    }
+    with pytest.raises(Stage2SchemaError):
+        validate_stage2_schema(partial)
+
+
 def test_stage2_validate_accepts_well_formed_lag1_pair_modulation():
     partial = {
         "temporal_effects": {

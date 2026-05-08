@@ -193,10 +193,7 @@
     "navigation_stimulus_condition": ""
   },
   "task_specific": {
-    "key_map": {
-      "go": "dynamic (ArrowLeft for left arrow, ArrowRight for right arrow; resolved per stimulus_id)",
-      "stop_signal": "withhold (null)"
-    },
+    "key_map": {},
     "trial_timing": {
       "max_response_time_ms": 1250,
       "fixation_ms": 250,
@@ -219,14 +216,8 @@
   },
   "performance": {
     "accuracy": {
-      "go": {
-        "target": 0.97,
-        "rationale": "Go accuracy in healthy adults on choice stop-signal tasks routinely exceeds 95% (Verbruggen et al., 2019, consensus guide). 0.97 reflects a typical target with the 1250 ms response window."
-      },
-      "stop_signal": {
-        "target": 0.5,
-        "rationale": "The 1-up/1-down SSD staircase (SSDstep=50 ms) defined in stop-it_main.js converges on the 50%-correct-stop point \u2014 the conventional tracking target prescribed by the stop-signal consensus protocol (Verbruggen et al., 2019). The bot's accuracy target must match the staircase's convergence point or the SSD trajectory will be unrealistic."
-      }
+      "go": 0.97,
+      "stop_signal": 0.5
     },
     "omission_rate": {
       "go": 0.02,

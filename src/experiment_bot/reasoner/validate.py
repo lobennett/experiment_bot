@@ -123,6 +123,49 @@ def validate_stage2_schema(partial: dict) -> None:
                     err_path += f".{path}"
                 errors.append((err_path, e.message))
 
+    # performance.accuracy / omission_rate: each value must be a number in
+    # [0,1]. Caught regression: LLM emitting {target, rationale} dicts
+    # nested under each condition instead of plain floats — the executor's
+    # PerformanceConfig.get_accuracy() returns whatever is at
+    # accuracy[condition] and the trial loop crashes with TypeError when
+    # it tries to compare random() < dict.
+    perf_schema = props.get("performance")
+    perf = partial.get("performance") or {}
+    if perf_schema and isinstance(perf, dict) and perf:
+        for sub in ("accuracy", "omission_rate"):
+            sub_schema = perf_schema.get("properties", {}).get(sub)
+            sub_value = perf.get(sub)
+            if sub_schema and isinstance(sub_value, dict) and sub_value:
+                try:
+                    jsonschema.validate(sub_value, sub_schema)
+                except jsonschema.ValidationError as e:
+                    path = ".".join(str(p) for p in e.absolute_path)
+                    err_path = f"performance.{sub}"
+                    if path:
+                        err_path += f".{path}"
+                    errors.append((err_path, e.message))
+
+    # task_specific.key_map: each value is a string the executor presses
+    # as a literal Playwright key (or a withhold/dynamic sentinel). Caught
+    # regression: LLM emitting prose like 'dynamic (ArrowLeft for left
+    # arrow, ArrowRight for right arrow; resolved per stimulus_id)' which
+    # the executor faithfully tries to press, raising
+    # `Keyboard.press: Unknown key`. The schema's pattern + maxLength
+    # catches descriptive strings without prescribing which keys are
+    # paradigm-appropriate.
+    ts_schema = props.get("task_specific", {}).get("properties", {})
+    km_schema = ts_schema.get("key_map")
+    km_value = (partial.get("task_specific") or {}).get("key_map")
+    if km_schema and isinstance(km_value, dict) and km_value:
+        try:
+            jsonschema.validate(km_value, km_schema)
+        except jsonschema.ValidationError as e:
+            path = ".".join(str(p) for p in e.absolute_path)
+            err_path = "task_specific.key_map"
+            if path:
+                err_path += f".{path}"
+            errors.append((err_path, e.message))
+
     if errors:
         raise Stage2SchemaError(errors)
 

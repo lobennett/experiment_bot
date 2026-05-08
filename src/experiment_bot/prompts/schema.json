@@ -98,8 +98,8 @@
       "properties": {
         "key_map": {
           "type": "object",
-          "description": "Maps condition names (matching response.condition in stimuli) to their response key strings. Use 'dynamic' or 'dynamic_mapping' as the value for conditions where the key is resolved at runtime via response_key_js.",
-          "additionalProperties": {"type": "string"}
+          "description": "Maps condition names (matching response.condition in stimuli) to their response key strings. Each value must be a Playwright key literal (e.g. 'f', 'ArrowLeft', 'Space'), the sentinel 'dynamic' / 'dynamic_mapping' (defers resolution to response_key_js), or a withhold sentinel like 'withhold' / 'null'. Do NOT use prose or parentheticals — the executor presses the value as a literal key.",
+          "additionalProperties": {"type": "string", "maxLength": 24, "pattern": "^[A-Za-z0-9_, .-]*$"}
         },
         "trial_timing": {
           "type": "object",

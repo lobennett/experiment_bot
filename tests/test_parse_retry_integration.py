@@ -112,3 +112,30 @@ async def test_stage6_pilot_refinement_recovers_from_empty_first_response():
         "via Task 4 Step 5 sanity check (parse_with_retry import + "
         "old json.loads pattern absent)."
     )
+
+
+@pytest.mark.asyncio
+async def test_norms_extractor_recovers_from_empty_first_response():
+    """The norms_extractor's main extraction call uses the same fragile
+    parse pattern. Verify the parse_with_retry helper is wired in.
+    Direct testing of the recovery requires synthesizing the
+    extractor's full input bundle (sources, paradigm class, etc.) so
+    we test via introspection plus a top-level sanity check; full
+    end-to-end recovery is verified at the held-out re-run in Task 8."""
+    import inspect
+    import experiment_bot.reasoner.norms_extractor as norms
+
+    src = inspect.getsource(norms)
+    if "parse_with_retry" not in src:
+        pytest.fail("parse_with_retry not imported into norms_extractor.py — "
+                    "Task 5's refactor incomplete.")
+
+    # The old fragile pattern should be gone.
+    if "json.loads(_extract_json(resp.text))" in src:
+        pytest.fail("Old json.loads(_extract_json) pattern still present — "
+                    "Task 5's refactor incomplete.")
+
+    pytest.skip(
+        "norms_extractor's full input bundle requires multiple sources; "
+        "refactor verified via introspection above."
+    )

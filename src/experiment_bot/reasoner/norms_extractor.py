@@ -6,12 +6,11 @@ C3: CLI that wraps it.
 """
 from __future__ import annotations
 import hashlib
-import json
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
-from experiment_bot.reasoner.stage1_structural import _extract_json
 from experiment_bot.llm.protocol import LLMClient
+from experiment_bot.reasoner.parse_retry import parse_with_retry
 
 logger = logging.getLogger(__name__)
 
@@ -96,8 +95,9 @@ async def extract_norms(paradigm_class: str, llm_client: LLMClient) -> dict:
     """
     system_prompt = (PROMPTS_DIR / "norms_extractor.md").read_text()
     user = f"## Paradigm class\n{paradigm_class}\n\nReturn JSON only."
-    resp = await llm_client.complete(system=system_prompt, user=user, output_format="json")
-    payload = json.loads(_extract_json(resp.text))
+    payload = await parse_with_retry(
+        llm_client, system=system_prompt, user=user, stage_name="norms_extractor",
+    )
     payload.setdefault("produced_by", {
         "model": getattr(llm_client, "_model", "claude-opus-4-7"),
         "extraction_prompt_sha256": hashlib.sha256(system_prompt.encode()).hexdigest(),

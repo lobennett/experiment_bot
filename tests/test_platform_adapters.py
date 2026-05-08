@@ -51,6 +51,58 @@ def test_flanker_adapter_dispatch_registered():
         "read_expfactory_flanker not registered in PLATFORM_ADAPTERS"
 
 
+def test_expfactory_n_back_canonicalizes_test_trials(tmp_path):
+    """n-back adapter:
+    - filters trial_id == 'test_trial' AND condition != 'N/A' (the latter
+      excludes warmup trials where the bot correctly does not respond);
+    - canonicalizes condition + delay into <condition>_<delay>back
+      labels matching the TaskCard's response_distributions keys."""
+    import json
+    from experiment_bot.validation.platform_adapters import read_expfactory_n_back
+    sample = [
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "match", "delay": "1", "rt": 540, "correct_trial": 1,
+         "response": ".", "correct_response": "."},
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "mismatch", "delay": "1", "rt": 620, "correct_trial": 0,
+         "response": ".", "correct_response": ","},
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "match", "delay": "2", "rt": 580, "correct_trial": 1,
+         "response": ".", "correct_response": "."},
+        # warmup — filtered out
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "N/A", "delay": "1", "rt": None, "correct_trial": 0,
+         "response": None, "correct_response": "."},
+        # non-test row — filtered out
+        {"trial_type": "html-keyboard-response", "trial_id": "test_fixation",
+         "condition": "", "rt": None, "correct_trial": None},
+        # omission on real test trial
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "mismatch", "delay": "2", "rt": None, "correct_trial": 0,
+         "response": None, "correct_response": ","},
+    ]
+    ses = tmp_path / "session"
+    ses.mkdir()
+    (ses / "experiment_data.json").write_text(json.dumps(sample))
+
+    trials = read_expfactory_n_back(ses)
+
+    assert len(trials) == 4  # 3 valid + 1 omission; warmup and fixation filtered
+    assert trials[0] == {"condition": "match_1back", "rt": 540.0, "correct": True, "omission": False}
+    assert trials[1] == {"condition": "mismatch_1back", "rt": 620.0, "correct": False, "omission": False}
+    assert trials[2] == {"condition": "match_2back", "rt": 580.0, "correct": True, "omission": False}
+    assert trials[3] == {"condition": "mismatch_2back", "rt": None, "correct": False, "omission": True}
+
+
+def test_n_back_adapter_dispatch_registered():
+    """The n-back adapter must be reachable through PLATFORM_ADAPTERS."""
+    from experiment_bot.validation.platform_adapters import (
+        PLATFORM_ADAPTERS, read_expfactory_n_back,
+    )
+    assert any(v is read_expfactory_n_back for v in PLATFORM_ADAPTERS.values()), \
+        "read_expfactory_n_back not registered"
+
+
 def test_expfactory_stop_signal_surfaces_ssd(tmp_path):
     """The poldracklab-stop-signal adapter must extract SSD from the
     platform export so the oracle can compute SSRT."""

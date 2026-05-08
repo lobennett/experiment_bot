@@ -151,6 +151,52 @@ def read_expfactory_flanker(session_dir: Path) -> list[dict]:
     return out
 
 
+def read_expfactory_n_back(session_dir: Path) -> list[dict]:
+    """`taskcards/expfactory_n_back/`. Filter: trial_id == test_trial
+    AND condition != 'N/A'.
+
+    n-back has warmup trials (first 1-2 trials of each block) where
+    there is no prior letter to compare against. The page emits these
+    with condition='N/A'; the bot correctly does NOT respond to them
+    (since the TaskCard only configures match_*back / mismatch_*back
+    conditions). Filtering them out gives the validator a clean
+    behavioral-trial count.
+
+    The adapter canonicalizes platform-emitted (condition, delay) pairs
+    into <condition>_<delay>back labels matching the TaskCard's
+    response_distributions keys (e.g. 'match_1back', 'mismatch_2back').
+    """
+    rows = _load_experiment_rows(session_dir)
+    out: list[dict] = []
+    for r in rows:
+        if r.get("trial_id") != "test_trial":
+            continue
+        cond = r.get("condition") or ""
+        if cond == "N/A":
+            continue  # warmup; not a behavioral test trial
+        # delay arrives as int (JSON) or "1"/"2" (CSV).
+        delay_raw = r.get("delay")
+        try:
+            delay = int(delay_raw) if delay_raw is not None else None
+        except (TypeError, ValueError):
+            delay = None
+        if delay is None or cond not in ("match", "mismatch"):
+            continue  # malformed row; skip
+        canonical = f"{cond}_{delay}back"
+        rt = _safe_float(r.get("rt"))
+        if r.get("correct_trial") in (0, 1, "0", "1"):
+            correct = r.get("correct_trial") in (1, "1")
+        else:
+            correct = r.get("response") == r.get("correct_response")
+        out.append({
+            "condition": canonical,
+            "rt": rt,
+            "correct": correct,
+            "omission": rt is None,
+        })
+    return out
+
+
 def read_stopit_stop_signal(session_dir: Path) -> list[dict]:
     """`taskcards/stopit_stop_signal/`. Filter: block_i in {1,2,3,4}
     (block 0 is practice). Condition derived from `signal`: 'no' → 'go',
@@ -238,6 +284,7 @@ PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
     "stop_signal_rdoc": read_expfactory_stop_signal,
     "stroop_rdoc": read_expfactory_stroop,
     "flanker_rdoc": read_expfactory_flanker,
+    "n_back_rdoc": read_expfactory_n_back,
     # Stop-it (kywch jsPsych port): historical task.name + current
     # task.name from regenerated TaskCard. Both dispatch to the same
     # adapter because the source data export schema is identical.

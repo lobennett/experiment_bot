@@ -51,12 +51,14 @@ def _safe_float(value) -> float | None:
 
 def read_expfactory_stop_signal(session_dir: Path) -> list[dict]:
     """`taskcards/expfactory_stop_signal/`. Filter: trial_type ==
-    poldracklab-stop-signal AND exp_stage == test."""
-    csv_path = Path(session_dir) / "experiment_data.csv"
-    if not csv_path.exists():
-        return []
-    with csv_path.open() as f:
-        rows = list(csv.DictReader(f))
+    poldracklab-stop-signal AND exp_stage == test.
+
+    Reads either experiment_data.csv or experiment_data.json — the
+    bot's runtime.data_capture.method (`button_click` vs `js_expression`)
+    determines which format the executor writes, and that varies across
+    Reasoner regenerations. Field names are identical across formats.
+    """
+    rows = _load_experiment_rows(session_dir)
     out: list[dict] = []
     for r in rows:
         if r.get("trial_type") != "poldracklab-stop-signal":
@@ -64,31 +66,51 @@ def read_expfactory_stop_signal(session_dir: Path) -> list[dict]:
         if r.get("exp_stage") != "test":
             continue
         rt = _safe_float(r.get("rt"))
+        # `correct_trial` arrives as int (JSON) or "0"/"1" (CSV).
+        correct_raw = r.get("correct_trial")
+        correct = correct_raw in (1, "1")
         out.append({
             "condition": r.get("condition") or "",  # 'go' or 'stop'
             "rt": rt,
-            "correct": r.get("correct_trial") == "1",
+            "correct": correct,
             "omission": rt is None,
             "ssd": _safe_float(r.get("SSD")),
         })
     return out
 
 
-def read_expfactory_stroop(session_dir: Path) -> list[dict]:
-    """`taskcards/expfactory_stroop/`. Filter: trial_id == test_trial."""
+def _load_experiment_rows(session_dir: Path) -> list[dict]:
+    """Return platform-export rows as a list of dicts. Tries JSON first,
+    falls back to CSV. Returns [] if neither file exists or is parseable.
+    """
     json_path = Path(session_dir) / "experiment_data.json"
-    if not json_path.exists():
-        return []
-    data = json.loads(json_path.read_text())
-    if not isinstance(data, list):
-        return []
+    if json_path.exists():
+        try:
+            data = json.loads(json_path.read_text())
+            if isinstance(data, list):
+                return data
+        except (OSError, json.JSONDecodeError):
+            pass
+    csv_path = Path(session_dir) / "experiment_data.csv"
+    if csv_path.exists():
+        with csv_path.open() as f:
+            return list(csv.DictReader(f))
+    return []
+
+
+def read_expfactory_stroop(session_dir: Path) -> list[dict]:
+    """`taskcards/expfactory_stroop/`. Filter: trial_id == test_trial.
+
+    Reads either experiment_data.json or experiment_data.csv — see
+    `read_expfactory_stop_signal` docstring for why both shapes appear.
+    """
+    rows = _load_experiment_rows(session_dir)
     out: list[dict] = []
-    for r in data:
+    for r in rows:
         if r.get("trial_id") != "test_trial":
             continue
         rt = _safe_float(r.get("rt"))
-        # `correct_trial` is 0/1 in this schema; fall back to deriving from
-        # response == correct_response when correct_trial is absent
+        # `correct_trial` arrives as int (JSON) or "0"/"1" (CSV).
         if r.get("correct_trial") in (0, 1, "0", "1"):
             correct = r.get("correct_trial") in (1, "1")
         else:
@@ -182,10 +204,17 @@ def read_cognitionrun_stroop(session_dir: Path) -> list[dict]:
 
 # Dispatch by output-directory label name (matches the executor's
 # `task.name.replace(" ", "_").lower()` convention used in writer.py).
+# Each entry covers every task.name the Reasoner has emitted for the
+# corresponding paradigm — task.name varies across regenerations because
+# the LLM reads it from source (and source titles differ across versions).
 PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
     "stop_signal_rdoc": read_expfactory_stop_signal,
     "stroop_rdoc": read_expfactory_stroop,
+    # Stop-it (kywch jsPsych port): historical task.name + current
+    # task.name from regenerated TaskCard. Both dispatch to the same
+    # adapter because the source data export schema is identical.
     "stop_signal_kywch_jspsych": read_stopit_stop_signal,
+    "stop_signal_task_(stop-it,_jspsych_port)": read_stopit_stop_signal,
     "stroop_online_(cognition.run)": read_cognitionrun_stroop,
 }
 

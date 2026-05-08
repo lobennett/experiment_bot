@@ -123,6 +123,8 @@ def post_error_slowing_magnitude(trials: list[dict]) -> float:
             continue
         if trial.get("correct") is not True:
             continue
+        if trial.get("rt") is None:
+            continue
         prev = trials[i - 1]
         if prev.get("correct") is False:
             post_error.append(float(trial["rt"]))

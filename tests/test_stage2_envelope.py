@@ -94,3 +94,33 @@ def test_value_only_passthrough_for_non_envelope():
     assert _value_only({"a": 1, "b": 2}) == {"a": 1, "b": 2}
     assert _value_only(0.95) == 0.95
     assert _value_only("plain string") == "plain string"
+
+
+def test_performance_config_loads_bare_number():
+    from experiment_bot.core.config import PerformanceConfig
+    cfg = PerformanceConfig.from_dict({
+        "accuracy": {"go": 0.95, "stop": 0.85},
+        "omission_rate": {"go": 0.02},
+        "practice_accuracy": 0.9,
+    })
+    assert cfg.accuracy["go"] == 0.95
+    assert cfg.accuracy["stop"] == 0.85
+    assert cfg.omission_rate["go"] == 0.02
+    assert cfg.practice_accuracy == 0.9
+
+
+def test_performance_config_loads_envelope():
+    """SP4a addition: loader unwraps {value, rationale} envelopes."""
+    from experiment_bot.core.config import PerformanceConfig
+    cfg = PerformanceConfig.from_dict({
+        "accuracy": {
+            "go": {"value": 0.95, "rationale": "test"},
+            "stop": 0.85,  # mixed shapes in the same map are fine
+        },
+        "omission_rate": {"go": {"value": 0.02, "rationale": "test"}},
+        "practice_accuracy": {"value": 0.9, "rationale": "test"},
+    })
+    assert cfg.accuracy["go"] == 0.95
+    assert cfg.accuracy["stop"] == 0.85
+    assert cfg.omission_rate["go"] == 0.02
+    assert cfg.practice_accuracy == 0.9

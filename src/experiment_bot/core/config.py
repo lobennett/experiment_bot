@@ -4,6 +4,17 @@ from dataclasses import dataclass, field, asdict
 from enum import Enum
 
 
+def _unwrap_value(v):
+    """Unwrap a Stage 2 {value, rationale} envelope to its inner value.
+    Bare numbers and None pass through unchanged. Handles both dict
+    envelopes (temporal_effects style) and number envelopes
+    (performance.* style under SP4a's schema generalization).
+    """
+    if isinstance(v, dict) and "value" in v:
+        return v["value"]
+    return v
+
+
 class TaskPhase(Enum):
     LOADING = "loading"
     INSTRUCTIONS = "instructions"
@@ -292,9 +303,9 @@ class PerformanceConfig:
     @classmethod
     def from_dict(cls, d: dict) -> PerformanceConfig:
         return cls(
-            accuracy=d["accuracy"],
-            omission_rate=d.get("omission_rate", {}),
-            practice_accuracy=d.get("practice_accuracy"),
+            accuracy={k: _unwrap_value(v) for k, v in d["accuracy"].items()},
+            omission_rate={k: _unwrap_value(v) for k, v in d.get("omission_rate", {}).items()},
+            practice_accuracy=_unwrap_value(d.get("practice_accuracy")),
         )
 
     def get_accuracy(self, condition: str) -> float:

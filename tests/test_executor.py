@@ -613,6 +613,55 @@ def test_post_event_slowing_reads_from_config():
     assert "post_event_slowing" in source
 
 
+def test_post_event_slowing_uses_lag1_prev_error_not_window_or():
+    """Regression: the prev_error value passed into apply_post_event_slowing
+    must reflect ONLY the immediately preceding trial (lag-1 contract from
+    the literature), not whether any trial in the executor's 8-trial
+    window was an error.
+
+    The earlier bug used `prev_error=any(self._recent_errors)` which made
+    prev_error=True on most trials in stop-signal paradigms (commission-
+    error rate ~12% × 8-trial window ≈ 64% of trials always have a
+    recent error). PES fired on essentially every trial, neutralizing
+    the post-error vs post-correct lag-1 contrast PES is defined as.
+
+    Anchor the assertion on the actual assignment, not a substring search
+    that could match a comment.
+    """
+    import inspect, ast, textwrap
+    src = textwrap.dedent(inspect.getsource(TaskExecutor._execute_trial))
+    tree = ast.parse(src)
+    # Find every keyword arg `prev_error=...` passed in this function.
+    found_lag1 = False
+    found_any = False
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.keyword) or node.arg != "prev_error":
+            continue
+        expr = ast.unparse(node.value)
+        if "any(" in expr and "_recent_errors" in expr:
+            found_any = True
+        elif "_recent_errors[0]" in expr:
+            found_lag1 = True
+    # Also check for prev_error = ...  assignments inside the function body
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Assign):
+            for t in node.targets:
+                if isinstance(t, ast.Name) and t.id == "prev_error":
+                    expr = ast.unparse(node.value)
+                    if "any(" in expr and "_recent_errors" in expr:
+                        found_any = True
+                    elif "_recent_errors[0]" in expr:
+                        found_lag1 = True
+    assert not found_any, (
+        "executor uses any(self._recent_errors) for prev_error — multi-trial "
+        "OR semantics will neutralize the lag-1 PES contrast"
+    )
+    assert found_lag1, (
+        "expected prev_error to be derived from self._recent_errors[0] (the "
+        "most recent trial, due to appendleft)"
+    )
+
+
 def test_executor_sampler_receives_temporal_effects():
     """Executor passes temporal_effects to ResponseSampler."""
     config_data = dict(SAMPLE_CONFIG)

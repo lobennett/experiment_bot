@@ -635,10 +635,20 @@ class TaskExecutor:
         from experiment_bot.effects.handlers import (
             apply_post_event_slowing, SamplerState as _SS,
         )
+        # Lag-1 PES contract: only the IMMEDIATELY preceding trial counts.
+        # Earlier code used `any(self._recent_errors)` over an 8-trial window,
+        # which made `prev_error=True` on almost every trial in stop-signal
+        # (commission-error rate ≈ 12% × window 8 ≈ 64% of trials always
+        # have a recent error). PES then fired on most trials regardless of
+        # immediate recency and the standard lag-1 post-error vs post-correct
+        # contrast collapsed toward zero. The deque is kept (maxlen=8) for
+        # any future multi-trial decay mechanism, but the executor passes
+        # only the most-recent flag through to the handler.
+        prev_error = bool(self._recent_errors and self._recent_errors[0])
         post_event_state = _SS(
             mu=0.0, sigma=0.0, tau=0.0, expected_rt=0.0,
             prev_rt=None, prev_condition=None, trial_index=self._trial_count,
-            prev_error=any(self._recent_errors),
+            prev_error=prev_error,
             prev_interrupt_detected=self._prev_interrupt_detected,
             condition=condition, pink_buffer=None,
         )

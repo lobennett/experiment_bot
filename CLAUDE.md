@@ -150,8 +150,22 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   surfaced in SP2-E3 (sampler RT inflation, accuracy underperformance,
   decay_weights aspirational, sparse run_metadata) tracked in
   `docs/sp2-validation-followups.md` for SP3 work.
-- **SP3** (planned): Additional held-out paradigms (Flanker,
-  Sternberg, etc.) to strengthen generalization claim. Not started.
+- **SP2.5**: Post-SP2 hardening — navigator click-timeout fast-fail
+  (took bot go-trial accuracy from 77.5% to 95% on dev paradigms),
+  run-metadata instrumentation (session_seed, session_params,
+  taskcard_sha256). Tag `sp2.5-complete` at `577f685`. ✓ Complete.
+- **SP3**: Held-out generalization test (Flanker + n-back). Both
+  held-out paradigms failed at Stage 2 schema validation; no TaskCards
+  produced, no sessions run. Generalizability claim (G1) empirically
+  falsified for both paradigms tested. Failure modes documented in
+  `docs/sp3-heldout-results.md`; SP4 backlog with prioritized
+  generalizable improvements in `docs/sp4-stage2-robustness.md`. Tag
+  `sp3-complete` on the report-landing commit. ✓ Complete (the
+  deliverable is the report and SP4 backlog, not a passing test).
+- **SP4** (planned): Stage 2 LLM↔schema interface robustness — see
+  `docs/sp4-stage2-robustness.md`. Tier 1 items first; success
+  criterion is a re-run of SP3 (Flanker + n-back) operationally
+  passing.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

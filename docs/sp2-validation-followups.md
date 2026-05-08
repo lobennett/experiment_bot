@@ -40,40 +40,31 @@ be removed, or `jitter_distributions` could be wired in if a
 observed-session RT against the *session's own* sampled mu+tau, not
 the population mean.
 
-### 2. Bot go-trial accuracy underperforms — runtime-layer issue, NOT decision logic
+### 2. Bot go-trial accuracy underperforms — **RESOLVED in commit `<navigator-fix>`**
 
-**Observed (smoke v2)**: `expfactory_stop_signal` — platform records
-93/120 = 77.5% correct go trials. TaskCard configures
-`performance.accuracy.go = 0.95`.
+**Original observation (smoke v2)**: `expfactory_stop_signal` —
+platform recorded 93/120 = 77.5% correct go trials, vs configured 95%.
 
-**SP2.5-C drill-in resolves the cause**:
-- Bot logs 107 go trials with only 3 `intended_error=True` (97.2%
-  intended-correct, matches the 95% config).
-- Platform records 120 go trials. 13 of them are absent from the bot
-  log entirely — the bot never detected the stimulus.
-- Of the 27 platform-side incorrect go trials: 2 wrong-key responses,
-  25 omissions. The bot intended only 0–3 of those.
+**Root cause**: `InstructionNavigator._do_click` had a 10-second
+timeout AND swallowed `PlaywrightError` with a warning instead of
+re-raising. The `instruction_pages` repeat phase therefore kept
+iterating after the Next button disappeared — 17 click timeouts ×
+10 seconds = ~170 seconds wasted at the start of each session, during
+which the platform was already running test trials the bot never
+saw. The bot would catch up at trial ~35 of 180, miss everything
+before that, and validation reported the missed trials as
+omission/incorrect.
 
-**Root cause**: runtime-layer mismatch between bot polling/keypress
-and platform trial cycle. The bot's RNG-based decision logic
-(`_should_respond_correctly` / `_should_omit`) is fine. The gap is
-either:
-- Stimulus-detection polling too slow → trials cycle past the bot
-  unobserved → platform records as omission.
-- Keypress arrives after the platform's per-trial response window →
-  registered as no-response.
+**Fix**: reduced `_do_click` timeout to 1500ms and made it re-raise
+on timeout so the surrounding repeat loop breaks. Verified end-to-end
+in smoke v3:
+- expfactory_stop_signal: go acc 94.2%/96.7% (target 95%) ✓
+- expfactory_stroop: 95.0%/95.8% ✓
+- stopit_stop_signal: 95.3%/93.8% (target 97%) ✓
+- stop-inhibit rates: 46.7%/48.4%/50.0% (target 50%) ✓
 
-**Suggested investigation**:
-- Add per-trial latency stats to `bot_log` (poll-to-detection time,
-  detection-to-keypress time).
-- Compare detection-poll interval vs typical jsPsych trial cycle on
-  expfactory_stop_signal.
-- Consider a `lookahead` mechanism: detect ALL upcoming stimuli rather
-  than only react to one at a time.
-
-This is bot-runtime engineering, separate from the bot's
-behavioral-fidelity layer. Reasonable as standalone work; doesn't
-block validation of the four current dev paradigms.
+The bot's behavioral logic was correct all along; a navigator
+hygiene bug was masquerading as a behavioral-fidelity gap.
 
 ### 3. lag1_pair_modulation labels don't match runtime conditions in
    expfactory_stop_signal

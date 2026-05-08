@@ -142,9 +142,14 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   produced by 5-stage Reasoner. ✓ Complete.
 - **SP1.5**: Stage 1 validator gate + reasoning-chain accumulation.
   ✓ Complete.
-- **SP2**: Behavioral fidelity — effect-type registry, CSE handler,
-  norms extractor, validation oracle, pilot integration, generic-
-  mechanism refactor. ✓ Complete.
+- **SP2**: Behavioral fidelity — effect-type registry, generic-
+  mechanism refactor, norms extractor, validation oracle (incl. SSRT),
+  Stage 2 jsonschema gate with self-correcting refinement, Stage 6
+  pilot-refinement persistence, executor lag-1 PES contract, and
+  format-agnostic platform adapters. ✓ Complete; bot-behavior gaps
+  surfaced in SP2-E3 (sampler RT inflation, accuracy underperformance,
+  decay_weights aspirational, sparse run_metadata) tracked in
+  `docs/sp2-validation-followups.md` for SP3 work.
 - **SP3** (planned): Additional held-out paradigms (Flanker,
   Sternberg, etc.) to strengthen generalization claim. Not started.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended

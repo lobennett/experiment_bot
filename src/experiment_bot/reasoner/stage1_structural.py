@@ -1,5 +1,4 @@
 from __future__ import annotations
-import json
 import logging
 import re
 from pathlib import Path
@@ -7,6 +6,7 @@ from experiment_bot.core.config import SourceBundle
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.taskcard.types import ReasoningStep
 from experiment_bot.reasoner.normalize import normalize_partial
+from experiment_bot.reasoner.parse_retry import parse_with_retry
 from experiment_bot.reasoner.validate import (
     Stage1ValidationError,
     validate_stage1_output,
@@ -113,8 +113,9 @@ async def run_stage1(
     errors: list[str] = []
 
     for attempt in range(max_retries + 1):
-        resp = await client.complete(system=system_prompt, user=user, output_format="json")
-        partial = json.loads(_extract_json(resp.text))
+        partial = await parse_with_retry(
+            client, system=system_prompt, user=user, stage_name="stage1",
+        )
         normalized = normalize_partial(partial)
         try:
             validate_stage1_output(normalized)

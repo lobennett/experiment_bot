@@ -18,7 +18,6 @@ import logging
 from typing import Any
 
 from experiment_bot.llm.protocol import LLMClient
-from experiment_bot.reasoner.stage1_structural import _extract_json
 
 logger = logging.getLogger(__name__)
 
@@ -67,6 +66,13 @@ async def parse_with_retry(
         ParseRetryExceededError: After ``max_retries`` attempts all produce
         non-parseable output. Carries the per-attempt history.
     """
+    # Local import to avoid a circular dependency: stage1_structural
+    # now imports parse_with_retry, but `_extract_json` lives in
+    # stage1_structural for historical reasons (other stages import it
+    # from there too). Deferring keeps the import edge one-way at
+    # module load time.
+    from experiment_bot.reasoner.stage1_structural import _extract_json
+
     base_user = user
     user_msg = base_user
     history: list[tuple[int, str, str]] = []

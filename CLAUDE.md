@@ -162,10 +162,21 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   generalizable improvements in `docs/sp4-stage2-robustness.md`. Tag
   `sp3-complete` on the report-landing commit. ✓ Complete (the
   deliverable is the report and SP4 backlog, not a passing test).
-- **SP4** (planned): Stage 2 LLM↔schema interface robustness — see
-  `docs/sp4-stage2-robustness.md`. Tier 1 items first; success
-  criterion is a re-run of SP3 (Flanker + n-back) operationally
-  passing.
+- **SP4a**: Stage 2 robustness Tier 1 — refinement-loop slot
+  preservation, schema-derived prompt examples with invariant test,
+  performance.* envelope contradiction resolved. Internal CI gate:
+  PASS (4 documented failure modes have fixture-based test coverage,
+  +24 new tests, suite at 492). External evidence: held-out re-run
+  closed all four Tier 1 failure modes in both Flanker and n-back at
+  Stage 2; new failure modes surfaced downstream (Stage 3 in Flanker,
+  Stage 6 pilot in n-back) per `docs/sp4a-results.md`. Tag
+  `sp4a-complete`. ✓ Complete.
+- **SP4** (continuing backlog): Tier 2/3 items at
+  `docs/sp4-stage2-robustness.md` (canonicalization layer, two-pass
+  Stage 2 split, schema-as-canonical autogeneration). Plus SP4b
+  candidates from SP4a's held-out re-run: Stage 3 parse-retry path,
+  Stage 6 pilot bot-fidelity for held-out paradigms. Each its own
+  brainstorm/spec/plan cycle when prioritized.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

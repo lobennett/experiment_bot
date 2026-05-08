@@ -73,17 +73,24 @@ def test_cli_samples_session_params_at_start(tmp_path):
     fake_executor = MagicMock()
     fake_executor.run = AsyncMock()
 
-    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor), \
+    sampled_params = {"default": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}}
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
          patch("experiment_bot.cli.sample_session_params",
-               return_value={"default": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}}) as samp:
+               return_value=sampled_params) as samp:
         result = runner.invoke(main, [
             "http://example.com/x",
             "--label", "stroop",
             "--taskcards-dir", str(tmp_path / "taskcards"),
             "--headless",
+            "--seed", "12345",
         ])
     assert result.exit_code == 0, result.output
     samp.assert_called_once()
+    # Session_seed and session_params must reach the executor so they
+    # land in run_metadata.json — that's what makes a run reproducible.
+    _, kwargs = exec_cls.call_args
+    assert kwargs.get("seed") == 12345
+    assert kwargs.get("session_params") == sampled_params
 
 
 def test_cli_help():

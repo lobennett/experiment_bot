@@ -65,6 +65,7 @@ class TaskExecutor:
         config,  # TaskCard or TaskConfig
         seed: int | None = None,
         headless: bool = False,
+        session_params: dict | None = None,
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -75,6 +76,13 @@ class TaskExecutor:
             self._taskcard = None
         self._config = config
         self._headless = headless
+        # Persisted to run_metadata.json so a session is exactly reproducible
+        # (same seed + same TaskCard hash = same output) and the per-session
+        # sampled values are auditable post-hoc. Without these fields, the
+        # only way to reason about session-to-session variability is by
+        # inferring from the trial log, which is lossy.
+        self._session_seed = seed
+        self._session_params = session_params or {}
         self._rng = np.random.default_rng(seed)
         self._py_rng = random.Random(seed)
 
@@ -327,12 +335,18 @@ class TaskExecutor:
                 self._writer.save_screenshot(screenshot, "error.png")
                 raise
             finally:
-                self._writer.save_metadata({
+                metadata = {
                     "task_name": task_name,
                     "task_url": task_url,
                     "total_trials": self._trial_count,
                     "headless": self._headless,
-                })
+                    "session_seed": self._session_seed,
+                    "session_params": self._session_params,
+                }
+                if self._taskcard is not None:
+                    pb = getattr(self._taskcard, "produced_by", None)
+                    metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
+                self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 await browser.close()
 

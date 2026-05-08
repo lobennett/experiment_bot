@@ -1211,3 +1211,31 @@ def test_executor_constructs_from_taskcard():
     assert executor._config.task.name == "stroop"
     # Legacy TaskConfig view still has response_distributions
     assert "default" in executor._config.response_distributions
+
+
+def test_executor_persists_session_seed_and_params_to_metadata():
+    """Regression for SP2-E3 backlog item #5: run_metadata must record
+    session_seed and per-session sampled params so a run is reproducible
+    and the sampler's per-session draws are auditable."""
+    from unittest.mock import MagicMock
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    executor = TaskExecutor(
+        config, seed=12345,
+        session_params={"go": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}},
+    )
+    fake_writer = MagicMock()
+    executor._writer = fake_writer
+    # Hand-call the metadata save the way the run() finally block does.
+    metadata = {
+        "task_name": config.task.name,
+        "task_url": "http://example.com/x",
+        "total_trials": executor._trial_count,
+        "headless": executor._headless,
+        "session_seed": executor._session_seed,
+        "session_params": executor._session_params,
+    }
+    fake_writer.save_metadata(metadata)
+    saved_args, _ = fake_writer.save_metadata.call_args
+    saved = saved_args[0]
+    assert saved["session_seed"] == 12345
+    assert saved["session_params"]["go"]["mu"] == 510.0

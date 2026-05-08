@@ -49,7 +49,10 @@ async def _run_task(
     click.echo(f"Seed: {seed} | Sampled session parameters for {len(sampled)} conditions")
 
     click.echo(f"Running task at {url}")
-    executor = TaskExecutor(taskcard, headless=headless)
+    executor = TaskExecutor(
+        taskcard, headless=headless,
+        seed=seed, session_params=sampled,
+    )
     await executor.run(url)
     click.echo("Done!")
 

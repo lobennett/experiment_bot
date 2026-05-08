@@ -14,47 +14,66 @@ the smoke-batch v2 reports under `validation/smoke_2x4_v2/`.
 
 ## Open items
 
-### 1. Sampler-side RT inflation (~80ms above configured)
+### 1. Sampler-side RT inflation — **RESOLVED, FALSE ALARM**
 
-**Observed**: `expfactory_stop_signal` smoke v2 — bot_log shows go-trial
-sampled-mean RT 612ms vs configured ex-Gaussian mean (mu+tau) 530ms.
-Playwright clock then adds ~12ms overhead, yielding observed actual
-mean ~624ms.
+**Original observation**: `expfactory_stop_signal` smoke v2 — bot_log
+showed go-trial sampled-mean 612ms vs configured (mu+tau) 530ms.
 
-**Suspected cause**: `between_subject_jitter.rt_mean_sd_ms = 80` draws
-a per-session shared mu shift from `Normal(0, 80)` at session start.
-Two-session average should be ~`Normal(0, 56)` — observed +82ms is
-~1.5σ, plausible-but-high.
+**Resolution** (SP2.5-B): the sampler is correct. Reproducing in
+isolation, 50 seeds × 200 trials averages to 525ms (delta 5ms within
+noise). Single-session deviations are expected per-session jitter:
+`between_subject_sd[mu]=50, tau=30` yields combined per-session SD ≈
+58ms, so single sessions can plausibly land 80ms+ from population
+mean. Comparing one session against the *population* mean rather than
+that session's own jittered draw is what made it look like inflation.
 
-**Why we can't confirm**: `run_metadata.json` doesn't record
-`session_params` (the actual jitter draws or the seed). The sampler
-applies a draw but the value is lost.
+The `between_subject_jitter.rt_mean_sd_ms` field in TaskCards is
+separately dead code — `jitter_distributions()` is defined in
+`distributions.py` but never called. Per-session draws use
+`response_distributions[*].between_subject_sd` via
+`sample_session_params()` in `taskcard/sampling.py`. That field could
+be removed, or `jitter_distributions` could be wired in if a
+*shared-shift* layer is desired on top of the per-condition draws.
 
-**Suggested fix**:
-- Persist `session_params` (seed + every per-session sampled value) to
-  `run_metadata.json`. Lets the user reproduce a run exactly and
-  diagnose distributions across N sessions.
-- Once recorded, verify whether the inflation is jitter-only (drawn
-  shift averaged across many sessions tends to 0) or a deterministic
-  bias (autocorrelation amplifying any starting deviation).
+**SP2.5-A unblocks future analysis**: `run_metadata.json` now records
+`session_seed` and `session_params`, so subsequent dig-ins can compare
+observed-session RT against the *session's own* sampled mu+tau, not
+the population mean.
 
-### 2. Bot go-trial accuracy underperforms configured target
+### 2. Bot go-trial accuracy underperforms — runtime-layer issue, NOT decision logic
 
-**Observed**: `expfactory_stop_signal` smoke v2 — bot logs 86/120 = 71.7%
-correct go trials. TaskCard configures `performance.accuracy.go = 0.95`.
+**Observed (smoke v2)**: `expfactory_stop_signal` — platform records
+93/120 = 77.5% correct go trials. TaskCard configures
+`performance.accuracy.go = 0.95`.
 
-**Suspected cause**: The executor's `_should_respond_correctly` /
-`_should_omit` interaction may not reach the 95% target when the bot's
-slow RTs cause more deadline misses, or the random seed produces a
-left-tail outlier session.
+**SP2.5-C drill-in resolves the cause**:
+- Bot logs 107 go trials with only 3 `intended_error=True` (97.2%
+  intended-correct, matches the 95% config).
+- Platform records 120 go trials. 13 of them are absent from the bot
+  log entirely — the bot never detected the stimulus.
+- Of the 27 platform-side incorrect go trials: 2 wrong-key responses,
+  25 omissions. The bot intended only 0–3 of those.
 
-**Suggested fix**:
-- Instrument the executor to log `intended_correct` alongside
-  `intended_error` so the gap between target accuracy and realized
-  accuracy is auditable per session.
-- Sanity-check on synthetic tasks (no DOM, no real RTs) that
-  `_should_respond_correctly(condition)` produces the configured rate
-  in expectation.
+**Root cause**: runtime-layer mismatch between bot polling/keypress
+and platform trial cycle. The bot's RNG-based decision logic
+(`_should_respond_correctly` / `_should_omit`) is fine. The gap is
+either:
+- Stimulus-detection polling too slow → trials cycle past the bot
+  unobserved → platform records as omission.
+- Keypress arrives after the platform's per-trial response window →
+  registered as no-response.
+
+**Suggested investigation**:
+- Add per-trial latency stats to `bot_log` (poll-to-detection time,
+  detection-to-keypress time).
+- Compare detection-poll interval vs typical jsPsych trial cycle on
+  expfactory_stop_signal.
+- Consider a `lookahead` mechanism: detect ALL upcoming stimuli rather
+  than only react to one at a time.
+
+This is bot-runtime engineering, separate from the bot's
+behavioral-fidelity layer. Reasonable as standalone work; doesn't
+block validation of the four current dev paradigms.
 
 ### 3. lag1_pair_modulation labels don't match runtime conditions in
    expfactory_stop_signal

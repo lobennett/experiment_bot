@@ -24,12 +24,16 @@ STAGE2_MAX_REFINEMENTS = 3
 # Slot-extraction rule for refinement preservation. Each top-level path
 # in Stage2SchemaError.errors collapses to one of these slot patterns;
 # refinement re-prompts only the failing slots and locks the rest.
+# `response_distributions` is prospective: validate.py does not yet emit
+# error paths under this prefix, but the rule is in place so adding
+# response_distributions schema validation later doesn't require
+# touching the slot extractor.
 _SLOT_RULES: list[tuple[str, int]] = [
     # (path-prefix-after-split, depth-of-slot-segments)
     ("temporal_effects", 2),       # temporal_effects.<mech>
     ("performance", 2),            # performance.<sub>
     ("task_specific", 2),          # task_specific.<key>
-    ("response_distributions", 2), # response_distributions.<cond>
+    ("response_distributions", 2), # response_distributions.<cond> (prospective)
     ("between_subject_jitter", 1), # between_subject_jitter (whole)
 ]
 
@@ -239,7 +243,13 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
             candidate.setdefault("performance", {})["omission_rate"] = om
         else:
             # Refinement pass: response contains ONLY the failing slots.
-            # Merge each into the previous candidate.
+            # Merge each into the previous candidate. If the LLM omits a
+            # slot from its response, .get() resolves to None and the
+            # next validation surfaces "None is not of type ..." — the
+            # LLM then sees a different error than the original. A
+            # future improvement (Tier 2 backlog) is to detect omitted
+            # slots before merge and surface a clearer "slot omitted"
+            # error; for SP4a the 3-attempt budget bounds the cost.
             assert candidate is not None
             for slot in _extract_failing_slots(last_errors):
                 head, _, sub = slot.partition(".")

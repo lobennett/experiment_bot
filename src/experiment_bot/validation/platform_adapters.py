@@ -124,6 +124,33 @@ def read_expfactory_stroop(session_dir: Path) -> list[dict]:
     return out
 
 
+def read_expfactory_flanker(session_dir: Path) -> list[dict]:
+    """`taskcards/expfactory_flanker/`. Filter: trial_id == test_trial.
+
+    Mirrors read_expfactory_stroop's filter and correctness derivation —
+    same expfactory hosting, same field schema (trial_id, condition, rt,
+    correct_trial). Reads either experiment_data.csv or experiment_data.json
+    via _load_experiment_rows.
+    """
+    rows = _load_experiment_rows(session_dir)
+    out: list[dict] = []
+    for r in rows:
+        if r.get("trial_id") != "test_trial":
+            continue
+        rt = _safe_float(r.get("rt"))
+        if r.get("correct_trial") in (0, 1, "0", "1"):
+            correct = r.get("correct_trial") in (1, "1")
+        else:
+            correct = r.get("response") == r.get("correct_response")
+        out.append({
+            "condition": r.get("condition") or "",  # 'congruent' / 'incongruent'
+            "rt": rt,
+            "correct": correct,
+            "omission": rt is None,
+        })
+    return out
+
+
 def read_stopit_stop_signal(session_dir: Path) -> list[dict]:
     """`taskcards/stopit_stop_signal/`. Filter: block_i in {1,2,3,4}
     (block 0 is practice). Condition derived from `signal`: 'no' → 'go',
@@ -210,6 +237,7 @@ def read_cognitionrun_stroop(session_dir: Path) -> list[dict]:
 PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
     "stop_signal_rdoc": read_expfactory_stop_signal,
     "stroop_rdoc": read_expfactory_stroop,
+    "flanker_rdoc": read_expfactory_flanker,
     # Stop-it (kywch jsPsych port): historical task.name + current
     # task.name from regenerated TaskCard. Both dispatch to the same
     # adapter because the source data export schema is identical.

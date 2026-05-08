@@ -11,6 +11,46 @@ from experiment_bot.validation.platform_adapters import (
 )
 
 
+def test_expfactory_flanker_canonicalizes_test_trials(tmp_path):
+    """Flanker adapter filters to test trials and produces the canonical
+    {condition, rt, correct, omission} schema the oracle expects."""
+    import json
+    from experiment_bot.validation.platform_adapters import read_expfactory_flanker
+    sample = [
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "congruent", "rt": 480, "correct_trial": 1,
+         "response": "f", "correct_response": "f"},
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "incongruent", "rt": 562, "correct_trial": 0,
+         "response": "f", "correct_response": "j"},
+        {"trial_type": "html-keyboard-response", "trial_id": "fixation",
+         "condition": "", "rt": None, "correct_trial": None},  # filtered out
+        {"trial_type": "html-keyboard-response", "trial_id": "test_trial",
+         "condition": "incongruent", "rt": None, "correct_trial": 0,
+         "response": None, "correct_response": "j"},  # omission
+    ]
+    ses = tmp_path / "session"
+    ses.mkdir()
+    (ses / "experiment_data.json").write_text(json.dumps(sample))
+
+    trials = read_expfactory_flanker(ses)
+
+    assert len(trials) == 3
+    assert trials[0] == {"condition": "congruent", "rt": 480.0, "correct": True, "omission": False}
+    assert trials[1] == {"condition": "incongruent", "rt": 562.0, "correct": False, "omission": False}
+    assert trials[2] == {"condition": "incongruent", "rt": None, "correct": False, "omission": True}
+
+
+def test_flanker_adapter_dispatch_registered():
+    """The adapter must be reachable through PLATFORM_ADAPTERS by the
+    output-directory label name (matches the regenerated TaskCard's task.name)."""
+    from experiment_bot.validation.platform_adapters import (
+        PLATFORM_ADAPTERS, read_expfactory_flanker,
+    )
+    assert any(v is read_expfactory_flanker for v in PLATFORM_ADAPTERS.values()), \
+        "read_expfactory_flanker not registered in PLATFORM_ADAPTERS"
+
+
 def test_expfactory_stop_signal_surfaces_ssd(tmp_path):
     """The poldracklab-stop-signal adapter must extract SSD from the
     platform export so the oracle can compute SSRT."""

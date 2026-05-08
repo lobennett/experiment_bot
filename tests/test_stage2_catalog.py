@@ -37,7 +37,10 @@ async def test_stage2_self_corrects_via_validator_feedback():
     """When Stage 2's first output violates the runtime schema, Stage 2 should
     feed the validator's error list back to the LLM and accept the corrected
     second response. The LLM's corrections come entirely from the validator —
-    no paradigm-specific hints in the refinement turn.
+    no paradigm-specific hints in the refinement turn. SP4a switched the
+    refinement prompt to slot-locked (only failing slots are regenerated;
+    the rest is locked context), so the LLM's second response only needs
+    to provide the failing slot.
     """
     bad_response = """{
       "response_distributions": {"default": {"distribution": "ex_gaussian",
@@ -48,15 +51,12 @@ async def test_stage2_self_corrects_via_validator_feedback():
       }, "rationale": ""}},
       "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60}, "rationale": ""}
     }"""
+    # Slot-locked refinement: only the failing slot is regenerated.
     good_response = """{
-      "response_distributions": {"default": {"distribution": "ex_gaussian",
-        "value": {"mu": 500, "sigma": 60, "tau": 80}, "rationale": ""}},
-      "performance_omission_rate": {"default": 0.005},
       "temporal_effects": {"post_event_slowing": {"value": {"enabled": true,
         "triggers": [{"event": "interrupt",
                       "slowing_ms_min": 80, "slowing_ms_max": 200}]
-      }, "rationale": ""}},
-      "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60}, "rationale": ""}
+      }, "rationale": ""}}
     }"""
     fake = AsyncMock()
     fake.complete = AsyncMock(side_effect=[
@@ -66,11 +66,13 @@ async def test_stage2_self_corrects_via_validator_feedback():
     partial = {"task": {"name": "x", "paradigm_classes": ["interrupt"]}}
     result, step = await run_stage2(client=fake, partial=partial)
     # Refinement happened: the second LLM call's user message should
-    # contain the validator's error list.
+    # be a slot-locked refinement prompt naming the failing slot and
+    # locking the previously-validated context.
     assert fake.complete.await_count == 2
     second_user = fake.complete.await_args_list[1].kwargs["user"]
-    assert "Validation errors from previous attempt" in second_user
-    assert "post_event_slowing" in second_user
+    assert "do NOT modify" in second_user
+    assert "Failing slots to fix" in second_user
+    assert "temporal_effects.post_event_slowing" in second_user
     # Final result should be the corrected (good) shape.
     triggers = result["temporal_effects"]["post_event_slowing"]["value"]["triggers"]
     assert triggers[0]["event"] == "interrupt"

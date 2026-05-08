@@ -184,6 +184,15 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
     )
     user_msg = user
     n_refinements = 0
+    last_errors: list[tuple[str, str]] = []
+    candidate: dict | None = None
+    # Tracks whether the prompt we just sent was a slot-locked
+    # refinement. If True, the response contains ONLY the failing
+    # slots; otherwise it's a full Stage 2 output. JSON parse errors
+    # always re-prompt with the full Stage 2 prompt + parse-error
+    # append (not slot-locked), so this flag resets to False when we
+    # take the parse-error retry path.
+    awaiting_slot_refinement = False
     for attempt in range(1, STAGE2_MAX_REFINEMENTS + 1):
         resp = await client.complete(system=system, user=user_msg, output_format="json")
         # Parse step: refinement turns sometimes produce malformed JSON
@@ -191,7 +200,7 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         # same way as schema errors — feed the parser's message back to
         # the LLM and try again, within the same refinement budget.
         try:
-            behavioral = json.loads(_extract_json(resp.text))
+            response_json = json.loads(_extract_json(resp.text))
         except json.JSONDecodeError as e:
             n_refinements = attempt
             if attempt == STAGE2_MAX_REFINEMENTS:
@@ -213,49 +222,62 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
                 "syntax (no trailing commas, all strings closed, no "
                 "unterminated objects/arrays).\n"
             )
+            # Parse-error retry sends the FULL prompt, so the next
+            # response is a full Stage 2 output, not a slot refinement.
+            awaiting_slot_refinement = False
             continue
-        candidate = copy.deepcopy(partial)
-        candidate["response_distributions"] = behavioral["response_distributions"]
-        candidate["temporal_effects"] = behavioral.get("temporal_effects", {})
-        candidate["between_subject_jitter"] = behavioral.get("between_subject_jitter", {})
+
+        if not awaiting_slot_refinement:
+            # Full Stage 2 output: build the full candidate partial.
+            candidate = copy.deepcopy(partial)
+            candidate["response_distributions"] = response_json["response_distributions"]
+            candidate["temporal_effects"] = response_json.get("temporal_effects", {})
+            candidate["between_subject_jitter"] = response_json.get("between_subject_jitter", {})
+            # performance_omission_rate is folded back into performance
+            # block (existing convention).
+            om = response_json.get("performance_omission_rate", {})
+            candidate.setdefault("performance", {})["omission_rate"] = om
+        else:
+            # Refinement pass: response contains ONLY the failing slots.
+            # Merge each into the previous candidate.
+            assert candidate is not None
+            for slot in _extract_failing_slots(last_errors):
+                head, _, sub = slot.partition(".")
+                if sub:
+                    candidate.setdefault(head, {})[sub] = response_json.get(head, {}).get(sub)
+                else:
+                    candidate[head] = response_json.get(head)
+
         try:
             validate_stage2_schema(candidate)
+            # Validation passed.
+            break
         except Stage2SchemaError as e:
             n_refinements = attempt
+            last_errors = e.errors
             if attempt == STAGE2_MAX_REFINEMENTS:
                 logger.warning(
                     "Stage 2 still has schema violations after %d refinement "
                     "attempts; surfacing error.", attempt,
                 )
                 raise
+            failing_slots = _extract_failing_slots(e.errors)
             logger.info(
-                "Stage 2 attempt %d failed schema validation; refining. "
-                "Errors:\n%s", attempt, str(e),
+                "Stage 2 attempt %d failed schema validation; refining "
+                "%d slot(s): %s. Errors:\n%s",
+                attempt, len(failing_slots), failing_slots, str(e),
             )
-            user_msg = (
-                user
-                + "\n\n## Validation errors from previous attempt\n"
-                "Your previous output failed runtime-schema validation. The "
-                "executor reads specific field names and enum values; using "
-                "alternative names or compounds means the configured effect "
-                "will not fire at runtime. Fix every error below and "
-                "regenerate the full Stage 2 JSON. Do not change which "
-                "mechanisms you enable; only the SHAPE of each enabled "
-                "mechanism's value object.\n\n"
-                + str(e)
+            user_msg = _render_slot_refinement_prompt(
+                candidate, failing_slots, e.errors,
             )
+            awaiting_slot_refinement = True
             continue
-        # Validation passed.
-        break
 
     result = candidate
-    om = behavioral.get("performance_omission_rate", {})
-    result.setdefault("performance", {})["omission_rate"] = om
-
-    n_conditions = len(behavioral.get("response_distributions", {}))
+    n_conditions = len(candidate.get("response_distributions", {}))
     n_effects_enabled = sum(
-        1 for e in behavioral.get("temporal_effects", {}).values()
-        if e.get("value", {}).get("enabled")
+        1 for e in candidate.get("temporal_effects", {}).values()
+        if (e.get("value", {}) if isinstance(e.get("value"), dict) else {}).get("enabled")
     )
     inference = (
         f"Produced ex-Gaussian (mu/sigma/tau) parameters for {n_conditions} "

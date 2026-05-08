@@ -56,6 +56,84 @@ def _extract_failing_slots(errors: list[tuple[str, str]]) -> list[str]:
     return sorted(slots)
 
 
+def _render_slot_refinement_prompt(
+    partial: dict,
+    failing_slots: list[str],
+    errors: list[tuple[str, str]],
+) -> str:
+    """Build the refinement prompt for slot-locked refinement.
+
+    Sections:
+    1. Previously-validated context (locked): every top-level partial
+       field, except those listed in failing_slots, serialized as JSON.
+       The LLM is instructed not to modify these.
+    2. Failing slots: one line per slot, with the validation error
+       messages that surfaced for that slot.
+    3. Schema reminder: re-iterates that the prompt's existing
+       'Concrete shape examples' section is the canonical source for
+       the failing slots' shapes.
+    """
+    locked_partial = _strip_failing_slots(partial, failing_slots)
+    locked_json = json.dumps(locked_partial, indent=2, sort_keys=True)
+
+    error_lines = []
+    for slot in failing_slots:
+        slot_errors = [
+            (p, m) for p, m in errors
+            if p.startswith(slot + ".") or p == slot
+        ]
+        for path, msg in slot_errors:
+            error_lines.append(f"  - {path}: {msg}")
+
+    return (
+        "## Previously-validated context (do NOT modify)\n"
+        "These fields already passed schema validation. Treat them as fixed; "
+        "do NOT regenerate them in your response. Your response should "
+        "contain ONLY the failing slots listed below.\n\n"
+        "```json\n" + locked_json + "\n```\n\n"
+        "## Failing slots to fix\n"
+        "Regenerate these top-level slots (and only these slots) in your "
+        "response. The schema validator's diagnostics for each:\n\n"
+        + "\n".join(f"### {slot}" for slot in failing_slots)
+        + "\n\nValidation errors:\n"
+        + "\n".join(error_lines)
+        + "\n\n## Schema reminder\n"
+        "The shape requirements for each failing slot are documented in "
+        "the 'Concrete shape examples' section of the system prompt. "
+        "Use the schema-example blocks verbatim as templates; do NOT "
+        "emit any of the schema-anti-example shapes.\n\n"
+        "Return a JSON object containing only the failing slots, each "
+        "at the same nesting level it appears in the partial above:\n\n"
+        "```json\n"
+        "{\n"
+        + ",\n".join(f'  "{slot.split(".")[0]}": {{ ... }}' for slot in failing_slots[:1])
+        + "\n}\n"
+        "```\n"
+    )
+
+
+def _strip_failing_slots(partial: dict, failing_slots: list[str]) -> dict:
+    """Return a deep copy of partial with each failing slot replaced
+    by a placeholder marker (so the LLM sees the slot's location
+    without the previous failed content)."""
+    out = copy.deepcopy(partial)
+    for slot in failing_slots:
+        segments = slot.split(".")
+        node = out
+        for k in segments[:-1]:
+            if k not in node or not isinstance(node[k], dict):
+                # Slot not present in partial — nothing to strip.
+                node = None
+                break
+            node = node[k]
+        if node is None:
+            continue
+        last = segments[-1]
+        if last in node:
+            node[last] = "<<TO BE REGENERATED — see failing slots below>>"
+    return out
+
+
 async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 2: behavioral parameters as point estimates with rationale.
 

@@ -117,3 +117,40 @@ def test_nback_fixture_yields_three_slots():
         "task_specific.key_map",
         "temporal_effects.post_event_slowing",
     ]
+
+
+def test_render_slot_refinement_prompt_includes_failing_slots():
+    from experiment_bot.reasoner.stage2_behavioral import _render_slot_refinement_prompt
+    partial = {
+        "task": {"name": "x"},
+        "response_distributions": {"go": {"distribution": "ex_gaussian", "value": {"mu": 500, "sigma": 50, "tau": 100}}},
+        "performance": {"accuracy": {"go": 0.95}, "omission_rate": {"go": 0.02}, "practice_accuracy": 0.9},
+        "temporal_effects": {"post_event_slowing": {"value": {"enabled": True, "triggers": ["error"]}}},
+        "between_subject_jitter": {"value": {}},
+    }
+    failing_slots = ["temporal_effects.post_event_slowing"]
+    errors = [("temporal_effects.post_event_slowing.value.triggers.0", "'error' is not of type 'object'")]
+    prompt = _render_slot_refinement_prompt(partial, failing_slots, errors)
+
+    # Sanity checks: the rendered prompt should mention failing slots and the error.
+    assert "temporal_effects.post_event_slowing" in prompt
+    assert "'error' is not of type 'object'" in prompt
+    # Should reference previously-validated context (a marker like "do NOT modify"):
+    assert "do NOT modify" in prompt or "do not modify" in prompt.lower()
+
+
+def test_render_slot_refinement_prompt_locks_validated_slots():
+    """Validated slots appear in the prompt as locked context;
+    failing slots appear as targets for regeneration."""
+    from experiment_bot.reasoner.stage2_behavioral import _render_slot_refinement_prompt
+    partial = {
+        "response_distributions": {"go": {"distribution": "ex_gaussian", "value": {"mu": 500, "sigma": 50, "tau": 100}}},
+        "performance": {"accuracy": {"go": 0.95}},
+        "temporal_effects": {"post_event_slowing": {"value": {"enabled": True, "triggers": ["error"]}}},
+    }
+    failing_slots = ["temporal_effects.post_event_slowing"]
+    prompt = _render_slot_refinement_prompt(partial, failing_slots, [])
+
+    # The validated content must appear in the locked-context section.
+    assert "response_distributions" in prompt
+    assert "performance" in prompt

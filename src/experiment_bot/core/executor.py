@@ -305,6 +305,8 @@ class TaskExecutor:
                 logger.info("Navigating instructions...")
                 await self._navigator.execute_all(page, self._config.navigation)
 
+                await self._install_keydown_listener(page)
+
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
                 await self._trial_loop(page)
@@ -581,6 +583,28 @@ class TaskExecutor:
                 # Page context may be torn down by navigation — treat as trial ended
                 return
             await asyncio.sleep(poll_s)
+
+    async def _install_keydown_listener(self, page) -> None:
+        """Inject a paradigm-agnostic keydown listener at session start.
+
+        The listener writes to `window.__bot_keydown_log` (an array of
+        {key, code, time} dicts). The per-trial drain reads and clears
+        this array, surfacing the keys the PAGE's listener actually
+        received — useful for diagnosing layer-by-layer mismatches
+        between bot.keyboard.press, Playwright dispatch, page handler,
+        and platform recording.
+
+        Capture-phase listener so we see the event before any
+        application-level handler can modify or stop propagation.
+        """
+        await page.evaluate(
+            "window.__bot_keydown_log = [];"
+            " document.addEventListener('keydown', (e) => {"
+            "   window.__bot_keydown_log.push({"
+            "     key: e.key, code: e.code, time: Date.now()"
+            "   });"
+            " }, true);"
+        )
 
     def _stimulus_detection_js(self, stim) -> str | None:
         """Return a JS expression that returns truthy while ``stim`` is

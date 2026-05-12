@@ -60,3 +60,40 @@ async def test_install_keydown_listener_resets_log():
     for call in page.evaluate.call_args_list:
         js = call.args[0]
         assert "window.__bot_keydown_log = []" in js
+
+
+@pytest.mark.asyncio
+async def test_drain_keydown_log_returns_captured_keys():
+    stub = _stub_executor()
+    page = AsyncMock()
+    captured = [{"key": ",", "code": "Comma", "time": 12345}]
+    page.evaluate = AsyncMock(return_value=captured)
+    result = await stub._drain_keydown_log(page)
+    assert result == captured
+    page.evaluate.assert_called_once()
+    js = page.evaluate.call_args.args[0]
+    # Drain JS must:
+    # - Read window.__bot_keydown_log (or default to []).
+    # - Clear the array after reading (so next trial doesn't double-count).
+    assert "window.__bot_keydown_log" in js
+    assert "= []" in js  # the reset
+
+
+@pytest.mark.asyncio
+async def test_drain_keydown_log_returns_empty_when_no_events():
+    stub = _stub_executor()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[])
+    result = await stub._drain_keydown_log(page)
+    assert result == []
+
+
+@pytest.mark.asyncio
+async def test_drain_keydown_log_returns_none_on_evaluate_failure():
+    """If page.evaluate raises (page tearing down), drain returns None
+    rather than propagating the exception. Trial logging must continue."""
+    stub = _stub_executor()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=Exception("page closed"))
+    result = await stub._drain_keydown_log(page)
+    assert result is None

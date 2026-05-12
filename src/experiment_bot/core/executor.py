@@ -606,6 +606,26 @@ class TaskExecutor:
             " }, true);"
         )
 
+    async def _drain_keydown_log(self, page) -> list | None:
+        """Read-and-clear the page-side keydown log. Returns the list
+        of {key, code, time} dicts captured since the last drain, or
+        None if `page.evaluate` raises (e.g., page navigation tore
+        down the context).
+
+        Reset pattern: read existing log, then assign a fresh empty
+        array so subsequent trials don't double-count earlier events.
+        """
+        try:
+            return await page.evaluate(
+                "(() => {"
+                "  const log = window.__bot_keydown_log || [];"
+                "  window.__bot_keydown_log = [];"
+                "  return log;"
+                "})()"
+            )
+        except Exception:
+            return None
+
     def _stimulus_detection_js(self, stim) -> str | None:
         """Return a JS expression that returns truthy while ``stim`` is
         currently on screen. Used as a fallback for `_wait_for_trial_end`

@@ -221,13 +221,36 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   non-keydown source). Aggregate accuracy still ~93% by coincidence
   of 2-key choice + valid-key filter. See `docs/sp7-results.md`. Tag
   `sp7-complete`. ✓ Complete.
-- **SP8** (candidate): per SP7 recommendation, option B — runtime
-  fallback that cross-checks the bot's `response_key_js` against the
-  page's `window.correctResponse` (or equivalent) when defined.
-  Paradigm-agnostic; no Stage 1 prompt edit. Higher-leverage than
-  Stage 1 improvement because no LLM call required. Should improve
-  per-trial alignment on Flanker and any other paradigm with dynamic
-  key resolution.
+- **SP8**: Stage 1 multi-source `response_key_js` prompt. Per the
+  user's redirection during SP8 brainstorm (the original SP7 Option B
+  was rejected as paradigm-overfitting), the scope shifted to a
+  Stage 1 prompt edit: append a `## Multi-source response_key_js
+  extraction` section to `src/experiment_bot/prompts/system.md`
+  instructing Stage 1 to emit a fallback chain (runtime variable
+  first, DOM-derived computation second, static keymap third).
+  Internal: 530 passed (was 524); +6 invariant tests. External:
+  regenerated 4/6 paradigm TaskCards (Flanker failed on Stage 4
+  openalex.py list/string crash; cognitionrun_stroop failed on
+  Stage 6 pilot exhausted). All 4 successful TaskCards follow
+  Pattern B with window.correctResponse check FIRST. Per-trial
+  alignment: **n-back 49.8% → 72.1%** (clear win, page exposes
+  window.correctResponse); stroop/stop_signal_expfactory/stop-it
+  stayed at chance (DOM-derived fallback still unreliable for
+  paradigms without window.correctResponse). See
+  `docs/sp8-results.md`. Tag `sp8-complete`. ✓ Complete.
+- **SP9** (planned): architectural cleanup brainstorm. User raised
+  during SP8 brainstorm — codebase has accumulated parallel retry
+  mechanisms, oneOf envelopes, per-paradigm adapters, six Reasoner
+  stages, and defensive fallback layers. Runtime-LLM partition is a
+  key design consideration: per-trial LLM calls infeasible for
+  speeded paradigms; setup/ITI/transition decisions are fair game.
+  SP8 extended the SP9 backlog: Stage 4 openalex.py defensive fix,
+  Stage 6 pilot timing fragility, DOM-derived fallback unreliability
+  for paradigms without `window.correctResponse`.
+- **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
+  documents adversarial review instructions for a fresh Claude session
+  to interrogate the abstract's central claim. Update on every
+  SP-complete tag.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

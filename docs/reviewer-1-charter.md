@@ -221,7 +221,7 @@ Update timing: ideally within the SP that introduced the change (a commit on the
 
 ## 9. Latest framework state (auto-updated by maintenance)
 
-**Last reviewed at:** `sp7-complete` (SP8 in flight on `sp8/stage1-response-key-prompt` branch — re-read after SP8 lands).
+**Last reviewed at:** `sp8-complete` (SP9 architectural-cleanup brainstorm pending — re-read after SP9 lands).
 
 **Current paradigms with TaskCards** (as of `sp7-complete`):
 - `expfactory_flanker` (held-out): Pattern-B-ish dynamic-key extraction; per-trial alignment ~50%.
@@ -240,10 +240,12 @@ Update timing: ideally within the SP that introduced the change (a commit on the
 
 **Held-out paradigms confirmed to produce TaskCards** (post-SP6): Flanker, n-back.
 
-**Known unresolved fragility (post-SP7)**:
-- Per-trial alignment broken on dynamic-key paradigms. SP8 in flight to fix at the Stage 1 prompt layer.
+**Known unresolved fragility (post-SP8)**:
+- **Per-trial alignment improved for paradigms exposing `window.correctResponse`** (n-back 49.8% → 72.1%). Still ~chance for paradigms without that runtime variable (stroop, stop_signal_expfactory, stop-it). The Pattern B DOM-derived fallback inherits SP7's layer (a) unreliability when the source-code-inferred mapping is wrong.
+- `page_received == platform_recorded` stays at 26-64% across paradigms (SP7 layer d) — the platform's response column is populated from a non-keydown source. Unchanged by SP8.
 - `cse_magnitude` not computable on the current pipeline for some paradigms.
-- Stage 6 pilot can succeed-without-validation (writes TaskCard despite pilot failing all attempts).
+- Stage 6 pilot can succeed-without-validation (writes TaskCard despite pilot failing all attempts) OR fail outright on slow-loading pages (SP8 saw Flanker initial run + cognitionrun_stroop both fail this way).
+- `Stage 4 openalex.py:36` crashes on list-shaped `expected_authors` (encountered in SP8 Flanker retry). One-line defensive fix pending SP9.
 
 ---
 

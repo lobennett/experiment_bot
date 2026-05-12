@@ -196,10 +196,24 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   gap: Flanker post_error_slowing -7.23ms (facilitation) vs expected
   +10-50ms (n-back's PES correct at +16.30ms in same framework, so
   paradigm-specific). Tag `sp5-complete`. ✓ Complete.
-- **SP6** (planned): investigate Flanker PES sign-flip — likely
-  related to lag1_pair_modulation runtime-vs-TaskCard label mismatch
-  (Item 3 in `docs/sp2-validation-followups.md`). Highest-priority
-  fidelity-gap from SP5.
+- **SP6**: Executor trial-end fallback. SP5's "Flanker PES sign-flip"
+  finding root-caused to a deeper bug: `runtime.timing.response_window_js`
+  was None for Flanker / n-back / stroop, causing the executor's
+  polling loop to re-detect the same stimulus and double-fire trial
+  handlers (2-3× over-firing). Single-file fix in core/executor.py:
+  `_wait_for_trial_end` accepts a `fallback_js` kwarg; new
+  `_stimulus_detection_js` helper builds the fallback from the matched
+  stimulus's detection config with per-stim.id caching; post-trial
+  call site passes the fallback. Internal: 517 passed (was 505); +12
+  tests. External: Flanker over-firing 2.05× → 1.02× aggregate; PES
+  −7.23ms → +35.43ms (squarely in configured 25-55ms range). Tag
+  `sp6-complete`. ✓ Complete.
+- **SP7** (candidate): bot.intended_error vs platform.correct_trial
+  per-trial alignment is still poor even with over-firing gone
+  (intersection 0 vs chance 2.4 in SP6 Flanker). Likely the bot's
+  `response_key_js` returns a slightly-wrong key on some fraction of
+  trials, OR the bot's response-key tracking needs to consult platform
+  state rather than internal flags. Investigate before scoping fix.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

@@ -534,11 +534,20 @@ class TaskExecutor:
 
             # After responding, wait for the response window to close (next trial's
             # fixation) to avoid re-detecting the same stimulus and pressing into
-            # the wrong trial.
-            if timing.response_window_js:
+            # the wrong trial. Prefer the paradigm's response_window_js when
+            # extracted by Stage 1; fall back to the matched stimulus's own
+            # detection JS so paradigms without a response_window_js still avoid
+            # over-firing (SP5 root-caused this gap for Flanker, n-back, stroop).
+            stim_cfg = next(
+                (s for s in self._config.stimuli if s.id == match.stimulus_id),
+                None,
+            )
+            fallback = self._stimulus_detection_js(stim_cfg) if stim_cfg else None
+            if timing.response_window_js or fallback:
                 await self._wait_for_trial_end(
                     page,
                     timing.response_window_js,
+                    fallback_js=fallback,
                     timeout_s=timing.trial_end_timeout_s,
                 )
 

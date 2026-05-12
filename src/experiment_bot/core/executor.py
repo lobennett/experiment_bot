@@ -626,6 +626,33 @@ class TaskExecutor:
         except Exception:
             return None
 
+    async def _log_trial_with_keypress_diag(
+        self,
+        *,
+        page,
+        base_payload: dict,
+        resolved_key_pre_error: str | None,
+    ) -> None:
+        """Drain the page's keydown log and write an augmented trial
+        entry. Adds two fields to `base_payload`:
+
+        - resolved_key_pre_error: the bot's response_key_js result
+          before `_pick_wrong_key` flipped it for an intended-error
+          trial. When intended_error=False, this equals
+          base_payload['response_key'].
+        - page_received_keys: list of {key, code, time} the page's
+          listener captured since the last drain. None if drain
+          failed (page teardown).
+
+        Both fields are paradigm-agnostic — they describe the
+        runtime layer between bot and platform, not paradigm content.
+        """
+        page_received_keys = await self._drain_keydown_log(page)
+        payload = dict(base_payload)
+        payload["resolved_key_pre_error"] = resolved_key_pre_error
+        payload["page_received_keys"] = page_received_keys
+        self._writer.log_trial(payload)
+
     def _stimulus_detection_js(self, stim) -> str | None:
         """Return a JS expression that returns truthy while ``stim`` is
         currently on screen. Used as a fallback for `_wait_for_trial_end`
@@ -880,22 +907,27 @@ class TaskExecutor:
             self._prev_interrupt_detected = False
             return
 
+        resolved_key_pre_error = resolved_key  # capture before any flip
         if is_error:
             resolved_key = self._pick_wrong_key(resolved_key)
         await page.keyboard.press(resolved_key)
 
-        self._writer.log_trial({
-            "trial": self._trial_count,
-            "stimulus_id": match.stimulus_id,
-            "condition": condition,
-            "response_key": resolved_key,
-            "sampled_rt_ms": round(rt_ms, 1),
-            "actual_rt_ms": round(actual_rt, 1),
-            "omission": False,
-            "intended_error": is_error,
-            "rt_distribution": rt_condition,
-            "cue": cue,
-        })
+        await self._log_trial_with_keypress_diag(
+            page=page,
+            base_payload={
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": condition,
+                "response_key": resolved_key,
+                "sampled_rt_ms": round(rt_ms, 1),
+                "actual_rt_ms": round(actual_rt, 1),
+                "omission": False,
+                "intended_error": is_error,
+                "rt_distribution": rt_condition,
+                "cue": cue,
+            },
+            resolved_key_pre_error=resolved_key_pre_error,
+        )
         self._recent_errors.appendleft(is_error)
         self._prev_interrupt_detected = False
 

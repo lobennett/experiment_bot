@@ -97,3 +97,61 @@ async def test_drain_keydown_log_returns_none_on_evaluate_failure():
     page.evaluate = AsyncMock(side_effect=Exception("page closed"))
     result = await stub._drain_keydown_log(page)
     assert result is None
+
+
+@pytest.mark.asyncio
+async def test_log_trial_includes_new_keypress_fields():
+    """After Task 3 wiring: the trial log entry must include
+    resolved_key_pre_error and page_received_keys."""
+    from unittest.mock import MagicMock
+    stub = _stub_executor()
+    # Stub _writer to capture log_trial calls.
+    log_calls = []
+    stub._writer = MagicMock()
+    stub._writer.log_trial = lambda payload: log_calls.append(payload)
+    # Stub page with a drainable log.
+    page = AsyncMock()
+    captured_keys = [{"key": ",", "code": "Comma", "time": 1000}]
+    page.evaluate = AsyncMock(return_value=captured_keys)
+
+    payload = {
+        "trial": 1,
+        "stimulus_id": "go",
+        "condition": "congruent",
+        "response_key": ",",  # post-_pick_wrong_key
+    }
+    await stub._log_trial_with_keypress_diag(
+        page=page,
+        base_payload=payload,
+        resolved_key_pre_error=".",
+    )
+    assert len(log_calls) == 1
+    written = log_calls[0]
+    # Existing fields preserved
+    assert written["trial"] == 1
+    assert written["response_key"] == ","
+    # New fields added
+    assert written["resolved_key_pre_error"] == "."
+    assert written["page_received_keys"] == captured_keys
+
+
+@pytest.mark.asyncio
+async def test_log_trial_with_keypress_diag_handles_drain_failure():
+    """If drain fails, page_received_keys=None but trial still logs."""
+    from unittest.mock import MagicMock
+    stub = _stub_executor()
+    log_calls = []
+    stub._writer = MagicMock()
+    stub._writer.log_trial = lambda payload: log_calls.append(payload)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=Exception("page closed"))
+
+    payload = {"trial": 1, "response_key": ","}
+    await stub._log_trial_with_keypress_diag(
+        page=page,
+        base_payload=payload,
+        resolved_key_pre_error=".",
+    )
+    assert log_calls[0]["page_received_keys"] is None
+    assert log_calls[0]["trial"] == 1
+    assert log_calls[0]["response_key"] == ","

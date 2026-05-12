@@ -539,15 +539,30 @@ class TaskExecutor:
                 )
 
     async def _wait_for_trial_end(
-        self, page: Page, response_window_js: str, timeout_s: float = 5.0
+        self,
+        page: Page,
+        response_window_js: str | None,
+        *,
+        fallback_js: str | None = None,
+        timeout_s: float = 5.0,
     ) -> None:
-        """Wait for the response window to close, indicating the current trial ended."""
+        """Wait for the trial response window to close.
+
+        Prefer `response_window_js` if present (Stage 1 extraction got
+        it). Otherwise fall back to `fallback_js` (typically the matched
+        stimulus's own detection JS — wait for it to stop matching).
+        When both are None, return immediately (no-op behavior preserved
+        for paradigms with neither signal).
+        """
+        js = response_window_js or fallback_js
+        if not js:
+            return
         poll_s = self._config.runtime.timing.poll_interval_ms / 1000.0
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
             try:
-                ready = await page.evaluate(response_window_js)
-                if not ready:
+                still_active = await page.evaluate(js)
+                if not still_active:
                     return
             except Exception:
                 # Page context may be torn down by navigation — treat as trial ended

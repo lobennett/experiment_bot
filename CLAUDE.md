@@ -208,12 +208,26 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   tests. External: Flanker over-firing 2.05× → 1.02× aggregate; PES
   −7.23ms → +35.43ms (squarely in configured 25-55ms range). Tag
   `sp6-complete`. ✓ Complete.
-- **SP7** (candidate): bot.intended_error vs platform.correct_trial
-  per-trial alignment is still poor even with over-firing gone
-  (intersection 0 vs chance 2.4 in SP6 Flanker). Likely the bot's
-  `response_key_js` returns a slightly-wrong key on some fraction of
-  trials, OR the bot's response-key tracking needs to consult platform
-  state rather than internal flags. Investigate before scoping fix.
+- **SP7**: Keypress diagnostic (investigation-only). Added
+  paradigm-agnostic page-level keydown listener (capture phase) at
+  session start, per-trial drain, and two new bot_log fields
+  (`resolved_key_pre_error`, `page_received_keys`). Generic
+  `scripts/keypress_audit.py` uses `PLATFORM_ADAPTERS` dispatch.
+  Internal: 524 passed (was 517); +7 tests. External: 4-way audit
+  across 5 Flanker sessions (600 trials) named two compounding
+  layers — (a) bot's `response_key_js` extraction ~50% match to
+  platform_expected (essentially random in 2-key paradigm); (d)
+  page_received vs platform_recorded only 44% (platform reads from a
+  non-keydown source). Aggregate accuracy still ~93% by coincidence
+  of 2-key choice + valid-key filter. See `docs/sp7-results.md`. Tag
+  `sp7-complete`. ✓ Complete.
+- **SP8** (candidate): per SP7 recommendation, option B — runtime
+  fallback that cross-checks the bot's `response_key_js` against the
+  page's `window.correctResponse` (or equivalent) when defined.
+  Paradigm-agnostic; no Stage 1 prompt edit. Higher-leverage than
+  Stage 1 improvement because no LLM call required. Should improve
+  per-trial alignment on Flanker and any other paradigm with dynamic
+  key resolution.
 - **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
   overnight runs.
 

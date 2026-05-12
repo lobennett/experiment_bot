@@ -1,0 +1,82 @@
+{
+  "paradigm_class": "conflict",
+  "overall_pass": false,
+  "summary": "paradigm_class=conflict pass=False",
+  "pillar_results": {
+    "rt_distribution": {
+      "pass": false,
+      "metrics": {
+        "mu": {
+          "bot_value": 486.2994385384249,
+          "published_range": [
+            400,
+            550
+          ],
+          "pass": true
+        },
+        "sigma": {
+          "bot_value": 73.28743386565488,
+          "published_range": [
+            25,
+            60
+          ],
+          "pass": false
+        },
+        "tau": {
+          "bot_value": 86.1449285813381,
+          "published_range": [
+            70,
+            160
+          ],
+          "pass": true
+        }
+      }
+    },
+    "individual_differences": {
+      "pass": true,
+      "metrics": {
+        "mu_sd": {
+          "bot_value": 48.12633461154071,
+          "published_range": null,
+          "pass": null
+        },
+        "sigma_sd": {
+          "bot_value": 12.186481417074768,
+          "published_range": null,
+          "pass": null
+        },
+        "tau_sd": {
+          "bot_value": 14.781616409687388,
+          "published_range": null,
+          "pass": null
+        }
+      }
+    },
+    "sequential": {
+      "pass": true,
+      "metrics": {
+        "lag1_autocorr": {
+          "bot_value": 0.2656688225467242,
+          "published_range": null,
+          "pass": null
+        },
+        "post_error_slowing": {
+          "bot_value": 35.43377609108154,
+          "published_range": [
+            10,
+            50
+          ],
+          "pass": true
+        },
+        "cse_magnitude": {
+          "bot_value": null,
+          "published_range": [
+            -45,
+            -10
+          ],
+          "pass": null
+        }
+      }
+    }
+  }
+}

@@ -93,3 +93,64 @@ async def test_wait_returns_on_evaluate_exception():
         page, "any_js", fallback_js=None, timeout_s=1.0,
     )
     page.evaluate.assert_called_once()
+
+
+def _stim(method: str, selector: str, stim_id: str = "test_stim"):
+    """Build a stimulus stub with .id, .detection.method, .detection.selector."""
+    detection = SimpleNamespace(method=method, selector=selector)
+    return SimpleNamespace(id=stim_id, detection=detection)
+
+
+def test_stimulus_detection_js_dom_query():
+    stub = _stub_executor()
+    stim = _stim("dom_query", ".foo")
+    js = stub._stimulus_detection_js(stim)
+    assert js == "document.querySelector('.foo') !== null"
+
+
+def test_stimulus_detection_js_js_eval():
+    stub = _stub_executor()
+    stim = _stim("js_eval", "window.x === 1")
+    js = stub._stimulus_detection_js(stim)
+    assert js == "!!(window.x === 1)"
+
+
+def test_stimulus_detection_js_canvas_state():
+    stub = _stub_executor()
+    stim = _stim("canvas_state", "ctx.getImageData(0,0,1,1)[0] > 100")
+    js = stub._stimulus_detection_js(stim)
+    assert js == "!!(ctx.getImageData(0,0,1,1)[0] > 100)"
+
+
+def test_stimulus_detection_js_quotes_safely():
+    """A dom_query selector containing a single quote must be escaped
+    so the resulting JS is valid (mirrors _build_interrupt_check_js's
+    pattern of replacing `'` with `\\'` before string interpolation)."""
+    stub = _stub_executor()
+    stim = _stim("dom_query", "div[data-name='foo']")
+    js = stub._stimulus_detection_js(stim)
+    assert js == "document.querySelector('div[data-name=\\'foo\\']') !== null"
+
+
+def test_stimulus_detection_js_caches():
+    """Same stimulus -> result cached; second call returns identical
+    string and does not re-build."""
+    stub = _stub_executor()
+    stim = _stim("js_eval", "expr", stim_id="cache_me")
+    js1 = stub._stimulus_detection_js(stim)
+    # Mutate the underlying selector after first call; cached result must NOT change.
+    stim.detection.selector = "MUTATED"
+    js2 = stub._stimulus_detection_js(stim)
+    assert js2 == js1
+
+
+def test_stimulus_detection_js_returns_none_for_empty_selector():
+    stub = _stub_executor()
+    stim = _stim("js_eval", "")
+    assert stub._stimulus_detection_js(stim) is None
+
+
+def test_stimulus_detection_js_returns_none_for_unknown_method():
+    stub = _stub_executor()
+    stim = _stim("unknown_method", "anything")
+    assert stub._stimulus_detection_js(stim) is None

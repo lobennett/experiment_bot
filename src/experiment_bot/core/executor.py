@@ -109,6 +109,10 @@ class TaskExecutor:
 
         # Resolve static key mappings from task_specific
         self._key_map = self._resolve_key_mapping(config)
+        # Per-stimulus-id cache of fallback detection JS, populated lazily by
+        # _stimulus_detection_js. Stimuli are immutable for the session so
+        # the build cost is paid once per id.
+        self._stimulus_detection_js_cache: dict[str, str | None] = {}
         # Cache interrupt JS — config is immutable so this never changes
         self._interrupt_js = self._build_interrupt_check_js()
         # Cache condition names — config is immutable, no need to recompute per trial
@@ -568,6 +572,30 @@ class TaskExecutor:
                 # Page context may be torn down by navigation — treat as trial ended
                 return
             await asyncio.sleep(poll_s)
+
+    def _stimulus_detection_js(self, stim) -> str | None:
+        """Return a JS expression that returns truthy while ``stim`` is
+        currently on screen. Used as a fallback for `_wait_for_trial_end`
+        when the paradigm's `runtime.timing.response_window_js` is
+        missing (Stage 1 didn't extract it).
+
+        Caches per-stimulus-id so the build cost is paid once.
+        """
+        cache_key = stim.id
+        if cache_key in self._stimulus_detection_js_cache:
+            return self._stimulus_detection_js_cache[cache_key]
+        sel = stim.detection.selector
+        if not sel:
+            result = None
+        elif stim.detection.method == "dom_query":
+            sel_q = sel.replace("'", "\\'")
+            result = f"document.querySelector('{sel_q}') !== null"
+        elif stim.detection.method in ("js_eval", "canvas_state"):
+            result = f"!!({sel})"
+        else:
+            result = None
+        self._stimulus_detection_js_cache[cache_key] = result
+        return result
 
     def _build_interrupt_check_js(self) -> str | None:
         """Build a JS expression that detects any interrupt stimulus.

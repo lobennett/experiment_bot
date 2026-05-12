@@ -278,3 +278,73 @@ to populate them causes the pipeline to abort with a specific error.
 | `runtime.data_capture.button_selector` | `method == "button_click"` | CSS selector for "show data" button |
 | `runtime.data_capture.result_selector` | `method == "button_click"` | CSS selector for result element |
 | `runtime.data_capture.format` | `method != ""` | `csv`, `tsv`, or `json` |
+
+## Multi-source response_key_js extraction
+
+When the page's correct response varies per trial (counterbalanced keymaps, runtime stimulus-dependent mappings, etc.), the `response_key_js` field for each stimulus must be shaped as a **multi-source fallback chain**. The chain checks the page's authoritative runtime variable FIRST, then falls back to a computed mapping only when the runtime variable is undefined.
+
+Many platforms expose `window.correctResponse` (or equivalent runtime variable) holding the trial's expected key. When the page provides this, it is the highest-fidelity source — strictly preferred over any computation the bot does from page state. Computing the mapping from DOM and counterbalancing variables can drift from the platform's actual scoring; reading the page's own variable does not.
+
+The three patterns below cover the canonical cases. Pick the one that matches the paradigm's runtime architecture.
+
+### Pattern A — page exposes a runtime correct-key variable
+
+Use this when the source code shows the page setting `window.correctResponse` (or similar variable holding the expected key) at trial start. The bot reads the variable directly; no DOM-derived computation needed.
+
+```javascript response-key-example: runtime-variable
+(typeof window.correctResponse !== 'undefined' ? window.correctResponse : null)
+```
+
+### Pattern B — page does NOT expose a runtime variable; mapping must be computed from DOM + counterbalancing state
+
+Use this when the page's correct response depends on the displayed stimulus AND a counterbalancing variable (e.g., `window.efVars.group_index`, a participant-condition flag, etc.). Even here, the multi-source rule applies: check the runtime variable FIRST in case the page is in fact setting it. Only fall through to the computed mapping when the runtime variable is absent.
+
+```javascript response-key-example: dom-plus-state
+(() => {
+  // Prefer the page's runtime variable when defined.
+  if (typeof window.correctResponse !== 'undefined') return window.correctResponse;
+  // Fallback: compute from DOM + counterbalancing state.
+  const m = document.querySelector('<stimulus-img-selector>');
+  if (!m) return null;
+  const isTargetVariant = (m.src || '').includes('<target-substring>');
+  const g = (window.efVars && typeof window.efVars.group_index === 'number')
+    ? window.efVars.group_index : 1;
+  const isLowGroup = (g >= 0 && g <= 4);
+  // Replace the literal keys below with the paradigm's actual keys.
+  return isTargetVariant ? (isLowGroup ? '<key-A>' : '<key-B>')
+                         : (isLowGroup ? '<key-B>' : '<key-A>');
+})()
+```
+
+The placeholders (`<stimulus-img-selector>`, `<target-substring>`, `<key-A>`, `<key-B>`) are illustrative. Stage 1 should fill them with the actual selectors, substrings, and key strings extracted from the source code.
+
+### Pattern C — static keymap (no JS needed for response_key_js)
+
+Use this when the source code defines a fixed key per condition with no runtime variability (every congruent trial answered with `f`, every incongruent with `j`, etc.). In this case, leave `response_key_js` empty for the stimulus and emit the literal key strings in `task_specific.key_map`:
+
+```json
+"task_specific": {
+  "key_map": {
+    "congruent": "f",
+    "incongruent": "j"
+  }
+}
+```
+
+The executor reads `task_specific.key_map[condition]` when `response_key_js` is empty, so this is the minimal-JS path for paradigms with fixed mappings.
+
+### Anti-example — what NOT to emit
+
+The pattern below is fragile because it computes from DOM state WITHOUT checking for the page's runtime variable first. When the page does expose `window.correctResponse`, this anti-pattern ignores it and instead recomputes a mapping that may not match the platform's actual scoring (causing per-trial response_key drift between bot and platform):
+
+```javascript response-key-anti-example: static-only-without-fallback
+(() => {
+  // BAD: no check for window.correctResponse before computing.
+  const m = document.querySelector('<stimulus-img-selector>');
+  return (m.src || '').includes('<target-substring>') ? '<key-A>' : '<key-B>';
+})()
+```
+
+If `window.correctResponse` is defined on this page, the anti-example's drift is silent — the bot's resolved key differs from the platform's expected on counterbalancing-dependent trials, and the only way to detect this is the SP7-style keypress audit.
+
+Always emit Pattern A or Pattern B (or omit `response_key_js` per Pattern C). Never emit the anti-example shape.

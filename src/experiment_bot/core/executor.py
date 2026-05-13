@@ -66,6 +66,7 @@ class TaskExecutor:
         seed: int | None = None,
         headless: bool = False,
         session_params: dict | None = None,
+        session_agent=None,  # SP9a: SessionAgent instance for runtime key resolution
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -123,6 +124,11 @@ class TaskExecutor:
             config.runtime.attention_check.stimulus_conditions
         ) or {"attention_check", "attention_check_response"}
 
+        # SP9a: SessionAgent runtime key resolution
+        self._session_agent = session_agent
+        self._runtime_key_mapping: dict[str, str] | None = None
+        self._session_agent_directive = None  # KeyMappingDirective | None
+
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
         """Resolve key mappings from config.task_specific.key_map."""
@@ -130,6 +136,36 @@ class TaskExecutor:
         if "key_map" in ts:
             return dict(ts["key_map"])
         return {}
+
+    async def _invoke_session_agent(self, page: Page) -> None:
+        """SP9a: run the SessionAgent once per session after navigation.
+
+        Caches the resolved condition→key mapping into self._runtime_key_mapping
+        and the full directive (for run_metadata) into self._session_agent_directive.
+        Skipped when session_agent_enabled is False or no agent was attached.
+        """
+        if not getattr(self._config.runtime, "session_agent_enabled", True):
+            return
+        if self._session_agent is None:
+            return
+        try:
+            task_card_dict = (
+                self._taskcard.to_dict()
+                if self._taskcard is not None
+                else self._config.to_dict()
+            )
+        except Exception:
+            task_card_dict = {}
+        directive = await self._session_agent.resolve_key_mapping(
+            page=page,
+            task_card=task_card_dict,
+        )
+        self._runtime_key_mapping = directive.mapping
+        self._session_agent_directive = directive
+        logger.info(
+            "SessionAgent: source=%s confidence=%.2f mapping=%s",
+            directive.source, directive.confidence, directive.mapping,
+        )
 
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
@@ -169,6 +205,7 @@ class TaskExecutor:
         """Resolve the actual key to press for a stimulus match.
 
         Resolution order:
+        0. SP9a runtime mapping (SessionAgent's directive, if any)
         1. Static key from stimulus config
         2. Per-stimulus response_key_js (evaluated on page)
         3. Global task_specific.response_key_js (evaluated on page)
@@ -178,6 +215,14 @@ class TaskExecutor:
         withhold sentinel ("", None, "none", "null" — case-insensitive).
         Callers must treat None as "do not press any key".
         """
+        # SP9a: SessionAgent runtime mapping has priority
+        runtime_map = getattr(self, "_runtime_key_mapping", None)
+        if runtime_map is not None:
+            runtime_key = runtime_map.get(match.condition)
+            if runtime_key and not self._is_withhold_sentinel(runtime_key):
+                self._seen_response_keys.add(runtime_key)
+                return runtime_key
+
         # Static key from config
         if match.response_key and match.response_key not in ("dynamic_mapping", "dynamic"):
             self._seen_response_keys.add(match.response_key)
@@ -307,6 +352,9 @@ class TaskExecutor:
 
                 await self._install_keydown_listener(page)
 
+                # SP9a: one-call-per-session LLM key-mapping resolution
+                await self._invoke_session_agent(page)
+
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
                 await self._trial_loop(page)
@@ -352,6 +400,8 @@ class TaskExecutor:
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
+                if self._session_agent_directive is not None:
+                    metadata["session_agent_directive"] = self._session_agent_directive.to_dict()
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 await browser.close()

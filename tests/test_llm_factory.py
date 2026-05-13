@@ -56,3 +56,19 @@ def test_factory_explicit_api_raises_if_no_key():
     with patch.dict(os.environ, {"EXPERIMENT_BOT_LLM_CLIENT": "api"}, clear=True):
         with pytest.raises(RuntimeError, match="ANTHROPIC_API_KEY"):
             build_default_client()
+
+
+def test_build_default_client_accepts_model_override():
+    """Callers can request a specific model. The returned client carries
+    that model through to its model attribute."""
+    with patch("shutil.which", return_value="/path/to/claude"):
+        client = build_default_client(model="claude-haiku-4-5")
+    assert client._model == "claude-haiku-4-5"
+
+
+def test_build_default_client_defaults_to_client_default_model():
+    """No model override → client uses its own default."""
+    with patch("shutil.which", return_value="/path/to/claude"):
+        client = build_default_client()
+    # ClaudeCLIClient default is claude-opus-4-7
+    assert client._model == "claude-opus-4-7"

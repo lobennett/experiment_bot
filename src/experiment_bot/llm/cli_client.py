@@ -31,7 +31,15 @@ class ClaudeCLIClient:
         user: str,
         max_tokens: int = 16384,
         output_format: Literal["text", "json"] = "text",
+        images: list[bytes] | None = None,
     ) -> LLMResponse:
+        if images:
+            logger.warning(
+                "ClaudeCLIClient received %d image(s); CLI multimodal is not "
+                "supported. Proceeding text-only. Use ClaudeAPIClient "
+                "(EXPERIMENT_BOT_LLM_CLIENT=api) for screenshots.",
+                len(images),
+            )
         # Combine system + user; the CLI doesn't separate them. Convention:
         # prepend system as a labeled section so the model can find it.
         prompt = f"[SYSTEM]\n{system}\n[/SYSTEM]\n\n{user}"

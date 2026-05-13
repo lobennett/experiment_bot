@@ -77,3 +77,21 @@ async def test_cli_client_failure_raises_with_stderr():
         client = ClaudeCLIClient(claude_binary="claude")
         with pytest.raises(RuntimeError, match="some other failure"):
             await client.complete(system="sys", user="usr")
+
+
+@pytest.mark.asyncio
+async def test_cli_client_accepts_images_kwarg_for_protocol_compatibility(caplog):
+    """The CLI client must accept images=list[bytes] for Protocol compatibility.
+    It logs a warning and proceeds with text-only (no CLI multimodal yet)."""
+    import logging
+    proc = MagicMock()
+    proc.communicate = AsyncMock(
+        return_value=(json.dumps({"result": "ok"}).encode(), b"")
+    )
+    proc.returncode = 0
+    with caplog.at_level(logging.WARNING):
+        with patch("asyncio.create_subprocess_exec", AsyncMock(return_value=proc)):
+            client = ClaudeCLIClient(claude_binary="claude")
+            result = await client.complete(system="sys", user="usr", images=[b"png-bytes"])
+    assert result.text == "ok"
+    assert "image" in caplog.text and "text-only" in caplog.text

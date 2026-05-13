@@ -17,5 +17,6 @@ class LLMClient(Protocol):
         user: str,
         max_tokens: int = 16384,
         output_format: Literal["text", "json"] = "text",
+        images: list[bytes] | None = None,
     ) -> LLMResponse:
         ...

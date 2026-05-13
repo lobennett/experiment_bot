@@ -119,3 +119,138 @@ async def test_capture_screenshot_returns_empty_bytes_on_failure():
     page.screenshot = AsyncMock(side_effect=Exception("page closed"))
     got = await page_probe.capture_screenshot(page)
     assert got == b""
+
+
+import json
+from unittest.mock import AsyncMock, MagicMock
+
+from experiment_bot.agent.session_agent import SessionAgent
+from experiment_bot.llm.protocol import LLMResponse
+
+
+def _scripted_client(text: str):
+    """Stub LLMClient whose complete() returns LLMResponse(text=text)."""
+    client = MagicMock()
+    client.complete = AsyncMock(return_value=LLMResponse(text=text))
+    return client
+
+
+def _stub_page(globals_dict: dict, dom: str, screenshot: bytes):
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=globals_dict)
+    page.content = AsyncMock(return_value=dom)
+    page.screenshot = AsyncMock(return_value=screenshot)
+    return page
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_returns_directive_from_llm_response():
+    """Happy path: LLM returns valid JSON with mapping + source + confidence."""
+    llm_text = json.dumps({
+        "mapping": {"congruent": "z", "incongruent": "/"},
+        "source": "screenshot_inference",
+        "confidence": 0.85,
+    })
+    client = _scripted_client(llm_text)
+    page = _stub_page({}, "<html></html>", b"png")
+    task_card = {"task_specific": {"key_map": {"congruent": "z", "incongruent": "/"}}}
+
+    agent = SessionAgent(client=client)
+    directive = await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    assert directive.mapping == {"congruent": "z", "incongruent": "/"}
+    assert directive.source == "screenshot_inference"
+    assert directive.confidence == 0.85
+    assert directive.raw_llm_response == llm_text
+    assert directive.elapsed_ms > 0
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_handles_llm_failure_returns_static_fallback():
+    """When LLM.complete raises, return a directive with source='llm_failure_fallback'
+    and mapping taken from task_card.task_specific.key_map."""
+    client = MagicMock()
+    client.complete = AsyncMock(side_effect=RuntimeError("LLM down"))
+    page = _stub_page({}, "<html></html>", b"png")
+    task_card = {"task_specific": {"key_map": {"congruent": "z", "incongruent": "/"}}}
+
+    agent = SessionAgent(client=client)
+    directive = await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    assert directive.source == "llm_failure_fallback"
+    assert directive.mapping == {"congruent": "z", "incongruent": "/"}
+    assert directive.confidence == 0.0
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_handles_malformed_llm_response():
+    """When the LLM returns non-JSON or missing fields, fall back to static."""
+    client = _scripted_client("not-json-at-all")
+    page = _stub_page({}, "<html></html>", b"png")
+    task_card = {"task_specific": {"key_map": {"congruent": "z"}}}
+
+    agent = SessionAgent(client=client)
+    directive = await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    assert directive.source == "llm_failure_fallback"
+    assert directive.mapping == {"congruent": "z"}
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_passes_screenshot_to_llm():
+    """SessionAgent must call client.complete with images=[screenshot_bytes]."""
+    llm_text = json.dumps({
+        "mapping": {"a": "b"},
+        "source": "screenshot_inference",
+        "confidence": 0.9,
+    })
+    client = _scripted_client(llm_text)
+    page = _stub_page({}, "<html></html>", b"\x89PNG-screenshot-bytes")
+    task_card = {"task_specific": {"key_map": {}}}
+
+    agent = SessionAgent(client=client)
+    await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    call_kwargs = client.complete.call_args.kwargs
+    assert call_kwargs["images"] == [b"\x89PNG-screenshot-bytes"]
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_truncates_dom_in_prompt():
+    """A 100KB DOM is truncated when included in the user prompt."""
+    llm_text = json.dumps({"mapping": {"a": "b"}, "source": "dom_inference", "confidence": 0.5})
+    client = _scripted_client(llm_text)
+    page = _stub_page({}, "x" * 100000, b"png")
+    task_card = {"task_specific": {"key_map": {}}}
+
+    agent = SessionAgent(client=client)
+    await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    user_prompt = client.complete.call_args.kwargs["user"]
+    # The prompt embeds the DOM (truncated to 20KB) plus framing text.
+    # Total prompt length should be well under 50KB.
+    assert len(user_prompt) < 50000
+
+
+@pytest.mark.asyncio
+async def test_resolve_key_mapping_includes_window_globals_in_prompt():
+    """When the page exposes window.correctResponse, the JSON-stringified
+    globals dict is in the user prompt — the LLM can see it directly."""
+    llm_text = json.dumps({
+        "mapping": {"congruent": "f", "incongruent": "j"},
+        "source": "window_correctresponse",
+        "confidence": 0.95,
+    })
+    client = _scripted_client(llm_text)
+    page = _stub_page(
+        {"correctResponse": "f", "stimType": "congruent"},
+        "<html></html>", b"png",
+    )
+    task_card = {"task_specific": {"key_map": {}}}
+
+    agent = SessionAgent(client=client)
+    await agent.resolve_key_mapping(page=page, task_card=task_card)
+
+    user_prompt = client.complete.call_args.kwargs["user"]
+    assert "correctResponse" in user_prompt
+    assert "stimType" in user_prompt

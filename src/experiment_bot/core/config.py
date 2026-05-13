@@ -530,6 +530,11 @@ class RuntimeConfig:
     # Defaults to "" (empty) — when empty, the executor falls back to the legacy
     # hardcoded value "navigation" so existing configs still work.
     navigation_stimulus_condition: str = ""
+    # SP9a: enable session-time runtime LLM for key-mapping resolution.
+    # When True (default), TaskExecutor calls SessionAgent once after
+    # navigation completes; the resolved mapping takes precedence over
+    # the static key_map fallback in _resolve_response_key.
+    session_agent_enabled: bool = True
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -541,6 +546,7 @@ class RuntimeConfig:
             data_capture=DataCaptureConfig.from_dict(d.get("data_capture", {})),
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
             navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
+            session_agent_enabled=d.get("session_agent_enabled", True),
         )
 
     def to_dict(self) -> dict:
@@ -553,6 +559,7 @@ class RuntimeConfig:
             "attention_check": self.attention_check.to_dict(),
             # Always emit for round-trip stability, matching AttentionCheckConfig policy.
             "navigation_stimulus_condition": self.navigation_stimulus_condition,
+            "session_agent_enabled": self.session_agent_enabled,
         }
 
 

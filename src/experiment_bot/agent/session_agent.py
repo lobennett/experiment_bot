@@ -43,6 +43,15 @@ Return ONLY valid JSON in this exact shape (no markdown, no commentary):
 
 Use the condition names exactly as they appear in the TaskCard fragment's key_map.
 Use Playwright-friendly key strings ("ArrowLeft", "f", "j", " " for space, etc.).
+
+CRITICAL: The TaskCard's claimed key_map may contain the literal string "dynamic" or
+"dynamic_mapping" as a value. These are TaskCard sentinels meaning "the key is computed
+at runtime from response_key_js" — they are NOT real keys. NEVER echo "dynamic" or
+"dynamic_mapping" back as a mapping value. Your job is to figure out the ACTUAL key
+each condition expects, using the window.* state, DOM, and screenshot. If you cannot
+determine the actual key for a condition, omit that condition from the mapping
+(do not include it with a sentinel value).
+
 Pick the "source" that best describes how you inferred the mapping:
 - "window_correctresponse" if a window.* variable directly named the correct key
 - "dom_inference" if the DOM made the mapping unambiguous

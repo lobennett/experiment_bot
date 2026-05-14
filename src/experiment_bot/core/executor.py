@@ -219,7 +219,11 @@ class TaskExecutor:
         runtime_map = getattr(self, "_runtime_key_mapping", None)
         if runtime_map is not None:
             runtime_key = runtime_map.get(match.condition)
-            if runtime_key and not self._is_withhold_sentinel(runtime_key):
+            if (
+                runtime_key
+                and runtime_key not in ("dynamic_mapping", "dynamic")
+                and not self._is_withhold_sentinel(runtime_key)
+            ):
                 self._seen_response_keys.add(runtime_key)
                 return runtime_key
 

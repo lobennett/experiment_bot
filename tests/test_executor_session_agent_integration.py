@@ -84,6 +84,24 @@ async def test_resolve_response_key_uses_static_when_runtime_mapping_is_none():
 
 
 @pytest.mark.asyncio
+async def test_resolve_response_key_falls_through_when_runtime_mapping_is_dynamic_sentinel():
+    """SP9a regression: if SessionAgent (or the LLM) puts the literal string
+    'dynamic' or 'dynamic_mapping' in the runtime mapping, the executor must
+    treat it as a TaskCard sentinel (NOT a real key) and fall through to the
+    existing per-stim/global/static fallback chain. Otherwise Playwright
+    crashes with 'Unknown key: dynamic'."""
+    cfg = _stub_config_with_static_keymap({"congruent": "x", "incongruent": "y"})
+    runtime_mapping = {"congruent": "dynamic", "incongruent": "dynamic_mapping"}
+    stub = _stub_executor_for_resolve_response_key(cfg, runtime_mapping)
+
+    got_cong = await stub._resolve_response_key(_stub_match("congruent"), page=None)
+    got_inc = await stub._resolve_response_key(_stub_match("incongruent"), page=None)
+
+    assert got_cong == "x"  # static fallback, not "dynamic"
+    assert got_inc == "y"
+
+
+@pytest.mark.asyncio
 async def test_invoke_session_agent_caches_directive_into_runtime_mapping():
     """When _invoke_session_agent is called with a stub agent, its directive's
     mapping ends up in self._runtime_key_mapping and the directive itself

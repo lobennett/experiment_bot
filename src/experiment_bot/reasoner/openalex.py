@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 OPENALEX_URL = "https://api.openalex.org/works/doi:{doi}"
 
 
-async def verify_doi(doi: str, expected_authors: str, expected_year: int) -> tuple[bool, dict]:
+async def verify_doi(doi: str, expected_authors: str | list, expected_year: int) -> tuple[bool, dict]:
     """Verify a DOI exists and metadata loosely matches the citation.
 
     Returns (ok, metadata). ok=True iff:
@@ -16,6 +16,11 @@ async def verify_doi(doi: str, expected_authors: str, expected_year: int) -> tup
       - At least one OpenAlex author display_name shares a surname token with expected_authors
 
     Network errors and 404s return (False, {}).
+
+    expected_authors may be a string ("Smith, J., Doe, A.") or a list of
+    author strings (["Smith, J.", "Doe, A."]) — Stage 3 emits both shapes
+    depending on the LLM's response format. We normalize to a single string
+    before tokenizing.
     """
     url = OPENALEX_URL.format(doi=doi.strip())
     try:
@@ -31,6 +36,8 @@ async def verify_doi(doi: str, expected_authors: str, expected_year: int) -> tup
     if meta.get("publication_year") != expected_year:
         return False, meta
 
+    if isinstance(expected_authors, list):
+        expected_authors = " ".join(str(a) for a in expected_authors)
     expected_surnames = {
         tok.strip(",.").lower()
         for tok in expected_authors.split()

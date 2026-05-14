@@ -69,6 +69,31 @@ async def test_verify_doi_returns_false_on_network_error():
 
 
 @pytest.mark.asyncio
+async def test_verify_doi_accepts_list_shaped_expected_authors():
+    """Stage 3 sometimes emits expected_authors as a list of author strings
+    instead of a single comma-joined string. SP9b regression: don't crash
+    on .split() — normalize list → space-joined string before tokenizing."""
+    fake_response = MagicMock()
+    fake_response.status_code = 200
+    fake_response.json = MagicMock(return_value={
+        "title": "x",
+        "publication_year": 2008,
+        "authorships": [{"author": {"display_name": "Robert Whelan"}}],
+    })
+    fake_client = MagicMock()
+    fake_client.__aenter__ = AsyncMock(return_value=fake_client)
+    fake_client.__aexit__ = AsyncMock(return_value=None)
+    fake_client.get = AsyncMock(return_value=fake_response)
+    with patch("httpx.AsyncClient", return_value=fake_client):
+        ok, meta = await verify_doi(
+            doi="10.0000/x",
+            expected_authors=["Whelan, R.", "Smith, J."],  # list, not string
+            expected_year=2008,
+        )
+    assert ok is True
+
+
+@pytest.mark.asyncio
 async def test_verify_doi_returns_false_on_author_mismatch():
     fake_response = MagicMock()
     fake_response.status_code = 200

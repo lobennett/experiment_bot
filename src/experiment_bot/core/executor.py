@@ -167,6 +167,24 @@ class TaskExecutor:
             directive.source, directive.confidence, directive.mapping,
         )
 
+    # SP9a: maps common English-word keynames the SessionAgent LLM may emit
+    # ("comma") to Playwright-canonical key strings (","). Unknown keys pass
+    # through unchanged — Playwright will raise if they're truly invalid.
+    _KEY_ALIASES: dict[str, str] = {
+        "comma": ",", "period": ".", "slash": "/", "semicolon": ";",
+        "space": " ", "spacebar": " ",
+        "enter": "Enter", "return": "Enter",
+        "tab": "Tab", "escape": "Escape", "esc": "Escape",
+        "left": "ArrowLeft", "leftarrow": "ArrowLeft", "arrowleft": "ArrowLeft",
+        "right": "ArrowRight", "rightarrow": "ArrowRight", "arrowright": "ArrowRight",
+        "up": "ArrowUp", "uparrow": "ArrowUp", "arrowup": "ArrowUp",
+        "down": "ArrowDown", "downarrow": "ArrowDown", "arrowdown": "ArrowDown",
+    }
+
+    @classmethod
+    def _normalize_key(cls, key: str) -> str:
+        return cls._KEY_ALIASES.get(key.lower(), key)
+
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
     # Permissive expansion: no Playwright key names match any of these strings, so
@@ -224,6 +242,7 @@ class TaskExecutor:
                 and runtime_key not in ("dynamic_mapping", "dynamic")
                 and not self._is_withhold_sentinel(runtime_key)
             ):
+                runtime_key = self._normalize_key(runtime_key)
                 self._seen_response_keys.add(runtime_key)
                 return runtime_key
 

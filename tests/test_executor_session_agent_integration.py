@@ -84,6 +84,31 @@ async def test_resolve_response_key_uses_static_when_runtime_mapping_is_none():
 
 
 @pytest.mark.asyncio
+async def test_resolve_response_key_normalizes_english_word_keys_to_playwright_canonical():
+    """SP9a regression: SessionAgent LLM may emit English-word key names
+    ('comma', 'period', 'leftarrow') that Playwright Keyboard.press rejects.
+    Executor's runtime branch normalizes these to Playwright-canonical
+    strings (',', '.', 'ArrowLeft') before returning."""
+    cfg = _stub_config_with_static_keymap({})
+    runtime_mapping = {
+        "c1": "comma",
+        "c2": "period",
+        "c3": "leftarrow",
+        "c4": "Space",     # case-insensitive alias lookup
+        "c5": ",",         # already canonical — pass-through
+        "c6": "f",         # letter key — pass-through
+    }
+    stub = _stub_executor_for_resolve_response_key(cfg, runtime_mapping)
+
+    assert await stub._resolve_response_key(_stub_match("c1"), page=None) == ","
+    assert await stub._resolve_response_key(_stub_match("c2"), page=None) == "."
+    assert await stub._resolve_response_key(_stub_match("c3"), page=None) == "ArrowLeft"
+    assert await stub._resolve_response_key(_stub_match("c4"), page=None) == " "
+    assert await stub._resolve_response_key(_stub_match("c5"), page=None) == ","
+    assert await stub._resolve_response_key(_stub_match("c6"), page=None) == "f"
+
+
+@pytest.mark.asyncio
 async def test_resolve_response_key_falls_through_when_runtime_mapping_is_dynamic_sentinel():
     """SP9a regression: if SessionAgent (or the LLM) puts the literal string
     'dynamic' or 'dynamic_mapping' in the runtime mapping, the executor must

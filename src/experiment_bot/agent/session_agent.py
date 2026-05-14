@@ -42,7 +42,20 @@ Return ONLY valid JSON in this exact shape (no markdown, no commentary):
 }
 
 Use the condition names exactly as they appear in the TaskCard fragment's key_map.
-Use Playwright-friendly key strings ("ArrowLeft", "f", "j", " " for space, etc.).
+
+For the key value, use the literal character when it is a single character:
+- comma → ","
+- period → "."
+- slash → "/"
+- space → " "
+- letters/digits → the literal character (e.g., "f", "j", "1")
+
+For named keys, use Playwright's canonical name (capitalized):
+- ArrowLeft, ArrowRight, ArrowUp, ArrowDown
+- Enter, Tab, Escape, Backspace
+
+Do NOT use lowercase English words like "comma", "period", "left", or "leftarrow"
+as the key value — Playwright rejects those.
 
 CRITICAL: The TaskCard's claimed key_map may contain the literal string "dynamic" or
 "dynamic_mapping" as a value. These are TaskCard sentinels meaning "the key is computed

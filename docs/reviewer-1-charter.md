@@ -275,7 +275,7 @@ Update this charter when:
 
 ## 10. Latest framework state (auto-updated)
 
-**Last reviewed at:** sp9a-complete (next SP9 candidate: jsPsych platform-recording gap, SP7 layer d)
+**Last reviewed at:** sp9b-complete (SP9b: Stage 4 openalex defensive fix; next SP9 candidate: jsPsych platform-recording gap, SP7 layer d)
 
 **Validator pillars currently implemented:** rt_distribution, individual_differences, sequential.
 

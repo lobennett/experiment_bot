@@ -258,18 +258,25 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   Infrastructure is reusable for future SP candidates; the negative
   empirical result honestly informs scope. See `docs/sp9a-results.md`.
   Tag `sp9a-complete`. ✓ Complete.
+- **SP9b**: Stage 4 `openalex.verify_doi` defensive fix. 1-line
+  normalization: `expected_authors` may be `str` or `list`; list →
+  space-joined string before `.split()`. Unblocks expfactory_flanker
+  regeneration (SP8 Stage 4 crash). Plus +1 test (564 passed total).
+  Tag `sp9b-complete`. ✓ Complete.
 - **SP9** (continuing backlog): the SP9a empirical run surfaced two
   pre-existing higher-leverage issues than SessionAgent itself:
   (1) **Platform-recording gap (SP7 layer d)** — user-observed during
   SP9a runs: jsPsych keyboard-response-plugin doesn't read from raw
   document keydown events, so platform CSV `response` column drops
   from ~93% (bot→page) to ~48% (page→platform). Affects ALL paradigms.
-  Highest-leverage SP9b candidate. (2) **TaskCard `task_specific.key_map`
+  Next SP candidate (will be SP9c). (2) **TaskCard `task_specific.key_map`
   schema variation** — stop-signal uses stimulus IDs, stroop/n-back
   use condition labels. Executor's `_resolve_response_key` assumes one
   shape; runtime branch silently fails when shape doesn't match.
-  Other SP8 backlog items still outstanding: Stage 4 openalex.py
-  list/string defensive fix; Stage 6 pilot timing fragility.
+  (3) Also outstanding from SP8: Stage 6 pilot timing fragility.
+  (4) Also outstanding: commit SP8-regenerated TaskCards to sp8
+  branch (done in b06122e, but not on a new tag — sp8-complete still
+  references the docs commit).
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

@@ -155,3 +155,24 @@ async def test_log_trial_with_keypress_diag_handles_drain_failure():
     assert log_calls[0]["page_received_keys"] is None
     assert log_calls[0]["trial"] == 1
     assert log_calls[0]["response_key"] == ","
+
+
+@pytest.mark.asyncio
+async def test_install_keydown_listener_also_installs_keypress_and_keyup_listeners():
+    """SP9c: layer-d diagnostic needs all three event types to identify
+    listener-type mismatches. The install hook must initialize three log
+    arrays and attach three capture-phase listeners."""
+    stub = _stub_executor()
+    page = AsyncMock()
+    await stub._install_keydown_listener(page)
+    js = page.evaluate.call_args.args[0]
+    # Three log arrays
+    assert "window.__bot_keydown_log" in js
+    assert "window.__bot_keypress_log" in js
+    assert "window.__bot_keyup_log" in js
+    # Three listeners
+    assert "addEventListener('keydown'" in js
+    assert "addEventListener('keypress'" in js
+    assert "addEventListener('keyup'" in js
+    # All three use capture phase (third arg true)
+    assert js.count(", true)") >= 3

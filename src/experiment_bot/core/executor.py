@@ -658,22 +658,39 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
 
     async def _install_keydown_listener(self, page) -> None:
-        """Inject a paradigm-agnostic keydown listener at session start.
+        """Inject paradigm-agnostic keyboard-event listeners at session start.
 
-        The listener writes to `window.__bot_keydown_log` (an array of
-        {key, code, time} dicts). The per-trial drain reads and clears
-        this array, surfacing the keys the PAGE's listener actually
-        received — useful for diagnosing layer-by-layer mismatches
-        between bot.keyboard.press, Playwright dispatch, page handler,
-        and platform recording.
+        Installs three capture-phase listeners on `document`:
+        - keydown -> window.__bot_keydown_log (SP7 instrumentation)
+        - keypress -> window.__bot_keypress_log (SP9c instrumentation)
+        - keyup -> window.__bot_keyup_log (SP9c instrumentation)
 
-        Capture-phase listener so we see the event before any
-        application-level handler can modify or stop propagation.
+        Each log is an array of {key, code, time} dicts. Per-trial drain
+        reads and clears all three, surfacing the keys the PAGE's
+        listeners actually received — useful for diagnosing layer-by-
+        layer mismatches between bot.keyboard.press, Playwright
+        dispatch, page handler, and platform recording.
+
+        Capture-phase listeners so we see events before any
+        application-level handler can modify or stop propagation. The
+        method name preserves the SP7 API for backward compatibility.
         """
         await page.evaluate(
             "window.__bot_keydown_log = [];"
+            " window.__bot_keypress_log = [];"
+            " window.__bot_keyup_log = [];"
             " document.addEventListener('keydown', (e) => {"
             "   window.__bot_keydown_log.push({"
+            "     key: e.key, code: e.code, time: Date.now()"
+            "   });"
+            " }, true);"
+            " document.addEventListener('keypress', (e) => {"
+            "   window.__bot_keypress_log.push({"
+            "     key: e.key, code: e.code, time: Date.now()"
+            "   });"
+            " }, true);"
+            " document.addEventListener('keyup', (e) => {"
+            "   window.__bot_keyup_log.push({"
             "     key: e.key, code: e.code, time: Date.now()"
             "   });"
             " }, true);"

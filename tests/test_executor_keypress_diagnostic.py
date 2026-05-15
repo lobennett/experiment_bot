@@ -67,14 +67,18 @@ async def test_drain_keydown_log_returns_captured_keys():
     stub = _stub_executor()
     page = AsyncMock()
     captured = [{"key": ",", "code": "Comma", "time": 12345}]
-    page.evaluate = AsyncMock(return_value=captured)
+    page.evaluate = AsyncMock(return_value={
+        "keydown": captured,
+        "keypress": [],
+        "keyup": [],
+    })
     result = await stub._drain_keydown_log(page)
-    assert result == captured
+    assert result == {"keydown": captured, "keypress": [], "keyup": []}
     page.evaluate.assert_called_once()
     js = page.evaluate.call_args.args[0]
     # Drain JS must:
-    # - Read window.__bot_keydown_log (or default to []).
-    # - Clear the array after reading (so next trial doesn't double-count).
+    # - Read window.__bot_keydown_log, __bot_keypress_log, __bot_keyup_log (or default to []).
+    # - Clear all three arrays after reading (so next trial doesn't double-count).
     assert "window.__bot_keydown_log" in js
     assert "= []" in js  # the reset
 
@@ -83,9 +87,13 @@ async def test_drain_keydown_log_returns_captured_keys():
 async def test_drain_keydown_log_returns_empty_when_no_events():
     stub = _stub_executor()
     page = AsyncMock()
-    page.evaluate = AsyncMock(return_value=[])
+    page.evaluate = AsyncMock(return_value={
+        "keydown": [],
+        "keypress": [],
+        "keyup": [],
+    })
     result = await stub._drain_keydown_log(page)
-    assert result == []
+    assert result == {"keydown": [], "keypress": [], "keyup": []}
 
 
 @pytest.mark.asyncio
@@ -109,10 +117,14 @@ async def test_log_trial_includes_new_keypress_fields():
     log_calls = []
     stub._writer = MagicMock()
     stub._writer.log_trial = lambda payload: log_calls.append(payload)
-    # Stub page with a drainable log.
+    # Stub page with a drainable log (SP9c: drain returns dict).
     page = AsyncMock()
     captured_keys = [{"key": ",", "code": "Comma", "time": 1000}]
-    page.evaluate = AsyncMock(return_value=captured_keys)
+    page.evaluate = AsyncMock(return_value={
+        "keydown": captured_keys,
+        "keypress": [],
+        "keyup": [],
+    })
 
     payload = {
         "trial": 1,
@@ -137,7 +149,7 @@ async def test_log_trial_includes_new_keypress_fields():
 
 @pytest.mark.asyncio
 async def test_log_trial_with_keypress_diag_handles_drain_failure():
-    """If drain fails, page_received_keys=None but trial still logs."""
+    """If drain fails, all three event-log fields are None but trial still logs."""
     from unittest.mock import MagicMock
     stub = _stub_executor()
     log_calls = []
@@ -153,6 +165,8 @@ async def test_log_trial_with_keypress_diag_handles_drain_failure():
         resolved_key_pre_error=".",
     )
     assert log_calls[0]["page_received_keys"] is None
+    assert log_calls[0]["keypress_received"] is None
+    assert log_calls[0]["keyup_received"] is None
     assert log_calls[0]["trial"] == 1
     assert log_calls[0]["response_key"] == ","
 
@@ -176,3 +190,86 @@ async def test_install_keydown_listener_also_installs_keypress_and_keyup_listene
     assert "addEventListener('keyup'" in js
     # All three use capture phase (third arg true)
     assert js.count(", true)") >= 3
+
+
+@pytest.mark.asyncio
+async def test_drain_keydown_log_returns_all_three_event_arrays():
+    """SP9c: drain reads and clears keydown, keypress, and keyup arrays
+    in one round-trip. Returns a dict with three keys."""
+    stub = _stub_executor()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value={
+        "keydown": [{"key": ",", "code": "Comma", "time": 100}],
+        "keypress": [],
+        "keyup": [{"key": ",", "code": "Comma", "time": 110}],
+    })
+    got = await stub._drain_keydown_log(page)
+    assert got == {
+        "keydown": [{"key": ",", "code": "Comma", "time": 100}],
+        "keypress": [],
+        "keyup": [{"key": ",", "code": "Comma", "time": 110}],
+    }
+    # JS must read all three arrays and reset them
+    js = page.evaluate.call_args.args[0]
+    assert "__bot_keydown_log" in js
+    assert "__bot_keypress_log" in js
+    assert "__bot_keyup_log" in js
+
+
+@pytest.mark.asyncio
+async def test_drain_keydown_log_returns_none_on_failure():
+    """SP9c: drain returns None when page.evaluate raises (page teardown)."""
+    stub = _stub_executor()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=Exception("page closed"))
+    got = await stub._drain_keydown_log(page)
+    assert got is None
+
+
+@pytest.mark.asyncio
+async def test_log_trial_writes_keypress_received_and_keyup_received_fields():
+    """SP9c: the per-trial logger writes three diagnostic fields:
+    page_received_keys (SP7, backward-compatible), keypress_received,
+    keyup_received."""
+    from unittest.mock import MagicMock
+    stub = _stub_executor()
+    stub._writer = MagicMock()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value={
+        "keydown": [{"key": ",", "code": "Comma", "time": 100}],
+        "keypress": [{"key": ",", "code": "Comma", "time": 105}],
+        "keyup": [{"key": ",", "code": "Comma", "time": 110}],
+    })
+    await stub._log_trial_with_keypress_diag(
+        page=page,
+        base_payload={"trial": 1, "response_key": ","},
+        resolved_key_pre_error=",",
+    )
+    args = stub._writer.log_trial.call_args.args
+    assert len(args) == 1
+    payload = args[0]
+    assert payload["trial"] == 1
+    assert payload["response_key"] == ","
+    assert payload["resolved_key_pre_error"] == ","
+    assert payload["page_received_keys"] == [{"key": ",", "code": "Comma", "time": 100}]
+    assert payload["keypress_received"] == [{"key": ",", "code": "Comma", "time": 105}]
+    assert payload["keyup_received"] == [{"key": ",", "code": "Comma", "time": 110}]
+
+
+@pytest.mark.asyncio
+async def test_log_trial_handles_drain_failure_gracefully():
+    """When drain returns None, all three fields are None."""
+    from unittest.mock import MagicMock
+    stub = _stub_executor()
+    stub._writer = MagicMock()
+    page = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=Exception("page closed"))
+    await stub._log_trial_with_keypress_diag(
+        page=page,
+        base_payload={"trial": 1, "response_key": ","},
+        resolved_key_pre_error=",",
+    )
+    payload = stub._writer.log_trial.call_args.args[0]
+    assert payload["page_received_keys"] is None
+    assert payload["keypress_received"] is None
+    assert payload["keyup_received"] is None

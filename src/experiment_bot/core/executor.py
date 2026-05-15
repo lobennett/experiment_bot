@@ -696,21 +696,30 @@ class TaskExecutor:
             " }, true);"
         )
 
-    async def _drain_keydown_log(self, page) -> list | None:
-        """Read-and-clear the page-side keydown log. Returns the list
-        of {key, code, time} dicts captured since the last drain, or
-        None if `page.evaluate` raises (e.g., page navigation tore
-        down the context).
+    async def _drain_keydown_log(self, page) -> dict | None:
+        """Read-and-clear all three page-side event logs. Returns a dict
+        with three keys (`keydown`, `keypress`, `keyup`), each a list of
+        {key, code, time} dicts captured since the last drain, or None
+        if `page.evaluate` raises (e.g., page navigation tore down the
+        context).
 
-        Reset pattern: read existing log, then assign a fresh empty
-        array so subsequent trials don't double-count earlier events.
+        Reset pattern: read all three existing logs, then assign fresh
+        empty arrays so subsequent trials don't double-count earlier
+        events.
+
+        Note: method name preserved from SP7 for backward compatibility
+        with callers; SP9c extends the return shape from list to dict.
         """
         try:
             return await page.evaluate(
                 "(() => {"
-                "  const log = window.__bot_keydown_log || [];"
+                "  const keydown = window.__bot_keydown_log || [];"
+                "  const keypress = window.__bot_keypress_log || [];"
+                "  const keyup = window.__bot_keyup_log || [];"
                 "  window.__bot_keydown_log = [];"
-                "  return log;"
+                "  window.__bot_keypress_log = [];"
+                "  window.__bot_keyup_log = [];"
+                "  return { keydown, keypress, keyup };"
                 "})()"
             )
         except Exception:
@@ -723,24 +732,35 @@ class TaskExecutor:
         base_payload: dict,
         resolved_key_pre_error: str | None,
     ) -> None:
-        """Drain the page's keydown log and write an augmented trial
-        entry. Adds two fields to `base_payload`:
+        """Drain the page's three event logs and write an augmented trial
+        entry. Adds four fields to `base_payload`:
 
         - resolved_key_pre_error: the bot's response_key_js result
           before `_pick_wrong_key` flipped it for an intended-error
           trial. When intended_error=False, this equals
           base_payload['response_key'].
         - page_received_keys: list of {key, code, time} the page's
-          listener captured since the last drain. None if drain
-          failed (page teardown).
+          keydown listener captured since the last drain (SP7 name).
+        - keypress_received: same shape, for keypress events (SP9c).
+        - keyup_received: same shape, for keyup events (SP9c).
 
-        Both fields are paradigm-agnostic — they describe the
-        runtime layer between bot and platform, not paradigm content.
+        When the drain fails (page teardown), all three event-log
+        fields are None.
+
+        All fields are paradigm-agnostic — they describe the runtime
+        layer between bot and platform, not paradigm content.
         """
-        page_received_keys = await self._drain_keydown_log(page)
+        drained = await self._drain_keydown_log(page)
         payload = dict(base_payload)
         payload["resolved_key_pre_error"] = resolved_key_pre_error
-        payload["page_received_keys"] = page_received_keys
+        if drained is None:
+            payload["page_received_keys"] = None
+            payload["keypress_received"] = None
+            payload["keyup_received"] = None
+        else:
+            payload["page_received_keys"] = drained.get("keydown", [])
+            payload["keypress_received"] = drained.get("keypress", [])
+            payload["keyup_received"] = drained.get("keyup", [])
         self._writer.log_trial(payload)
 
     def _stimulus_detection_js(self, stim) -> str | None:

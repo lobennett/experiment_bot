@@ -92,4 +92,91 @@ If Phase B.3 trial-level data confirms suspect 1' (events present in `keydown_re
 
 ## Phase B.3 — Per-trial empirical findings
 
-(To be filled in after Task 6 lands.)
+### Session
+
+- Path: `output/expfactory_stroop/2026-05-15_13-44-18/`
+- Seed: 9601
+- TaskCard: `expfactory_stroop/f099a88b.json` (SP8 regenerated, copied from sp8 worktree)
+- N trials: 120
+
+### Per-trial alignment (this session)
+
+- `bot_pressed == platform_recorded`: **50.0%** (60/120) — matches SP9a stroop baseline (48.6% across 3 sessions)
+- `bot_intended == platform_expected`: 34.2% (41/120)
+
+### Aggregate event-type tally across 120 trials
+
+| Event type | Count |
+|---|---|
+| keydown captured on document | 129 |
+| keypress captured on document | **4** |
+| keyup captured on document | 129 |
+
+The bot fires ~1 keypress per trial (some over-firing residual from SP6 — 129/120 = 1.08×). Keypress events are essentially absent (4 vs 129 keydowns = ~3%). **But jsPsych listens for `keydown`, not `keypress` — so the keypress shortfall is not the layer-(d) cause.**
+
+### Suspect tally across 60 mismatches
+
+| Suspect | Pattern | Count | % of mismatches |
+|---|---|---|---|
+| No events at all in this trial's bot_log | `keydown_received == []` | 2 | 3% |
+| **Bot's intended key landed on document's keydown listener** | `keydown_received[0].key == bot_pressed` | **55** | **92%** |
+| Multiple keydowns this trial | `len(keydown_received) > 1` | 3 | 5% |
+
+### Dominant suspect
+
+**Suspect 1' (listener target mismatch) dominates with 92% of mismatches.**
+
+In 55 of 60 mismatch trials, the bot's intended key was successfully captured by the document-level keydown listener (Phase A instrumentation). The event clearly reached the page's `document` and propagated through any capture-phase listener. But the platform's CSV `response` column reflects a different key on those trials — meaning jsPsych's bubble-phase listener on `#jspsych-display-element` (per Phase B.1) never received the event.
+
+This rules out:
+- Suspect 1 (listener type) — RULED OUT in Phase B.1
+- Suspect 2 (choices filter) — bot sends `,` and `.` which match jsPsych's `choices` exactly
+- Suspect 3 (response window) — events present in 92% of mismatches, just not landing on the right target
+- Suspect 4 (held keys / over-firing) — only 5% of mismatches have multiple keydowns
+
+The mechanism: `page.keyboard.press(key)` dispatches synthetic keyboard events on `document.activeElement` (or `document` if no element has focus). Events bubble UP from the dispatch target. jsPsych's `rootElement.addEventListener("keydown", ...)` uses **bubble phase** without the third `true` capture-arg, so the listener only fires for events that originate in `rootElement`'s subtree (i.e., descendants of `#jspsych-display-element`). If the bot's event lands on `document.activeElement` and that activeElement is NOT inside `#jspsych-display-element`, the event bubbles up to document and the rootElement listener never sees it.
+
+### Trial-level evidence (sample mismatch trials)
+
+| trial | bot pressed | plat recorded | keydown received | keypress received | keyup received |
+|---|---|---|---|---|---|
+| 0 | `,` | `.` | 1 (`,`) | 0 | 1 |
+| 5 | `,` | `.` | 1 (`,`) | 0 | 1 |
+| 10 | `.` | `,` | 1 (`.`) | 0 | 1 |
+| 17 | `,` | `.` | 1 (`,`) | 0 | 1 |
+| 23 | `.` | `,` | 1 (`.`) | 0 | 1 |
+
+The pattern is consistent: the bot pressed correctly per its intended logic, the page-level document listener captured the event, but the platform recorded the opposite (or a different) key. This is the layer-(d) gap from SP7 quantified per-trial.
+
+### Implication for Phase C fix
+
+The fix is to dispatch the keyboard event such that it propagates through `#jspsych-display-element` to reach jsPsych's listener.
+
+**Paradigm-agnostic implementation:** Use `page.evaluate` to (a) find a target inside the display root and (b) dispatch a `KeyboardEvent` on it with `bubbles: true`. Two candidate targets:
+1. `document.activeElement` if it's a descendant of any element (best-effort)
+2. `document.body.querySelector(":focus, [tabindex], input, button")` — find any focusable descendant
+3. As a fallback: focus `document.body` first, then dispatch — Playwright's `keyboard.press` will then deliver to activeElement
+
+Simplest path that addresses suspect 1':
+- Before pressing, set focus on `document.body` (always inside any rootElement hierarchy is impossible since body IS the parent — but if we focus on whatever's CURRENTLY in the display root via `document.body.querySelector('[tabindex], #jspsych-display-element *, [class*="jspsych"] *')` or similar, the synthetic event will bubble up through rootElement).
+
+A cleaner alternative: in `page.evaluate`, construct a `KeyboardEvent` and dispatch it directly on `document.body.querySelector('#jspsych-display-element') || document.body`. Falling back to `document.body` for non-jsPsych platforms keeps it paradigm-agnostic, but on jsPsych pages the event lands directly on the rootElement and is captured there (since the listener fires for events that ORIGINATE on rootElement, even before bubbling).
+
+Wait — bubble-phase listeners fire when the event PROPAGATES THROUGH the element during bubbling. An event ORIGINATING on rootElement starts there, bubbles up; the bubble-phase listener attached to rootElement WILL fire (the event passes through rootElement on its way up). So dispatching directly on rootElement is sufficient.
+
+**Concrete proposed fix:** new `_press_trial_key(page, key)` helper that does:
+
+```javascript
+(() => {
+  const target = document.querySelector('#jspsych-display-element') || document.activeElement || document.body;
+  const init = { key: '<KEY>', code: '<KEY>', bubbles: true, cancelable: true, composed: true };
+  target.dispatchEvent(new KeyboardEvent('keydown', init));
+  target.dispatchEvent(new KeyboardEvent('keyup', init));
+})()
+```
+
+The `#jspsych-display-element` selector is a known jsPsych ID and a reasonable specific-then-fallback path. For non-jsPsych platforms (cognition.run, custom), the event still dispatches on `activeElement` or `body` with `bubbles: true`, matching the SP9a fallback behavior. This is more general than the spec's original "dispatch on document" because it specifically anchors on the listener target jsPsych uses.
+
+**Concern:** the selector `#jspsych-display-element` IS jsPsych-specific. To stay paradigm-agnostic, we could use a more general approach: dispatch on the deepest visible interactive descendant. But that's complex and brittle. The hardcoded selector with a generic fallback is honest about the dominant case (jsPsych) while not breaking other platforms.
+
+**Recommendation for user-checkpoint (Task 7):** ship the hardcoded `#jspsych-display-element` selector with the documented generic fallback, with a note in the helper docstring that this is the cleanest fix for the dominant testbed (jsPsych) and works no-worse than the existing `page.keyboard.press` for other platforms.

@@ -5,49 +5,94 @@ This document is the standing guidance for any Claude session working on
 
 ## What this project is
 
-A general-purpose Task Turing Bot that completes web-based cognitive
-experiments with human-like behavior. Three layers:
+An adversarial-research tool that demonstrates the risk bots pose to
+online behavioral-data platforms (Prolific, mTurk, custom university
+deployments). The bot autonomously completes web-based cognitive
+experiments with data indistinguishable from a human participant's
+output at both the per-trial and aggregate levels.
 
-1. **Reasoner** — reads source code + literature, emits a versioned
-   `TaskCard` (JSON) with stimulus/response rules, navigation, behavioral
-   parameters, and citations.
-2. **Executor** — drives the live URL via Playwright using the TaskCard,
-   sampling RTs and producing platform-native data + a bot log.
-3. **Oracle** — scores the resulting sessions against canonical
-   meta-analytic norms.
+The threat model: if a researcher recruits N participants on a
+crowdsourcing platform and pays them to complete a cognitive task, can
+the platform reliably distinguish bot data from human data? This
+project's empirical claim is "no, not without dedicated bot-detection
+infrastructure" — supported by per-trial-faithful response delivery and
+literature-calibrated behavioral dynamics.
 
-The user's role is cognitive-control researcher, with a current dataset
-share-out goal for four development paradigms (two Stroop, two
-stop-signal).
+Four layers:
+
+1. **Reasoner** — reads task source code + literature, emits a versioned
+   `TaskCard` (JSON) with paradigm metadata, condition labels,
+   literature-derived behavioral parameters (RT distributions, effect
+   magnitudes, accuracy targets), and a recommended platform driver.
+2. **Platform driver** — per-platform code (one driver per supported
+   platform: jsPsych, cognition.run, PsychoJS, ...) that owns ALL
+   page-touching concerns: identification, phase recognition, stimulus
+   detection, navigation, response delivery, data export retrieval.
+   Each driver hooks the platform's own response handler so the bot's
+   responses are recorded with high fidelity.
+3. **Executor (bot library)** — slim, paradigm-agnostic. Trial-loop
+   coordination, RT sampling, effect application, accuracy logic.
+   Drives the driver, not the page.
+4. **Oracle** — scores the resulting sessions against canonical
+   meta-analytic norms. Reads platform data export; never `bot_log.json`.
+
+The cognitive-control research domain is the application — the bot
+generates data with realistic temporal dynamics (PES, Gratton effect /
+CSE, SSRT, etc.) so the adversarial claim is grounded in scientifically
+defensible behavior.
 
 ## Core Goals (in priority order)
 
+### G0. Per-trial fidelity to the platform's data export
+
+The bot's response on each trial must be recorded faithfully in the
+platform's own data export — not just delivered to the page. SP9c's
+finding that synthetic keystrokes reach the page document but not
+jsPsych's listener (~50% loss in platform recording) is the kind of
+failure G0 forbids. The current measurable target: `bot's pressed key
+== platform's recorded response` ≥ 90% on every paradigm. Aggregate
+fidelity (RT distributions within published norms) is necessary but
+not sufficient — sequential metrics (PES, CSE, SSRT trajectory)
+require per-trial fidelity.
+
 ### G1. Generalizability beyond the dev paradigms
 
-The bot's code must NOT bake in paradigm-specific knowledge.
-"Generalizable" means: pointing the bot at a novel paradigm's URL
-(e.g., n-back, Flanker, random-dot motion, Wisconsin Card Sorting)
-should work *without code changes* to the bot's library.
+The bot's LIBRARY must NOT bake in paradigm-specific knowledge.
+Pointing the bot at a novel paradigm's URL should work without code
+changes to the bot library or executor. **Platform-specific knowledge
+lives in platform drivers** — a new platform (e.g., PsychoPy) is
+supported by adding a new driver module, not by modifying the
+executor or the Reasoner pipeline.
 
-The four development paradigms are a testbed for iteration, not the
-universe. Held-out paradigms (n-back so far) verify generalization
-empirically. Reviewers must be able to see that the framework is not
-overfit to the four dev paradigms.
+Held-out paradigms verify generalization empirically. A held-out
+paradigm running on a supported platform should "just work" once the
+Reasoner produces its TaskCard (no executor edits, no driver edits).
 
-### G2. The Reasoner does the thinking; the bot does the mechanics
+### G2. The Reasoner does literature thinking; the bot library does
+generic mechanics; the driver does platform mechanics
 
-The bot's library is a small set of *generic mechanisms*
+The Reasoner is responsible for translating literature into mechanism
+configurations: which generic effects apply, with what magnitudes,
+under what conditions. The Reasoner does NOT extract platform-specific
+JS (response_key_js, stimulus detectors, navigation phases) — that
+work moves to the driver.
+
+The bot library is a small set of *generic mechanisms*
 (autocorrelation, linear drift, lag-1 pair modulation, post-event
-slowing, etc.). The Reasoner translates the literature for each task
-into mechanism *configurations* in the TaskCard. The bot's code does
-not name CSE, post-error slowing, post-inhibition slowing, or any
-paradigm-specific phenomenon.
+slowing). The bot library does NOT name paradigm-specific phenomena
+(CSE, post-error slowing, post-inhibition slowing) — those are
+mechanism configurations from the Reasoner. The bot library does NOT
+read platform-specific runtime state — that's the driver's job.
 
-The user wants Claude to infer effects, magnitudes, and temporal
-patterns from the literature scrape — not pre-load knowledge into the
-bot's vocabulary. "Even if Claude said this paradigm has CSE, the bot
-shouldn't have CSE in its vocabulary; it should configure a generic
-2-back mechanism."
+The driver owns platform-specific runtime decisions: which key does
+this trial want, what is the current jsPsych plugin type, when does a
+trial end, how does the platform export its data. Runtime LLM
+intelligence is permitted in drivers when it improves robustness, but
+the bot library and Reasoner stages stay LLM-free at runtime (LLM is
+used only at Reasoner-build time and at driver-development time).
+
+In short: Reasoner = literature thinking. Bot library = generic
+mechanics. Driver = platform mechanics.
 
 ### G3. No effects on tasks that don't have them
 
@@ -75,6 +120,12 @@ The framework must withstand reviewer scrutiny on:
   `validation/platform_adapters.py`.
 - **Hard-fail on broken state**: zero-trial sessions raise a clear
   error. Pilot failures are logged.
+- **bot_log.json is diagnostic-only.** Per-trial logs the bot writes
+  reflect its own polling-loop view, which can drift from the
+  platform's actual trial count and response recording. ANY analysis
+  script that reads `bot_log.json` for behavioral metrics is suspect
+  and must be flagged for review. The platform's data export
+  (retrieved via `driver.retrieve_data`) is the only analysis input.
 
 ### G5. Iteration discipline
 
@@ -135,6 +186,44 @@ regression. Example:
 assert "congruency_sequence" not in EFFECT_REGISTRY
 assert "post_error_slowing" not in EFFECT_REGISTRY
 ```
+
+A driver's test suite verifies platform-specific behavior on that
+platform; bot-library tests must not depend on a specific platform.
+Negative assertion to maintain:
+```python
+# Bot library should never name a platform
+from experiment_bot.core import executor
+assert "jspsych" not in executor.__file__.lower()  # not a real test
+# Conceptual: the EXECUTOR module's code reads cleanly without any
+# jsPsych / cognition.run / PsychoPy references.
+```
+
+### When adding platform support
+
+The bot supports a platform via a `PlatformDriver` subclass under
+`src/experiment_bot/drivers/<platform>/`. Drivers ARE platform-
+specific code; G1 generalizability is preserved because the BOT
+LIBRARY remains paradigm-agnostic and platform-agnostic.
+
+Driver development conventions:
+
+- **Vendor selective anchor files** under `vendor/<platform>/<version>/`
+  for open-source platforms. The driver references the vendored source
+  with provenance comments; this audits the exact API the driver
+  targets.
+- **`can_handle(page)` must be cheap and side-effect-free.** Cheap
+  DOM/window inspection only. No LLM. No slow JS evaluation.
+- **Drivers fail loudly to DiagnosticDriver when they encounter an
+  unanchored platform version.** Don't guess at unsupported versions.
+- **Driver-internal LLM use is permitted but rare.** A driver may
+  call out to Claude for a runtime decision it can't resolve
+  deterministically (e.g., classify an unfamiliar feedback screen),
+  but the bot library and Reasoner pipeline don't reach the LLM at
+  runtime.
+- **Closed-source platforms can't be vendored.** Drivers for closed
+  platforms (e.g., cognition.run) live in `drivers/<platform>/` with
+  empty `vendor/<platform>/`. Document the scope-of-validity caveat
+  explicitly in the reviewer-1 charter.
 
 ## Sub-project history
 
@@ -277,6 +366,18 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   (4) Also outstanding: commit SP8-regenerated TaskCards to sp8
   branch (done in b06122e, but not on a new tag — sp8-complete still
   references the docs commit).
+- **SP10** (in progress): Driver-based platform architecture. New
+  `experiment_bot/drivers/` package — per-platform `PlatformDriver`
+  subclasses own all page-touching concerns; bot library becomes
+  slim, paradigm- AND platform-agnostic. JsPsychDriver is the first
+  driver, hooks `pluginAPI.getKeyboardResponse` for response delivery
+  (closes the SP9c layer-d gap structurally). Reasoner pipeline
+  shrinks: Stage 1 drops brittle JS extraction; new `recommended_driver`
+  field. CLAUDE.md updated with G0 (per-trial fidelity), G2 expanded
+  (driver as third tier), G4 strengthened (bot_log diagnostic-only),
+  new guardrails for adding platform support. Expected to close
+  pressed==recorded gap on all 4 dev paradigms (target ≥ 90%).
+  See `docs/sp10-results.md` for empirical outcome.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every
@@ -312,6 +413,12 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 - Validation against published ranges is point-estimate-within-range.
   Don't introduce alternative gating without an explicit scope-of-
   validity update.
+- Add a new platform by writing a driver, not by editing the bot
+  library or Stage 1 prompt. Stage 1's job is to identify the
+  platform and recommend a driver, not to encode the platform's
+  internals.
+- Never read `bot_log.json` for behavioral metrics. If you need
+  trial-level data for analysis, use `driver.retrieve_data` output.
 
 ## Style preferences
 

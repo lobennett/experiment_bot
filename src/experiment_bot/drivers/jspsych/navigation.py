@@ -89,7 +89,14 @@ async def _wait_for_reading(page: Page, details: dict) -> None:
     except Exception as e:
         details["reading_wait_error"] = str(e)
         return
+    details["reading_text_len"] = len(text) if isinstance(text, str) else 0
     if not text:
+        # Empty display text — fall back to a minimum dwell so we don't
+        # blast through hidden/transitional screens. Real users always
+        # take SOME time even on a blank-looking page.
+        details["reading_wait_s"] = _MIN_READING_S
+        details["reading_wait_reason"] = "empty_text_min_dwell"
+        await asyncio.sleep(_MIN_READING_S)
         return
     key = hashlib.sha1(text.encode("utf-8")).hexdigest()
     if key in _seen_page_hashes:
@@ -268,12 +275,28 @@ async def navigate_page(page: Page) -> dict:
             pass
         return {"action": "instructions_next", "type_name": type_name, "details": details}
 
-    # 2. fullscreen plugin — click the fullscreen button.
+    # 2. fullscreen plugin — click the fullscreen button if visible;
+    #    otherwise (we've already clicked, and jsPsych is in its 1-sec
+    #    delay_after window) wait quietly. Dispatching keys/clicks
+    #    during the delay_after window can push the page into an
+    #    unintended state.
     if "fullscreen" in type_name:
         if present.get("jspsych-fullscreen-btn"):
             ok = await _click_by_id(page, "jspsych-fullscreen-btn")
             details["clicked_id"] = "jspsych-fullscreen-btn" if ok else None
             return {"action": "fullscreen_button", "type_name": type_name, "details": details}
+        # Button not present → post-click delay_after window. Wait
+        # silently for jsPsych to transition.
+        await asyncio.sleep(0.5)
+        return {"action": "fullscreen_wait", "type_name": type_name, "details": details}
+
+    # 2b. inter-trial gap (no current trial) — wait quietly. jsPsych
+    #     transitions take a few hundred ms; dispatching keys during
+    #     this window can be interpreted as a response to whatever
+    #     trial fires next.
+    if type_name == "unknown" and not present:
+        await asyncio.sleep(0.3)
+        return {"action": "inter_trial_wait", "type_name": type_name, "details": details}
 
     # 3. html-button-response (and similar button-driven plugins) —
     #    dwell at reading pace, then click the visible forward-text

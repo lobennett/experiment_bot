@@ -4,9 +4,12 @@ import logging
 import random
 
 import numpy as np
+from playwright.async_api import Page, async_playwright
 
 from experiment_bot.core.config import TaskConfig
 from experiment_bot.core.distributions import ResponseSampler
+from experiment_bot.drivers.diagnostic import DiagnosticDriver
+from experiment_bot.drivers.registry import identify_driver
 from experiment_bot.output.writer import OutputWriter
 
 logger = logging.getLogger(__name__)
@@ -91,8 +94,66 @@ class TaskExecutor:
         from collections import deque
         self._recent_errors: deque[bool] = deque(maxlen=8)
 
-    async def run(self, task_url):
-        pass
+    async def run(self, task_url: str) -> None:
+        """Execute the full task via the SP10 driver architecture."""
+        task_name = self._config.task.name.replace(" ", "_").lower()
+        run_dir = self._writer.create_run(task_name, self._config)
+        async with async_playwright() as p:
+            browser = await p.chromium.launch(headless=self._headless)
+            context = await browser.new_context(
+                viewport=self._config.runtime.timing.viewport,
+            )
+            page = await context.new_page()
+            session_status = "ok"
+            diagnostic_path = None
+            try:
+                logger.info("Navigating to %s", task_url)
+                await page.goto(task_url, wait_until="networkidle")
+                driver = await identify_driver(page)
+                if isinstance(driver, DiagnosticDriver):
+                    driver._report_dir = run_dir
+                try:
+                    await self._run_session(page, driver)
+                finally:
+                    try:
+                        await driver.teardown(page)
+                    except Exception as e:
+                        logger.warning("driver.teardown raised: %s", e)
+            except Exception as e:
+                from experiment_bot.drivers.base import DriverError
+                if isinstance(e, DriverError) and e.kind.startswith("diagnostic_"):
+                    session_status = "diagnostic_mode"
+                    diagnostic_path = e.context.get("report_path")
+                    logger.warning("Session aborted in diagnostic mode: %s", e.kind)
+                else:
+                    session_status = "error"
+                    logger.error("Task execution failed: %s", e)
+                    try:
+                        screenshot = await page.screenshot(type="png")
+                        self._writer.save_screenshot(screenshot, "error.png")
+                    except Exception:
+                        pass
+                    raise
+            finally:
+                metadata = {
+                    "task_name": task_name,
+                    "task_url": task_url,
+                    "total_trials": self._trial_count,
+                    "headless": self._headless,
+                    "session_seed": self._session_seed,
+                    "session_params": self._session_params,
+                    "status": session_status,
+                }
+                if diagnostic_path is not None:
+                    metadata["diagnostic_report_path"] = diagnostic_path
+                if self._taskcard is not None:
+                    pb = getattr(self._taskcard, "produced_by", None)
+                    metadata["taskcard_sha256"] = (
+                        getattr(pb, "taskcard_sha256", "") if pb else ""
+                    )
+                self._writer.save_metadata(metadata)
+                self._writer.finalize()
+                await browser.close()
 
     async def _run_session(self, page, driver) -> None:
         """SP10 driver-based trial loop."""

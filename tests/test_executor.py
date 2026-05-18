@@ -1301,3 +1301,76 @@ async def test_run_session_dispatches_navigation_until_ready_then_runs_trial():
     driver.wait_for_trial_end.assert_awaited_once()
     driver.wait_for_completion.assert_awaited_once()
     driver.retrieve_data.assert_awaited_once()
+
+
+@pytest.mark.asyncio
+async def test_run_uses_identify_driver_and_calls_run_session(monkeypatch):
+    """SP10: TaskExecutor.run navigates, identifies a driver, then
+    dispatches _run_session."""
+    import contextlib
+    from collections import deque
+    from pathlib import Path
+    import random
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    from experiment_bot.core.executor import TaskExecutor
+    from experiment_bot.drivers.base import ExperimentData, TrialLoopState
+
+    fake_driver = MagicMock()
+    fake_driver.setup = AsyncMock()
+    fake_driver.loop_state = AsyncMock(return_value=TrialLoopState.COMPLETE)
+    fake_driver.wait_for_completion = AsyncMock()
+    fake_driver.retrieve_data = AsyncMock(return_value=ExperimentData(
+        trials=[], format="json", raw="[]",
+    ))
+    fake_driver.teardown = AsyncMock()
+
+    async def fake_identify(page):
+        return fake_driver
+
+    monkeypatch.setattr(
+        "experiment_bot.core.executor.identify_driver", fake_identify,
+    )
+
+    stub = TaskExecutor.__new__(TaskExecutor)
+    stub._config = SimpleNamespace(
+        task=SimpleNamespace(name="x"),
+        performance=SimpleNamespace(get_accuracy=lambda c: 0.95),
+        response_distributions={},
+        runtime=SimpleNamespace(timing=SimpleNamespace(viewport={"width": 1280, "height": 720})),
+    )
+    stub._taskcard = None
+    stub._py_rng = random.Random(0)
+    stub._sampler = MagicMock()
+    stub._writer = MagicMock()
+    stub._writer.create_run = MagicMock(return_value=Path("/tmp/x"))
+    stub._writer.run_dir = Path("/tmp/x")
+    stub._trial_count = 0
+    stub._recent_errors = deque(maxlen=8)
+    stub._headless = True
+    stub._session_seed = 0
+    stub._session_params = {}
+
+    fake_page = AsyncMock()
+    fake_page.goto = AsyncMock()
+    fake_browser = MagicMock()
+    fake_context = MagicMock()
+    fake_context.new_page = AsyncMock(return_value=fake_page)
+    fake_browser.new_context = AsyncMock(return_value=fake_context)
+    fake_browser.close = AsyncMock()
+    fake_pw = MagicMock()
+    fake_pw.chromium.launch = AsyncMock(return_value=fake_browser)
+
+    @contextlib.asynccontextmanager
+    async def fake_async_playwright():
+        yield fake_pw
+
+    monkeypatch.setattr(
+        "experiment_bot.core.executor.async_playwright", fake_async_playwright,
+    )
+
+    await stub.run("http://example.com/test")
+
+    fake_driver.setup.assert_awaited_once()
+    fake_driver.wait_for_completion.assert_awaited_once()
+    fake_driver.retrieve_data.assert_awaited_once()

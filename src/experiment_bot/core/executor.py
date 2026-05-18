@@ -166,6 +166,7 @@ class TaskExecutor:
         last_log_iter = 0
         nav_streak = 0
         last_progress_idx = -1
+        last_arm_count = -1
         while True:
             iter_count += 1
             state = await driver.loop_state(page)
@@ -181,25 +182,39 @@ class TaskExecutor:
             if state == TrialLoopState.NEEDS_NAVIGATION:
                 outcome = await driver.navigate(page)
                 nav_streak += 1
-                # Reset streak when jsPsych's trial counter advances —
-                # paradigms with NO_KEYS fixation trials (stopit etc.)
-                # progress through many trials without ever arming the
-                # keyboard hook. The streak guard is to catch true
-                # stuck-page states, not normal navigation.
+                # Reset streak whenever the platform shows progress.
+                # Two signals (either resets):
+                # 1. jsPsych progress.current_trial_global advanced
+                #    (coarse on platforms whose counter ticks per
+                #    block-level node).
+                # 2. The keyboard-hook's arm_count advanced — each new
+                #    trial that calls pluginAPI.getKeyboardResponse
+                #    bumps it, catching per-trial progress on
+                #    paradigms whose block counter is coarse.
                 try:
-                    progress_idx = await page.evaluate(
+                    advance_signals = await page.evaluate(
                         """(() => {
-                            if (!window.jsPsych) return -1;
-                            let p = null;
+                            const out = { progress_idx: -1, arm_count: -1 };
+                            if (!window.jsPsych) return out;
                             try {
+                              let p = null;
                               if (typeof window.jsPsych.getProgress === 'function') p = window.jsPsych.getProgress();
                               else if (typeof window.jsPsych.progress === 'function') p = window.jsPsych.progress();
+                              if (p && p.current_trial_global != null) out.progress_idx = p.current_trial_global;
                             } catch (e) {}
-                            return (p && p.current_trial_global != null) ? p.current_trial_global : -1;
+                            if (window.__bot_hook && window.__bot_hook.arm_count != null) {
+                              out.arm_count = window.__bot_hook.arm_count;
+                            }
+                            return out;
                         })()"""
                     )
-                    if isinstance(progress_idx, (int, float)) and progress_idx > last_progress_idx:
-                        last_progress_idx = int(progress_idx)
+                    progress_idx = advance_signals.get("progress_idx", -1)
+                    arm_count = advance_signals.get("arm_count", -1)
+                    if progress_idx > last_progress_idx:
+                        last_progress_idx = progress_idx
+                        nav_streak = 0
+                    if arm_count > last_arm_count:
+                        last_arm_count = arm_count
                         nav_streak = 0
                 except Exception:
                     pass

@@ -30,7 +30,12 @@ _INSTALL_HOOK_JS = """
 (() => {
   if (window.__bot_hook_installed) return { ok: true, already: true };
   window.__bot_hook_installed = true;
-  window.__bot_hook = { current: null, history: [] };
+  // arm_count ticks every time the plugin calls getKeyboardResponse —
+  // a per-trial signal the executor uses to reset its nav-streak guard.
+  // fire_count is incremented by wait_for_trial_end after a bot
+  // delivery; together they cover both "new trial armed" and "trial
+  // ended after bot fire".
+  window.__bot_hook = { current: null, history: [], arm_count: 0, fire_count: 0 };
   if (!window.jsPsych || !window.jsPsych.pluginAPI) {
     return { ok: false, reason: 'no_pluginAPI' };
   }
@@ -49,6 +54,7 @@ _INSTALL_HOOK_JS = """
       rt_method: params.rt_method,
       registered_at: performance.now(),
     };
+    window.__bot_hook.arm_count = (window.__bot_hook.arm_count || 0) + 1;
     return orig.call(this, params);
   };
   return { ok: true };

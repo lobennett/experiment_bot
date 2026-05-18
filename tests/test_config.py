@@ -391,3 +391,43 @@ def test_runtime_config_session_agent_enabled_from_dict_defaults_true():
     from experiment_bot.core.config import RuntimeConfig
     rc = RuntimeConfig.from_dict({})
     assert rc.session_agent_enabled is True
+
+
+# ---------------------------------------------------------------------------
+# SP10: TaskConfig.recommended_driver — driver hint emitted by Stage 1
+# ---------------------------------------------------------------------------
+
+
+def _minimal_taskconfig_dict(**overrides) -> dict:
+    base = {
+        "task": {"name": "x", "constructs": [], "reference_literature": []},
+        "stimuli": [],
+        "response_distributions": {},
+        "performance": {"accuracy": {"x": 0.9}, "omission_rate": {}},
+        "navigation": {"phases": []},
+        "task_specific": {},
+    }
+    base.update(overrides)
+    return base
+
+
+def test_taskconfig_recommended_driver_default_is_unknown():
+    cfg = TaskConfig.from_dict(_minimal_taskconfig_dict())
+    assert cfg.recommended_driver == "unknown"
+    assert cfg.driver_hints == {}
+
+
+def test_taskconfig_recommended_driver_roundtrip():
+    cfg = TaskConfig.from_dict(_minimal_taskconfig_dict(
+        recommended_driver="JsPsychDriver",
+        driver_hints={"jspsych_version": "7"},
+    ))
+    assert cfg.recommended_driver == "JsPsychDriver"
+    assert cfg.driver_hints == {"jspsych_version": "7"}
+    d = cfg.to_dict()
+    assert d["recommended_driver"] == "JsPsychDriver"
+    assert d["driver_hints"] == {"jspsych_version": "7"}
+    # Re-parse from serialized form to confirm round-trip stability.
+    cfg2 = TaskConfig.from_dict(d)
+    assert cfg2.recommended_driver == "JsPsychDriver"
+    assert cfg2.driver_hints == {"jspsych_version": "7"}

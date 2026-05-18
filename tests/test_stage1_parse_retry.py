@@ -34,40 +34,22 @@ async def test_stage1_parse_retry_does_not_consume_validation_budget():
     from experiment_bot.core.config import SourceBundle
 
     valid_invalid_partial = {
-        # Missing required runtime fields -> fails Stage 1 validation
+        # Missing required SP10 fields -> fails Stage 1 validation
+        # (no paradigm_classes, no stimuli, no recommended_driver)
         "task": {"name": "test"},
         "stimuli": [],
-        "navigation": {"phases": []},
-        "runtime": {
-            "advance_behavior": {},
-            "data_capture": {},
-        },
+        "performance": {"accuracy": {}},
     }
     valid_passing_partial = {
-        "task": {"name": "test"},
+        "task": {"name": "test", "paradigm_classes": ["speeded_choice"]},
         "stimuli": [
-            {
-                "id": "s1",
-                "description": "test stim",
-                "detection": {"method": "dom_query", "selector": ".x"},
-                "response": {"key": None, "condition": "go"},
-            }
+            {"id": "s1", "condition": "go"},
         ],
-        "navigation": {"phases": []},
-        "runtime": {
-            "advance_behavior": {
-                "advance_keys": [" "],
-                "feedback_fallback_keys": ["Enter"],
-                "feedback_selectors": [],
-            },
-            "data_capture": {"method": ""},
-        },
-        "task_specific": {"key_map": {"go": "f"}},
         "performance": {
             "accuracy": {"go": 0.95},
             "omission_rate": {"go": 0.02},
-            "practice_accuracy": 0.9,
         },
+        "recommended_driver": "JsPsychDriver",
     }
     client = _StubClient([
         "",  # parse failure

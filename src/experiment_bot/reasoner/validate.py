@@ -172,63 +172,53 @@ def validate_stage2_schema(partial: dict) -> None:
 
 
 def validate_stage1_output(partial: dict) -> None:
-    """Assert that Stage 1's output contains all executor-required runtime fields.
+    """SP10 minimal Stage 1 validator: paradigm-agnostic fields only.
 
-    Called after _extract_json and after normalize_partial. Raises
-    Stage1ValidationError naming the first missing required field. Logs a
-    warning if data_capture.method is intentionally empty.
+    Under SP10, the platform driver owns response_key_js / navigation /
+    phase_detection / attention_check / data_capture. Stage 1 emits only
+    LITERATURE + paradigm metadata + driver recommendation, so the
+    validator's surface area shrinks accordingly.
     """
-    runtime = partial.get("runtime", {})
-    advance = runtime.get("advance_behavior", {})
+    errors: list[str] = []
 
-    # advance_keys: required unless feedback_selectors covers all advance
-    if not advance.get("advance_keys") and not advance.get("feedback_selectors"):
-        raise Stage1ValidationError(
-            "runtime.advance_behavior.advance_keys is empty AND "
-            "feedback_selectors is empty — the executor will be unable to "
-            "advance past instruction/feedback screens. Populate at least one."
+    task = partial.get("task") or {}
+    if not task.get("name"):
+        errors.append("task.name is required")
+    pc = task.get("paradigm_classes")
+    if not (isinstance(pc, list) and len(pc) >= 1
+            and all(isinstance(c, str) for c in pc)):
+        errors.append(
+            "task.paradigm_classes must be a non-empty list of strings"
         )
 
-    # feedback_fallback_keys: required unless feedback_selectors covers feedback
-    if not advance.get("feedback_fallback_keys") and not advance.get("feedback_selectors"):
-        raise Stage1ValidationError(
-            "runtime.advance_behavior.feedback_fallback_keys is empty AND "
-            "feedback_selectors is empty — feedback screens will stall."
-        )
-
-    # data_capture: method-dependent subfield requirements
-    capture = runtime.get("data_capture", {})
-    method = capture.get("method", "")
-
-    if method == "js_expression":
-        if not capture.get("expression"):
-            raise Stage1ValidationError(
-                "runtime.data_capture.method is 'js_expression' but expression is empty."
-            )
-    elif method == "button_click":
-        if not capture.get("button_selector") or not capture.get("result_selector"):
-            raise Stage1ValidationError(
-                "runtime.data_capture.method is 'button_click' but button_selector "
-                "or result_selector is empty."
-            )
-    elif method == "":
-        logger.warning(
-            "Stage 1 produced data_capture.method='' — bot will not save "
-            "experiment_data.* at completion. Verify this is intentional."
-        )
+    stim = partial.get("stimuli")
+    if not (isinstance(stim, list) and len(stim) >= 1):
+        errors.append("stimuli must be a non-empty list")
     else:
-        raise Stage1ValidationError(
-            f"runtime.data_capture.method must be 'js_expression', 'button_click', "
-            f"or '', got {method!r}"
+        for i, s in enumerate(stim):
+            if not isinstance(s, dict):
+                errors.append(f"stimuli[{i}] must be a dict")
+                continue
+            if not s.get("id"):
+                errors.append(f"stimuli[{i}].id is required")
+            # Stimuli can carry `condition` either at the top level (SP10
+            # minimal shape) or nested under `response.condition` (legacy
+            # Stage-1 partials emitted before SP10). Accept either.
+            cond = s.get("condition") or (s.get("response") or {}).get("condition")
+            if not cond:
+                errors.append(f"stimuli[{i}].condition is required")
+
+    perf = partial.get("performance") or {}
+    if not isinstance(perf.get("accuracy"), dict):
+        errors.append("performance.accuracy must be a dict")
+
+    rd = partial.get("recommended_driver")
+    KNOWN = {"JsPsychDriver", "CognitionRunDriver", "PsychoJsDriver", "unknown"}
+    if rd is None or rd not in KNOWN:
+        errors.append(
+            f"recommended_driver must be one of {sorted(KNOWN)} "
+            f"(got {rd!r})"
         )
 
-    # stimuli: each must have non-empty detection.selector so the executor can detect it
-    for stim in partial.get("stimuli", []):
-        sel = stim.get("detection", {}).get("selector", "")
-        if not sel:
-            raise Stage1ValidationError(
-                f"stimulus {stim.get('id', '<unnamed>')!r}: detection.selector is empty. "
-                f"The executor cannot detect this stimulus on the page. "
-                f"Provide a CSS selector (for method='dom_query') or JS expression "
-                f"(for method='js_eval'/'canvas_state')."
-            )
+    if errors:
+        raise Stage1ValidationError("; ".join(errors))

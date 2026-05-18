@@ -575,6 +575,16 @@ class TaskConfig:
     between_subject_jitter: BetweenSubjectJitterConfig = field(default_factory=BetweenSubjectJitterConfig)
     pilot: PilotConfig = field(default_factory=PilotConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
+    # SP10: Stage 1 emits `recommended_driver` as a hint for the driver
+    # registry. The runtime registry does the authoritative `can_handle`
+    # check; this field exists so reviewers can audit what Stage 1
+    # identified. Default "unknown" means "no platform markers detected,
+    # let the registry decide / fall back to DiagnosticDriver".
+    recommended_driver: str = "unknown"
+    # SP10: Optional bag of driver-specific hints emitted by Stage 1
+    # (e.g. version anchors, container selectors). Drivers consume what
+    # they recognize and ignore the rest.
+    driver_hints: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> TaskConfig:
@@ -592,6 +602,8 @@ class TaskConfig:
             between_subject_jitter=BetweenSubjectJitterConfig.from_dict(d.get("between_subject_jitter", {})),
             pilot=PilotConfig.from_dict(d.get("pilot", {})),
             runtime=RuntimeConfig.from_dict(d.get("runtime", {})),
+            recommended_driver=d.get("recommended_driver", "unknown"),
+            driver_hints=d.get("driver_hints", {}),
         )
 
     def to_dict(self) -> dict:
@@ -607,6 +619,8 @@ class TaskConfig:
             "temporal_effects": self.temporal_effects.to_dict(),
             "between_subject_jitter": self.between_subject_jitter.to_dict(),
             "pilot": self.pilot.to_dict(),
+            "recommended_driver": self.recommended_driver,
+            "driver_hints": self.driver_hints,
         }
         runtime_dict = self.runtime.to_dict()
         if any(v for v in runtime_dict.values()):

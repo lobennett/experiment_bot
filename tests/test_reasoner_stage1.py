@@ -10,25 +10,11 @@ COMPLETE_STROOP_RESPONSE = """
 {
   "task": {"name": "Stroop", "constructs": ["cognitive control"], "reference_literature": [], "paradigm_classes": ["conflict", "speeded_choice"]},
   "stimuli": [
-    {"id": "stroop_congruent", "description": "color matches word",
-     "detection": {"method": "dom_query", "selector": ".congruent"},
-     "response": {"key": null, "condition": "congruent", "response_key_js": "..."}}
+    {"id": "stroop_congruent", "condition": "congruent"},
+    {"id": "stroop_incongruent", "condition": "incongruent"}
   ],
-  "navigation": {"phases": []},
-  "runtime": {
-    "advance_behavior": {
-      "advance_keys": [" "],
-      "feedback_fallback_keys": ["Enter"],
-      "feedback_selectors": []
-    },
-    "data_capture": {
-      "method": "js_expression",
-      "expression": "jsPsych.data.get().json()",
-      "format": "json"
-    }
-  },
-  "task_specific": {"key_map": {"red": "r", "blue": "b"}},
   "performance": {"accuracy": {"congruent": 0.97, "incongruent": 0.92}},
+  "recommended_driver": "JsPsychDriver",
   "pilot_validation_config": {"min_trials": 20, "target_conditions": ["congruent", "incongruent"]}
 }
 """
@@ -37,9 +23,6 @@ INCOMPLETE_STROOP_RESPONSE = """
 {
   "task": {"name": "Stroop", "constructs": []},
   "stimuli": [],
-  "navigation": {"phases": []},
-  "runtime": {"advance_behavior": {}, "data_capture": {}},
-  "task_specific": {},
   "performance": {"accuracy": {}}
 }
 """
@@ -80,9 +63,9 @@ async def test_stage1_user_message_includes_required_fields_checklist():
     await run_stage1(client=fake, bundle=bundle)
     call_kwargs = fake.complete.await_args.kwargs
     user_msg = call_kwargs["user"]
-    assert "REQUIRED runtime fields" in user_msg
-    assert "advance_keys" in user_msg
-    assert "data_capture.method" in user_msg
+    assert "REQUIRED fields" in user_msg
+    assert "paradigm_classes" in user_msg
+    assert "recommended_driver" in user_msg
 
 
 @pytest.mark.asyncio
@@ -136,7 +119,13 @@ async def test_stage1_appends_validation_error_to_retry_prompt():
     second_call = fake.complete.await_args_list[1]
     second_user = second_call.kwargs["user"]
     assert "previous attempt" in second_user.lower()
-    assert "advance_keys" in second_user or "feedback_selectors" in second_user
+    # The INCOMPLETE fixture is missing recommended_driver, paradigm_classes,
+    # and stimuli; the validator error mentions at least one of those fields.
+    assert (
+        "recommended_driver" in second_user
+        or "paradigm_classes" in second_user
+        or "stimuli" in second_user
+    )
 
 
 @pytest.mark.asyncio
@@ -162,23 +151,10 @@ async def test_stage1_normalize_aliases_dont_trigger_retry():
       "stimuli": [
         {"name": "stroop_congruent", "description": "color matches word",
          "detection": {"method": "dom_query", "value": ".congruent"},
-         "response": {"key": null, "condition": "congruent", "response_key_js": "..."}}
+         "response": {"key": null, "condition": "congruent"}}
       ],
-      "navigation": {"phases": []},
-      "runtime": {
-        "advance_behavior": {
-          "advance_keys": [" "],
-          "feedback_fallback_keys": ["Enter"],
-          "feedback_selectors": []
-        },
-        "data_capture": {
-          "method": "js_expression",
-          "expression": "jsPsych.data.get().json()",
-          "format": "json"
-        }
-      },
-      "task_specific": {"key_map": {"red": "r"}},
       "performance": {"accuracy": {"congruent": 0.97}},
+      "recommended_driver": "JsPsychDriver",
       "pilot_validation_config": {"min_trials": 20, "target_conditions": ["congruent"]}
     }
     """
@@ -187,6 +163,8 @@ async def test_stage1_normalize_aliases_dont_trigger_retry():
     bundle = SourceBundle(url="x", source_files={}, description_text="")
     partial, _step = await run_stage1(client=fake, bundle=bundle)
     assert fake.complete.await_count == 1  # one call, no retry
-    # The normalized partial has `selector` populated (from `value`)
+    # The normalized partial has `selector` populated (from `value`) — normalize
+    # still maps detection aliases even though Stage 1 validator no longer
+    # requires detection.selector under SP10.
     assert partial["stimuli"][0]["detection"]["selector"] == ".congruent"
     assert "value" not in partial["stimuli"][0]["detection"]

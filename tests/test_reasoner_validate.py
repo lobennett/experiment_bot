@@ -6,19 +6,19 @@ from experiment_bot.reasoner.validate import (
 
 
 def _complete_partial() -> dict:
+    """SP10 minimal Stage 1 partial — paradigm-agnostic fields only.
+
+    The driver handles platform-specific JS at runtime; Stage 1 emits
+    LITERATURE + paradigm metadata + driver recommendation.
+    """
     return {
-        "runtime": {
-            "advance_behavior": {
-                "advance_keys": [" "],
-                "feedback_fallback_keys": ["Enter"],
-                "feedback_selectors": [],
-            },
-            "data_capture": {
-                "method": "js_expression",
-                "expression": "jsPsych.data.get().json()",
-                "format": "json",
-            },
-        }
+        "task": {"name": "stroop", "paradigm_classes": ["conflict", "speeded_choice"]},
+        "stimuli": [
+            {"id": "s_congruent", "condition": "congruent"},
+            {"id": "s_incongruent", "condition": "incongruent"},
+        ],
+        "performance": {"accuracy": {"congruent": 0.97, "incongruent": 0.92}},
+        "recommended_driver": "JsPsychDriver",
     }
 
 
@@ -26,67 +26,73 @@ def test_validate_passes_on_complete_partial():
     validate_stage1_output(_complete_partial())  # no exception
 
 
-def test_validate_fails_on_missing_advance_keys_and_no_feedback_selectors():
+def test_validate_fails_on_missing_task_name():
     p = _complete_partial()
-    p["runtime"]["advance_behavior"]["advance_keys"] = []
-    p["runtime"]["advance_behavior"]["feedback_selectors"] = []
-    with pytest.raises(Stage1ValidationError, match="advance_keys"):
+    del p["task"]["name"]
+    with pytest.raises(Stage1ValidationError, match="task.name"):
         validate_stage1_output(p)
 
 
-def test_validate_passes_when_feedback_selectors_present_but_advance_keys_empty():
+def test_validate_fails_on_missing_paradigm_classes():
     p = _complete_partial()
-    p["runtime"]["advance_behavior"]["advance_keys"] = []
-    p["runtime"]["advance_behavior"]["feedback_selectors"] = ["#next-button"]
+    p["task"]["paradigm_classes"] = []
+    with pytest.raises(Stage1ValidationError, match="paradigm_classes"):
+        validate_stage1_output(p)
+
+
+def test_validate_fails_on_empty_stimuli():
+    p = _complete_partial()
+    p["stimuli"] = []
+    with pytest.raises(Stage1ValidationError, match="stimuli"):
+        validate_stage1_output(p)
+
+
+def test_validate_fails_on_stimulus_missing_id():
+    p = _complete_partial()
+    p["stimuli"] = [{"condition": "x"}]
+    with pytest.raises(Stage1ValidationError, match="id"):
+        validate_stage1_output(p)
+
+
+def test_validate_fails_on_stimulus_missing_condition():
+    p = _complete_partial()
+    p["stimuli"] = [{"id": "x"}]
+    with pytest.raises(Stage1ValidationError, match="condition"):
+        validate_stage1_output(p)
+
+
+def test_validate_accepts_legacy_nested_response_condition():
+    """Legacy Stage-1 partials nest condition under response.condition.
+    The validator should still accept that shape so older fixtures don't
+    spuriously fail under SP10."""
+    p = _complete_partial()
+    p["stimuli"] = [
+        {"id": "s_congruent",
+         "detection": {"method": "dom_query", "selector": ".x"},
+         "response": {"condition": "congruent"}},
+    ]
     validate_stage1_output(p)  # no exception
 
 
-def test_validate_fails_on_missing_data_capture_expression():
+def test_validate_fails_on_missing_performance_accuracy():
     p = _complete_partial()
-    p["runtime"]["data_capture"]["expression"] = ""
-    with pytest.raises(Stage1ValidationError, match="expression"):
+    del p["performance"]["accuracy"]
+    with pytest.raises(Stage1ValidationError, match="performance.accuracy"):
         validate_stage1_output(p)
 
 
-def test_validate_fails_on_missing_data_capture_button_selectors():
+def test_validate_fails_on_missing_recommended_driver():
     p = _complete_partial()
-    p["runtime"]["data_capture"]["method"] = "button_click"
-    p["runtime"]["data_capture"]["expression"] = ""
-    p["runtime"]["data_capture"]["button_selector"] = ""
-    p["runtime"]["data_capture"]["result_selector"] = ""
-    with pytest.raises(Stage1ValidationError, match="button_selector|result_selector"):
+    del p["recommended_driver"]
+    with pytest.raises(Stage1ValidationError, match="recommended_driver"):
         validate_stage1_output(p)
 
 
-def test_validate_passes_on_method_empty():
+def test_validate_fails_on_unknown_recommended_driver():
     p = _complete_partial()
-    p["runtime"]["data_capture"]["method"] = ""
-    p["runtime"]["data_capture"]["expression"] = ""
-    validate_stage1_output(p)  # method="" is permitted (logs warning)
-
-
-def test_validate_fails_on_stimulus_with_empty_selector():
-    """Stage 1 must produce stimuli with non-empty detection.selector,
-    otherwise the executor's stimulus detection cannot fire."""
-    p = _complete_partial()
-    p["stimuli"] = [{"id": "x", "detection": {"method": "dom_query", "selector": ""},
-                      "response": {"condition": "x"}}]
-    with pytest.raises(Stage1ValidationError, match="detection.selector"):
+    p["recommended_driver"] = "FakeDriver"
+    with pytest.raises(Stage1ValidationError, match="recommended_driver"):
         validate_stage1_output(p)
-
-
-def test_validate_passes_on_stimulus_with_non_empty_selector():
-    p = _complete_partial()
-    p["stimuli"] = [{"id": "x",
-                      "detection": {"method": "dom_query", "selector": "#stim"},
-                      "response": {"condition": "x"}}]
-    validate_stage1_output(p)
-
-
-def test_validate_passes_on_no_stimuli_block():
-    """If 'stimuli' isn't present, validator shouldn't raise — that's a different error."""
-    p = _complete_partial()
-    validate_stage1_output(p)
 
 
 # ---------------------------------------------------------------------------

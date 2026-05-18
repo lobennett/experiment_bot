@@ -18,46 +18,45 @@ PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
 
 
 REQUIRED_FIELDS_CHECKLIST = """
-## REQUIRED runtime fields you MUST populate
+## REQUIRED fields you MUST populate
 
-The executor will fail or skip steps if any of these are empty. Use the
-experiment's source code to determine the right values; do NOT use generic
-defaults.
+The Reasoner produces a TaskCard whose paradigm-agnostic parts the bot
+library reads, while a platform driver handles all page-touching
+concerns at runtime. Stage 1's job is to extract LITERATURE + paradigm
+metadata + driver recommendation.
 
-- `runtime.advance_behavior.advance_keys` (list of key names) — keys the bot
-  presses to advance instruction or feedback screens. Examples: `[" "]` for
-  jsPsych Space-advance, `["Enter"]` for ExpFactory custom HTML. Required
-  unless `feedback_selectors` is populated and covers all advance.
+- `task.name` (string) — the paradigm's task name, lowercase snake_case.
 
-- `runtime.advance_behavior.feedback_fallback_keys` (list of key names) —
-  fallback keys when no `feedback_selectors` button matches. Same conventions
-  as `advance_keys`.
+- `task.paradigm_classes` (list of strings) — abstract classes the
+  paradigm belongs to (open-ended vocabulary). Always include
+  `"speeded_choice"` for any timed-decision task, plus one or more
+  specific classes drawn from review-article terminology. See system.md
+  "Paradigm classes" for examples.
 
-- `runtime.data_capture.method` (string: "js_expression" | "button_click" | "")
-  — how the bot extracts the experiment's recorded data after completion.
-  - "js_expression": provide `runtime.data_capture.expression` (a JS expression
-    that returns the data as a string). Common: `jsPsych.data.get().json()` for
-    jsPsych-7, `jsPsych.data.get().csv()` for csv. STOP-IT calls a custom
-    `jsPsych.data.getInteractionData()`.
-  - "button_click": provide `runtime.data_capture.button_selector` (a CSS
-    selector for the "show data" button) and `result_selector` (selector for
-    the result element). cognition.run typically uses `#data` as result.
-  - "" only if the experiment has no native data save and the bot's bot_log.json
-    is the only data source. Choose with caution.
+- `stimuli` (list) — each stimulus needs `id` (snake_case identifier)
+  and `condition` (literature-standard condition label, e.g.
+  "congruent", "incongruent", "match_1back", "go", "stop"). The driver
+  reads platform-specific stimulus details at runtime; Stage 1 only
+  needs the abstract identifier + condition label.
 
-- `runtime.data_capture.format` (string: "csv" | "tsv" | "json") — required
-  alongside `method` when `method != ""`.
+- `performance.accuracy` (dict: condition → 0.0-1.0) — per-condition
+  target accuracy from the literature.
 
-## REQUIRED task metadata
+- `performance.omission_rate` (dict: condition → 0.0-1.0) — optional
+  per-condition omission rate.
 
-- `task.paradigm_classes` (list of strings) — abstract classes the paradigm
-  belongs to. **Open-ended vocabulary**: choose the abstract class names from
-  the literature that best describe the cognitive operations the task taxes.
-  Used to filter which paradigm-specific sequential effects apply and to look
-  up the canonical-norms file for validation. Always include
-  `"speeded_choice"` for any timed-decision task, plus one or more specific
-  classes drawn from review-article terminology. See system.md "Paradigm
-  classes" for examples and guidance on picking class names.
+- `recommended_driver` (string) — `"JsPsychDriver"`,
+  `"CognitionRunDriver"`, `"PsychoJsDriver"`, or `"unknown"`. See the
+  "Recommended driver" section of the system prompt.
+
+- `pilot_validation_config` (object) — see existing pilot block. Stage
+  6 uses this to drive a thin driver-based smoke confirming the
+  TaskCard works end-to-end.
+
+The Reasoner does NOT extract platform-specific JS (response_key_js,
+stimulus.detection JS, navigation.phases, phase_detection,
+attention_check, advance_behavior, data_capture). The driver handles
+these at runtime.
 """
 
 
@@ -83,12 +82,15 @@ def _build_stage1_prompt(bundle: SourceBundle) -> str:
         parts.append(f"## File: {fname}\n{content[:60000]}")
     parts.append(REQUIRED_FIELDS_CHECKLIST)
     parts.append(
-        "Produce ONLY the structural fields of a TaskConfig: task, stimuli, "
-        "navigation, runtime (with the REQUIRED fields above), task_specific "
-        "(with key_map and trial_timing if applicable), performance.accuracy/"
-        "omission, and a pilot_validation_config block. Do NOT produce "
-        "response_distributions, temporal_effects, or any behavioral parameters "
-        "yet — those come in stage 2. Return JSON only."
+        "Produce ONLY the paradigm-agnostic structural fields of a TaskConfig: "
+        "task (with name and paradigm_classes), stimuli (id + condition for "
+        "each), performance.accuracy/omission, recommended_driver, and a "
+        "pilot_validation_config block. Do NOT produce response_distributions, "
+        "temporal_effects, between_subject_jitter, or any behavioral parameters "
+        "yet — those come in Stage 2. Do NOT extract platform-specific JS "
+        "(response_key_js, navigation.phases, phase_detection, attention_check, "
+        "advance_behavior, data_capture) — the driver handles those at runtime. "
+        "Return JSON only."
     )
     return "\n\n".join(parts)
 

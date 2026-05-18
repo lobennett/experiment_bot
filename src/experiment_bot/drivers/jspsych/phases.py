@@ -130,8 +130,43 @@ _GET_CONTEXT_JS = """
     return v;
   };
   const cond_resolved = _resolveField('condition');
-  const corr_resolved = _resolveField('correct_response');
+  let corr_resolved = _resolveField('correct_response');
   const stim_resolved_id = _resolveField('stimulus_id');
+  // Some paradigms don't write correct_response into trial.data at
+  // trial-start (n_back stores it in a window-level global before each
+  // trial; poldracklab-stop-signal stores it as a closure-local var
+  // but exposes it on the trial spec under `correct_choice`, often as
+  // a function reference). Try the additional channels here.
+  if (corr_resolved == null) {
+    // 1. Top-level trial.correct_response (some experiments use this
+    //    rather than data.correct_response).
+    if (trial.correct_response != null) {
+      corr_resolved = trial.correct_response;
+    }
+  }
+  if (corr_resolved == null) {
+    // 2. trial.correct_choice — poldracklab-stop-signal trial spec.
+    //    May be a string (direct) or a function (call to resolve).
+    try {
+      const cc = trial.correct_choice;
+      if (typeof cc === 'function') {
+        const r = cc();
+        if (r != null) corr_resolved = r;
+      } else if (cc != null) {
+        corr_resolved = cc;
+      }
+    } catch (e) {}
+  }
+  if (corr_resolved == null) {
+    // 3. window-level globals. SP8 found `window.correctResponse` is
+    //    the expfactory n_back convention; some paradigms use
+    //    `window.correct_response` (snake_case) instead. Both are
+    //    set by the experiment's pre-trial setup.
+    try {
+      if (window.correctResponse != null) corr_resolved = window.correctResponse;
+      else if (window.correct_response != null) corr_resolved = window.correct_response;
+    } catch (e) {}
+  }
   const stimulus_id = String(
     stim_resolved_id != null ? stim_resolved_id :
     (typeof trial.stimulus === 'string' ? trial.stimulus.slice(0, 200) :

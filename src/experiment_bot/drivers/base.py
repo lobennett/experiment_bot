@@ -103,7 +103,8 @@ class PlatformDriver(Protocol):
     version-check construction path).
     """
 
-    async def can_handle(self, page: Page) -> bool:
+    @classmethod
+    async def can_handle(cls, page: Page) -> bool:
         """Cheap DOM/window inspection. No LLM, no side effects."""
         ...
 

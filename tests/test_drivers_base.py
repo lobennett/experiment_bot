@@ -73,7 +73,10 @@ def test_platform_driver_is_a_protocol():
     """Protocol marker for static typing — concrete drivers don't subclass
     PlatformDriver; they implement its methods. inspect-based smoke check
     that the Protocol has the documented methods."""
-    methods = {n for n, _ in inspect.getmembers(PlatformDriver, predicate=inspect.isfunction)}
+    methods = {
+        n for n, m in inspect.getmembers(PlatformDriver)
+        if inspect.isfunction(m) or inspect.ismethod(m)
+    }
     expected = {
         "can_handle", "setup", "loop_state", "navigate",
         "get_trial_context", "deliver_response",

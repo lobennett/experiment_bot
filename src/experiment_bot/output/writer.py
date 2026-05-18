@@ -19,9 +19,11 @@ class OutputWriter:
         self._trials: list[dict] = []
 
     def create_run(self, task_name: str, config: TaskConfig) -> Path:
-        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+        # Include microseconds so concurrent runs that start in the
+        # same second don't collide on the directory name.
+        timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")
         self._run_dir = self._base_dir / task_name / timestamp
-        self._run_dir.mkdir(parents=True, exist_ok=True)
+        self._run_dir.mkdir(parents=True, exist_ok=False)
         (self._run_dir / "screenshots").mkdir(exist_ok=True)
         config_path = self._run_dir / "config.json"
         config_path.write_text(json.dumps(config.to_dict(), indent=2))

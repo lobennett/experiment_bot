@@ -111,34 +111,70 @@ def find_best_offset(
     return best
 
 
+def rt_match_audit(
+    bot_trials: list[dict], plat_test: list[dict], rt_tolerance_ms: float = 1.0,
+) -> dict:
+    """For each platform test trial with a non-null rt, find the bot
+    trial whose rt_ms matches within tolerance. RT is a near-unique
+    per-trial signature (sub-millisecond precision), so a match here
+    is strong evidence the same physical trial.
+
+    Returns counts: total, plat_none (timeouts), matched (bot rt found),
+    pressed_eq_recorded, pressed_eq_expected.
+    """
+    bot_rts = [(i, t["rt_ms"]) for i, t in enumerate(bot_trials)
+                if t.get("rt_ms") is not None]
+    c = Counter()
+    c["total"] = len(plat_test)
+    for p in plat_test:
+        prt_raw = p.get("rt")
+        if prt_raw is None or prt_raw == "None":
+            c["plat_none"] += 1
+            continue
+        prt = float(prt_raw)
+        best_i, best_rt = min(bot_rts, key=lambda x: abs(x[1] - prt))
+        if abs(best_rt - prt) >= rt_tolerance_ms:
+            continue
+        c["matched"] += 1
+        b = bot_trials[best_i]
+        if b.get("response_key") == p.get("response"):
+            c["pressed_eq_recorded"] += 1
+        if b.get("response_key") == p.get("correct_response"):
+            c["pressed_eq_expected"] += 1
+    return dict(c)
+
+
 def report(session_dir: Path) -> dict:
     bot, plat = load_session(session_dir)
-    bot_test = [t for t in bot if is_bot_test_trial(t)]
+    bot_trials = [t for t in bot if t.get("type") == "trial"]
     plat_test = [r for r in plat if is_real_test_trial(r)]
-    if not bot_test or not plat_test:
-        print(f"[{session_dir.name}] EMPTY — bot_test={len(bot_test)} plat_test={len(plat_test)}")
+    if not bot_trials or not plat_test:
+        print(f"[{session_dir.name}] EMPTY — bot_trials={len(bot_trials)} plat_test={len(plat_test)}")
         return {
             "session": session_dir.name, "status": "empty",
-            "n_bot": len(bot_test), "n_plat": len(plat_test),
+            "n_bot": len(bot_trials), "n_plat": len(plat_test),
         }
-    offset, n, c = find_best_offset(bot_test, plat_test)
-    pct = {k: 100.0 * v / n for k, v in c.items()}
+    c = rt_match_audit(bot_trials, plat_test)
+    total = c["total"]
+    matched = c.get("matched", 0)
+    plat_none = c.get("plat_none", 0)
+    n_with_rt = total - plat_none
+    pressed_eq_recorded_pct = (100.0 * c.get("pressed_eq_recorded", 0) / total) if total else 0.0
+    pressed_eq_expected_pct = (100.0 * c.get("pressed_eq_expected", 0) / total) if total else 0.0
+    matched_pct = (100.0 * matched / n_with_rt) if n_with_rt else 0.0
     print(f"=== {session_dir.parent.name}/{session_dir.name} ===")
-    print(f"  bot_test={len(bot_test)}, plat_test={len(plat_test)}, "
-          f"best_offset={offset}, n_compared={n}")
-    print(f"  pressed_eq_recorded: {pct['pressed_eq_recorded']:.1f}%  "
-          f"(G0 target ≥ 90.0%)")
-    print(f"  pressed_eq_expected: {pct['pressed_eq_expected']:.1f}%  "
-          f"(=accuracy)")
-    print(f"  condition_match:     {pct['condition_match']:.1f}%  "
-          f"(should be 100% at correct offset)")
+    print(f"  bot_trials={len(bot_trials)}, plat_test={total} "
+          f"(with_rt={n_with_rt}, plat_none={plat_none})")
+    print(f"  bot rt-matched to platform:           {matched}/{n_with_rt} ({matched_pct:.1f}%)")
+    print(f"  pressed_eq_recorded (all test rows):  {pressed_eq_recorded_pct:.1f}%  (G0 target ≥ 90.0%)")
+    print(f"  pressed_eq_expected (all test rows):  {pressed_eq_expected_pct:.1f}%  (=accuracy)")
     return {
         "session": f"{session_dir.parent.name}/{session_dir.name}",
-        "status": "ok", "best_offset": offset, "n_compared": n,
-        "n_bot_test": len(bot_test), "n_plat_test": len(plat_test),
-        "pressed_eq_recorded_pct": pct["pressed_eq_recorded"],
-        "pressed_eq_expected_pct": pct["pressed_eq_expected"],
-        "condition_match_pct": pct["condition_match"],
+        "status": "ok",
+        "n_bot": len(bot_trials), "n_plat_test": total,
+        "n_matched": matched, "n_plat_none": plat_none,
+        "pressed_eq_recorded_pct": pressed_eq_recorded_pct,
+        "pressed_eq_expected_pct": pressed_eq_expected_pct,
     }
 
 
@@ -157,7 +193,7 @@ def main(argv: Iterable[str]) -> int:
             print(f"  {r['session']}: pressed_eq_recorded="
                   f"{r['pressed_eq_recorded_pct']:5.1f}% "
                   f"accuracy={r['pressed_eq_expected_pct']:5.1f}% "
-                  f"(offset={r['best_offset']}, n={r['n_compared']})")
+                  f"(matched={r['n_matched']}/{r['n_plat_test']})")
     return 0
 
 

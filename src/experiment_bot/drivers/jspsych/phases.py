@@ -37,19 +37,28 @@ _LOOP_STATE_JS = """
   if (percent !== null && percent >= 100) return { state: 'complete' };
   let trial = null;
   try {
-    trial = window.jsPsych.getCurrentTrial && window.jsPsych.getCurrentTrial();
+    // v7: getCurrentTrial(). v6: currentTrial().
+    if (typeof window.jsPsych.getCurrentTrial === 'function') {
+      trial = window.jsPsych.getCurrentTrial();
+    } else if (typeof window.jsPsych.currentTrial === 'function') {
+      trial = window.jsPsych.currentTrial();
+    }
   } catch (e) {}
   if (!trial) {
     // Between trials or before timeline started. Treat as needs_navigation
     // — bot library will poll again shortly.
     return { state: 'needs_navigation', reason: 'no_current_trial' };
   }
-  // type.info.name is the canonical plugin name in jsPsych 7.x.
+  // v7: trial.type is a class instance with .info.name. v6: it's a string.
   let type_name = null;
   try {
-    type_name = (trial.type && trial.type.info && trial.type.info.name) ||
-                (trial.type && trial.type.name) ||
-                (typeof trial.type === 'string' ? trial.type : null);
+    if (typeof trial.type === 'string') {
+      type_name = trial.type;
+    } else if (trial.type && trial.type.info && trial.type.info.name) {
+      type_name = trial.type.info.name;
+    } else if (trial.type && trial.type.name) {
+      type_name = trial.type.name;
+    }
   } catch (e) {}
   type_name = type_name || 'unknown';
   // Instructions plugin uses pluginAPI.getKeyboardResponse for nav keys
@@ -60,8 +69,9 @@ _LOOP_STATE_JS = """
   }
   // Trial-body plugins arm the keyboard hook via getKeyboardResponse.
   // This covers html-keyboard-response, audio-keyboard-response,
-  // poldracklab-stop-signal, and any other trial plugin that registers
-  // a keyboard callback through the standard pluginAPI.
+  // poldracklab-stop-signal, custom-stop-signal-plugin, and any other
+  // trial plugin that registers a keyboard callback through the
+  // standard pluginAPI.
   if (window.__bot_hook && window.__bot_hook.current) {
     return { state: 'ready_for_trial', type: type_name };
   }
@@ -86,8 +96,15 @@ _LOOP_STATE_JS = """
 # Returns null if no active trial / no armed hook.
 _GET_CONTEXT_JS = """
 (() => {
-  const trial = window.jsPsych && window.jsPsych.getCurrentTrial &&
-                window.jsPsych.getCurrentTrial();
+  if (!window.jsPsych) return null;
+  let trial = null;
+  try {
+    if (typeof window.jsPsych.getCurrentTrial === 'function') {
+      trial = window.jsPsych.getCurrentTrial();
+    } else if (typeof window.jsPsych.currentTrial === 'function') {
+      trial = window.jsPsych.currentTrial();
+    }
+  } catch (e) {}
   const hook = window.__bot_hook && window.__bot_hook.current;
   if (!trial || !hook) return null;
   // Some experiments declare `data: jsPsych.timelineVariable('data')` so
@@ -186,13 +203,19 @@ _GET_CONTEXT_JS = """
   if (Array.isArray(vr)) {
     allowed_responses = vr.map(String);
   }
-  // type name
+  // type name — v7: trial.type is a class instance with .info.name;
+  // v6: trial.type is a string directly.
   let type_name = null;
   try {
-    type_name = (trial.type && trial.type.info && trial.type.info.name) ||
-                (trial.type && trial.type.name) ||
-                (typeof trial.type === 'string' ? trial.type : 'unknown');
-  } catch (e) { type_name = 'unknown'; }
+    if (typeof trial.type === 'string') {
+      type_name = trial.type;
+    } else if (trial.type && trial.type.info && trial.type.info.name) {
+      type_name = trial.type.info.name;
+    } else if (trial.type && trial.type.name) {
+      type_name = trial.type.name;
+    }
+  } catch (e) {}
+  type_name = type_name || 'unknown';
   // Stop-signal trial detection. Only meaningful for the
   // poldracklab-stop-signal plugin, which tags each trial via
   // `SS_trial_type` ('go' or 'stop'), typically a function reference

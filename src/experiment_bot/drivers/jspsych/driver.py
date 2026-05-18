@@ -57,9 +57,17 @@ _INSTALL_HOOK_JS = """
 
 
 class JsPsychDriver:
-    """jsPsych 7.x platform driver."""
+    """jsPsych platform driver. Supports 7.3.1 and 6.0.5.
 
-    SUPPORTED_VERSIONS: ClassVar[tuple[str, ...]] = ("7.3.1",)
+    The two version eras differ in API surface (e.g. `getCurrentTrial`
+    vs `currentTrial`, `getProgress` vs `progress`, `trial.type` as
+    class instance vs string), but the hook target —
+    `pluginAPI.getKeyboardResponse` — is the same. Driver methods
+    detect the live version's API at JS-evaluation time so a single
+    driver covers both.
+    """
+
+    SUPPORTED_VERSIONS: ClassVar[tuple[str, ...]] = ("7.3.1", "6.0.5")
 
     def __init__(self, version: str):
         self._version = version
@@ -76,10 +84,21 @@ class JsPsychDriver:
     @classmethod
     async def create(cls, page: Page) -> "JsPsychDriver":
         """Read live version, check against SUPPORTED_VERSIONS, instantiate
-        or raise UnsupportedVersionError."""
+        or raise UnsupportedVersionError. v7 exposes `version` as a
+        function; v6 as a string property. Try both."""
         version = await page.evaluate(
-            "(window.jsPsych && typeof window.jsPsych.version === 'function') "
-            "? window.jsPsych.version() : null"
+            """(() => {
+                if (!window.jsPsych) return null;
+                try {
+                  if (typeof window.jsPsych.version === 'function') {
+                    return window.jsPsych.version();
+                  }
+                } catch (e) {}
+                if (typeof window.jsPsych.version === 'string') {
+                  return window.jsPsych.version;
+                }
+                return null;
+            })()"""
         )
         if version not in cls.SUPPORTED_VERSIONS:
             raise UnsupportedVersionError(
@@ -202,8 +221,14 @@ class JsPsychDriver:
         await page.evaluate("""
         (() => {
           try {
-            const t = window.jsPsych && window.jsPsych.getCurrentTrial &&
-                      window.jsPsych.getCurrentTrial();
+            let t = null;
+            if (window.jsPsych) {
+              if (typeof window.jsPsych.getCurrentTrial === 'function') {
+                t = window.jsPsych.getCurrentTrial();
+              } else if (typeof window.jsPsych.currentTrial === 'function') {
+                t = window.jsPsych.currentTrial();
+              }
+            }
             if (t) {
               t.__bot_fired_at = (window.__bot_hook && window.__bot_hook.fire_count) || 0;
               window.__bot_hook.fire_count = (window.__bot_hook.fire_count || 0) + 1;
@@ -218,8 +243,14 @@ class JsPsychDriver:
                 advanced = await page.evaluate("""
                 (() => {
                   try {
-                    const t = window.jsPsych && window.jsPsych.getCurrentTrial &&
-                              window.jsPsych.getCurrentTrial();
+                    let t = null;
+                    if (window.jsPsych) {
+                      if (typeof window.jsPsych.getCurrentTrial === 'function') {
+                        t = window.jsPsych.getCurrentTrial();
+                      } else if (typeof window.jsPsych.currentTrial === 'function') {
+                        t = window.jsPsych.currentTrial();
+                      }
+                    }
                     if (!t) return true;
                     return t.__bot_fired_at == null;
                   } catch(e) { return true; }
@@ -236,17 +267,27 @@ class JsPsychDriver:
         timeout_s: float = 60.0,
         poll_interval_s: float = 0.5,
     ) -> None:
-        """Poll jsPsych.progress().percent_complete; return when >= 100
-        or when timeout elapses. The executor's finally block writes
-        run_metadata + bot_log regardless of whether the experiment
-        completed cleanly."""
+        """Poll jsPsych progress percent_complete; return when >= 100
+        or when timeout elapses. v7: getProgress(). v6: progress() —
+        but the v7 .progress getter throws MigrationError, so guard
+        with typeof + try/catch."""
         deadline = time.monotonic() + timeout_s
         while time.monotonic() < deadline:
             try:
-                pct = await page.evaluate(
-                    "(window.jsPsych && window.jsPsych.getProgress && "
-                    "window.jsPsych.getProgress().percent_complete) || 0"
-                )
+                pct = await page.evaluate("""
+                (() => {
+                  if (!window.jsPsych) return 0;
+                  let p = null;
+                  try {
+                    if (typeof window.jsPsych.getProgress === 'function') {
+                      p = window.jsPsych.getProgress();
+                    } else if (typeof window.jsPsych.progress === 'function') {
+                      p = window.jsPsych.progress();
+                    }
+                  } catch (e) {}
+                  return (p && p.percent_complete) || 0;
+                })()
+                """)
             except Exception as e:
                 logger.warning("wait_for_completion: page.evaluate raised: %s", e)
                 return

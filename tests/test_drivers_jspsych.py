@@ -38,6 +38,14 @@ async def test_create_succeeds_for_supported_version():
 
 
 @pytest.mark.asyncio
+async def test_create_succeeds_for_v6():
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="6.0.5")
+    driver = await JsPsychDriver.create(page)
+    assert driver._version == "6.0.5"
+
+
+@pytest.mark.asyncio
 async def test_create_raises_for_unsupported_version():
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value="6.3.1")
@@ -45,6 +53,7 @@ async def test_create_raises_for_unsupported_version():
         await JsPsychDriver.create(page)
     assert excinfo.value.detected_version == "6.3.1"
     assert "7.3.1" in excinfo.value.supported_versions
+    assert "6.0.5" in excinfo.value.supported_versions
 
 
 @pytest.mark.asyncio

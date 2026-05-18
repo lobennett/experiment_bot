@@ -112,7 +112,7 @@ class TaskExecutor:
                 })
                 continue
             ctx = await driver.get_trial_context(page)
-            rt = self._sampler.sample(ctx.condition, history=history)
+            rt = self._sampler.sample_rt_with_fallback(ctx.condition)
             intended_correct = self._py_rng.random() < self._config.performance.get_accuracy(ctx.condition)
             response = _resolve_response(ctx, intended_correct, self._py_rng, self._taskcard)
             result = await driver.deliver_response(page, response, rt)

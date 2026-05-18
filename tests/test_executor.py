@@ -1286,7 +1286,7 @@ async def test_run_session_dispatches_navigation_until_ready_then_runs_trial():
     stub._taskcard = None
     stub._py_rng = random.Random(0)
     stub._sampler = MagicMock()
-    stub._sampler.sample = MagicMock(return_value=350.0)
+    stub._sampler.sample_rt_with_fallback = MagicMock(return_value=350.0)
     stub._writer = MagicMock()
     stub._trial_count = 0
     stub._recent_errors = deque(maxlen=8)

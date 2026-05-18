@@ -38,6 +38,16 @@ class OutputWriter:
             path.write_text(data)
             logger.info(f"Saved experiment data to {path}")
 
+    def save_experiment_data(self, data) -> None:
+        """SP10: persist the driver-retrieved platform data export."""
+        if not self._run_dir:
+            return
+        path = self._run_dir / f"experiment_data.{data.format}"
+        if isinstance(data.raw, bytes):
+            path.write_bytes(data.raw)
+        else:
+            path.write_text(data.raw)
+
     def save_screenshot(self, data: bytes, name: str) -> None:
         if self._run_dir:
             (self._run_dir / "screenshots" / name).write_bytes(data)

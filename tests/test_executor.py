@@ -1239,3 +1239,65 @@ def test_executor_persists_session_seed_and_params_to_metadata():
     saved = saved_args[0]
     assert saved["session_seed"] == 12345
     assert saved["session_params"]["go"]["mu"] == 510.0
+
+
+@pytest.mark.asyncio
+async def test_run_session_dispatches_navigation_until_ready_then_runs_trial():
+    """SP10: _run_session polls driver.loop_state; on NEEDS_NAVIGATION
+    calls driver.navigate; on READY_FOR_TRIAL samples RT and calls
+    driver.deliver_response; on COMPLETE breaks out of the loop."""
+    from collections import deque
+    import random
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    from experiment_bot.drivers.base import (
+        DeliveryResult, NavigationOutcome, TrialContext, TrialLoopState,
+    )
+    from experiment_bot.core.executor import TaskExecutor
+
+    driver = MagicMock()
+    driver.setup = AsyncMock()
+    driver.loop_state = AsyncMock(side_effect=[
+        TrialLoopState.NEEDS_NAVIGATION,
+        TrialLoopState.READY_FOR_TRIAL,
+        TrialLoopState.COMPLETE,
+    ])
+    driver.navigate = AsyncMock(return_value=NavigationOutcome(action="advanced_instructions"))
+    driver.get_trial_context = AsyncMock(return_value=TrialContext(
+        stimulus_id="s1", condition="congruent",
+        allowed_responses=(",", "."), expected_correct=",",
+        response_window_ms=1500,
+    ))
+    driver.deliver_response = AsyncMock(return_value=DeliveryResult(
+        success=True, delivered_at_ms=350.0, actual_rt_ms=350.0,
+        method="jspsych_callback_hook",
+    ))
+    driver.wait_for_trial_end = AsyncMock()
+    driver.wait_for_completion = AsyncMock()
+    driver.retrieve_data = AsyncMock(return_value=None)
+    driver.teardown = AsyncMock()
+
+    stub = TaskExecutor.__new__(TaskExecutor)
+    stub._config = SimpleNamespace(
+        task=SimpleNamespace(name="x"),
+        performance=SimpleNamespace(get_accuracy=lambda c: 0.95),
+        response_distributions={},
+    )
+    stub._taskcard = None
+    stub._py_rng = random.Random(0)
+    stub._sampler = MagicMock()
+    stub._sampler.sample = MagicMock(return_value=350.0)
+    stub._writer = MagicMock()
+    stub._trial_count = 0
+    stub._recent_errors = deque(maxlen=8)
+
+    page = AsyncMock()
+    await stub._run_session(page, driver)
+
+    driver.setup.assert_awaited_once_with(page)
+    driver.navigate.assert_awaited_once()
+    driver.get_trial_context.assert_awaited_once()
+    driver.deliver_response.assert_awaited_once()
+    driver.wait_for_trial_end.assert_awaited_once()
+    driver.wait_for_completion.assert_awaited_once()
+    driver.retrieve_data.assert_awaited_once()

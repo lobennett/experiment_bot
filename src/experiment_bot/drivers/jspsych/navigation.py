@@ -298,14 +298,14 @@ async def navigate_page(page: Page) -> dict:
         await asyncio.sleep(0.3)
         return {"action": "inter_trial_wait", "type_name": type_name, "details": details}
 
-    # 2c. Keyboard-response trial whose hook isn't yet armed (between
-    #     plugin start and the call to pluginAPI.getKeyboardResponse).
-    #     Wait quietly. Do NOT dispatch keys here — any keystroke
-    #     dispatched at the display root during this window can be
+    # 2c. Trial-body plugin (keyboard-response, poldracklab-stop-signal,
+    #     etc.) whose hook isn't yet armed (between plugin start and the
+    #     getKeyboardResponse call). Wait quietly. Do NOT dispatch keys —
+    #     any keystroke at the display root during this window can be
     #     captured as the response for whichever listener arms next.
-    if "keyboard-response" in type_name:
+    if "keyboard-response" in type_name or "stop-signal" in type_name:
         await asyncio.sleep(0.1)
-        return {"action": "keyboard_response_wait", "type_name": type_name, "details": details}
+        return {"action": "trial_arming_wait", "type_name": type_name, "details": details}
 
     # 3. html-button-response (and similar button-driven plugins) —
     #    dwell at reading pace, then click the visible forward-text

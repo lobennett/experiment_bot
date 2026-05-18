@@ -56,13 +56,26 @@ def is_real_test_trial(row: dict) -> bool:
 
 
 def is_bot_test_trial(t: dict) -> bool:
-    """Bot-side filter: type='trial' entries whose condition is a real
-    condition label, not the 'default' fallback emitted when trial.data
-    has no condition field.
+    """Bot-side filter: type='trial' entries that look like a real test
+    trial. Two signals:
+
+    - Condition is a non-default label (stroop, flanker — paradigms
+      whose trial.data.condition resolves at runtime).
+    - OR the bot delivered a non-Enter key (n_back, stop_signal —
+      paradigms where data.condition stays undefined but the bot still
+      fires real test keys via random fallback).
+
+    Instruction-screen trials use Enter; filtering those out separates
+    the test phase reliably.
     """
     if t.get("type") != "trial":
         return False
-    return t.get("condition") not in (None, "default")
+    if t.get("condition") not in (None, "default"):
+        return True
+    rk = t.get("response_key")
+    if rk is not None and rk != "Enter":
+        return True
+    return False
 
 
 def score_alignment(
@@ -81,14 +94,19 @@ def score_alignment(
 
 
 def find_best_offset(
-    bot_test: list[dict], plat_test: list[dict], max_offset: int = 12,
+    bot_test: list[dict], plat_test: list[dict], max_offset: int = 50,
 ) -> tuple[int, int, dict[str, int]]:
+    """Use pressed_eq_recorded as the optimization signal (works whether
+    or not the bot can read trial.data.condition). Condition_match is
+    secondary because paradigms like n_back don't expose condition at
+    runtime, even when the hook delivers perfectly.
+    """
     best = (0, *score_alignment(bot_test, plat_test, 0))
     for k in range(1, max_offset + 1):
         if len(bot_test) - k < 10:
             break
         n, c = score_alignment(bot_test, plat_test, k)
-        if c["condition_match"] > best[2]["condition_match"]:
+        if c["pressed_eq_recorded"] > best[2]["pressed_eq_recorded"]:
             best = (k, n, c)
     return best
 

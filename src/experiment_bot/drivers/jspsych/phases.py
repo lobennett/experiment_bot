@@ -52,19 +52,30 @@ _LOOP_STATE_JS = """
                 (typeof trial.type === 'string' ? trial.type : null);
   } catch (e) {}
   type_name = type_name || 'unknown';
-  // Keyboard-response trial = trial-body. The hook is armed iff jsPsych
-  // has called getKeyboardResponse for this trial.
-  if (/keyboard-response/.test(type_name)) {
-    if (window.__bot_hook && window.__bot_hook.current) {
-      return { state: 'ready_for_trial', type: type_name };
-    }
+  // Instructions plugin uses pluginAPI.getKeyboardResponse for nav keys
+  // — we don't want to treat that as a trial-body, so the reading-pace
+  // navigation path can run.
+  if (/instructions/i.test(type_name)) {
+    return { state: 'needs_navigation', type: type_name };
+  }
+  // Trial-body plugins arm the keyboard hook via getKeyboardResponse.
+  // This covers html-keyboard-response, audio-keyboard-response,
+  // poldracklab-stop-signal, and any other trial plugin that registers
+  // a keyboard callback through the standard pluginAPI.
+  if (window.__bot_hook && window.__bot_hook.current) {
+    return { state: 'ready_for_trial', type: type_name };
+  }
+  // Keyboard-response trial whose hook hasn't been armed yet (between
+  // plugin start and the getKeyboardResponse call). Reported with a
+  // distinct reason so navigation can avoid dispatching keys.
+  if (/keyboard-response|stop-signal/.test(type_name)) {
     return {
       state: 'needs_navigation',
       type: type_name,
       reason: 'hook_not_yet_armed',
     };
   }
-  // Everything else (instructions, button-response, html-display, etc.)
+  // Everything else (button-response, html-display, fullscreen, etc.)
   // is a navigation phase.
   return { state: 'needs_navigation', type: type_name };
 })()
@@ -79,21 +90,59 @@ _GET_CONTEXT_JS = """
                 window.jsPsych.getCurrentTrial();
   const hook = window.__bot_hook && window.__bot_hook.current;
   if (!trial || !hook) return null;
-  // Pull condition + correct_response from trial.data when the
-  // experiment supplied them; otherwise fall back to trial-level
-  // properties.
-  const data = trial.data || {};
+  // Some experiments declare `data: jsPsych.timelineVariable('data')` so
+  // by the time the plugin starts running, trial.data is still the
+  // TimelineVariable wrapper (not the resolved object). Other
+  // experiments use a function `data: () => ({...})`. Resolve both.
+  let data = trial.data;
+  if (typeof data === 'function') {
+    try { data = data(); } catch (e) { data = trial.data; }
+  }
+  if (!data || typeof data !== 'object' || Array.isArray(data) ||
+      (data.constructor && data.constructor.name &&
+       data.constructor.name.indexOf('TimelineVariable') !== -1)) {
+    // Wrapper; try the live evaluator if jsPsych exposes one.
+    if (typeof window.jsPsych.evaluateTimelineVariable === 'function') {
+      try {
+        const resolved = window.jsPsych.evaluateTimelineVariable('data');
+        if (resolved && typeof resolved === 'object') data = resolved;
+      } catch (e) {}
+    }
+  }
+  if (!data || typeof data !== 'object') data = {};
+  // Per-field fallback: some experiments don't wrap under a single
+  // `data:` key but instead expose individual timeline variables
+  // (data: { condition: jsPsych.timelineVariable('condition'), ... }).
+  // For each field we read, if the value is still a TimelineVariable
+  // wrapper or undefined, evaluate the same-named timeline variable.
+  const _resolveField = (key) => {
+    let v = data[key];
+    const isWrapper = v && typeof v === 'object' && v.constructor &&
+                      v.constructor.name &&
+                      v.constructor.name.indexOf('TimelineVariable') !== -1;
+    if ((v == null || isWrapper) &&
+        typeof window.jsPsych.evaluateTimelineVariable === 'function') {
+      try {
+        const ev = window.jsPsych.evaluateTimelineVariable(key);
+        if (ev != null) v = ev;
+      } catch (e) {}
+    }
+    return v;
+  };
+  const cond_resolved = _resolveField('condition');
+  const corr_resolved = _resolveField('correct_response');
+  const stim_resolved_id = _resolveField('stimulus_id');
   const stimulus_id = String(
-    data.stimulus_id != null ? data.stimulus_id :
+    stim_resolved_id != null ? stim_resolved_id :
     (typeof trial.stimulus === 'string' ? trial.stimulus.slice(0, 200) :
      (trial.stimulus != null ? 'stim' : 'unknown'))
   );
   const condition = String(
-    data.condition != null ? data.condition :
+    cond_resolved != null ? cond_resolved :
     (trial.condition != null ? trial.condition : 'default')
   );
   const expected_correct =
-    (data.correct_response != null) ? String(data.correct_response) :
+    (corr_resolved != null) ? String(corr_resolved) :
     (trial.correct_response != null ? String(trial.correct_response) :
      null);
   // valid_responses from the hook may be 'ALL_KEYS', 'NO_KEYS', or array.

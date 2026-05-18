@@ -57,17 +57,17 @@ def test_full_config_parses():
 
 
 def test_executor_constructs_from_config():
+    """SP10 slim executor: holds sampler + writer + history."""
     config = TaskConfig.from_dict(FULL_CONFIG)
     executor = TaskExecutor(config, seed=42)
-    # Verify the lookup has all stimulus rules
-    assert len(executor._lookup._rules) == 3
     # Verify sampler has all distributions
     assert "go_correct" in executor._sampler._samplers
     assert "stop_failure" in executor._sampler._samplers
 
 
 def test_executor_works_with_runtime_config_only():
-    """Executor works purely from config — no platform-specific code needed."""
+    """Executor constructs purely from runtime config; driver handles
+    platform-specific reading at session start."""
     config_dict = {
         "task": {
             "name": "Generic Task",
@@ -123,8 +123,6 @@ def test_executor_works_with_runtime_config_only():
     assert executor._config.runtime.timing.poll_interval_ms == 50
     assert executor._config.runtime.advance_behavior.advance_keys == [" "]
     assert executor._config.runtime.trial_interrupt.detection_condition == ""
-    # Verify key_map works
-    assert executor._key_map == {"go": "a"}
     # Verify sampler is functional
     rt = executor._sampler.sample_rt_with_fallback("go_correct")
     assert 150 < rt < 2000

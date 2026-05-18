@@ -103,13 +103,12 @@ def test_generic_config_json_serializable():
 
 
 def test_generic_executor_constructs():
-    """Executor constructs from generic config without platform_name."""
+    """SP10 slim executor constructs from generic config; driver
+    handles platform-specific stimulus lookup + key mapping at session start."""
     config = TaskConfig.from_dict(GENERIC_CONFIG)
     executor = TaskExecutor(config, seed=42)
 
-    assert len(executor._lookup._rules) == 2
     assert "go_correct" in executor._sampler._samplers
-    assert executor._key_map == {"congruent": "f", "incongruent": "j"}
 
 
 def test_generic_executor_runtime_config_accessible():

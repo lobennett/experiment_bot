@@ -66,7 +66,7 @@ async def test_setup_invokes_install_hook_js():
 
 
 import json as _json
-from unittest.mock import AsyncMock as _AsyncMock
+from unittest.mock import AsyncMock as _AsyncMock, MagicMock as _MagicMock
 
 from experiment_bot.drivers.base import DeliveryResult as _DeliveryResult
 from experiment_bot.drivers.jspsych.responses import deliver as _deliver
@@ -252,14 +252,19 @@ async def test_navigate_clicks_instructions_next_button_by_id():
     jsPsych's addEventListener handler reliably)."""
     from experiment_bot.drivers.jspsych import JsPsychDriver
     page = _AsyncMock()
-    # decide JS returns instructions type + Next button present
-    # dispatch JS returns dispatched_keys
+    # 1. decide JS returns instructions type + Next button present.
+    # 2. _READ_DISPLAY_TEXT_JS returns "" (no text → reading wait is
+    #    a no-op).
+    # 3. _DISPATCH_KEYS_JS returns dispatched_keys.
     page.evaluate = _AsyncMock(side_effect=[
         {"type_name": "instructions",
          "present": {"jspsych-instructions-next": True, "jspsych-instructions-back": True}},
+        "",  # text-read for reading-wait (empty → no sleep)
         {"dispatched_keys": ["Space", "Enter", "ArrowRight"]},
     ])
     page.click = _AsyncMock()
+    page.keyboard = _MagicMock()
+    page.keyboard.press = _AsyncMock()
     driver = JsPsychDriver(version="7.3.1")
     outcome = await driver.navigate(page)
     assert isinstance(outcome, _NavigationOutcome)
@@ -267,6 +272,9 @@ async def test_navigate_clicks_instructions_next_button_by_id():
     page.click.assert_awaited_once()
     args = page.click.call_args.args
     assert args[0] == "#jspsych-instructions-next"
+    # Real keyboard press for ArrowRight (instructions plugin's
+    # key_forward default).
+    page.keyboard.press.assert_awaited_with("ArrowRight")
 
 
 @pytest.mark.asyncio
@@ -305,11 +313,13 @@ async def test_navigate_falls_back_to_keys_for_unknown_plugin():
     Space + Enter + ArrowRight on the display root."""
     from experiment_bot.drivers.jspsych import JsPsychDriver
     page = _AsyncMock()
-    # decide JS returns unknown type + no known IDs
-    # forward-button text JS returns None (no visible button)
-    # dispatch JS returns dispatched_keys
+    # 1. decide JS returns unknown type + no known IDs.
+    # 2. _READ_DISPLAY_TEXT_JS returns "" (no reading wait).
+    # 3. _FORWARD_BUTTON_TEXT_JS returns None (no visible button).
+    # 4. _DISPATCH_KEYS_JS returns dispatched_keys.
     page.evaluate = _AsyncMock(side_effect=[
         {"type_name": "preload", "present": {}},
+        "",  # text-read for reading-wait
         None,  # _FORWARD_BUTTON_TEXT_JS — no button
         {"dispatched_keys": ["Space", "Enter", "ArrowRight"]},
     ])

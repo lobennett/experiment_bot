@@ -4,17 +4,18 @@ Per-plugin dispatch. Each known jsPsych plugin type has a specific
 advance strategy informed by the vendored anchor files in
 `vendor/jspsych/7.3.1/`:
 
-- instructions: click `#jspsych-instructions-next` (Playwright's
-  high-level `page.click` simulates a real user click; the plugin's
-  one-shot `addEventListener("click", btnListener)` reliably fires).
-  Also dispatch ArrowRight (the plugin's `key_forward` default) at
-  the display root as a belt-and-suspenders backup.
+- instructions: wait an adult silent-reading-pace interval (250 WPM)
+  PER UNIQUE PAGE so jsPsych doesn't reject the advance as "too fast"
+  (some experiments loop instructions back to page 1 if completed
+  faster than a human could read). Then click
+  `#jspsych-instructions-next` (Playwright's high-level `page.click`
+  + a real `page.keyboard.press("ArrowRight")` + generic dispatch).
 - fullscreen: click `#jspsych-fullscreen-btn`. The plugin needs an
   actual user gesture to trigger the browser's fullscreen API.
-- html-button-response, survey-html-form, etc.: click the visible
-  forward-text button (regex: next/continue/start/begin/submit/yes).
+- html-button-response with non-trivial text: same reading-pace wait
+  before clicking the forward-text button.
 - preload, html-display, anything unrecognized: dispatch Space +
-  Enter + ArrowRight at the display root and hope one fires.
+  Enter + ArrowRight at the display root.
 
 Paradigm-agnostic from the bot library's perspective (it just calls
 navigate); jsPsych-specific from the driver's perspective (which is
@@ -22,6 +23,8 @@ correct per CLAUDE.md G2).
 """
 from __future__ import annotations
 
+import asyncio
+import hashlib
 import logging
 
 from playwright.async_api import Page
@@ -30,6 +33,73 @@ logger = logging.getLogger(__name__)
 
 
 _DISPLAY_SELECTOR = "#jspsych-display-element"
+
+
+# Adult silent reading rate. 250 WPM is conservative — slightly slower
+# than the often-cited 300 WPM average, leaving room for processing
+# time on instruction-heavy text.
+_READING_RATE_WPS = 250.0 / 60.0  # ≈ 4.17 words/second
+
+# Minimum wait per unique instruction page. Even a short "Press Next
+# to continue" needs a couple seconds of human-eye dwell.
+_MIN_READING_S = 3.0
+
+# Maximum wait per page. Caps the total smoke time on absurdly long
+# instruction text; real participants would skim past it too.
+_MAX_READING_S = 30.0
+
+
+# Module-level cache of page-text hashes we've already paced. Re-visits
+# to the same page (e.g. after a back-button mishit) don't re-wait —
+# we already "read" it. Keyed by sha1(innerText) so identical page
+# content de-duplicates cleanly.
+_seen_page_hashes: set[str] = set()
+
+
+_READ_DISPLAY_TEXT_JS = """
+(() => {
+  const root = document.querySelector('#jspsych-display-element');
+  if (!root) return '';
+  return (root.innerText || root.textContent || '').trim();
+})()
+"""
+
+
+def _estimate_reading_seconds(text: str) -> float:
+    """Estimate adult silent-reading time for `text` in seconds."""
+    if not text:
+        return _MIN_READING_S
+    words = len(text.split())
+    seconds = max(_MIN_READING_S, words / _READING_RATE_WPS)
+    return min(_MAX_READING_S, seconds)
+
+
+async def _wait_for_reading(page: Page, details: dict) -> None:
+    """Pace the bot's advance to adult silent-reading speed for the
+    current page's visible text. Idempotent per unique text — second
+    visit to identical page content is a fast no-op.
+
+    Some jsPsych experiments (expfactory's stroop preview is one)
+    detect superhuman-fast progression through the instructions and
+    loop back to page 1. Waiting a human-like duration per page is
+    the simplest and most general fix.
+    """
+    try:
+        text = await page.evaluate(_READ_DISPLAY_TEXT_JS)
+    except Exception as e:
+        details["reading_wait_error"] = str(e)
+        return
+    if not text:
+        return
+    key = hashlib.sha1(text.encode("utf-8")).hexdigest()
+    if key in _seen_page_hashes:
+        details["reading_wait"] = "already_seen"
+        return
+    _seen_page_hashes.add(key)
+    secs = _estimate_reading_seconds(text)
+    details["reading_word_count"] = len(text.split())
+    details["reading_wait_s"] = round(secs, 2)
+    await asyncio.sleep(secs)
 
 
 # Reads the current plugin type + button IDs visible in the DOM.
@@ -173,27 +243,24 @@ async def navigate_page(page: Page) -> dict:
     present = info.get("present") or {}
     details = {"type_name": type_name, "present": present}
 
-    # 1. instructions plugin — try multiple advance paths:
-    #    a. Playwright's page.click on #jspsych-instructions-next
-    #       (real-user-style click; should fire the plugin's
-    #       addEventListener-bound btnListener).
-    #    b. Playwright's page.keyboard.press("ArrowRight") (real
-    #       keyboard input, not synthetic dispatchEvent — covers cases
-    #       where the plugin's keyboard listener doesn't pick up our
-    #       dispatchEvent for some reason).
+    # 1. instructions plugin — pace advance to adult silent-reading
+    #    speed (some experiments loop the timeline if you progress too
+    #    fast). Then try multiple advance paths:
+    #    a. Playwright's page.click on #jspsych-instructions-next.
+    #    b. Real page.keyboard.press("ArrowRight").
     #    c. Generic dispatch of Space/Enter/ArrowRight at root.
     if "instructions" in type_name:
+        # Wait an adult-reading-pace interval BEFORE advancing. Per-page
+        # idempotent via the seen-hash cache.
+        await _wait_for_reading(page, details)
         if present.get("jspsych-instructions-next"):
             ok = await _click_by_id(page, "jspsych-instructions-next")
             details["clicked_id"] = "jspsych-instructions-next" if ok else None
-        # Real Playwright keyboard press — uses Chromium's real input
-        # event pipeline. Bypasses synthetic-event quirks.
         try:
             await page.keyboard.press("ArrowRight")
             details["pressed_real_key"] = "ArrowRight"
         except Exception as e:
             details["press_error"] = str(e)
-        # Belt-and-suspenders: also dispatch generic keys at root.
         try:
             await page.evaluate(_DISPATCH_KEYS_JS)
             details["dispatched_keys"] = ["Space", "Enter", "ArrowRight"]
@@ -209,8 +276,10 @@ async def navigate_page(page: Page) -> dict:
             return {"action": "fullscreen_button", "type_name": type_name, "details": details}
 
     # 3. html-button-response (and similar button-driven plugins) —
-    #    click the visible forward-text button via locator.
+    #    dwell at reading pace, then click the visible forward-text
+    #    button via locator.
     if "button-response" in type_name or "survey" in type_name:
+        await _wait_for_reading(page, details)
         try:
             text = await page.evaluate(_FORWARD_BUTTON_TEXT_JS)
         except Exception:
@@ -221,10 +290,11 @@ async def navigate_page(page: Page) -> dict:
             if ok:
                 return {"action": "clicked_button", "type_name": type_name, "details": details}
 
-    # 4. Generic fallback: dispatch Space + Enter + ArrowRight at the
-    #    display root. Also try clicking ANY visible forward-text
-    #    button if one exists (covers unrecognized plugins with a
-    #    "Continue" button).
+    # 4. Generic fallback: dwell briefly at reading pace, then dispatch
+    #    Space + Enter + ArrowRight at the display root. Also try
+    #    clicking ANY visible forward-text button if one exists
+    #    (covers unrecognized plugins with a "Continue" button).
+    await _wait_for_reading(page, details)
     try:
         text = await page.evaluate(_FORWARD_BUTTON_TEXT_JS)
     except Exception:

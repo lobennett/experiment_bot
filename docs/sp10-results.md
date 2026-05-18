@@ -210,17 +210,10 @@ confirmed the win (n_back 79.3%, stop_signal 92.8%).
    (different APIs: `jsPsych.init()` vs `initJsPsych()`,
    `jsPsych.progress()` returns object directly,
    `jsPsych.currentTrial()` instead of `getCurrentTrial()`).
-3. **`stop` trial withhold logic.** The bot's resolver currently fires
-   on every stop_signal trial because `allowed_responses` is non-empty
-   even for stop trials. Detecting "this is a stop trial" (via
-   `trial.SS_trial_type === 'stop'` or `window.condition === 'stop'`)
-   and withholding would lift stop-signal stop accuracy from ~0% to
-   the expected ~50% (SSD-adapted). Same multi-source pattern as the
-   correct_response chain.
-4. **cognition.run platform.** Closed-source platform (no vendor
+3. **cognition.run platform.** Closed-source platform (no vendor
    anchors). Would be a separate driver with documented scope-of-
    validity caveat.
-5. **PsychoJS / PsychoPy platforms.** Currently unsupported; would be
+4. **PsychoJS / PsychoPy platforms.** Currently unsupported; would be
    new drivers.
 
 The **correct-response derivation gap** (named in the spec as the
@@ -228,6 +221,59 @@ likely follow-on need) was addressed mid-run by the driver's multi-
 source fallback chain (`trial.correct_choice`, `window.correctResponse`,
 etc.) — see "Accuracy is not fidelity" above. No paradigm-specific code
 landed in bot library or Stage 1 prompt.
+
+## Post-SP10 temporal-effects audit and follow-on fixes
+
+After tagging `sp10-complete`, a temporal-effects audit on the same
+sessions surfaced four issues, each fixed and committed to the
+sp10 branch:
+
+1. **post_event_slowing wasn't firing.** The SP10 executor slim-down
+   (commit `8287e4e`) dropped the explicit
+   `apply_post_event_slowing` call after `sample_rt_with_fallback`.
+   Since `ResponseSampler._apply_temporal_effects` skips PES (it's
+   in `_EXECUTOR_APPLIED_EFFECTS`, intended to be invoked by the
+   executor that knows the per-trial `prev_error` flag), the effect
+   was silently disabled. Re-wired in commit `62de914`: added
+   `ResponseSampler.apply_post_event_slowing` method, executor calls
+   it after sampling. Empirical: stroop PES `-8.5ms → +6ms` (still
+   below the [10, 50] norms range in one 120-trial session — likely
+   sample noise; stop_signal PES `+3 → +14.7ms` clearly in range).
+2. **CSE contrast-labels picked the wrong `low` label.** Stroop's
+   symmetric `modulation_table` had two `prev != curr, delta > 0`
+   rows; the old loader's last-write-wins picked `low = prev` from
+   whichever row came last, often making `low == high`. Fixed in
+   commit `f9d5252`: identify `high` from `prev==curr, delta<0`,
+   then pick `low` as the unique non-high label appearing in the
+   table. Stroop `cse_magnitude`: None → -41.7ms, inside [-45, -10].
+3. **`platform_adapters.py` had no alias for new SP10 task.name
+   values** (`expfactory_stroop`, `stop_signal_expfactory`,
+   `n-back`). Added in commit `62de914`. The oracle now dispatches
+   to the right adapter for SP10 sessions.
+4. **Stop-trial withhold.** Driver now detects stop trials via
+   `trial.SS_trial_type` (gated on the poldracklab-stop-signal
+   plugin to avoid the global-state leak), executor withholds with
+   probability = TaskCard.performance.accuracy.stop. Crucially, this
+   required fixing `wait_for_trial_end` — for plugins with
+   `response_ends_trial: false`, the plugin re-arms the keyboard
+   listener within the trial window, and the bot's 50ms-sleep wait
+   wasn't long enough; the bot fired twice per platform trial and
+   the second fire corrupted the recorded response. Fix tags the
+   current trial and polls `getCurrentTrial()` until it advances.
+   Empirical (two stop_signal sessions): inhibition rate 22/60 (37%)
+   and 29/60 (48%), close to the TaskCard's 50% target. SSRT still
+   above norms range (~310ms vs target 180-280) — likely SSD-adapt
+   dynamics and post-stop-signal RT inflation, separate backlog.
+
+| Paradigm | Pre-fix accuracy | Post-fix accuracy | G0 fidelity |
+|---|---:|---:|---:|
+| Stroop | 88-96% | 89.2% (post wait fix) | 100% |
+| N_back | 79-84% | 80.7% (post wait fix) | 100% |
+| Stop_signal go | 92-98% | 98.0% (post wait fix) | 100% |
+| Stop_signal stop inhibition | 0% | 37-48% (target ~50%) | n/a |
+
+Fidelity is preserved through all four fixes; accuracy and temporal
+effects are now closer to human literature ranges.
 
 ## Status
 

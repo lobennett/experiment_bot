@@ -179,11 +179,57 @@ class JsPsychDriver:
         )
 
     async def wait_for_trial_end(self, page: Page) -> None:
-        """Hook-based delivery completes the trial synchronously when
-        the captured callback fires (jsPsych's after_response runs
-        end_trial). We just yield briefly so the event loop can run
-        any pending tasks."""
-        await asyncio.sleep(0.05)
+        """Wait until the current trial actually ends.
+
+        For plugins with `response_ends_trial: true` (html-keyboard-
+        response default), the captured callback's after_response handler
+        ends the trial promptly. For plugins like
+        poldracklab-stop-signal where `response_ends_trial: false`, the
+        trial keeps running for trial_duration ms after the bot's
+        response — and the plugin may re-arm the keyboard listener
+        within that window. Without waiting here, the bot's loop polls,
+        sees the hook re-armed, fires again — producing multiple
+        deliveries for a single platform trial.
+
+        Snapshot the current trial reference (via Date.now()-keyed
+        marker injected when the hook fires), then poll
+        getCurrentTrial() until it differs or returns null. Falls back
+        to a 1.5s timeout so a stuck trial doesn't hang the loop.
+        """
+        # Mark the trial we just fired for. Use a sentinel attribute on
+        # the trial object so we don't depend on object identity across
+        # page.evaluate boundaries.
+        await page.evaluate("""
+        (() => {
+          try {
+            const t = window.jsPsych && window.jsPsych.getCurrentTrial &&
+                      window.jsPsych.getCurrentTrial();
+            if (t) {
+              t.__bot_fired_at = (window.__bot_hook && window.__bot_hook.fire_count) || 0;
+              window.__bot_hook.fire_count = (window.__bot_hook.fire_count || 0) + 1;
+            }
+          } catch(e) {}
+        })()
+        """)
+        deadline = time.monotonic() + 1.5
+        while time.monotonic() < deadline:
+            try:
+                # Returns true when current trial has no fire marker (= new trial)
+                advanced = await page.evaluate("""
+                (() => {
+                  try {
+                    const t = window.jsPsych && window.jsPsych.getCurrentTrial &&
+                              window.jsPsych.getCurrentTrial();
+                    if (!t) return true;
+                    return t.__bot_fired_at == null;
+                  } catch(e) { return true; }
+                })()
+                """)
+            except Exception:
+                return
+            if advanced:
+                return
+            await asyncio.sleep(0.05)
 
     async def wait_for_completion(
         self, page: Page,

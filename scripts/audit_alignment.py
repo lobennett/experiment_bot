@@ -119,8 +119,10 @@ def rt_match_audit(
     per-trial signature (sub-millisecond precision), so a match here
     is strong evidence the same physical trial.
 
-    Returns counts: total, plat_none (timeouts), matched (bot rt found),
-    pressed_eq_recorded, pressed_eq_expected.
+    Returns counts: total, plat_none (platform recorded no response,
+    typically a withhold or timeout), matched (rt-matched fired
+    trials), pressed_eq_recorded (bot.key == plat.response on
+    rt-matched trials).
     """
     bot_rts = [(i, t["rt_ms"]) for i, t in enumerate(bot_trials)
                 if t.get("rt_ms") is not None]
@@ -159,15 +161,21 @@ def report(session_dir: Path) -> dict:
     matched = c.get("matched", 0)
     plat_none = c.get("plat_none", 0)
     n_with_rt = total - plat_none
-    pressed_eq_recorded_pct = (100.0 * c.get("pressed_eq_recorded", 0) / total) if total else 0.0
-    pressed_eq_expected_pct = (100.0 * c.get("pressed_eq_expected", 0) / total) if total else 0.0
+    # Score fidelity on rt-matched (fired) trials. Withhold trials
+    # (plat.rt=None) aren't measured here — they're reported as a
+    # separate count for paradigms like stop-signal where withholding
+    # is the intended behavior on some trials.
+    pressed_eq_recorded_pct = (100.0 * c.get("pressed_eq_recorded", 0) / matched) if matched else 0.0
+    pressed_eq_expected_pct = (100.0 * c.get("pressed_eq_expected", 0) / matched) if matched else 0.0
     matched_pct = (100.0 * matched / n_with_rt) if n_with_rt else 0.0
     print(f"=== {session_dir.parent.name}/{session_dir.name} ===")
     print(f"  bot_trials={len(bot_trials)}, plat_test={total} "
           f"(with_rt={n_with_rt}, plat_none={plat_none})")
-    print(f"  bot rt-matched to platform:           {matched}/{n_with_rt} ({matched_pct:.1f}%)")
-    print(f"  pressed_eq_recorded (all test rows):  {pressed_eq_recorded_pct:.1f}%  (G0 target ≥ 90.0%)")
-    print(f"  pressed_eq_expected (all test rows):  {pressed_eq_expected_pct:.1f}%  (=accuracy)")
+    print(f"  bot rt-matched to fired trials:        {matched}/{n_with_rt} ({matched_pct:.1f}%)")
+    print(f"  pressed_eq_recorded (over matched):    {pressed_eq_recorded_pct:.1f}%  (G0 target ≥ 90.0%)")
+    print(f"  pressed_eq_expected (over matched):    {pressed_eq_expected_pct:.1f}%  (=accuracy)")
+    if plat_none:
+        print(f"  platform withhold trials:              {plat_none} ({100*plat_none/total:.1f}% of test rows)")
     return {
         "session": f"{session_dir.parent.name}/{session_dir.name}",
         "status": "ok",

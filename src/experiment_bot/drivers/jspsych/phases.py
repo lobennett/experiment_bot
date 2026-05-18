@@ -193,6 +193,23 @@ _GET_CONTEXT_JS = """
                 (trial.type && trial.type.name) ||
                 (typeof trial.type === 'string' ? trial.type : 'unknown');
   } catch (e) { type_name = 'unknown'; }
+  // Stop-signal trial detection. Only meaningful for the
+  // poldracklab-stop-signal plugin, which tags each trial via
+  // `SS_trial_type` ('go' or 'stop'), typically a function reference
+  // (`getCondition`) that returns the current trial's type from the
+  // experiment's `stims` queue. We deliberately do NOT fall back to
+  // window-level globals: those persist across trials and would mark
+  // every following non-stop-signal trial as is_stop_trial=true.
+  let is_stop_trial = false;
+  if (type_name && /poldracklab-stop-signal|stop-signal/.test(type_name)) {
+    try {
+      let sst = trial.SS_trial_type;
+      if (typeof sst === 'function') sst = sst();
+      if (typeof sst === 'string' && sst.toLowerCase() === 'stop') {
+        is_stop_trial = true;
+      }
+    } catch (e) {}
+  }
   return {
     stimulus_id,
     condition,
@@ -202,6 +219,7 @@ _GET_CONTEXT_JS = """
     metadata: {
       type_name,
       valid_responses_raw: typeof vr === 'string' ? vr : null,
+      is_stop_trial,
     },
   };
 })()

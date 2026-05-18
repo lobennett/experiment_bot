@@ -209,7 +209,25 @@ class TaskExecutor:
             prev_error = bool(self._recent_errors[0]) if self._recent_errors else False
             rt = self._sampler.apply_post_event_slowing(rt, ctx.condition, prev_error)
             intended_correct = self._py_rng.random() < self._config.performance.get_accuracy(ctx.condition)
-            response = _resolve_response(ctx, intended_correct, self._py_rng, self._taskcard)
+            # Stop-trial handling: when the driver detects a stop trial,
+            # the bot withholds with the TaskCard's stop-accuracy
+            # probability (e.g. 0.5 = 50% successful inhibition, matching
+            # SSD-adapted human performance). Withhold means response=None.
+            is_stop_trial = bool((ctx.metadata or {}).get("is_stop_trial"))
+            if is_stop_trial:
+                # accuracy("stop") = probability of successful inhibition
+                inhibit_p = self._config.performance.get_accuracy("stop")
+                if self._py_rng.random() < inhibit_p:
+                    response = None
+                else:
+                    response = _resolve_response(
+                        ctx, intended_correct=True,
+                        rng=self._py_rng, taskcard=self._taskcard,
+                    )
+            else:
+                response = _resolve_response(
+                    ctx, intended_correct, self._py_rng, self._taskcard,
+                )
             result = await driver.deliver_response(page, response, rt)
             self._writer.log_trial({
                 "type": "trial",
@@ -219,6 +237,7 @@ class TaskExecutor:
                 "expected_correct": ctx.expected_correct,
                 "allowed_responses": list(ctx.allowed_responses),
                 "trial_type_name": (ctx.metadata or {}).get("type_name"),
+                "is_stop_trial": is_stop_trial,
                 "intended_correct": intended_correct,
                 "response_key": response,
                 "rt_ms": rt,

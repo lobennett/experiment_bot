@@ -41,7 +41,6 @@ def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, st
         return None
     table = value.get("modulation_table") or []
     high = None
-    low = None
     for entry in table:
         prev = entry.get("prev")
         curr = entry.get("curr")
@@ -50,9 +49,21 @@ def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, st
             continue
         if prev == curr and delta < 0:
             high = curr
-        elif prev != curr and delta > 0:
-            low = prev
-    if not high or not low:
+    if not high:
+        return None
+    # 'low' is the non-high condition label appearing in the table.
+    # Previous logic scanned for "prev != curr and delta > 0" entries,
+    # but symmetric tables have two such rows with opposite prev/curr,
+    # and the last-write wins picked whichever came last. Take the
+    # union of labels and pick the one that isn't `high`.
+    labels = set()
+    for entry in table:
+        for key in ("prev", "curr"):
+            v = entry.get(key)
+            if v is not None:
+                labels.add(v)
+    low = next((l for l in labels if l != high), None)
+    if not low:
         return None
     return (high, low)
 

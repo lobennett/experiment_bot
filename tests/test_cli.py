@@ -93,21 +93,18 @@ def test_cli_samples_session_params_at_start(tmp_path):
     assert kwargs.get("session_params") == sampled_params
 
 
-def test_cli_passes_session_agent_to_executor(tmp_path):
-    """SP9a: cli.py must construct a SessionAgent and pass it to TaskExecutor."""
+def test_cli_does_not_pass_session_agent_to_executor(tmp_path):
+    """SP10: SessionAgent integration is removed. TaskExecutor no longer
+    accepts a session_agent kwarg; cli.py must not pass one."""
     runner = CliRunner()
     fake_taskcard_path = tmp_path / "taskcards" / "stroop"
     fake_taskcard_path.mkdir(parents=True)
     (fake_taskcard_path / "abcd1234.json").write_text(
         json.dumps(_minimal_taskcard_payload())
     )
-
     fake_executor = MagicMock()
     fake_executor.run = AsyncMock()
-    fake_session_agent = MagicMock()
-
-    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
-         patch("experiment_bot.cli._build_session_agent", return_value=fake_session_agent):
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls:
         result = runner.invoke(main, [
             "http://example.com/x",
             "--label", "stroop",
@@ -116,33 +113,7 @@ def test_cli_passes_session_agent_to_executor(tmp_path):
         ])
     assert result.exit_code == 0, result.output
     _, kwargs = exec_cls.call_args
-    assert kwargs.get("session_agent") is fake_session_agent
-
-
-def test_cli_proceeds_when_session_agent_unavailable(tmp_path):
-    """If _build_session_agent returns None (no LLM client), the CLI still runs
-    and passes session_agent=None to the executor."""
-    runner = CliRunner()
-    fake_taskcard_path = tmp_path / "taskcards" / "stroop"
-    fake_taskcard_path.mkdir(parents=True)
-    (fake_taskcard_path / "abcd1234.json").write_text(
-        json.dumps(_minimal_taskcard_payload())
-    )
-
-    fake_executor = MagicMock()
-    fake_executor.run = AsyncMock()
-
-    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
-         patch("experiment_bot.cli._build_session_agent", return_value=None):
-        result = runner.invoke(main, [
-            "http://example.com/x",
-            "--label", "stroop",
-            "--taskcards-dir", str(tmp_path / "taskcards"),
-            "--headless",
-        ])
-    assert result.exit_code == 0, result.output
-    _, kwargs = exec_cls.call_args
-    assert kwargs.get("session_agent") is None
+    assert "session_agent" not in kwargs
 
 
 def test_cli_help():

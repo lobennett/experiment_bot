@@ -20,26 +20,6 @@ def _setup_logging(verbose: bool) -> None:
 from experiment_bot.taskcard.loader import load_latest
 from experiment_bot.taskcard.sampling import sample_session_params
 from experiment_bot.core.executor import TaskExecutor
-from experiment_bot.agent.session_agent import SessionAgent
-from experiment_bot.llm.factory import build_default_client
-
-
-def _build_session_agent() -> SessionAgent | None:
-    """Try to build a SessionAgent backed by a haiku-class LLM client.
-
-    Returns None when no client is available (no claude CLI on PATH and
-    no ANTHROPIC_API_KEY) — the executor degrades to the static
-    response_key resolution chain.
-    """
-    try:
-        client = build_default_client(model="claude-haiku-4-5")
-    except RuntimeError as e:
-        logging.getLogger(__name__).warning(
-            "Could not build LLM client for SessionAgent: %s. "
-            "Proceeding without runtime key-mapping resolution.", e,
-        )
-        return None
-    return SessionAgent(client=client)
 
 
 async def _run_task(
@@ -68,13 +48,10 @@ async def _run_task(
             taskcard.response_distributions[cond].value.update(params)
     click.echo(f"Seed: {seed} | Sampled session parameters for {len(sampled)} conditions")
 
-    session_agent = _build_session_agent()
-
     click.echo(f"Running task at {url}")
     executor = TaskExecutor(
         taskcard, headless=headless,
         seed=seed, session_params=sampled,
-        session_agent=session_agent,
     )
     await executor.run(url)
     click.echo("Done!")

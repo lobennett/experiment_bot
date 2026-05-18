@@ -9,6 +9,7 @@ from experiment_bot.drivers.base import (
     PlatformDriver, UnsupportedVersionError,
 )
 from experiment_bot.drivers.diagnostic import DiagnosticDriver
+from experiment_bot.drivers.jspsych import JsPsychDriver
 
 logger = logging.getLogger(__name__)
 
@@ -17,7 +18,7 @@ logger = logging.getLogger(__name__)
 # list — the bot library invokes it directly on no-match or version-
 # mismatch.
 REGISTERED_DRIVERS: list[type[PlatformDriver]] = [
-    # JsPsychDriver added in Task 12
+    JsPsychDriver,
     # CognitionRunDriver added when needed
 ]
 

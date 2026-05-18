@@ -117,8 +117,10 @@ class JsPsychDriver:
         """Advance jsPsych through the current non-trial phase."""
         from experiment_bot.drivers.jspsych.navigation import navigate_page
         info = await navigate_page(page)
-        # Brief pause so jsPsych can transition.
-        await asyncio.sleep(0.1)
+        # Pause so jsPsych can process the click + transition before the
+        # next loop_state poll. jsPsych's plugin advance hooks may
+        # involve setTimeout or async work; 0.3s gives them room.
+        await asyncio.sleep(0.3)
         return NavigationOutcome(
             action=info.get("action", "noop"),
             details={
@@ -196,8 +198,8 @@ class JsPsychDriver:
         while time.monotonic() < deadline:
             try:
                 pct = await page.evaluate(
-                    "(window.jsPsych && window.jsPsych.progress && "
-                    "window.jsPsych.progress().percent_complete) || 0"
+                    "(window.jsPsych && window.jsPsych.getProgress && "
+                    "window.jsPsych.getProgress().percent_complete) || 0"
                 )
             except Exception as e:
                 logger.warning("wait_for_completion: page.evaluate raised: %s", e)

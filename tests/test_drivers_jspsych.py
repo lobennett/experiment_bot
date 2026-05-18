@@ -246,34 +246,46 @@ from experiment_bot.drivers.base import NavigationOutcome as _NavigationOutcome
 
 
 @pytest.mark.asyncio
-async def test_navigate_dispatches_space_for_instructions():
+async def test_navigate_clicks_instructions_next_button_by_id():
+    """For instructions plugin, navigate uses Playwright's page.click
+    on '#jspsych-instructions-next' (real-user-style click triggers
+    jsPsych's addEventListener handler reliably)."""
     from experiment_bot.drivers.jspsych import JsPsychDriver
     page = _AsyncMock()
-    # First call: decide JS returns recommend + type_name="instructions"
-    # Second call: _DISPATCH_SPACE_JS returns dispatched_space
+    # decide JS returns instructions type + Next button present
+    # dispatch JS returns dispatched_keys
     page.evaluate = _AsyncMock(side_effect=[
-        {"action": "recommend", "type_name": "instructions"},
-        {"action": "dispatched_space", "target_id": "jspsych-display-element"},
+        {"type_name": "instructions",
+         "present": {"jspsych-instructions-next": True, "jspsych-instructions-back": True}},
+        {"dispatched_keys": ["Space", "Enter", "ArrowRight"]},
     ])
+    page.click = _AsyncMock()
     driver = JsPsychDriver(version="7.3.1")
     outcome = await driver.navigate(page)
     assert isinstance(outcome, _NavigationOutcome)
-    assert outcome.action == "dispatched_space"
-    assert outcome.details.get("type_name") == "instructions"
+    assert outcome.action == "instructions_next"
+    page.click.assert_awaited_once()
+    args = page.click.call_args.args
+    assert args[0] == "#jspsych-instructions-next"
 
 
 @pytest.mark.asyncio
-async def test_navigate_clicks_button_for_button_response_trial():
+async def test_navigate_clicks_fullscreen_button_by_id():
+    """For fullscreen plugin, navigate uses page.click on
+    '#jspsych-fullscreen-btn' (the plugin needs a real user gesture
+    to trigger the browser's fullscreen API)."""
     from experiment_bot.drivers.jspsych import JsPsychDriver
     page = _AsyncMock()
-    page.evaluate = _AsyncMock(side_effect=[
-        {"action": "recommend", "type_name": "html-button-response"},
-        {"action": "clicked_button", "button_label": "Continue"},
-    ])
+    page.evaluate = _AsyncMock(return_value={
+        "type_name": "fullscreen",
+        "present": {"jspsych-fullscreen-btn": True},
+    })
+    page.click = _AsyncMock()
     driver = JsPsychDriver(version="7.3.1")
     outcome = await driver.navigate(page)
-    assert outcome.action == "clicked_button"
-    assert outcome.details.get("type_name") == "html-button-response"
+    assert outcome.action == "fullscreen_button"
+    page.click.assert_awaited_once()
+    assert page.click.call_args.args[0] == "#jspsych-fullscreen-btn"
 
 
 @pytest.mark.asyncio
@@ -281,9 +293,31 @@ async def test_navigate_returns_noop_when_decide_fails():
     from experiment_bot.drivers.jspsych import JsPsychDriver
     page = _AsyncMock()
     page.evaluate = _AsyncMock(side_effect=Exception("page closed"))
+    page.click = _AsyncMock()
     driver = JsPsychDriver(version="7.3.1")
     outcome = await driver.navigate(page)
-    assert outcome.action in ("no_op", "noop_no_trial")
+    assert outcome.action == "no_op"
+
+
+@pytest.mark.asyncio
+async def test_navigate_falls_back_to_keys_for_unknown_plugin():
+    """Unrecognized plugin types fall through to the generic dispatch:
+    Space + Enter + ArrowRight on the display root."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    # decide JS returns unknown type + no known IDs
+    # forward-button text JS returns None (no visible button)
+    # dispatch JS returns dispatched_keys
+    page.evaluate = _AsyncMock(side_effect=[
+        {"type_name": "preload", "present": {}},
+        None,  # _FORWARD_BUTTON_TEXT_JS — no button
+        {"dispatched_keys": ["Space", "Enter", "ArrowRight"]},
+    ])
+    page.click = _AsyncMock()
+    driver = JsPsychDriver(version="7.3.1")
+    outcome = await driver.navigate(page)
+    assert outcome.action == "fallback_advance"
+    assert outcome.details.get("dispatched_keys") == ["Space", "Enter", "ArrowRight"]
 
 
 @pytest.mark.asyncio

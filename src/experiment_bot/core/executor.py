@@ -158,20 +158,49 @@ class TaskExecutor:
     async def _run_session(self, page, driver) -> None:
         """SP10 driver-based trial loop."""
         from experiment_bot.drivers.base import TrialLoopState
+        logger.info("Driver %s.setup() begin", driver.__class__.__name__)
         await driver.setup(page)
+        logger.info("Driver setup complete; entering trial loop")
         history: list[dict] = []
+        iter_count = 0
+        last_log_iter = 0
+        nav_streak = 0
         while True:
+            iter_count += 1
             state = await driver.loop_state(page)
+            if iter_count == 1 or iter_count - last_log_iter >= 25:
+                logger.info(
+                    "Trial loop iter=%d state=%s trial_count=%d nav_streak=%d",
+                    iter_count, state.name, self._trial_count, nav_streak,
+                )
+                last_log_iter = iter_count
             if state == TrialLoopState.COMPLETE:
+                logger.info("Loop COMPLETE at iter=%d trial_count=%d", iter_count, self._trial_count)
                 break
             if state == TrialLoopState.NEEDS_NAVIGATION:
                 outcome = await driver.navigate(page)
+                nav_streak += 1
+                if nav_streak <= 5 or nav_streak % 25 == 0:
+                    logger.info(
+                        "Navigate iter=%d streak=%d action=%s type=%s",
+                        iter_count, nav_streak, outcome.action,
+                        outcome.details.get("type_name") if outcome.details else None,
+                    )
+                if nav_streak > 200:
+                    logger.error(
+                        "navigation streak exceeded 200; aborting to avoid infinite loop"
+                    )
+                    raise RuntimeError(
+                        f"navigation streak={nav_streak} without progress to READY_FOR_TRIAL"
+                    )
                 self._writer.log_trial({
                     "type": "navigation",
                     "action": outcome.action,
                     "details": dict(outcome.details),
                 })
                 continue
+            # READY_FOR_TRIAL — reset the streak counter
+            nav_streak = 0
             ctx = await driver.get_trial_context(page)
             rt = self._sampler.sample_rt_with_fallback(ctx.condition)
             intended_correct = self._py_rng.random() < self._config.performance.get_accuracy(ctx.condition)

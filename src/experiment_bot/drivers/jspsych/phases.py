@@ -18,8 +18,21 @@ _LOOP_STATE_JS = """
   if (!window.jsPsych) return { state: 'unknown' };
   let percent = null;
   try {
-    const progress = window.jsPsych.progress && window.jsPsych.progress();
-    percent = progress && progress.percent_complete;
+    // jsPsych 7+ renamed progress() to getProgress(). We probe both
+    // names defensively — the v7 getter for the legacy `progress`
+    // property throws MigrationError (not just returns undefined),
+    // so we have to use typeof + try/catch.
+    let prog = null;
+    if (typeof window.jsPsych.getProgress === 'function') {
+      prog = window.jsPsych.getProgress();
+    } else {
+      try {
+        if (typeof window.jsPsych.progress === 'function') {
+          prog = window.jsPsych.progress();
+        }
+      } catch (e) {}
+    }
+    percent = prog && prog.percent_complete;
   } catch (e) {}
   if (percent !== null && percent >= 100) return { state: 'complete' };
   let trial = null;

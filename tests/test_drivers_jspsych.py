@@ -240,3 +240,89 @@ async def test_get_trial_context_raises_when_no_active_trial():
         await driver.get_trial_context(page)
     assert excinfo.value.kind == "no_active_trial"
     assert excinfo.value.recoverable is True
+
+
+from experiment_bot.drivers.base import NavigationOutcome as _NavigationOutcome
+
+
+@pytest.mark.asyncio
+async def test_navigate_dispatches_space_for_instructions():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    # First call: decide JS returns recommend + type_name="instructions"
+    # Second call: _DISPATCH_SPACE_JS returns dispatched_space
+    page.evaluate = _AsyncMock(side_effect=[
+        {"action": "recommend", "type_name": "instructions"},
+        {"action": "dispatched_space", "target_id": "jspsych-display-element"},
+    ])
+    driver = JsPsychDriver(version="7.3.1")
+    outcome = await driver.navigate(page)
+    assert isinstance(outcome, _NavigationOutcome)
+    assert outcome.action == "dispatched_space"
+    assert outcome.details.get("type_name") == "instructions"
+
+
+@pytest.mark.asyncio
+async def test_navigate_clicks_button_for_button_response_trial():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(side_effect=[
+        {"action": "recommend", "type_name": "html-button-response"},
+        {"action": "clicked_button", "button_label": "Continue"},
+    ])
+    driver = JsPsychDriver(version="7.3.1")
+    outcome = await driver.navigate(page)
+    assert outcome.action == "clicked_button"
+    assert outcome.details.get("type_name") == "html-button-response"
+
+
+@pytest.mark.asyncio
+async def test_navigate_returns_noop_when_decide_fails():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(side_effect=Exception("page closed"))
+    driver = JsPsychDriver(version="7.3.1")
+    outcome = await driver.navigate(page)
+    assert outcome.action in ("no_op", "noop_no_trial")
+
+
+@pytest.mark.asyncio
+async def test_wait_for_trial_end_is_no_op_for_hook_driver():
+    """For hook-based delivery the trial ends synchronously when the
+    callback fires; wait_for_trial_end just yields control."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    driver = JsPsychDriver(version="7.3.1")
+    # Should return None without raising
+    result = await driver.wait_for_trial_end(page)
+    assert result is None
+
+
+@pytest.mark.asyncio
+async def test_wait_for_completion_polls_progress_until_100():
+    """Polls jsPsych.progress().percent_complete; returns when >= 100."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    # Progress returns 50, 80, 100 — wait_for_completion should return
+    # after seeing 100.
+    page.evaluate = _AsyncMock(side_effect=[
+        50.0, 80.0, 100.0,
+    ])
+    driver = JsPsychDriver(version="7.3.1")
+    # short timeout so the test runs fast
+    await driver.wait_for_completion(page, timeout_s=5.0, poll_interval_s=0.001)
+    assert page.evaluate.await_count >= 3
+
+
+@pytest.mark.asyncio
+async def test_wait_for_completion_times_out_gracefully():
+    """If progress never reaches 100, returns without raising after
+    timeout_s elapses (the executor's finally block handles the
+    incomplete-session case)."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value=50.0)
+    driver = JsPsychDriver(version="7.3.1")
+    # Use a very short timeout
+    await driver.wait_for_completion(page, timeout_s=0.05, poll_interval_s=0.01)
+    # Test passes simply by NOT hanging or raising

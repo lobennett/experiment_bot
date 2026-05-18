@@ -9,7 +9,9 @@ remaining PlatformDriver methods are added in Tasks 13-16.
 """
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import ClassVar
 
 from playwright.async_api import Page
@@ -112,7 +114,18 @@ class JsPsychDriver:
         return TrialLoopState.NEEDS_NAVIGATION
 
     async def navigate(self, page: Page) -> NavigationOutcome:
-        raise NotImplementedError("Task 15 implements navigate")
+        """Advance jsPsych through the current non-trial phase."""
+        from experiment_bot.drivers.jspsych.navigation import navigate_page
+        info = await navigate_page(page)
+        # Brief pause so jsPsych can transition.
+        await asyncio.sleep(0.1)
+        return NavigationOutcome(
+            action=info.get("action", "noop"),
+            details={
+                "type_name": info.get("type_name"),
+                **info.get("details", {}),
+            },
+        )
 
     async def get_trial_context(self, page: Page) -> TrialContext:
         """Read the active trial + armed hook state from the page.
@@ -164,10 +177,34 @@ class JsPsychDriver:
         )
 
     async def wait_for_trial_end(self, page: Page) -> None:
-        raise NotImplementedError("Task 15 implements wait_for_trial_end")
+        """Hook-based delivery completes the trial synchronously when
+        the captured callback fires (jsPsych's after_response runs
+        end_trial). We just yield briefly so the event loop can run
+        any pending tasks."""
+        await asyncio.sleep(0.05)
 
-    async def wait_for_completion(self, page: Page) -> None:
-        raise NotImplementedError("Task 15 implements wait_for_completion")
+    async def wait_for_completion(
+        self, page: Page,
+        timeout_s: float = 60.0,
+        poll_interval_s: float = 0.5,
+    ) -> None:
+        """Poll jsPsych.progress().percent_complete; return when >= 100
+        or when timeout elapses. The executor's finally block writes
+        run_metadata + bot_log regardless of whether the experiment
+        completed cleanly."""
+        deadline = time.monotonic() + timeout_s
+        while time.monotonic() < deadline:
+            try:
+                pct = await page.evaluate(
+                    "(window.jsPsych && window.jsPsych.progress && "
+                    "window.jsPsych.progress().percent_complete) || 0"
+                )
+            except Exception as e:
+                logger.warning("wait_for_completion: page.evaluate raised: %s", e)
+                return
+            if pct is not None and float(pct) >= 100.0:
+                return
+            await asyncio.sleep(poll_interval_s)
 
     async def retrieve_data(self, page: Page) -> ExperimentData:
         raise NotImplementedError("Task 16 implements retrieve_data")

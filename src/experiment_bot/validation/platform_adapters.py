@@ -285,6 +285,11 @@ PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
     "stroop_rdoc": read_expfactory_stroop,
     "flanker_rdoc": read_expfactory_flanker,
     "n_back_rdoc": read_expfactory_n_back,
+    # SP10 TaskCard regeneration uses new task.name values; same data
+    # export schema, so dispatch to the existing adapter.
+    "expfactory_stroop": read_expfactory_stroop,
+    "stop_signal_expfactory": read_expfactory_stop_signal,
+    "n-back": read_expfactory_n_back,
     # Stop-it (kywch jsPsych port): historical task.name + current
     # task.name from regenerated TaskCard. Both dispatch to the same
     # adapter because the source data export schema is identical.

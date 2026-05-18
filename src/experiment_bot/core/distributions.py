@@ -267,6 +267,43 @@ class ResponseSampler:
         raw_rt = sampler.sample()
         return self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
 
+    def apply_post_event_slowing(
+        self, rt: float, condition: str, prev_error: bool,
+        prev_interrupt_detected: bool = False,
+    ) -> float:
+        """Apply post_event_slowing on top of an already-sampled RT.
+
+        The executor calls this after sample_rt_with_fallback because it
+        knows whether the previous trial was an error (whereas the
+        sampler doesn't see the bot's `intended_correct` flag). Returns
+        rt + slowing_delta (or rt unchanged if PES is disabled / no
+        trigger fired).
+        """
+        from experiment_bot.effects.handlers import (
+            SamplerState, apply_post_event_slowing,
+        )
+        cfg = self._effects.get("post_event_slowing")
+        if cfg is None:
+            return rt
+        sampler = self._samplers.get(condition) or (
+            next(iter(self._samplers.values())) if self._samplers else None
+        )
+        state = SamplerState(
+            mu=getattr(sampler, "mu", 0.0),
+            sigma=getattr(sampler, "sigma", 0.0),
+            tau=getattr(sampler, "tau", 0.0),
+            expected_rt=getattr(sampler, "expected_rt", 0.0),
+            prev_rt=self._prev_rt,
+            prev_condition=self._prev_condition,
+            trial_index=self._trial_index,
+            prev_error=prev_error,
+            prev_interrupt_detected=prev_interrupt_detected,
+            condition=condition,
+            pink_buffer=self._pink_buffer,
+        )
+        delta = apply_post_event_slowing(state, cfg, self._rng)
+        return max(rt + delta, self._floor_ms)
+
 
 def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskConfig:
     """Apply between-subject jitter to distribution params and performance targets.

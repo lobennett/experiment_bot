@@ -203,6 +203,11 @@ class TaskExecutor:
             nav_streak = 0
             ctx = await driver.get_trial_context(page)
             rt = self._sampler.sample_rt_with_fallback(ctx.condition)
+            # post_event_slowing isn't applied by the sampler (it depends
+            # on the bot's intended_correct flag from the previous trial,
+            # which the sampler doesn't see). Apply it here.
+            prev_error = bool(self._recent_errors[0]) if self._recent_errors else False
+            rt = self._sampler.apply_post_event_slowing(rt, ctx.condition, prev_error)
             intended_correct = self._py_rng.random() < self._config.performance.get_accuracy(ctx.condition)
             response = _resolve_response(ctx, intended_correct, self._py_rng, self._taskcard)
             result = await driver.deliver_response(page, response, rt)

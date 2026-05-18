@@ -207,7 +207,28 @@ class JsPsychDriver:
             await asyncio.sleep(poll_interval_s)
 
     async def retrieve_data(self, page: Page) -> ExperimentData:
-        raise NotImplementedError("Task 16 implements retrieve_data")
+        """Fetch jsPsych.data.get().json() and wrap as ExperimentData."""
+        from experiment_bot.drivers.jspsych.data_export import fetch_data_json
+        raw = await fetch_data_json(page)
+        if raw is None:
+            return ExperimentData(
+                trials=[], format="json", raw="[]",
+                metadata={"jspsych_version": self._version, "status": "no_data"},
+            )
+        try:
+            import json
+            trials = json.loads(raw)
+            if not isinstance(trials, list):
+                trials = []
+        except json.JSONDecodeError as e:
+            logger.warning("retrieve_data: JSON decode error: %s", e)
+            trials = []
+        return ExperimentData(
+            trials=trials,
+            format="json",
+            raw=raw,
+            metadata={"jspsych_version": self._version},
+        )
 
     async def teardown(self, page: Page) -> None:
         # Defensive: remove the monkey-patch if possible.

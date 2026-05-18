@@ -326,3 +326,65 @@ async def test_wait_for_completion_times_out_gracefully():
     # Use a very short timeout
     await driver.wait_for_completion(page, timeout_s=0.05, poll_interval_s=0.01)
     # Test passes simply by NOT hanging or raising
+
+
+from experiment_bot.drivers.base import ExperimentData as _ExperimentData
+
+
+@pytest.mark.asyncio
+async def test_retrieve_data_returns_experiment_data_with_parsed_trials():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    raw_json = '[{"trial_index":0,"rt":350,"response":","}, {"trial_index":1,"rt":400,"response":"."}]'
+    page.evaluate = _AsyncMock(return_value=raw_json)
+    driver = JsPsychDriver(version="7.3.1")
+    data = await driver.retrieve_data(page)
+    assert isinstance(data, _ExperimentData)
+    assert data.format == "json"
+    assert data.raw == raw_json
+    assert len(data.trials) == 2
+    assert data.trials[0]["rt"] == 350
+    assert data.metadata.get("jspsych_version") == "7.3.1"
+
+
+@pytest.mark.asyncio
+async def test_retrieve_data_returns_empty_on_jspsych_unavailable():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value=None)
+    driver = JsPsychDriver(version="7.3.1")
+    data = await driver.retrieve_data(page)
+    assert isinstance(data, _ExperimentData)
+    assert data.trials == []
+    assert data.format == "json"
+
+
+@pytest.mark.asyncio
+async def test_retrieve_data_returns_empty_on_evaluate_error():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(side_effect=Exception("page closed"))
+    driver = JsPsychDriver(version="7.3.1")
+    data = await driver.retrieve_data(page)
+    assert data.trials == []
+
+
+@pytest.mark.asyncio
+async def test_teardown_removes_monkey_patch_defensively():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value=None)
+    driver = JsPsychDriver(version="7.3.1")
+    await driver.teardown(page)
+    # teardown calls page.evaluate at least once to attempt cleanup
+    assert page.evaluate.await_count >= 1
+
+
+@pytest.mark.asyncio
+async def test_teardown_swallows_evaluate_errors():
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(side_effect=Exception("page already closed"))
+    driver = JsPsychDriver(version="7.3.1")
+    # Should NOT raise
+    await driver.teardown(page)

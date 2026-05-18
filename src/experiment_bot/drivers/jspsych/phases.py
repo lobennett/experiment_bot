@@ -85,7 +85,7 @@ _GET_CONTEXT_JS = """
   const data = trial.data || {};
   const stimulus_id = String(
     data.stimulus_id != null ? data.stimulus_id :
-    (typeof trial.stimulus === 'string' ? trial.stimulus.slice(0, 64) :
+    (typeof trial.stimulus === 'string' ? trial.stimulus.slice(0, 200) :
      (trial.stimulus != null ? 'stim' : 'unknown'))
   );
   const condition = String(

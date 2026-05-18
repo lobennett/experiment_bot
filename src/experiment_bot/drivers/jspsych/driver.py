@@ -15,7 +15,7 @@ from typing import ClassVar
 from playwright.async_api import Page
 
 from experiment_bot.drivers.base import (
-    DeliveryResult, ExperimentData, NavigationOutcome,
+    DeliveryResult, DriverError, ExperimentData, NavigationOutcome,
     TrialContext, TrialLoopState, UnsupportedVersionError,
 )
 
@@ -99,13 +99,40 @@ class JsPsychDriver:
     # Methods below are stubs; Tasks 13-16 implement them.
 
     async def loop_state(self, page: Page) -> TrialLoopState:
-        raise NotImplementedError("Task 14 implements loop_state")
+        """Read jsPsych state via phases.read_loop_state and map to
+        TrialLoopState. Unknown / error states default to
+        NEEDS_NAVIGATION (the bot library will poll again)."""
+        from experiment_bot.drivers.jspsych.phases import read_loop_state
+        info = await read_loop_state(page)
+        s = info.get("state")
+        if s == "complete":
+            return TrialLoopState.COMPLETE
+        if s == "ready_for_trial":
+            return TrialLoopState.READY_FOR_TRIAL
+        return TrialLoopState.NEEDS_NAVIGATION
 
     async def navigate(self, page: Page) -> NavigationOutcome:
         raise NotImplementedError("Task 15 implements navigate")
 
     async def get_trial_context(self, page: Page) -> TrialContext:
-        raise NotImplementedError("Task 14 implements get_trial_context")
+        """Read the active trial + armed hook state from the page.
+        Raises DriverError(kind='no_active_trial') if no active trial."""
+        from experiment_bot.drivers.jspsych.phases import read_trial_context
+        info = await read_trial_context(page)
+        if info is None:
+            raise DriverError(
+                kind="no_active_trial",
+                context={"reason": "no_armed_hook_or_no_current_trial"},
+                recoverable=True,
+            )
+        return TrialContext(
+            stimulus_id=info["stimulus_id"],
+            condition=info["condition"],
+            allowed_responses=tuple(info.get("allowed_responses") or ()),
+            expected_correct=info.get("expected_correct"),
+            response_window_ms=info.get("response_window_ms"),
+            metadata=info.get("metadata", {}),
+        )
 
     async def deliver_response(
         self, page: Page, response: str | None, rt_ms: float | None,

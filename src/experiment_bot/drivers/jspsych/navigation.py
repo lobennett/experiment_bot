@@ -115,15 +115,26 @@ _DECIDE_JS = """
   if (!window.jsPsych) return { type_name: null, reason: 'no_jspsych' };
   let trial = null;
   try {
-    trial = window.jsPsych.getCurrentTrial && window.jsPsych.getCurrentTrial();
+    // v7: getCurrentTrial(). v6: currentTrial(). Try both.
+    if (typeof window.jsPsych.getCurrentTrial === 'function') {
+      trial = window.jsPsych.getCurrentTrial();
+    } else if (typeof window.jsPsych.currentTrial === 'function') {
+      trial = window.jsPsych.currentTrial();
+    }
   } catch (e) {}
   if (!trial) return { type_name: null, reason: 'no_current_trial' };
+  // v6: trial.type is a string. v7: it's a class instance with .info.name.
   let type_name = null;
   try {
-    type_name = (trial.type && trial.type.info && trial.type.info.name) ||
-                (trial.type && trial.type.name) ||
-                (typeof trial.type === 'string' ? trial.type : 'unknown');
-  } catch (e) { type_name = 'unknown'; }
+    if (typeof trial.type === 'string') {
+      type_name = trial.type;
+    } else if (trial.type && trial.type.info && trial.type.info.name) {
+      type_name = trial.type.info.name;
+    } else if (trial.type && trial.type.name) {
+      type_name = trial.type.name;
+    }
+  } catch (e) {}
+  type_name = type_name || 'unknown';
   // Inventory of known jsPsych button IDs present in the display.
   const root = document.querySelector('#jspsych-display-element') || document.body;
   const present = {};

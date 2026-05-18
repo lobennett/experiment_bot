@@ -165,6 +165,7 @@ class TaskExecutor:
         iter_count = 0
         last_log_iter = 0
         nav_streak = 0
+        last_progress_idx = -1
         while True:
             iter_count += 1
             state = await driver.loop_state(page)
@@ -180,6 +181,28 @@ class TaskExecutor:
             if state == TrialLoopState.NEEDS_NAVIGATION:
                 outcome = await driver.navigate(page)
                 nav_streak += 1
+                # Reset streak when jsPsych's trial counter advances —
+                # paradigms with NO_KEYS fixation trials (stopit etc.)
+                # progress through many trials without ever arming the
+                # keyboard hook. The streak guard is to catch true
+                # stuck-page states, not normal navigation.
+                try:
+                    progress_idx = await page.evaluate(
+                        """(() => {
+                            if (!window.jsPsych) return -1;
+                            let p = null;
+                            try {
+                              if (typeof window.jsPsych.getProgress === 'function') p = window.jsPsych.getProgress();
+                              else if (typeof window.jsPsych.progress === 'function') p = window.jsPsych.progress();
+                            } catch (e) {}
+                            return (p && p.current_trial_global != null) ? p.current_trial_global : -1;
+                        })()"""
+                    )
+                    if isinstance(progress_idx, (int, float)) and progress_idx > last_progress_idx:
+                        last_progress_idx = int(progress_idx)
+                        nav_streak = 0
+                except Exception:
+                    pass
                 if nav_streak <= 5 or nav_streak % 25 == 0:
                     logger.info(
                         "Navigate iter=%d streak=%d action=%s type=%s",

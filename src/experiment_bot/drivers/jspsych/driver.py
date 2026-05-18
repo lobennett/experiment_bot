@@ -83,9 +83,15 @@ class JsPsychDriver:
 
     @classmethod
     async def create(cls, page: Page) -> "JsPsychDriver":
-        """Read live version, check against SUPPORTED_VERSIONS, instantiate
-        or raise UnsupportedVersionError. v7 exposes `version` as a
-        function; v6 as a string property. Try both."""
+        """Detect the live jsPsych version and instantiate, or raise
+        UnsupportedVersionError if unanchored. Detection order:
+
+        1. v7+ exposes `jsPsych.version()` as a callable.
+        2. Some versions expose `jsPsych.version` as a string property.
+        3. Fall back to scanning <script src> for `jspsych-X.Y.Z/` —
+           v6.0.5 (and most pre-v7) embed the version in the bundle
+           path because the API itself doesn't expose it.
+        """
         version = await page.evaluate(
             """(() => {
                 if (!window.jsPsych) return null;
@@ -96,6 +102,12 @@ class JsPsychDriver:
                 } catch (e) {}
                 if (typeof window.jsPsych.version === 'string') {
                   return window.jsPsych.version;
+                }
+                // Last-resort: scan script srcs for jspsych-X.Y.Z/
+                for (const s of document.scripts) {
+                  const src = s.src || '';
+                  const m = src.match(/jspsych-(\\d+\\.\\d+\\.\\d+)/);
+                  if (m) return m[1];
                 }
                 return null;
             })()"""

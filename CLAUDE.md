@@ -366,18 +366,29 @@ Driver development conventions:
   (4) Also outstanding: commit SP8-regenerated TaskCards to sp8
   branch (done in b06122e, but not on a new tag — sp8-complete still
   references the docs commit).
-- **SP10** (in progress): Driver-based platform architecture. New
+- **SP10**: Driver-based platform architecture. New
   `experiment_bot/drivers/` package — per-platform `PlatformDriver`
-  subclasses own all page-touching concerns; bot library becomes
-  slim, paradigm- AND platform-agnostic. JsPsychDriver is the first
-  driver, hooks `pluginAPI.getKeyboardResponse` for response delivery
-  (closes the SP9c layer-d gap structurally). Reasoner pipeline
-  shrinks: Stage 1 drops brittle JS extraction; new `recommended_driver`
-  field. CLAUDE.md updated with G0 (per-trial fidelity), G2 expanded
-  (driver as third tier), G4 strengthened (bot_log diagnostic-only),
-  new guardrails for adding platform support. Expected to close
-  pressed==recorded gap on all 4 dev paradigms (target ≥ 90%).
-  See `docs/sp10-results.md` for empirical outcome.
+  subclasses own all page-touching concerns; bot library becomes slim,
+  paradigm- AND platform-agnostic. JsPsychDriver is the first driver,
+  hooks `pluginAPI.getKeyboardResponse` for response delivery (closes
+  the SP9c layer-d gap structurally) plus a multi-source
+  correct_response fallback chain (`trial.correct_choice`,
+  `window.correctResponse`) for paradigms that don't expose the
+  answer in `trial.data` at trial start. Reasoner pipeline shrunk:
+  Stage 1 drops brittle JS extraction; new `recommended_driver` field;
+  pilot stage rewritten as thin driver smoke. CLAUDE.md updated with
+  G0 (per-trial fidelity), G2 expanded (driver as third tier), G4
+  strengthened (bot_log diagnostic-only), new guardrails for adding
+  platform support. **Empirical: G0 hard gate PASS — 100%
+  pressed==recorded across 13 sessions on the 3 supported paradigms
+  (4 stroop, 6 n_back, 6 stop_signal). Bot accuracy with the
+  correct_response fallback within human literature range:** stroop
+  ~93%, n_back ~81%, stop_signal go-trials ~96%. Stopit (jsPsych
+  v6) out of scope — DiagnosticDriver routes correctly; v6 anchors
+  + driver are SP10 backlog. Internal CI: 467 passed (was 563 at
+  sp9a; net delta reflects deletion of SP9a agent + SP7 keypress
+  diagnostic, replaced by focused `drivers/` tests). See
+  `docs/sp10-results.md`. Tag `sp10-complete`. ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

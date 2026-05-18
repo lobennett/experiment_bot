@@ -275,7 +275,7 @@ Update this charter when:
 
 ## 10. Latest framework state (auto-updated)
 
-**Last reviewed at:** sp9b-complete (SP9b: Stage 4 openalex defensive fix; next SP9 candidate: jsPsych platform-recording gap, SP7 layer d)
+**Last reviewed at:** sp10-complete (driver-based platform architecture; SP7 layer-d closed via `pluginAPI.getKeyboardResponse` hook; per-trial fidelity 100% across 13 sessions on stroop / n_back / stop_signal; correct_response fallback chain restores accuracy to human-literature range. New probe candidates from this scope: (a) does the hook-callback delivery produce events indistinguishable from real user input by every test the platform might use? (b) does the driver's response delivery handle SSD-adaptive timing in stop-signal correctly? (c) for paradigms beyond the 3 supported, does the multi-source correct_response fallback chain generalize, or does it overfit to the expfactory rDoC conventions?)
 
 **Validator pillars currently implemented:** rt_distribution, individual_differences, sequential.
 

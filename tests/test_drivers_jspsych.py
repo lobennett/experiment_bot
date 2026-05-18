@@ -63,3 +63,84 @@ async def test_setup_invokes_install_hook_js():
     await driver.setup(page)
     # setup should call page.evaluate at least once (to install the hook)
     assert page.evaluate.await_count >= 1
+
+
+import json as _json
+from unittest.mock import AsyncMock as _AsyncMock
+
+from experiment_bot.drivers.base import DeliveryResult as _DeliveryResult
+from experiment_bot.drivers.jspsych.responses import deliver as _deliver
+
+
+@pytest.mark.asyncio
+async def test_responses_deliver_invokes_captured_callback():
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value={"ok": True})
+    result = await _deliver(page, ",", 350.0)
+    assert result == {"ok": True}
+    js = page.evaluate.call_args.args[0]
+    assert "callback_function(info)" in js
+    assert '"key": ","' in js or "'key': ','" in js or '"key":","' in js or 'key: ","' in js
+    assert "350.0" in js or "350" in js
+
+
+@pytest.mark.asyncio
+async def test_responses_deliver_handles_no_active_listener():
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value={"ok": False, "reason": "no_active_listener"})
+    result = await _deliver(page, ",", 350.0)
+    assert result["ok"] is False
+    assert result["reason"] == "no_active_listener"
+
+
+@pytest.mark.asyncio
+async def test_responses_deliver_handles_evaluate_exception():
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(side_effect=Exception("page closed"))
+    result = await _deliver(page, ",", 350.0)
+    assert result["ok"] is False
+    assert result["reason"] == "evaluate_raised"
+
+
+@pytest.mark.asyncio
+async def test_driver_deliver_response_uses_callback_hook():
+    """Wire deliver_response on the driver: success path returns DeliveryResult
+    with method='jspsych_callback_hook' and propagates the bot's rt_ms."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value={"ok": True})
+    driver = JsPsychDriver(version="7.3.1")
+    result = await driver.deliver_response(page, ",", 350.0)
+    assert isinstance(result, _DeliveryResult)
+    assert result.success is True
+    assert result.actual_rt_ms == 350.0
+    assert result.method == "jspsych_callback_hook"
+    assert result.error is None
+
+
+@pytest.mark.asyncio
+async def test_driver_deliver_response_response_none_means_withhold():
+    """When response=None (e.g. stop-signal stop trial), deliver_response
+    is a no-op that returns success with method='withhold_no_op'."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock()
+    driver = JsPsychDriver(version="7.3.1")
+    result = await driver.deliver_response(page, None, 1000.0)
+    assert result.success is True
+    assert result.method == "withhold_no_op"
+    # Importantly: evaluate was NOT called.
+    page.evaluate.assert_not_called()
+
+
+@pytest.mark.asyncio
+async def test_driver_deliver_response_failure_propagates_reason():
+    """When the hook reports no_active_listener, deliver_response returns
+    DeliveryResult(success=False) carrying the reason."""
+    from experiment_bot.drivers.jspsych import JsPsychDriver
+    page = _AsyncMock()
+    page.evaluate = _AsyncMock(return_value={"ok": False, "reason": "no_active_listener"})
+    driver = JsPsychDriver(version="7.3.1")
+    result = await driver.deliver_response(page, ",", 350.0)
+    assert result.success is False
+    assert result.error == "no_active_listener"

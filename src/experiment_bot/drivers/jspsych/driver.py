@@ -110,7 +110,31 @@ class JsPsychDriver:
     async def deliver_response(
         self, page: Page, response: str | None, rt_ms: float | None,
     ) -> DeliveryResult:
-        raise NotImplementedError("Task 13 implements deliver_response")
+        """Deliver a response via the jsPsych callback hook.
+
+        response=None means withhold (e.g. stop-signal stop trial) — no-op.
+        rt_ms is the bot's sampled response time in milliseconds.
+        """
+        from time import perf_counter
+        from experiment_bot.drivers.jspsych.responses import deliver
+
+        if response is None:
+            return DeliveryResult(
+                success=True,
+                delivered_at_ms=0.0,
+                actual_rt_ms=rt_ms or 0.0,
+                method="withhold_no_op",
+            )
+        start = perf_counter()
+        result = await deliver(page, response, rt_ms or 0.0)
+        elapsed_ms = (perf_counter() - start) * 1000
+        return DeliveryResult(
+            success=bool(result.get("ok")),
+            delivered_at_ms=elapsed_ms,
+            actual_rt_ms=rt_ms or 0.0,
+            method="jspsych_callback_hook",
+            error=result.get("reason") if not result.get("ok") else None,
+        )
 
     async def wait_for_trial_end(self, page: Page) -> None:
         raise NotImplementedError("Task 15 implements wait_for_trial_end")

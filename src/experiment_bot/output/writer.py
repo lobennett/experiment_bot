@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import logging
+import os
 from datetime import datetime
 from pathlib import Path
 
@@ -12,8 +13,20 @@ logger = logging.getLogger(__name__)
 DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent.parent.parent / "output"
 
 
+def _resolved_default_output_dir() -> Path:
+    """Honor EXPERIMENT_BOT_OUTPUT_DIR env var when set (SP11 Phase 7
+    sweep wrapper uses this to redirect each arm's sessions into its
+    own subtree). Falls back to the repo-relative default."""
+    env_dir = os.environ.get("EXPERIMENT_BOT_OUTPUT_DIR")
+    if env_dir:
+        return Path(env_dir)
+    return DEFAULT_OUTPUT_DIR
+
+
 class OutputWriter:
-    def __init__(self, base_dir: Path = DEFAULT_OUTPUT_DIR):
+    def __init__(self, base_dir: Path | None = None):
+        if base_dir is None:
+            base_dir = _resolved_default_output_dir()
         self._base_dir = base_dir
         self._run_dir: Path | None = None
         self._trials: list[dict] = []

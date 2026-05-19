@@ -786,16 +786,122 @@ literature-range pass/fail:
 For each metric record: name, paradigm, sp9c value (number),
 in-band/out-of-band status, source doc + section reference.
 
-### Table (populated in Phase 1)
+### Table (populated 2026-05-18, Phase 1 sub-task)
 
-| Metric | Paradigm | sp9c value | In-band? | Source |
+Values are the most-recent reported numbers across the sp9c-era result
+docs. Where a later doc supersedes an earlier doc (e.g., SP6's PES
+supersedes SP5's), the later value is used. Abstract values are
+authoritative for headline z-score metrics where reported there.
+
+**Held-out paradigm Flanker — `expfactory_flanker` (sp5/sp6/sp7 era):**
+
+| Metric | sp9c value | Published range | In-band? | Source |
 |---|---|---|---|---|
-| _to be populated by Phase 1_ | | | | |
+| `rt_distribution.mu` | 486 ms | [400, 550] | ✓ in-band | SP6 |
+| `rt_distribution.sigma` | 73 ms | [25, 60] | ✗ out-of-band | SP6 (drifted out post-trial-end-fix) |
+| `rt_distribution.tau` | 86 ms | [70, 160] | ✓ in-band | SP6 |
+| `lag1_autocorr` | 0.27 | descriptive (no range) | ✓ sign-positive | SP6 |
+| `post_error_slowing` magnitude | +35.43 ms | [10, 50] (literature) | ✓ in-band | SP6 |
+| `cse_magnitude` | uncomputable | [-45, -10] | n/a (SP6 flagged uncomputable due to label vocabulary mismatch) | SP6 |
+| Aggregate accuracy | 92.3 % | target ~95 %, range 90-95.8 % | ✓ in-band | SP5 |
+| `bot_intended == platform_expected` | 49.8 % | n/a — chance for 2-key paradigm | ✗ at chance | SP7 (5 sessions, 600 trials) |
+| `bot_pressed == page_received` | 93.3 % | n/a — SP11 target ≥ 85 % per H1 | ✓ above floor | SP7 |
+| `page_received == platform_recorded` | 44.0 % | n/a — SP11 target ≥ 85 % per H1 | ✗ below floor (SP7 layer-d gap) | SP7 |
+| `bot_pressed == platform_recorded` | 47.7 % | n/a — SP11 target ≥ 85 % per H1 | ✗ below floor (compounded a + d) | SP7 |
+
+**Held-out paradigm N-back — `expfactory_n_back` (sp5/sp8 era):**
+
+| Metric | sp9c value | Published range | In-band? | Source |
+|---|---|---|---|---|
+| `rt_distribution.mu` | 584 ms | descriptive (no published range) | descriptive | SP5 |
+| `rt_distribution.sigma` | 149 ms | descriptive | descriptive | SP5 |
+| `rt_distribution.tau` | 160 ms | descriptive | descriptive | SP5 |
+| `lag1_autocorr` | 0.00 | descriptive | descriptive (sign-flat) | SP5 |
+| `post_error_slowing` magnitude | +16.30 ms | [10, 50] (literature) | ✓ in-band | SP5 |
+| Aggregate accuracy | 89.3 % | target 86-93 % | ✓ in-band | SP5 (post-warmup-filter) |
+| `bot_intended == platform_expected` | 72.1 % | n/a — SP11 target ≥ 85 % per H1 | ✗ below SP11 target but best of sp9c | SP8 (multi-source prompt fix) |
+
+**Dev paradigm Stroop expfactory — `expfactory_stroop` (sp9a era + abstract):**
+
+Abstract reports numbers from a larger N=29 run; some overlap with
+sp9c-era smaller runs. Abstract values used where reported there.
+
+| Metric | sp9c value | Published range | In-band? | Source |
+|---|---|---|---|---|
+| Stroop interference effect | +93 ms (bot) | human 67 ± 41 ms; z = +0.61 | ✓ in-band (\|z\| < 1) | Abstract |
+| Congruent absolute RT | 706 ± 42 ms (bot) | human 575 ± 67 ms; z = +1.95 | ✗ out-of-band (\|z\| > 1) | Abstract — SP11's S1 improvement target |
+| Incongruent absolute RT | 798 ± 56 ms (bot) | human 642 ± 81 ms; z = +1.93 | ✗ out-of-band | Abstract — SP11's S2 improvement target |
+| Congruent accuracy | 95.1 % (bot) | human 96.1 ± 4.7 % | ✓ in-band (\|z\| ≈ −0.21) | Abstract |
+| `lag1_autocorr` | r = 0.16 ± 0.10 (bot) | descriptive | ✓ sign-positive | Abstract |
+| `post_error_slowing` magnitude | 60 ± 59 ms (bot) | [10, 50] (literature, conflict-class) | ✗ slightly above range | Abstract — known sp9c-era anomaly; see Special Note below |
+| `bot_intended == platform_expected` per-trial | 32.2 % mean | n/a | ✗ at chance (3-key counterbalance) | SP9a |
+
+**Dev paradigm Stop-signal expfactory — `expfactory_stop_signal` (sp9a + abstract):**
+
+| Metric | sp9c value | Published range | In-band? | Source |
+|---|---|---|---|---|
+| Mean go RT | 622 ± 47 ms (bot) | human 649 ± 100 ms; z = −0.27 | ✓ in-band (\|z\| < 1) | Abstract |
+| Stop-signal accuracy | 53.2 % (bot) | human 52.1 ± 2.4 %; z = +0.45 | ✓ in-band | Abstract |
+| Integration-method SSRT | 214 ms (bot) | human 234 ± 45 ms; z = −0.46 | ✓ in-band | Abstract |
+| `post_error_slowing` magnitude | 37 ± 54 ms (bot) | [10, 50] (literature) | ✓ in-band | Abstract |
+| `lag1_autocorr` | r = 0.10 ± 0.09 (bot) | descriptive | ✓ sign-positive | Abstract |
+| `bot_intended == platform_expected` per-trial | 59.4 % | n/a | ✗ below SP11 target H1 | SP9a (1 session) |
+
+**Dev paradigm STOP-IT — `stopit_stop_signal` (sp9a + abstract):**
+
+Abstract reports "pattern replicated across the STOP-IT implementation
+without modification" but doesn't give specific z-scores. Treat as
+descriptively in-band on the abstract's key metrics (mean go RT, stop
+accuracy, SSRT) until SP11 measures them directly. STOP-IT is also
+the v6 paradigm SP10 had to route to DiagnosticDriver — the SP11
+Playwright path is the first real-input attempt at it.
+
+| Metric | sp9c value | Published range | In-band? | Source |
+|---|---|---|---|---|
+| Mean go RT, stop accuracy, SSRT | "pattern replicated" | as ExpFactory above | ✓ in-band per abstract narrative | Abstract |
+| `bot_intended == platform_expected` per-trial | ~29 % | n/a | ✗ at chance | SP8 |
+
+**Dev paradigm Cognition.run Stroop — `cognitionrun_stroop` (very limited sp9c data):**
+
+Abstract reports N=28 cognition.run Stroop sessions but the exact
+numbers tracked across the sp9c-era result docs were sparse — the
+platform's pilot crashed multiple times during SP8 regeneration.
+Abstract reports the same stroop-class headline numbers as
+expfactory_stroop. SP11 Phase 3's calibration probe of cognition.run
+will surface its data-export format; Appendix C is updated at that
+point if the data shape supports a finer breakdown.
+
+| Metric | sp9c value | Published range | In-band? | Source |
+|---|---|---|---|---|
+| Stroop interference, accuracy | reported as in-line with expfactory_stroop | conflict-class | ✓ presumed in-band per abstract | Abstract (N=28) |
+| `bot_intended == platform_expected` per-trial | not measured at sp9c | n/a | unknown | n/a |
+| All other metrics | not specifically isolated for cognitionrun_stroop in sp9c-era docs | — | — | n/a |
 
 ### Non-degradation rule
 
-For every row marked "In-band: yes," sp11 results on the same metric
-and paradigm must remain in-band. Out-of-band rows are not gated by
-§6.3 — they are either explicitly in §6.1/§6.2 (e.g., Stroop absolute
-RT in S1/S2) or are documented as known sp9c gaps that sp11 doesn't
-commit to fixing.
+For every row marked "In-band: ✓" — across all 5 paradigm sub-tables
+above — sp11 results on the same metric and paradigm must remain
+in-band. Out-of-band rows are either explicitly named in §6.1/§6.2
+(e.g., Stroop absolute RT in S1/S2) or are documented as known sp9c
+gaps that sp11 doesn't commit to fixing in this iteration.
+
+### Special note on Stroop PES
+
+The abstract reports Stroop `post_error_slowing = 60 ± 59 ms`,
+slightly above the 10-50ms conflict-class range. The number is from
+a larger N=29 run; the conflict-class range may be conservative, or
+sp9c's autocorrelation mechanism may have amplified PES beyond the
+configured `slowing_ms_max=50`. Phase 8 of sp11 should check whether
+the post-Phase-2 effects-library reconciliation changes this number,
+and whether the published range itself merits revisit — but per §6.2
+S7 the 10-50ms range stands as the pre-registered target.
+
+### Special note on cross-paradigm metric availability
+
+SP11's headline paradigms (the four in §6) have asymmetric sp9c
+coverage. Held-out Flanker has rich SP5/SP6/SP7 data including
+rt_distribution + sequential metrics. The dev paradigms have less
+exhaustive sp9c-era reporting because they were the focus of the
+sp10 driver-architecture detour rather than systematic measurement
+under the Playwright path. SP11's Phase 7 produces the
+measurement-systematic dev-paradigm baseline that sp9c lacked.

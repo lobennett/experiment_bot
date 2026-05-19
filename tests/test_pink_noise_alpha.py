@@ -16,8 +16,20 @@ import sys
 import numpy as np
 import pytest
 
-from experiment_bot.core.config import PinkNoiseConfig
+from experiment_bot.core.config import (
+    PinkNoiseConfig,
+    _reset_deprecation_warnings_for_tests,
+)
 from experiment_bot.core.distributions import _generate_pink_noise
+
+
+@pytest.fixture(autouse=True)
+def _reset_deprecation_gate():
+    """Reset the module-level once-gate before every test so each test
+    sees a fresh stderr-warning state."""
+    _reset_deprecation_warnings_for_tests()
+    yield
+    _reset_deprecation_warnings_for_tests()
 
 
 def test_pink_noise_config_accepts_alpha_directly():
@@ -113,6 +125,33 @@ def test_pink_noise_spectrum_slope_matches_alpha_two():
     log_p = np.log(power[mask] + 1e-30)
     slope, _ = np.polyfit(log_f, log_p, 1)
     assert -2.3 < slope < -1.7, f"alpha=2 expected slope ≈ -2, got {slope:.3f}"
+
+
+def test_pink_noise_hurst_deprecation_is_once_gated_per_process():
+    """Per Phase 3 user note: the hurst→alpha deprecation warning must
+    fire once per process, not on every from_dict call. Three
+    consecutive hurst-using loads should produce exactly one
+    DEPRECATION message."""
+    captured = io.StringIO()
+    old_stderr = sys.stderr
+    sys.stderr = captured
+    try:
+        PinkNoiseConfig.from_dict(
+            {"enabled": True, "sd_ms": 10.0, "hurst": 1.0, "rationale": ""}
+        )
+        PinkNoiseConfig.from_dict(
+            {"enabled": True, "sd_ms": 12.0, "hurst": 0.75, "rationale": ""}
+        )
+        PinkNoiseConfig.from_dict(
+            {"enabled": True, "sd_ms": 8.0, "hurst": 1.2, "rationale": ""}
+        )
+    finally:
+        sys.stderr = old_stderr
+    msg = captured.getvalue()
+    assert msg.count("DEPRECATION") == 1, (
+        f"expected exactly 1 DEPRECATION message, got "
+        f"{msg.count('DEPRECATION')}:\n{msg}"
+    )
 
 
 def test_pink_noise_to_dict_round_trip():

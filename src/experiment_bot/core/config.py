@@ -171,23 +171,72 @@ class ConditionRepetitionConfig:
     @classmethod
     def from_dict(cls, d: dict) -> ConditionRepetitionConfig:
         cfg = cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-        if cfg.enabled:
-            import sys
-            print(
-                "DEPRECATION (SP11 Phase 2): temporal_effects.condition_repetition "
-                "is deprecated in favor of lag1_pair_modulation. The single-"
-                "parameter (facilitation_ms, cost_ms) form cannot express the "
-                "2×2 Gratton cell pattern. Update the source TaskCard to emit "
-                "a `lag1_pair_modulation` block with a `modulation_table` "
-                "listing the (prev, curr) → delta_ms entries for the paradigm. "
-                "The condition_repetition handler will keep working until Phase 5 "
-                "TaskCard regeneration removes references to it.",
-                file=sys.stderr,
-            )
+        if cfg.enabled and not _CONDITION_REPETITION_WARNED:
+            _emit_condition_repetition_deprecation()
         return cfg
 
     def to_dict(self) -> dict:
         return asdict(self)
+
+
+# Module-level once-gated deprecation state. Per Phase 3 user note:
+# warnings must fire once per process, not once per config load, so
+# pytest runs and Phase 7's 180-session validation don't drown stderr.
+# Reset_for_tests() exists for the deprecation tests themselves.
+_CONDITION_REPETITION_WARNED = False
+_PINK_NOISE_HURST_WARNED = False
+
+
+def _emit_condition_repetition_deprecation() -> None:
+    """Fire the condition_repetition deprecation warning to stderr once
+    per process. Idempotent after first call."""
+    global _CONDITION_REPETITION_WARNED
+    if _CONDITION_REPETITION_WARNED:
+        return
+    import sys
+    print(
+        "DEPRECATION (SP11 Phase 2): temporal_effects.condition_repetition "
+        "is deprecated in favor of lag1_pair_modulation. The single-"
+        "parameter (facilitation_ms, cost_ms) form cannot express the "
+        "2×2 Gratton cell pattern. Update the source TaskCard to emit "
+        "a `lag1_pair_modulation` block with a `modulation_table` "
+        "listing the (prev, curr) → delta_ms entries for the paradigm. "
+        "The condition_repetition handler will keep working until Phase 5 "
+        "TaskCard regeneration removes references to it. "
+        "(This warning fires once per process.)",
+        file=sys.stderr,
+    )
+    _CONDITION_REPETITION_WARNED = True
+
+
+def _emit_pink_noise_hurst_deprecation(hurst_val: float, converted_alpha: float) -> None:
+    """Fire the pink_noise hurst→alpha deprecation warning to stderr once
+    per process. Idempotent after first call."""
+    global _PINK_NOISE_HURST_WARNED
+    if _PINK_NOISE_HURST_WARNED:
+        return
+    import sys
+    print(
+        f"DEPRECATION (SP11 Phase 2): PinkNoiseConfig.hurst is renamed "
+        f"to alpha. Got hurst={hurst_val} → converted to "
+        f"alpha={converted_alpha} via the pre-SP11 fBm convention "
+        f"alpha = 2*hurst − 1. Update the source TaskCard's "
+        f"temporal_effects.pink_noise.value to emit `alpha` directly. "
+        f"This deprecation alias will be removed once Phase 5 "
+        f"TaskCard regeneration lands. "
+        f"(This warning fires once per process.)",
+        file=sys.stderr,
+    )
+    _PINK_NOISE_HURST_WARNED = True
+
+
+def _reset_deprecation_warnings_for_tests() -> None:
+    """Test-only helper. Resets the once-gates so deprecation tests
+    can verify the warning fires on the first call after reset.
+    Not part of the public API."""
+    global _CONDITION_REPETITION_WARNED, _PINK_NOISE_HURST_WARNED
+    _CONDITION_REPETITION_WARNED = False
+    _PINK_NOISE_HURST_WARNED = False
 
 
 @dataclass
@@ -284,26 +333,21 @@ class PinkNoiseConfig:
     def from_dict(cls, d: dict) -> PinkNoiseConfig:
         # Backward-compat: convert legacy "hurst" field to "alpha" using the
         # pre-SP11 spectral-synthesis convention alpha = 2*hurst − 1.
-        # Emit a loud stderr deprecation warning so the conversion is
-        # never silent. Honored once per source TaskCard.
+        # Emit a loud stderr deprecation warning (once per process — see
+        # _emit_pink_noise_hurst_deprecation) so the conversion is never
+        # silent during normal dev work, but stderr isn't drowned.
         d = dict(d)  # don't mutate caller's dict
         if "hurst" in d and "alpha" not in d:
-            import sys
             hurst_val = d.pop("hurst")
             converted_alpha = 2.0 * float(hurst_val) - 1.0
-            print(
-                f"DEPRECATION (SP11 Phase 2): PinkNoiseConfig.hurst is renamed "
-                f"to alpha. Got hurst={hurst_val} → converted to "
-                f"alpha={converted_alpha} via the pre-SP11 fBm convention "
-                f"alpha = 2*hurst − 1. Update the source TaskCard's "
-                f"temporal_effects.pink_noise.value to emit `alpha` directly. "
-                f"This deprecation alias will be removed once Phase 5 "
-                f"TaskCard regeneration lands.",
-                file=sys.stderr,
-            )
+            _emit_pink_noise_hurst_deprecation(hurst_val, converted_alpha)
             d["alpha"] = converted_alpha
         elif "hurst" in d and "alpha" in d:
             import sys
+            # This case (BOTH fields present) is rare — leave it as an
+            # always-fires WARNING because it indicates the TaskCard
+            # author hand-edited both forms simultaneously, which is
+            # the kind of mistake that benefits from repeated visibility.
             print(
                 f"WARNING (SP11 Phase 2): PinkNoiseConfig got both `hurst` "
                 f"({d['hurst']}) and `alpha` ({d['alpha']}). Using alpha; "

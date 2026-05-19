@@ -1,75 +1,73 @@
 #!/usr/bin/env python3
-"""SP10 per-trial fidelity audit.
+"""SP11 Phase 6 per-trial fidelity audit (paradigm-aware).
 
 For a given session directory (containing bot_log.json and
-experiment_data.json), compute the per-trial alignment between what the
-bot pressed and what the platform recorded.
+experiment_data.{json,csv}), compute the per-trial alignment between
+what the bot pressed and what the platform recorded.
 
-Auto-detects the bot-side offset so that practice / attention / warmup
-trials don't shift the index alignment. Reports the offset that
-maximizes condition_match.
+Two pairing methods (per Phase 6 user note 5 + Phase 5a wiring):
+
+  - **trial_counter** (SP11 input-layer path): bot fires record
+    ``delivery.trial_marker_at_fire`` per trial; platform records
+    carry a ``trial_index`` field. Pair by exact match. Robust to
+    interstitial trials (ITIs, fixations) and to off-by-one timing
+    artifacts.
+  - **rt_match** (SP10 driver path): bot trials carry sampled
+    ``rt_ms``; platform rows carry ``rt`` with sub-ms precision.
+    Pair by minimum |bot_rt − plat_rt| within tolerance. Used for
+    legacy SP10-era logs that lack ``delivery.trial_marker_at_fire``.
+
+Pairing method is auto-selected from ``bot_log[*].delivery`` presence
+and can be overridden via ``--pairing``. Per-paradigm test-row
+filtering is via
+:func:`experiment_bot.validation.platform_adapters.test_row_predicate_for_label`.
+Channel breakdown (``cdp_dispatchKeyEvent`` vs
+``keyboard_press_fallback`` vs ``page_keyboard_press``) appears in
+the JSON output.
 
 Usage:
-  uv run python scripts/audit_alignment.py output/<task>/<timestamp>/
-  uv run python scripts/audit_alignment.py output/expfactory_stroop/2026-05-17_22-19-47/
+  uv run python scripts/audit_alignment.py output/<task>/<timestamp>/ --label expfactory_stroop
+  uv run python scripts/audit_alignment.py output/.../ --label stopit_stop_signal --pairing rt_match
 """
 from __future__ import annotations
 
+import argparse
 import json
 import sys
-from collections import Counter
+from collections import Counter, defaultdict
 from pathlib import Path
 from typing import Iterable
+
+from experiment_bot.validation.platform_adapters import (
+    test_row_predicate_for_label,
+)
 
 
 def load_session(session_dir: Path) -> tuple[list[dict], list[dict]]:
     bot = json.loads((session_dir / "bot_log.json").read_text())
-    plat = json.loads((session_dir / "experiment_data.json").read_text())
+    plat_json = session_dir / "experiment_data.json"
+    plat_csv = session_dir / "experiment_data.csv"
+    if plat_json.exists():
+        plat = json.loads(plat_json.read_text())
+    elif plat_csv.exists():
+        import csv
+        with plat_csv.open() as f:
+            plat = list(csv.DictReader(f))
+    else:
+        plat = []
     return bot, plat
 
 
-def is_real_test_trial(row: dict) -> bool:
-    """Platform-side filter: rows that are the paradigm's actual test
-    trials (not instructions, fixations, ITIs, feedback, attention checks,
-    practice).
-
-    Two paradigm conventions in expfactory:
-    - stroop / flanker / n_back: trial_type='html-keyboard-response',
-      filter by trial_id == 'test_trial'.
-    - stop_signal: trial_type='poldracklab-stop-signal',
-      filter by exp_stage == 'test' (no trial_id).
-    """
-    tt = (row.get("trial_type") or "").lower()
-    if tt == "poldracklab-stop-signal":
-        return row.get("exp_stage") == "test"
-    tid = row.get("trial_id") or ""
-    if "test_trial" in tid:
-        # Defensive filter; expfactory keeps display rows separate from
-        # the test_trial response rows, but stay strict in case a
-        # paradigm reuses trial_id loosely.
-        if "fixation" in tid or "ITI" in tid or "feedback" in tid:
-            return False
-        if "attention_check" in tid:
-            return False
-        return True
-    return False
-
-
 def is_bot_test_trial(t: dict) -> bool:
-    """Bot-side filter: type='trial' entries that look like a real test
-    trial. Two signals:
+    """Bot-side filter: a trial entry that looks like a real test trial.
 
-    - Condition is a non-default label (stroop, flanker — paradigms
-      whose trial.data.condition resolves at runtime).
-    - OR the bot delivered a non-Enter key (n_back, stop_signal —
-      paradigms where data.condition stays undefined but the bot still
-      fires real test keys via random fallback).
-
-    Instruction-screen trials use Enter; filtering those out separates
-    the test phase reliably.
+    Two signals:
+      - condition is not None / 'default' (paradigms whose
+        trial.data.condition resolves at runtime)
+      - OR response_key is not None and not 'Enter' (paradigms where
+        condition stays undefined but the bot still fires real test
+        keys)
     """
-    if t.get("type") != "trial":
-        return False
     if t.get("condition") not in (None, "default"):
         return True
     rk = t.get("response_key")
@@ -78,122 +76,267 @@ def is_bot_test_trial(t: dict) -> bool:
     return False
 
 
-def score_alignment(
-    bot_test: list[dict], plat_test: list[dict], offset: int,
-) -> tuple[int, dict[str, int]]:
-    """Return (n_compared, counter) for the given bot-side offset."""
-    sliced = bot_test[offset:]
-    n = min(len(sliced), len(plat_test))
-    c: Counter[str] = Counter()
-    for i in range(n):
-        b, p = sliced[i], plat_test[i]
-        c["pressed_eq_recorded"] += (b.get("response_key") == p.get("response"))
-        c["pressed_eq_expected"] += (b.get("response_key") == p.get("correct_response"))
-        c["condition_match"] += (b.get("condition") == p.get("condition"))
-    return n, dict(c)
+def detect_pairing_method(bot: list[dict]) -> str:
+    """Auto-detect: trial_counter if any bot trial carries a
+    delivery.trial_marker_at_fire, else rt_match."""
+    for t in bot:
+        d = t.get("delivery")
+        if isinstance(d, dict) and d.get("trial_marker_at_fire") is not None:
+            return "trial_counter"
+    return "rt_match"
 
 
-def find_best_offset(
-    bot_test: list[dict], plat_test: list[dict], max_offset: int = 50,
-) -> tuple[int, int, dict[str, int]]:
-    """Use pressed_eq_recorded as the optimization signal (works whether
-    or not the bot can read trial.data.condition). Condition_match is
-    secondary because paradigms like n_back don't expose condition at
-    runtime, even when the hook delivers perfectly.
-    """
-    best = (0, *score_alignment(bot_test, plat_test, 0))
-    for k in range(1, max_offset + 1):
-        if len(bot_test) - k < 10:
-            break
-        n, c = score_alignment(bot_test, plat_test, k)
-        if c["pressed_eq_recorded"] > best[2]["pressed_eq_recorded"]:
-            best = (k, n, c)
-    return best
+def _normalize_marker(value) -> int | None:
+    """Coerce a trial marker / trial_index to int. Platform records
+    read from CSV arrive as strings ('245'); records read from JSON
+    arrive as ints (245). Bot-side markers are always ints. Normalize
+    everything to int for set-membership lookup."""
+    if value is None or value == "":
+        return None
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return None
 
 
-def rt_match_audit(
-    bot_trials: list[dict], plat_test: list[dict], rt_tolerance_ms: float = 1.0,
+def trial_counter_audit(
+    bot_trials: list[dict], plat_test: list[dict],
 ) -> dict:
-    """For each platform test trial with a non-null rt, find the bot
-    trial whose rt_ms matches within tolerance. RT is a near-unique
-    per-trial signature (sub-millisecond precision), so a match here
-    is strong evidence the same physical trial.
-
-    Returns counts: total, plat_none (timeouts), matched (bot rt found),
-    pressed_eq_recorded, pressed_eq_expected.
+    """Pair by ``delivery.trial_marker_at_fire`` ↔ ``trial_index``.
+    The Phase 4a spike confirmed 100% fidelity under this pairing on
+    expfactory Stroop; the SP10-era index-pairing approach gave
+    26%/2%/0% on the same runs because of trial-boundary races.
     """
-    bot_rts = [(i, t["rt_ms"]) for i, t in enumerate(bot_trials)
-                if t.get("rt_ms") is not None]
-    c = Counter()
-    c["total"] = len(plat_test)
-    for p in plat_test:
-        prt_raw = p.get("rt")
-        if prt_raw is None or prt_raw == "None":
-            c["plat_none"] += 1
+    plat_by_idx: dict[int, dict] = {}
+    for r in plat_test:
+        idx = _normalize_marker(r.get("trial_index"))
+        if idx is not None:
+            plat_by_idx[idx] = r
+    c: Counter[str] = Counter()
+    per_channel: dict[str, Counter] = defaultdict(Counter)
+    paired_details: list[dict] = []
+    for t in bot_trials:
+        delivery = t.get("delivery") or {}
+        marker = _normalize_marker(delivery.get("trial_marker_at_fire"))
+        channel = delivery.get("channel") or "unknown"
+        if delivery.get("skipped"):
+            c["bot_skipped"] += 1
+            per_channel[channel]["bot_skipped"] += 1
             continue
-        prt = float(prt_raw)
-        best_i, best_rt = min(bot_rts, key=lambda x: abs(x[1] - prt))
-        if abs(best_rt - prt) >= rt_tolerance_ms:
+        if marker is None:
+            c["bot_no_marker"] += 1
             continue
-        c["matched"] += 1
-        b = bot_trials[best_i]
-        if b.get("response_key") == p.get("response"):
+        plat = plat_by_idx.get(marker)
+        if plat is None:
+            c["plat_no_match"] += 1
+            per_channel[channel]["plat_no_match"] += 1
+            continue
+        c["paired"] += 1
+        per_channel[channel]["paired"] += 1
+        bot_key = t.get("response_key")
+        plat_key = plat.get("response")
+        plat_correct = plat.get("correct_response")
+        if bot_key == plat_key:
             c["pressed_eq_recorded"] += 1
-        if b.get("response_key") == p.get("correct_response"):
+            per_channel[channel]["pressed_eq_recorded"] += 1
+        if bot_key == plat_correct:
             c["pressed_eq_expected"] += 1
-    return dict(c)
-
-
-def report(session_dir: Path) -> dict:
-    bot, plat = load_session(session_dir)
-    bot_trials = [t for t in bot if t.get("type") == "trial"]
-    plat_test = [r for r in plat if is_real_test_trial(r)]
-    if not bot_trials or not plat_test:
-        print(f"[{session_dir.name}] EMPTY — bot_trials={len(bot_trials)} plat_test={len(plat_test)}")
-        return {
-            "session": session_dir.name, "status": "empty",
-            "n_bot": len(bot_trials), "n_plat": len(plat_test),
-        }
-    c = rt_match_audit(bot_trials, plat_test)
-    total = c["total"]
-    matched = c.get("matched", 0)
-    plat_none = c.get("plat_none", 0)
-    n_with_rt = total - plat_none
-    pressed_eq_recorded_pct = (100.0 * c.get("pressed_eq_recorded", 0) / total) if total else 0.0
-    pressed_eq_expected_pct = (100.0 * c.get("pressed_eq_expected", 0) / total) if total else 0.0
-    matched_pct = (100.0 * matched / n_with_rt) if n_with_rt else 0.0
-    print(f"=== {session_dir.parent.name}/{session_dir.name} ===")
-    print(f"  bot_trials={len(bot_trials)}, plat_test={total} "
-          f"(with_rt={n_with_rt}, plat_none={plat_none})")
-    print(f"  bot rt-matched to platform:           {matched}/{n_with_rt} ({matched_pct:.1f}%)")
-    print(f"  pressed_eq_recorded (all test rows):  {pressed_eq_recorded_pct:.1f}%  (G0 target ≥ 90.0%)")
-    print(f"  pressed_eq_expected (all test rows):  {pressed_eq_expected_pct:.1f}%  (=accuracy)")
+            per_channel[channel]["pressed_eq_expected"] += 1
+        paired_details.append({
+            "trial_marker": marker,
+            "bot_key": bot_key,
+            "plat_key": plat_key,
+            "plat_correct": plat_correct,
+            "channel": channel,
+            "match_recorded": bot_key == plat_key,
+            "match_expected": bot_key == plat_correct,
+        })
     return {
-        "session": f"{session_dir.parent.name}/{session_dir.name}",
-        "status": "ok",
-        "n_bot": len(bot_trials), "n_plat_test": total,
-        "n_matched": matched, "n_plat_none": plat_none,
-        "pressed_eq_recorded_pct": pressed_eq_recorded_pct,
-        "pressed_eq_expected_pct": pressed_eq_expected_pct,
+        "method": "trial_counter",
+        "total_bot_trials": len(bot_trials),
+        "total_plat_test": len(plat_test),
+        "counts": dict(c),
+        "per_channel": {k: dict(v) for k, v in per_channel.items()},
+        "paired_details": paired_details,
     }
 
 
+def rt_match_audit(
+    bot_trials: list[dict], plat_test: list[dict],
+    rt_tolerance_ms: float = 1.0,
+) -> dict:
+    """Pair by RT proximity. Each bot trial's actual_rt_ms (or rt_ms)
+    is compared to each platform trial's ``rt``; best match within
+    tolerance wins. SP10 fallback path.
+    """
+    bot_indexed: list[tuple[int, float]] = []
+    for i, t in enumerate(bot_trials):
+        rt = t.get("actual_rt_ms") or t.get("rt_ms")
+        if rt is not None:
+            bot_indexed.append((i, float(rt)))
+    if not bot_indexed:
+        return {
+            "method": "rt_match",
+            "total_bot_trials": len(bot_trials),
+            "total_plat_test": len(plat_test),
+            "counts": {"total": len(plat_test), "matched": 0, "plat_none": 0},
+            "per_channel": {},
+            "paired_details": [],
+        }
+    c: Counter[str] = Counter()
+    per_channel: dict[str, Counter] = defaultdict(Counter)
+    paired_details: list[dict] = []
+    c["total"] = len(plat_test)
+    for p in plat_test:
+        prt_raw = p.get("rt")
+        if prt_raw in (None, "None", "", "NaN"):
+            c["plat_none"] += 1
+            continue
+        try:
+            prt = float(prt_raw)
+        except (TypeError, ValueError):
+            c["plat_none"] += 1
+            continue
+        best_i, best_rt = min(bot_indexed, key=lambda x: abs(x[1] - prt))
+        if abs(best_rt - prt) >= rt_tolerance_ms:
+            continue
+        c["matched"] += 1
+        bot = bot_trials[best_i]
+        channel = (bot.get("delivery") or {}).get("channel") or "rt_legacy"
+        per_channel[channel]["paired"] += 1
+        bot_key = bot.get("response_key")
+        if bot_key == p.get("response"):
+            c["pressed_eq_recorded"] += 1
+            per_channel[channel]["pressed_eq_recorded"] += 1
+        if bot_key == p.get("correct_response"):
+            c["pressed_eq_expected"] += 1
+            per_channel[channel]["pressed_eq_expected"] += 1
+        paired_details.append({
+            "bot_index": best_i,
+            "bot_rt_ms": best_rt,
+            "plat_rt_ms": prt,
+            "bot_key": bot_key,
+            "plat_key": p.get("response"),
+            "channel": channel,
+            "match_recorded": bot_key == p.get("response"),
+        })
+    return {
+        "method": "rt_match",
+        "total_bot_trials": len(bot_trials),
+        "total_plat_test": len(plat_test),
+        "counts": dict(c),
+        "per_channel": {k: dict(v) for k, v in per_channel.items()},
+        "paired_details": paired_details,
+    }
+
+
+def audit_session(
+    session_dir: Path, *, label: str, pairing: str,
+) -> dict:
+    """Run the audit on one session directory. Returns a structured
+    dict with paired counts, per-channel breakdown, and the pairing
+    method used."""
+    bot, plat = load_session(session_dir)
+    predicate = test_row_predicate_for_label(label)
+    if predicate is None:
+        raise SystemExit(
+            f"No test-row predicate registered for label {label!r}. "
+            f"Register one in "
+            f"experiment_bot.validation.platform_adapters.TEST_ROW_PREDICATES "
+            f"before auditing this paradigm."
+        )
+    plat_test = [r for r in plat if predicate(r)]
+    bot_trials = [t for t in bot if is_bot_test_trial(t)]
+
+    if pairing == "auto":
+        pairing = detect_pairing_method(bot)
+    if pairing == "trial_counter":
+        result = trial_counter_audit(bot_trials, plat_test)
+    elif pairing == "rt_match":
+        result = rt_match_audit(bot_trials, plat_test)
+    else:
+        raise SystemExit(
+            f"Unknown pairing method {pairing!r}. "
+            f"Choices: trial_counter, rt_match, auto."
+        )
+    result["label"] = label
+    result["session_dir"] = str(session_dir)
+    return result
+
+
+def print_summary(result: dict) -> None:
+    """Human-readable summary printed to stdout."""
+    sd = Path(result["session_dir"]).name
+    label = result["label"]
+    method = result["method"]
+    counts = result["counts"]
+    print(f"=== {label}: {sd}  (pairing={method}) ===")
+    print(f"  bot_trials={result['total_bot_trials']}, "
+          f"plat_test={result['total_plat_test']}")
+    if method == "trial_counter":
+        paired = counts.get("paired", 0)
+        ok = counts.get("pressed_eq_recorded", 0)
+        eq = counts.get("pressed_eq_expected", 0)
+        print(f"  paired by trial_marker: {paired}")
+        if paired:
+            print(f"  pressed_eq_recorded:    {ok}/{paired} "
+                  f"({100.0 * ok / paired:.1f}%)")
+            print(f"  pressed_eq_expected:    {eq}/{paired} "
+                  f"({100.0 * eq / paired:.1f}%)")
+        print(f"  skipped fires:          {counts.get('bot_skipped', 0)}")
+        print(f"  bot fires w/o platform: {counts.get('plat_no_match', 0)}")
+    else:  # rt_match
+        total = counts.get("total", 0)
+        matched = counts.get("matched", 0)
+        ok = counts.get("pressed_eq_recorded", 0)
+        plat_none = counts.get("plat_none", 0)
+        print(f"  rt-matched:             {matched}/{total - plat_none}")
+        if total:
+            print(f"  pressed_eq_recorded:    {100.0 * ok / total:.1f}%")
+    per_ch = result.get("per_channel") or {}
+    if per_ch:
+        print(f"  per-channel breakdown:")
+        for chan, sub in per_ch.items():
+            paired_ch = sub.get("paired", 0)
+            ok_ch = sub.get("pressed_eq_recorded", 0)
+            if paired_ch:
+                print(f"    {chan:30s} {ok_ch}/{paired_ch} "
+                      f"({100.0 * ok_ch / paired_ch:.1f}%)")
+            else:
+                print(f"    {chan:30s} (no paired fires)")
+
+
 def main(argv: Iterable[str]) -> int:
-    args = list(argv)
-    if not args:
-        print(__doc__, file=sys.stderr)
-        return 2
-    rows = [report(Path(a).resolve()) for a in args]
-    if len(rows) > 1:
-        print("\n=== summary ===")
-        for r in rows:
-            if r["status"] != "ok":
-                print(f"  {r['session']}: {r['status']}")
-                continue
-            print(f"  {r['session']}: pressed_eq_recorded="
-                  f"{r['pressed_eq_recorded_pct']:5.1f}% "
-                  f"accuracy={r['pressed_eq_expected_pct']:5.1f}% "
-                  f"(matched={r['n_matched']}/{r['n_plat_test']})")
+    p = argparse.ArgumentParser(
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
+    p.add_argument("session_dirs", nargs="+", type=Path,
+                   help="Session directories (each containing bot_log.json).")
+    p.add_argument("--label", required=True,
+                   help="Paradigm label (e.g., expfactory_stroop, "
+                        "stopit_stop_signal). Drives the per-paradigm "
+                        "test-row predicate dispatch.")
+    p.add_argument("--pairing", default="auto",
+                   choices=("auto", "trial_counter", "rt_match"),
+                   help="Pairing method. Default 'auto' detects from "
+                        "bot_log delivery.trial_marker_at_fire presence: "
+                        "present → trial_counter (SP11 input-layer), "
+                        "absent → rt_match (SP10 driver legacy).")
+    p.add_argument("--json", action="store_true",
+                   help="Emit the structured result as JSON on stdout "
+                        "in addition to the human summary.")
+    args = p.parse_args(list(argv))
+
+    summaries: list[dict] = []
+    for sd in args.session_dirs:
+        result = audit_session(
+            sd.resolve(), label=args.label, pairing=args.pairing,
+        )
+        print_summary(result)
+        summaries.append(result)
+    if args.json:
+        print(json.dumps(summaries, indent=2))
     return 0
 
 

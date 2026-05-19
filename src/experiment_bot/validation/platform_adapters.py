@@ -316,3 +316,81 @@ def adapter_for_label(label: str) -> Callable[[Path], list[dict]] | None:
     both key shapes are entries in :data:`PLATFORM_ADAPTERS`.
     """
     return PLATFORM_ADAPTERS.get(label)
+
+
+# SP11 Phase 6: per-paradigm test-trial predicates on raw experiment_data
+# rows. The validation adapters above strip rows down to {condition, rt,
+# correct, omission} which is sufficient for population-level metrics but
+# loses the trial_index + response fields that the audit script needs for
+# trial-marker pairing. These predicates apply paradigm-specific
+# "is this a real test trial?" logic to raw rows so the audit script can
+# pair against the original row (preserving trial_index, response, rt).
+def _is_real_test_trial_expfactory_jspsych7(row: dict) -> bool:
+    """Stroop / Flanker / n-back on expfactory: trial_id == 'test_trial',
+    excluding fixation / ITI / feedback / attention_check rows that
+    inadvertently share the trial_id substring on some experiment
+    revisions."""
+    tid = (row.get("trial_id") or "").strip()
+    if "test_trial" not in tid:
+        return False
+    if any(suffix in tid for suffix in ("fixation", "ITI", "feedback", "attention_check")):
+        return False
+    return True
+
+
+def _is_real_test_trial_expfactory_stop_signal(row: dict) -> bool:
+    """expfactory poldracklab-stop-signal: trial_type='poldracklab-stop-signal'
+    with exp_stage='test'."""
+    tt = (row.get("trial_type") or "").lower()
+    if tt == "poldracklab-stop-signal":
+        return row.get("exp_stage") == "test"
+    return False
+
+
+def _is_real_test_trial_stopit(row: dict) -> bool:
+    """stopit (kywch jsPsych v6 port): block_i in {1,2,3,4} (block 0 is
+    practice)."""
+    return row.get("block_i") in ("1", "2", "3", "4", 1, 2, 3, 4)
+
+
+def _is_real_test_trial_cognitionrun_stroop(row: dict) -> bool:
+    """cognition.run Stroop: trial_type='html-keyboard-response' with
+    a non-null rt and non-empty text/colour fields."""
+    if row.get("trial_type") != "html-keyboard-response":
+        return False
+    rt = row.get("rt")
+    if rt in (None, "", "null", "NaN"):
+        return False
+    text = (row.get("text") or "").strip()
+    colour = (row.get("colour") or "").strip()
+    return bool(text and colour)
+
+
+TEST_ROW_PREDICATES: dict[str, Callable[[dict], bool]] = {
+    # task.name-keyed (historical) + URL-label-keyed (SP11+).
+    "stop_signal_rdoc": _is_real_test_trial_expfactory_stop_signal,
+    "stroop_rdoc": _is_real_test_trial_expfactory_jspsych7,
+    "flanker_rdoc": _is_real_test_trial_expfactory_jspsych7,
+    "n_back_rdoc": _is_real_test_trial_expfactory_jspsych7,
+    "stop_signal_kywch_jspsych": _is_real_test_trial_stopit,
+    "stop_signal_task_(stop-it,_jspsych_port)": _is_real_test_trial_stopit,
+    "stroop_online_(cognition.run)": _is_real_test_trial_cognitionrun_stroop,
+    "expfactory_stroop": _is_real_test_trial_expfactory_jspsych7,
+    "expfactory_stop_signal": _is_real_test_trial_expfactory_stop_signal,
+    "expfactory_flanker": _is_real_test_trial_expfactory_jspsych7,
+    "expfactory_n_back": _is_real_test_trial_expfactory_jspsych7,
+    "stopit_stop_signal": _is_real_test_trial_stopit,
+    "cognitionrun_stroop": _is_real_test_trial_cognitionrun_stroop,
+}
+
+
+def test_row_predicate_for_label(label: str) -> Callable[[dict], bool] | None:
+    """Return the raw-row test-trial predicate for ``label`` if registered.
+
+    Used by the Phase 6 audit script to filter raw experiment_data rows
+    down to real test trials before pairing them with bot fires. Returns
+    None when the label has no registered predicate (the caller should
+    surface this as a hard error — silent fall-through to all-rows risks
+    polluting the audit with practice + ITI rows).
+    """
+    return TEST_ROW_PREDICATES.get(label)

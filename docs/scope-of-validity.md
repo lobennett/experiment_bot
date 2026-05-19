@@ -469,6 +469,26 @@ non-claim; reviewers should weigh them as such.
     Sp9c numbers stay in the table as historical context, not as
     a contrast.
 
+- **L18. (SP11 Phase 6 — audit-script generalization.)**
+  `scripts/audit_alignment.py` now takes a `--label` argument that
+  dispatches a per-paradigm test-row predicate from
+  `experiment_bot.validation.platform_adapters.TEST_ROW_PREDICATES`.
+  Pairing method is auto-selected from per-trial
+  `delivery.trial_marker_at_fire` presence: present →
+  `trial_counter` (SP11 input-layer); absent → `rt_match` (SP10
+  driver legacy). An explicit `--pairing` flag overrides for
+  forensic re-pairing. Channel breakdown (`cdp_dispatchKeyEvent`
+  vs `keyboard_press_fallback` vs `page_keyboard_press`) appears
+  in the audit output for the Phase 8 §7 channel-fidelity table.
+  Loud failure on unregistered labels (raises with a pointer to
+  `TEST_ROW_PREDICATES`) preserves the no-silent-fall-through
+  discipline. Empirical anchor: the Phase 5a pilot session
+  (122 CDP fires) audits at **100% pressed_eq_recorded on 118 paired
+  trials** under trial-counter pairing — same data that gave 0%
+  pairing under the SP10-era index-based audit, so the
+  generalization captures the SP11 input-layer fidelity claim
+  cleanly.
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

@@ -248,10 +248,11 @@ audit script in Phase 6.
    `calibration_n_keys`); Phase 7 analysis should drop trial_indices
    in the calibration range from per-paradigm summaries.
 3. Stage 4 `openalex.verify_doi` None-DOI crash hit Phase 5c
-   variance run 3 on its first attempt. Backlogged as a Stage 4
-   defensive-handling bug — one-line normalization in
-   `src/experiment_bot/reasoner/openalex.py:25`. Not a Phase 7
-   blocker; the retry succeeded.
+   variance run 3 on its first attempt. Backlogged in
+   `docs/sp11-backlog.md` with Phase 8 framing as a "robustness gap
+   identified by methodological replication" — the variance study
+   incidentally surfaced a bug that single-shot regen never
+   triggered. Not a Phase 7 blocker; the retry succeeded.
 
 ## Appendix — Stroop variance characterization (Phase 5c)
 
@@ -295,6 +296,29 @@ samples (one 5b + three 5c).
 | `incongruent.mu`      | 530 | 655 | 581.2 | **21.51%** | 580 | WITHIN |
 | `incongruent.sigma`   |  60 |  85 |  68.8 | **36.36%** |  60 | WITHIN |
 | `incongruent.tau`     | 115 | 145 | 131.2 | **22.86%** | 120 | WITHIN |
+
+### Methodological honesty about the 5b headline
+
+The Phase 5b commit's headline finding was "expfactory_stroop mu
++12–13%" framed as drift to manage. That framing reflected the data
+available at the time: an N=1 SP8 baseline compared to an N=1 SP11
+regen. With four SP11 samples in hand, the contrast looks different:
+SP11's c.mu spans [510, 595] with mean 541.2, and the SP8 value
+(530) sits **inside** that range. The 5b headline overstated the
+systematic-shift signal by treating one stochastic draw as a stable
+reference. The variance study retroactively contextualizes the
+finding — what looked like "+12–13% drift" was actually one of the
+upper-tail draws from a ~21%-wide pipeline distribution.
+
+This is a methodological-honesty note about an early single-sample
+interpretation, not a retraction. The Phase 5b regen TaskCard
+(`107d4908`) remains the canonical SP11 5b baseline; Phase 7 runs
+against it. The contextualization simply moves the reader from "the
+pipeline shifted parameters by 12%" to "the pipeline outputs a
+~20%-wide distribution and the 5b draw landed in its upper tail."
+Phase 8's writeup inherits this contextualization cleanly: the
+variance band is the comparison-relevant quantity, not any single
+sample's delta from any other single sample.
 
 ### Reading the variance result
 

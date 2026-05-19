@@ -295,6 +295,7 @@ async def run_sweep(args: argparse.Namespace) -> int:
             key = (paradigm, arm)
             arm_root = out_root / arm / paradigm
             session_idx = 0
+            consecutive_failed_sessions = 0
             while successes_by_arm[key] < args.n:
                 if time.monotonic() > deadline:
                     logger.error(
@@ -306,6 +307,20 @@ async def run_sweep(args: argparse.Namespace) -> int:
                                     successes_by_arm, sweep_start,
                                     aborted=True)
                     return 2
+                # Per-paradigm-arm circuit breaker: if too many
+                # consecutive sessions fail all their retries, the
+                # paradigm/arm is structurally broken; abandon it
+                # rather than burning wall-time looping forever.
+                if consecutive_failed_sessions >= args.arm_failure_threshold:
+                    logger.error(
+                        f"[{paradigm}/{arm}] CIRCUIT BREAKER: "
+                        f"{consecutive_failed_sessions} consecutive sessions "
+                        f"failed all retries. Abandoning this paradigm/arm. "
+                        f"Sweep continues with remaining paradigms/arms."
+                    )
+                    _write_progress(progress_path, attempts_by_arm,
+                                    successes_by_arm, sweep_start)
+                    break
                 session_idx += 1
                 attempt_n = 0
                 last_attempt: SessionAttempt | None = None
@@ -347,6 +362,11 @@ async def run_sweep(args: argparse.Namespace) -> int:
                         f"(bot_no_match_pct={a.bot_no_match_pct:.1f}%, "
                         f"err={(a.error_message or '')[:120]})"
                     )
+                # Track consecutive session failures for the circuit breaker
+                if last_attempt is not None and last_attempt.status == "ok":
+                    consecutive_failed_sessions = 0
+                else:
+                    consecutive_failed_sessions += 1
                 append_failure_log(arm_root, attempts_by_arm[key])
                 _write_progress(progress_path, attempts_by_arm,
                                 successes_by_arm, sweep_start)
@@ -406,6 +426,12 @@ def main(argv: list[str] | None = None) -> int:
                    help="Hard wall-time stop in hours (default: 48). "
                         "Per Phase 7 user note 3, sweep aborts at this "
                         "limit and asks before continuing.")
+    p.add_argument("--arm-failure-threshold", type=int, default=5,
+                   help="After this many consecutive session failures "
+                        "(all retries exhausted), abandon the current "
+                        "paradigm/arm and move on (default: 5). Prevents "
+                        "a broken TaskCard from burning the entire "
+                        "wall-time budget.")
     p.add_argument("--paradigm",
                    help="Restrict to one paradigm label.")
     p.add_argument("--arm", choices=("pre_cal", "post_cal"),

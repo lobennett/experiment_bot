@@ -281,6 +281,8 @@ def read_cognitionrun_stroop(session_dir: Path) -> list[dict]:
 # corresponding paradigm — task.name varies across regenerations because
 # the LLM reads it from source (and source titles differ across versions).
 PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
+    # task.name-keyed entries (the historical convention — these match
+    # whatever the Reasoner emits as `task.name` from the source title).
     "stop_signal_rdoc": read_expfactory_stop_signal,
     "stroop_rdoc": read_expfactory_stroop,
     "flanker_rdoc": read_expfactory_flanker,
@@ -291,9 +293,26 @@ PLATFORM_ADAPTERS: dict[str, Callable[[Path], list[dict]]] = {
     "stop_signal_kywch_jspsych": read_stopit_stop_signal,
     "stop_signal_task_(stop-it,_jspsych_port)": read_stopit_stop_signal,
     "stroop_online_(cognition.run)": read_cognitionrun_stroop,
+    # URL-label-keyed aliases (added in SP11 Phase 1, Phase 6
+    # prerequisite resolved early). The audit script and Phase 7
+    # validation runners pass URL labels — the same string that drives
+    # output/<label>/ directory naming and the --label CLI flag — not
+    # task.name values. Aliases point label → adapter directly so
+    # callers don't need to know task.name conventions.
+    "expfactory_stroop": read_expfactory_stroop,
+    "expfactory_stop_signal": read_expfactory_stop_signal,
+    "expfactory_flanker": read_expfactory_flanker,
+    "expfactory_n_back": read_expfactory_n_back,
+    "stopit_stop_signal": read_stopit_stop_signal,
+    "cognitionrun_stroop": read_cognitionrun_stroop,
 }
 
 
 def adapter_for_label(label: str) -> Callable[[Path], list[dict]] | None:
-    """Return the platform-data adapter for ``label`` if registered."""
+    """Return the platform-data adapter for ``label`` if registered.
+
+    Looks up both task.name conventions (historical, e.g. ``stroop_rdoc``)
+    and URL-label conventions (SP11 onward, e.g. ``expfactory_stroop``) —
+    both key shapes are entries in :data:`PLATFORM_ADAPTERS`.
+    """
     return PLATFORM_ADAPTERS.get(label)

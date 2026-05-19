@@ -149,3 +149,52 @@ def test_stopit_stop_signal_surfaces_ssd(tmp_path):
     assert len(stop) == 2
     assert stop[0]["ssd"] == 200.0 and stop[0]["omission"] is True
     assert stop[1]["ssd"] == 250.0 and stop[1]["omission"] is False
+
+
+# SP11 Phase 1: URL-label aliases (Phase 6 prerequisite resolved early).
+# PLATFORM_ADAPTERS now accepts both task.name keys (historical) and
+# URL-label keys (matching `output/<label>/` dir naming + --label CLI
+# flag). The audit script and Phase 7 validation runners pass URL
+# labels — adapter_for_label must resolve them.
+
+
+def test_adapter_for_label_resolves_url_labels():
+    """SP11's URL-label aliases must reach the correct underlying adapter
+    via adapter_for_label."""
+    from experiment_bot.validation.platform_adapters import (
+        adapter_for_label,
+        read_expfactory_stroop, read_expfactory_stop_signal,
+        read_expfactory_flanker, read_expfactory_n_back,
+        read_stopit_stop_signal, read_cognitionrun_stroop,
+    )
+    assert adapter_for_label("expfactory_stroop") is read_expfactory_stroop
+    assert adapter_for_label("expfactory_stop_signal") is read_expfactory_stop_signal
+    assert adapter_for_label("expfactory_flanker") is read_expfactory_flanker
+    assert adapter_for_label("expfactory_n_back") is read_expfactory_n_back
+    assert adapter_for_label("stopit_stop_signal") is read_stopit_stop_signal
+    assert adapter_for_label("cognitionrun_stroop") is read_cognitionrun_stroop
+
+
+def test_adapter_for_label_still_resolves_task_name_keys():
+    """Historical task.name keys must continue to resolve (non-degradation
+    invariant — the SP11 aliases are additive, not replacing)."""
+    from experiment_bot.validation.platform_adapters import (
+        adapter_for_label,
+        read_expfactory_stop_signal, read_expfactory_stroop,
+        read_expfactory_flanker, read_expfactory_n_back,
+        read_stopit_stop_signal, read_cognitionrun_stroop,
+    )
+    assert adapter_for_label("stop_signal_rdoc") is read_expfactory_stop_signal
+    assert adapter_for_label("stroop_rdoc") is read_expfactory_stroop
+    assert adapter_for_label("flanker_rdoc") is read_expfactory_flanker
+    assert adapter_for_label("n_back_rdoc") is read_expfactory_n_back
+    assert adapter_for_label("stop_signal_kywch_jspsych") is read_stopit_stop_signal
+    assert adapter_for_label("stroop_online_(cognition.run)") is read_cognitionrun_stroop
+
+
+def test_adapter_for_label_returns_none_for_unknown_label():
+    """Unknown labels return None so audit script + validation oracle can
+    fall back to bot_log.json with a warning rather than crashing."""
+    from experiment_bot.validation.platform_adapters import adapter_for_label
+    assert adapter_for_label("nonexistent_paradigm") is None
+    assert adapter_for_label("") is None

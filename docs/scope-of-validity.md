@@ -397,6 +397,44 @@ non-claim; reviewers should weigh them as such.
   (default 150 ms) so an aggressive offset cannot push the bot's
   fire time below physiological-floor cutoffs.
 
+- **L15. (SP11 Phase 5b — drop-from-scope policy.)** Paradigms that
+  fail the pilot-time alignment check after 3 total attempts (1
+  initial + 2 retries) during Phase 5b regeneration are marked
+  `task_specific.sp11_supported = False` in the TaskCard and listed
+  in `docs/sp11-unsupported.md`. The CLI guard at
+  `experiment_bot.cli._run_task` refuses to launch sessions for
+  unsupported paradigms; the Phase 7 measurement sweep skips them.
+  These paradigms drop out of the SP11 cross-deployment claim — the
+  abstract's per-paradigm count tracks `task_specific.sp11_supported
+  == True` only. Failure mode is loud and structural, not silent:
+  the CLI exits non-zero with a pointer to this scope-of-validity
+  entry. The 3-attempt retry budget is a single configuration
+  (`max_retries=2`) tuned to absorb transient browser-state flakes
+  while still catching real DOM-shape or platform-API breakages
+  early. Re-enabling a dropped paradigm requires (a) editing the
+  TaskCard manually to remove the flag, or (b) re-running Phase 5b
+  regeneration end-to-end against a new source revision; ad-hoc
+  unsticking is forbidden.
+
+- **L16. (SP11 Phase 7 — pre-cal vs post-cal experimental arms.)**
+  Phase 7 runs each paradigm twice with a single experimental
+  manipulation: the second arm enables calibration application to
+  the sampler (`runtime.calibration_apply_to_sampler = True`); the
+  first arm leaves it disabled (`= False`). Both arms still run the
+  calibration pass and record the offset descriptively, so the
+  pre-cal arm yields a comparable offset measurement without
+  applying it to sampled RTs. This single manipulation isolates the
+  calibration adjustment's effect — without changing distribution
+  parameters, effect magnitudes, sampler logic, or any other
+  variable. The CLI flag `--no-calibration` toggles the pre-cal arm
+  for the same TaskCard. Phase 8's writeup compares the two arms on
+  the §6 hard gates (H1/H2 fidelity) and §6.2 absolute-RT z-scores;
+  a Calibration × Paradigm interaction is the metric of interest.
+  The parameter-drift check (`scripts/check_parameter_drift.py`)
+  must show < 10% relative drift on regenerated TaskCards before
+  Phase 7 launches — otherwise calibration-plus-drift is a confound
+  the two-arm split cannot disentangle.
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

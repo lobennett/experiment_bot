@@ -737,6 +737,20 @@ class RuntimeConfig:
     # "none" preserves the legacy SP10-era page.keyboard.press path
     # so SP10 archive sessions can be replayed unmodified.
     delivery_channel: str = "cdp"
+    # SP11 Phase 5b: calibration auto-invocation policy.
+    # `run_pass`: when True (default), the executor invokes
+    #   _run_calibration_pass during session startup. False is the
+    #   test-only escape hatch.
+    # `apply_to_sampler`: when True (default), the calibration
+    #   result is installed on the sampler. False is the Phase 7
+    #   "pre-cal arm" — the calibration pass still runs and the
+    #   offset is recorded in run_metadata, but sampled RTs are not
+    #   adjusted. Phase 7 compares pre-cal vs post-cal under this
+    #   single manipulation.
+    # `n_keys`: how many calibration keypresses to fire.
+    calibration_run_pass: bool = True
+    calibration_apply_to_sampler: bool = True
+    calibration_n_keys: int = 30
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -750,6 +764,9 @@ class RuntimeConfig:
             navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
             session_agent_enabled=d.get("session_agent_enabled", True),
             delivery_channel=d.get("delivery_channel", "cdp"),
+            calibration_run_pass=d.get("calibration_run_pass", True),
+            calibration_apply_to_sampler=d.get("calibration_apply_to_sampler", True),
+            calibration_n_keys=d.get("calibration_n_keys", 30),
         )
 
     def to_dict(self) -> dict:
@@ -764,6 +781,9 @@ class RuntimeConfig:
             "navigation_stimulus_condition": self.navigation_stimulus_condition,
             "session_agent_enabled": self.session_agent_enabled,
             "delivery_channel": self.delivery_channel,
+            "calibration_run_pass": self.calibration_run_pass,
+            "calibration_apply_to_sampler": self.calibration_apply_to_sampler,
+            "calibration_n_keys": self.calibration_n_keys,
         }
 
 

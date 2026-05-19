@@ -145,12 +145,18 @@ class TaskExecutor:
         return {}
 
     async def _run_calibration_pass(
-        self, page: Page, n_keys: int = 30,
+        self, page: Page, n_keys: int | None = None,
     ) -> None:
-        """SP11 Phase 5a: run a calibration sequence using the
-        configured deliverer, then install the resulting
-        CalibrationResult on the sampler so subsequent RT samples are
-        adjusted for the platform's recording offset.
+        """SP11 Phase 5a/5b: run a calibration sequence using the
+        configured deliverer; install the resulting CalibrationResult
+        on the sampler iff ``runtime.calibration_apply_to_sampler``.
+
+        Phase 5b semantics (per user note 1):
+        - Default (post-cal arm): run pass, install result on sampler.
+        - ``runtime.calibration_apply_to_sampler == False``
+          (pre-cal arm): run pass, record offset in metadata, DO NOT
+          install on sampler. Phase 7 compares pre-cal vs post-cal
+          under this single experimental manipulation.
 
         No-op if no deliverer is configured (delivery_channel='none').
         Should be called after navigation completes (so the bot is
@@ -159,17 +165,25 @@ class TaskExecutor:
         if self._deliverer is None:
             logger.info("Calibration pass skipped: no deliverer configured.")
             return
+        rt = self._config.runtime
+        if not rt.calibration_run_pass:
+            logger.info(
+                "Calibration pass skipped: runtime.calibration_run_pass=False."
+            )
+            return
         from experiment_bot.calibration.playwright_gate_dismisser import (
             PlaywrightGateDismisser,
         )
         from experiment_bot.calibration.runner import run_calibration
+        if n_keys is None:
+            n_keys = int(rt.calibration_n_keys)
         # Build a default keys sequence: cycle the bot's response keys
         # if available, else fall back to Space.
         response_keys = sorted(self._seen_response_keys) or [" "]
         # Pad/cycle to n_keys
         keys = [response_keys[i % len(response_keys)] for i in range(n_keys)]
         # Use the configured dwell as the intended target interval
-        dwell = float(self._config.runtime.timing.cdp_dwell_ms)
+        dwell = float(rt.timing.cdp_dwell_ms)
         intervals = [dwell] * n_keys
         try:
             self._calibration_run = await run_calibration(
@@ -178,12 +192,17 @@ class TaskExecutor:
                 keys=keys,
                 target_intervals_ms=intervals,
             )
-            self._sampler.set_calibration_result(self._calibration_run.result)
+            if rt.calibration_apply_to_sampler:
+                self._sampler.set_calibration_result(self._calibration_run.result)
+                applied_note = "applied to sampler"
+            else:
+                applied_note = "NOT applied (pre-cal arm)"
             logger.info(
-                f"Calibration pass complete: model={self._calibration_run.result.model}, "
+                f"Calibration pass complete: model="
+                f"{self._calibration_run.result.model}, "
                 f"n_correctly_recorded="
                 f"{self._calibration_run.result.n_events_correctly_recorded}/"
-                f"{n_keys}"
+                f"{n_keys}, {applied_note}"
             )
         except Exception as e:
             logger.warning(f"Calibration pass failed: {e}; continuing un-calibrated.")
@@ -522,6 +541,12 @@ class TaskExecutor:
 
                 # SP9a: one-call-per-session LLM key-mapping resolution
                 await self._invoke_session_agent(page)
+
+                # SP11 Phase 5b: calibration pass (auto-invoked unless
+                # runtime.calibration_run_pass=False). Apply-to-sampler is
+                # governed independently by runtime.calibration_apply_to_sampler
+                # so the pre-cal arm can record offset descriptively.
+                await self._run_calibration_pass(page)
 
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")

@@ -174,6 +174,7 @@ def evaluate_session_quality(
 async def run_one_session(
     paradigm: str, url: str, arm: str, *,
     out_root: Path, seed: int | None,
+    per_session_timeout_s: float = 1200.0,
 ) -> SessionAttempt:
     """Spawn the executor as a subprocess for one session. Captures
     stderr/stdout for failure forensics."""
@@ -198,6 +199,7 @@ async def run_one_session(
 
     attempt = SessionAttempt(paradigm=paradigm, arm=arm, attempt=0)
     t0 = time.monotonic()
+    proc = None
     try:
         proc = await asyncio.create_subprocess_exec(
             *cmd,
@@ -206,7 +208,30 @@ async def run_one_session(
             env=env,
             cwd=str(Path.cwd()),
         )
-        stdout, stderr = await proc.communicate()
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                proc.communicate(), timeout=per_session_timeout_s,
+            )
+        except asyncio.TimeoutError:
+            # Session hung past the per-session ceiling. Kill the
+            # subprocess and any orphan Chromium descendants and
+            # record the timeout; the wrapper moves on rather than
+            # hanging the sweep.
+            try:
+                proc.kill()
+            except ProcessLookupError:
+                pass
+            try:
+                await asyncio.wait_for(proc.wait(), timeout=10.0)
+            except asyncio.TimeoutError:
+                pass
+            attempt.status = "executor_timeout"
+            attempt.error_message = (
+                f"Subprocess exceeded per-session timeout "
+                f"({per_session_timeout_s}s); killed."
+            )
+            attempt.duration_s = time.monotonic() - t0
+            return attempt
         attempt.duration_s = time.monotonic() - t0
         if proc.returncode != 0:
             attempt.status = "executor_error"
@@ -214,6 +239,11 @@ async def run_one_session(
                                      or stdout.decode("utf-8")[-2000:])
             return attempt
     except Exception as e:
+        if proc is not None:
+            try:
+                proc.kill()
+            except (ProcessLookupError, AttributeError):
+                pass
         attempt.status = "executor_exception"
         attempt.error_message = repr(e)
         attempt.duration_s = time.monotonic() - t0
@@ -336,6 +366,7 @@ async def run_sweep(args: argparse.Namespace) -> int:
                     a = await run_one_session(
                         paradigm, url, arm,
                         out_root=out_root, seed=seed,
+                        per_session_timeout_s=args.per_session_timeout_s,
                     )
                     a.attempt = attempt_n
                     if a.status == "pending" and a.session_dir is not None:
@@ -432,6 +463,15 @@ def main(argv: list[str] | None = None) -> int:
                         "paradigm/arm and move on (default: 5). Prevents "
                         "a broken TaskCard from burning the entire "
                         "wall-time budget.")
+    p.add_argument("--per-session-timeout-s", type=float, default=1200.0,
+                   help="Per-session subprocess timeout in seconds "
+                        "(default: 1200 = 20 min). If the executor hangs "
+                        "past this, the subprocess is killed and the "
+                        "attempt is recorded as executor_timeout. "
+                        "Prevents a hung session from stalling the sweep "
+                        "indefinitely (e.g. cognitionrun's pre-Stage-6 "
+                        "TaskCard hung waiting for jsPsych state that "
+                        "never appears).")
     p.add_argument("--paradigm",
                    help="Restrict to one paradigm label.")
     p.add_argument("--arm", choices=("pre_cal", "post_cal"),

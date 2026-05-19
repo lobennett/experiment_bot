@@ -65,6 +65,42 @@ def test_normalize_marker_handles_int_string_none():
     assert audit._normalize_marker("garbage") is None
 
 
+def test_canonicalize_key_handles_arrow_variants():
+    """jsPsych v7 fires ArrowLeft via CDP; jsPsych v6 records leftarrow.
+    Both should canonicalize to 'left' so within-pair comparison works."""
+    assert audit._canonicalize_key("ArrowLeft") == "left"
+    assert audit._canonicalize_key("ArrowRight") == "right"
+    assert audit._canonicalize_key("leftarrow") == "left"
+    assert audit._canonicalize_key("rightarrow") == "right"
+    assert audit._canonicalize_key("ArrowUp") == "up"
+    assert audit._canonicalize_key("uparrow") == "up"
+
+
+def test_canonicalize_key_lowercases_punctuation_and_space():
+    assert audit._canonicalize_key(",") == ","
+    assert audit._canonicalize_key("A") == "a"
+    assert audit._canonicalize_key(" ") == "space"
+    assert audit._canonicalize_key("Space") == "space"
+
+
+def test_canonicalize_key_handles_none_and_empty():
+    assert audit._canonicalize_key(None) is None
+    assert audit._canonicalize_key("") is None
+
+
+def test_keys_equivalent_cross_engine_variants():
+    """The function should return True for v7-bot ↔ v6-platform pairs."""
+    assert audit._keys_equivalent("ArrowLeft", "leftarrow") is True
+    assert audit._keys_equivalent("ArrowRight", "rightarrow") is True
+    assert audit._keys_equivalent("ArrowLeft", "ArrowLeft") is True
+    assert audit._keys_equivalent("leftarrow", "leftarrow") is True
+    # Mismatches return False
+    assert audit._keys_equivalent("ArrowLeft", "rightarrow") is False
+    # None or empty on either side: False (treat as missing, not equivalent)
+    assert audit._keys_equivalent(None, "leftarrow") is False
+    assert audit._keys_equivalent("ArrowLeft", None) is False
+
+
 # -----------------------------------------------------------------
 # Trial-counter pairing on synthetic data
 # -----------------------------------------------------------------

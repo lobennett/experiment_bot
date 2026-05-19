@@ -86,6 +86,50 @@ def detect_pairing_method(bot: list[dict]) -> str:
     return "rt_match"
 
 
+def _canonicalize_key(value) -> str | None:
+    """Map a bot or platform key string to a canonical lowercase form
+    so that ``ArrowLeft`` (CDP / jsPsych v7) and ``leftarrow``
+    (jsPsych v6 recorded form) compare equal. Generic-enough to keep
+    G1 (no per-paradigm baked-in conventions): lowercases, strips any
+    leading 'arrow' prefix from v7 names and treats v6's 'leftarrow'
+    form as already-canonical.
+
+    Examples (canonical form on the right):
+      ArrowLeft   → left
+      ArrowRight  → right
+      leftarrow   → left
+      rightarrow  → right
+      ' '         → space
+      Space       → space
+      ','         → ,
+    """
+    if value is None or value == "":
+        return None
+    raw = str(value)
+    # Normalize space variants BEFORE stripping (otherwise " " → "")
+    if raw == " " or raw.strip().lower() == "space":
+        return "space"
+    s = raw.strip().lower()
+    if not s:
+        return None
+    if s.startswith("arrow"):
+        s = s[len("arrow"):]
+    elif s.endswith("arrow"):
+        s = s[: -len("arrow")]
+    return s
+
+
+def _keys_equivalent(a, b) -> bool:
+    """True iff the two keys canonicalize to the same string. ``None``
+    or empty on either side returns False (treat as missing — not
+    equivalent)."""
+    ca = _canonicalize_key(a)
+    cb = _canonicalize_key(b)
+    if ca is None or cb is None:
+        return False
+    return ca == cb
+
+
 def _normalize_marker(value) -> int | None:
     """Coerce a trial marker / trial_index to int. Platform records
     read from CSV arrive as strings ('245'); records read from JSON
@@ -136,10 +180,10 @@ def trial_counter_audit(
         bot_key = t.get("response_key")
         plat_key = plat.get("response")
         plat_correct = plat.get("correct_response")
-        if bot_key == plat_key:
+        if _keys_equivalent(bot_key, plat_key):
             c["pressed_eq_recorded"] += 1
             per_channel[channel]["pressed_eq_recorded"] += 1
-        if bot_key == plat_correct:
+        if _keys_equivalent(bot_key, plat_correct):
             c["pressed_eq_expected"] += 1
             per_channel[channel]["pressed_eq_expected"] += 1
         paired_details.append({
@@ -148,8 +192,8 @@ def trial_counter_audit(
             "plat_key": plat_key,
             "plat_correct": plat_correct,
             "channel": channel,
-            "match_recorded": bot_key == plat_key,
-            "match_expected": bot_key == plat_correct,
+            "match_recorded": _keys_equivalent(bot_key, plat_key),
+            "match_expected": _keys_equivalent(bot_key, plat_correct),
         })
     return {
         "method": "trial_counter",
@@ -205,10 +249,10 @@ def rt_match_audit(
         channel = (bot.get("delivery") or {}).get("channel") or "rt_legacy"
         per_channel[channel]["paired"] += 1
         bot_key = bot.get("response_key")
-        if bot_key == p.get("response"):
+        if _keys_equivalent(bot_key, p.get("response")):
             c["pressed_eq_recorded"] += 1
             per_channel[channel]["pressed_eq_recorded"] += 1
-        if bot_key == p.get("correct_response"):
+        if _keys_equivalent(bot_key, p.get("correct_response")):
             c["pressed_eq_expected"] += 1
             per_channel[channel]["pressed_eq_expected"] += 1
         paired_details.append({
@@ -218,7 +262,7 @@ def rt_match_audit(
             "bot_key": bot_key,
             "plat_key": p.get("response"),
             "channel": channel,
-            "match_recorded": bot_key == p.get("response"),
+            "match_recorded": _keys_equivalent(bot_key, p.get("response")),
         })
     return {
         "method": "rt_match",

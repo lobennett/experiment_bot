@@ -151,7 +151,9 @@
       "green",
       "blue",
       "yellow"
-    ]
+    ],
+    "sp11_supported": false,
+    "sp11_unsupported_reason": "Stage 6 pilot failed all 3 refinement attempts during Phase 7 smoke pilot validation. Each attempt hit a 300s hard timeout with the congruent condition never observed (incongruent matched 4501/4513 polls but congruent matched 0/4513). Phase detection 'complete' predicate never fires on cognition.run's experiment-end state, producing a runaway trial loop. The Phase 5b TaskCard (e62646a9.json) only appeared functional because --skip-pilot bypassed Stage 6; with pilot enforced (Phase 5c-Phase 7), the paradigm structurally fails. SP11 cross-deployment claim drops from 4 to 3 paradigms (expfactory_stroop, expfactory_stop_signal, stopit_stop_signal)."
   },
   "performance": {
     "accuracy": {

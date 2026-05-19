@@ -159,13 +159,61 @@ class ConditionRepetitionConfig:
 
 @dataclass
 class PinkNoiseConfig:
+    """1/f^alpha noise applied additively to RT samples.
+
+    The parameter ``alpha`` is the spectral slope: alpha=1 is canonical
+    "pink" noise, alpha=0 is white noise, alpha=2 is Brownian. The
+    underlying generator uses spectral synthesis with
+    ``power_scale = freqs ** (-alpha / 2)``.
+
+    Pre-SP11, this config exposed a parameter named ``hurst``; the
+    generator interpreted it via the fBm convention ``alpha = 2*hurst − 1``,
+    which made ``hurst=1`` produce ``alpha=1`` (pink) — a non-obvious
+    indirection. SP11 Phase 2 renames the parameter to ``alpha`` for
+    direct spectral interpretation. TaskCards that still emit ``hurst``
+    are converted at ``from_dict`` time with a loud-stderr deprecation
+    warning. The deprecation alias is loud-during-window discipline:
+    it should never fire on the four SP11 dev paradigms after Phase 5
+    TaskCard regeneration; if it does, the regenerated card still uses
+    the old field name and needs a re-emission.
+    """
     enabled: bool = False
     sd_ms: float = 0.0
-    hurst: float = 0.0
+    alpha: float = 0.0
     rationale: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> PinkNoiseConfig:
+        # Backward-compat: convert legacy "hurst" field to "alpha" using the
+        # pre-SP11 spectral-synthesis convention alpha = 2*hurst − 1.
+        # Emit a loud stderr deprecation warning so the conversion is
+        # never silent. Honored once per source TaskCard.
+        d = dict(d)  # don't mutate caller's dict
+        if "hurst" in d and "alpha" not in d:
+            import sys
+            hurst_val = d.pop("hurst")
+            converted_alpha = 2.0 * float(hurst_val) - 1.0
+            print(
+                f"DEPRECATION (SP11 Phase 2): PinkNoiseConfig.hurst is renamed "
+                f"to alpha. Got hurst={hurst_val} → converted to "
+                f"alpha={converted_alpha} via the pre-SP11 fBm convention "
+                f"alpha = 2*hurst − 1. Update the source TaskCard's "
+                f"temporal_effects.pink_noise.value to emit `alpha` directly. "
+                f"This deprecation alias will be removed once Phase 5 "
+                f"TaskCard regeneration lands.",
+                file=sys.stderr,
+            )
+            d["alpha"] = converted_alpha
+        elif "hurst" in d and "alpha" in d:
+            import sys
+            print(
+                f"WARNING (SP11 Phase 2): PinkNoiseConfig got both `hurst` "
+                f"({d['hurst']}) and `alpha` ({d['alpha']}). Using alpha; "
+                f"ignoring hurst. Update the source TaskCard to emit only "
+                f"`alpha`.",
+                file=sys.stderr,
+            )
+            d.pop("hurst")
         return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
 
     def to_dict(self) -> dict:

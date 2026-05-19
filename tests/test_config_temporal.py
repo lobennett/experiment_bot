@@ -54,7 +54,7 @@ def test_temporal_effects_round_trip():
         condition_repetition=ConditionRepetitionConfig(
             enabled=True, facilitation_ms=8.0, cost_ms=8.0, rationale="cond-rep"
         ),
-        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, hurst=0.75, rationale="1/f"),
+        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, alpha=0.75, rationale="1/f"),
         # Generic mechanisms use SimpleNamespace cfg (no typed dataclass).
         lag1_pair_modulation=SimpleNamespace(
             enabled=True, skip_after_error=True,
@@ -80,7 +80,7 @@ def test_temporal_effects_round_trip():
     assert restored.condition_repetition.facilitation_ms == 8.0
     assert restored.condition_repetition.cost_ms == 8.0
     assert restored.pink_noise.sd_ms == 12.0
-    assert restored.pink_noise.hurst == 0.75
+    assert restored.pink_noise.alpha == 0.75
     # Generic mechanism configs round-trip as SimpleNamespace
     assert restored.lag1_pair_modulation.enabled is True
     assert restored.lag1_pair_modulation.modulation_table[0]["delta_ms"] == -50.0

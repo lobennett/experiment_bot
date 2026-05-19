@@ -71,7 +71,7 @@ def test_post_event_slowing_via_registry():
 
 def test_pink_noise_via_registry():
     effects = TemporalEffectsConfig(
-        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=30.0, hurst=0.7),
+        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=30.0, alpha=0.7),
     )
     sampler = ResponseSampler(_make_dist(), temporal_effects=effects, seed=42)
     rts = [sampler.sample_rt("default") for _ in range(20)]

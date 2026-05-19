@@ -52,7 +52,7 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
     ),
     "pink_noise": EffectType(
         name="pink_noise",
-        params={"sd_ms": float, "hurst": float},
+        params={"sd_ms": float, "alpha": float},
         applicable_paradigms=ALL_PARADIGM_CLASSES,
         handler=None,
         validation_metric=None,

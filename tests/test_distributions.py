@@ -138,7 +138,7 @@ def test_pink_noise_disabled_no_buffer():
 def test_pink_noise_enabled_allocates_buffer():
     """When pink noise is enabled, _pink_buffer should be a numpy array of length 2048."""
     effects = TemporalEffectsConfig(
-        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, hurst=0.75),
+        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, alpha=0.75),
     )
     dists = {"go": DistributionConfig(distribution="ex_gaussian", params={"mu": 450, "sigma": 60, "tau": 80})}
     sampler = ResponseSampler(dists, temporal_effects=effects, seed=42)
@@ -146,10 +146,10 @@ def test_pink_noise_enabled_allocates_buffer():
     assert len(sampler._pink_buffer) == 2048
 
 
-def test_pink_noise_enabled_invalid_hurst_raises():
-    """Enabled pink noise with hurst <= 0 should raise ValueError."""
+def test_pink_noise_enabled_invalid_alpha_raises():
+    """Enabled pink noise with alpha <= 0 should raise ValueError."""
     effects = TemporalEffectsConfig(
-        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, hurst=0.0),
+        pink_noise=PinkNoiseConfig(enabled=True, sd_ms=12.0, alpha=0.0),
     )
     dists = {"go": DistributionConfig(distribution="ex_gaussian", params={"mu": 450, "sigma": 60, "tau": 80})}
     try:

@@ -122,9 +122,20 @@ def _build_sampler(dist_config: "DistributionConfig", seed: int | None):
     )
 
 
-def _generate_pink_noise(n: int, hurst: float, rng: np.random.Generator) -> np.ndarray:
-    """Spectral synthesis of fractional Gaussian noise (1/f^alpha)."""
-    alpha = 2.0 * hurst - 1.0
+def _generate_pink_noise(n: int, alpha: float, rng: np.random.Generator) -> np.ndarray:
+    """Spectral synthesis of fractional Gaussian noise with 1/f^alpha
+    spectrum.
+
+    Power scaling is ``freqs ** (-alpha/2)``. The resulting time series
+    has a log-log spectrum slope of approximately ``-alpha`` (the small
+    deviation comes from the rfft window). Calibration:
+    - alpha = 0 → white noise (flat spectrum)
+    - alpha = 1 → pink / 1f noise
+    - alpha = 2 → Brownian (red) noise
+
+    Output is mean-centered and unit-variance, so the caller scales by
+    a separate ``sd_ms`` parameter to set the magnitude.
+    """
     freqs = np.fft.rfftfreq(n)
     freqs[0] = 1.0  # avoid div-by-zero
     power_scale = freqs ** (-alpha / 2.0)
@@ -166,10 +177,14 @@ class ResponseSampler:
 
         # Pink noise buffer
         if self._effects.pink_noise.enabled:
-            if self._effects.pink_noise.hurst <= 0:
-                raise ValueError("pink_noise.hurst must be > 0 when pink noise is enabled")
+            if self._effects.pink_noise.alpha <= 0:
+                raise ValueError(
+                    "pink_noise.alpha must be > 0 when pink noise is enabled "
+                    "(pink: alpha=1, brown: alpha=2, white: alpha=0 which is "
+                    "equivalent to disabled)"
+                )
             self._pink_buffer = _generate_pink_noise(
-                2048, self._effects.pink_noise.hurst, np.random.default_rng(seed)
+                2048, self._effects.pink_noise.alpha, np.random.default_rng(seed)
             )
         else:
             self._pink_buffer = None

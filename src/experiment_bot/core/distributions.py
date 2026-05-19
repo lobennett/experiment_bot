@@ -192,6 +192,30 @@ class ResponseSampler:
         for condition, dist_config in distributions.items():
             self._samplers[condition] = _build_sampler(dist_config, seed)
 
+        # SP11 Phase 5a: optional calibration adjustment applied AFTER
+        # temporal effects. The executor calls set_calibration_result()
+        # post-calibration; sample_rt then routes the post-effects RT
+        # through CalibrationResult.adjust() so the platform's recorded
+        # RT lands near the sampler's target. Default None = no adjustment.
+        self._calibration_result = None  # type: object | None
+
+    def set_calibration_result(self, result) -> None:
+        """SP11 Phase 5a: install a calibration result for per-trial
+        RT adjustment. Passing None clears the adjustment."""
+        self._calibration_result = result
+
+    def _apply_calibration_adjustment(self, rt: float) -> float:
+        """Apply the installed calibration model. No-op when no
+        result is set, or when the model is escalate/too_few_events
+        (which CalibrationResult.adjust returns unchanged)."""
+        if self._calibration_result is None:
+            return rt
+        adjusted = self._calibration_result.adjust(rt)
+        # Re-floor: calibration shouldn't push RT below the bot's
+        # physiological-floor cutoff (rt_floor_ms). If the adjustment
+        # pushes us under the floor, clip up.
+        return max(adjusted, self._floor_ms)
+
     def _apply_temporal_effects(
         self, raw_rt: float, sampler, condition: str,
         skip_condition_repetition: bool = False,
@@ -260,7 +284,8 @@ class ResponseSampler:
             raise KeyError(f"Unknown condition: {condition}")
         sampler = self._samplers[condition]
         raw_rt = sampler.sample()
-        return self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
+        rt = self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
+        return self._apply_calibration_adjustment(rt)
 
     def sample_rt_with_fallback(self, condition: str, skip_condition_repetition: bool = False) -> float:
         """Sample RT for condition, falling back to first available distribution."""
@@ -280,7 +305,8 @@ class ResponseSampler:
                 f"block is non-empty."
             )
         raw_rt = sampler.sample()
-        return self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
+        rt = self._apply_temporal_effects(raw_rt, sampler, condition, skip_condition_repetition)
+        return self._apply_calibration_adjustment(rt)
 
 
 def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskConfig:

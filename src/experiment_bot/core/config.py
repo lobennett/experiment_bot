@@ -627,6 +627,10 @@ class TimingConfig:
     attention_check_delay_ms: int = 1500  # Pause before handling an attention check
     completion_settle_ms: int = 2000     # Brief settle time in _wait_for_completion
     trial_end_timeout_s: float = 5.0     # Max wait for response window to close after a trial
+    # SP11 Phase 5a — paradigm-configurable CDP delivery params.
+    cdp_dwell_ms: float = 200.0          # Bot dwell before firing key (four-step protocol step 2)
+    trial_marker_js: str = ""            # JS arrow for trial-marker probe; empty = use jsPsych v7 default
+    records_js: str = ""                 # JS arrow for platform records readback; empty = use jsPsych v7 default
 
     @classmethod
     def from_dict(cls, d: dict) -> TimingConfig:
@@ -725,6 +729,14 @@ class RuntimeConfig:
     # navigation completes; the resolved mapping takes precedence over
     # the static key_map fallback in _resolve_response_key.
     session_agent_enabled: bool = True
+    # SP11 Phase 5a: keypress delivery channel for response fires.
+    # "cdp" (default) uses Chromium DevTools Input.dispatchKeyEvent;
+    # "keyboard" falls back to Playwright's page.keyboard.press for
+    # non-Chromium engines or diagnostic A/B. The four-step protocol
+    # is identical across channels — only the fire mechanism differs.
+    # "none" preserves the legacy SP10-era page.keyboard.press path
+    # so SP10 archive sessions can be replayed unmodified.
+    delivery_channel: str = "cdp"
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -737,6 +749,7 @@ class RuntimeConfig:
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
             navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
             session_agent_enabled=d.get("session_agent_enabled", True),
+            delivery_channel=d.get("delivery_channel", "cdp"),
         )
 
     def to_dict(self) -> dict:
@@ -750,6 +763,7 @@ class RuntimeConfig:
             # Always emit for round-trip stability, matching AttentionCheckConfig policy.
             "navigation_stimulus_condition": self.navigation_stimulus_condition,
             "session_agent_enabled": self.session_agent_enabled,
+            "delivery_channel": self.delivery_channel,
         }
 
 

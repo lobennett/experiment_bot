@@ -129,6 +129,13 @@ class TaskExecutor:
         self._runtime_key_mapping: dict[str, str] | None = None
         self._session_agent_directive = None  # KeyMappingDirective | None
 
+        # SP11 Phase 5a: CDP-channel keypress delivery (instantiated in .run())
+        self._cdp_session = None
+        self._deliverer = None
+        self._calibration_run = None  # set if calibration pass runs
+        self._delivery_channel_log: dict[str, int] = {}  # tally by channel
+        self._fire_skip_log: list[dict] = []  # per-trial skip metadata
+
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
         """Resolve key mappings from config.task_specific.key_map."""
@@ -136,6 +143,141 @@ class TaskExecutor:
         if "key_map" in ts:
             return dict(ts["key_map"])
         return {}
+
+    async def _run_calibration_pass(
+        self, page: Page, n_keys: int = 30,
+    ) -> None:
+        """SP11 Phase 5a: run a calibration sequence using the
+        configured deliverer, then install the resulting
+        CalibrationResult on the sampler so subsequent RT samples are
+        adjusted for the platform's recording offset.
+
+        No-op if no deliverer is configured (delivery_channel='none').
+        Should be called after navigation completes (so the bot is
+        inside a key-accepting state) and before _trial_loop starts.
+        """
+        if self._deliverer is None:
+            logger.info("Calibration pass skipped: no deliverer configured.")
+            return
+        from experiment_bot.calibration.playwright_gate_dismisser import (
+            PlaywrightGateDismisser,
+        )
+        from experiment_bot.calibration.runner import run_calibration
+        # Build a default keys sequence: cycle the bot's response keys
+        # if available, else fall back to Space.
+        response_keys = sorted(self._seen_response_keys) or [" "]
+        # Pad/cycle to n_keys
+        keys = [response_keys[i % len(response_keys)] for i in range(n_keys)]
+        # Use the configured dwell as the intended target interval
+        dwell = float(self._config.runtime.timing.cdp_dwell_ms)
+        intervals = [dwell] * n_keys
+        try:
+            self._calibration_run = await run_calibration(
+                self._deliverer,
+                gate_dismisser=PlaywrightGateDismisser(page),
+                keys=keys,
+                target_intervals_ms=intervals,
+            )
+            self._sampler.set_calibration_result(self._calibration_run.result)
+            logger.info(
+                f"Calibration pass complete: model={self._calibration_run.result.model}, "
+                f"n_correctly_recorded="
+                f"{self._calibration_run.result.n_events_correctly_recorded}/"
+                f"{n_keys}"
+            )
+        except Exception as e:
+            logger.warning(f"Calibration pass failed: {e}; continuing un-calibrated.")
+            self._calibration_run = None
+
+    async def _setup_keypress_deliverer(self, page: Page, context) -> None:
+        """SP11 Phase 5a: instantiate the configured KeypressDeliverer
+        for response fires. Falls through quietly to the legacy
+        page.keyboard.press path when channel='none' or when CDP isn't
+        available (Firefox, WebKit, mocked tests)."""
+        channel = self._config.runtime.delivery_channel
+        if channel == "none":
+            return
+        timing = self._config.runtime.timing
+        marker_js = timing.trial_marker_js or None
+        records_js = timing.records_js or None
+        dwell_ms = float(timing.cdp_dwell_ms)
+        if channel == "cdp":
+            try:
+                from experiment_bot.calibration.cdp_deliverer import (
+                    CDPDeliverer, DEFAULT_RECORDS_JS, DEFAULT_TRIAL_MARKER_JS,
+                )
+                self._cdp_session = await context.new_cdp_session(page)
+                self._deliverer = CDPDeliverer(
+                    page, self._cdp_session,
+                    default_dwell_ms=dwell_ms,
+                    trial_marker_js=marker_js or DEFAULT_TRIAL_MARKER_JS,
+                    records_js=records_js or DEFAULT_RECORDS_JS,
+                )
+                return
+            except Exception as e:
+                logger.warning(
+                    f"CDP session unavailable ({e}); falling back to "
+                    f"page.keyboard.press path."
+                )
+                self._cdp_session = None
+                self._deliverer = None
+                return
+        if channel == "keyboard":
+            from experiment_bot.calibration.keyboard_deliverer import (
+                PlaywrightKeyboardDeliverer,
+            )
+            self._deliverer = PlaywrightKeyboardDeliverer(
+                page, default_dwell_ms=dwell_ms,
+                trial_marker_js=marker_js or "",
+                records_js=records_js or "",
+            )
+            return
+        logger.warning(
+            f"Unknown delivery_channel={channel!r}; keeping legacy "
+            f"page.keyboard.press path."
+        )
+
+    async def _fire_response_key(self, page: Page, key: str) -> dict:
+        """SP11 Phase 5a: fire a response keypress via the configured
+        deliverer (CDP/keyboard) with trial-marker verify; falls back
+        to page.keyboard.press when no deliverer is configured.
+
+        Returns a metadata dict for bot_log:
+          - channel: "cdp_dispatchKeyEvent" / "keyboard_press_fallback"
+            / "page_keyboard_press" (legacy)
+          - trial_marker_at_fire: integer or None
+          - skipped: bool (verify-step trial-advance check)
+          - skip_reason: str or None
+        """
+        if self._deliverer is None:
+            await page.keyboard.press(key)
+            self._delivery_channel_log["page_keyboard_press"] = (
+                self._delivery_channel_log.get("page_keyboard_press", 0) + 1
+            )
+            return {
+                "channel": "page_keyboard_press",
+                "trial_marker_at_fire": None,
+                "skipped": False,
+                "skip_reason": None,
+            }
+        rec = await self._deliverer.deliver_at_trial_start(key, dwell_ms=0.0)
+        channel = self._deliverer.DELIVERY_CHANNEL
+        self._delivery_channel_log[channel] = (
+            self._delivery_channel_log.get(channel, 0) + 1
+        )
+        if rec.skipped:
+            self._fire_skip_log.append({
+                "trial": self._trial_count,
+                "key": key,
+                "skip_reason": rec.skip_reason,
+                "trial_marker": rec.trial_marker_at_fire,
+            })
+        return {
+            "channel": channel,
+            "trial_marker_at_fire": rec.trial_marker_at_fire,
+            "skipped": rec.skipped,
+            "skip_reason": rec.skip_reason,
+        }
 
     async def _invoke_session_agent(self, page: Page) -> None:
         """SP9a: run the SessionAgent once per session after navigation.
@@ -369,6 +511,9 @@ class TaskExecutor:
                 logger.info(f"Navigating to {task_url}")
                 await page.goto(task_url, wait_until="networkidle")
 
+                # SP11 Phase 5a: open CDP session + construct deliverer
+                await self._setup_keypress_deliverer(page, context)
+
                 # Phase 1: Navigate instructions
                 logger.info("Navigating instructions...")
                 await self._navigator.execute_all(page, self._config.navigation)
@@ -425,6 +570,25 @@ class TaskExecutor:
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
                 if self._session_agent_directive is not None:
                     metadata["session_agent_directive"] = self._session_agent_directive.to_dict()
+                # SP11 Phase 5a: persist delivery-channel + skip diagnostics
+                metadata["delivery"] = {
+                    "configured_channel": self._config.runtime.delivery_channel,
+                    "channel_counts": dict(self._delivery_channel_log),
+                    "fire_skip_count": len(self._fire_skip_log),
+                    "fire_skip_samples": list(self._fire_skip_log[:20]),
+                }
+                if self._calibration_run is not None:
+                    metadata["calibration"] = {
+                        "model": self._calibration_run.result.model,
+                        "mean_offset_ms": self._calibration_run.result.mean_offset_ms,
+                        "sd_offset_ms": self._calibration_run.result.sd_offset_ms,
+                        "n_correctly_recorded": (
+                            self._calibration_run.result.n_events_correctly_recorded
+                        ),
+                        "channel_counts": dict(
+                            self._calibration_run.delivery_channel_counts
+                        ),
+                    }
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 await browser.close()
@@ -969,8 +1133,9 @@ class TaskExecutor:
 
                 actual_rt = (time.monotonic() - trial_start) * 1000
                 resolved_key = await self._resolve_response_key(match, page)
+                delivery_meta: dict = {}
                 if resolved_key:
-                    await page.keyboard.press(resolved_key)
+                    delivery_meta = await self._fire_response_key(page, resolved_key)
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
@@ -979,6 +1144,7 @@ class TaskExecutor:
                     "sampled_rt_ms": round(sf_rt_ms, 1),
                     "actual_rt_ms": round(actual_rt, 1),
                     "omission": False,
+                    "delivery": delivery_meta,
                 })
                 self._recent_errors.appendleft(True)
                 self._prev_interrupt_detected = True
@@ -1020,7 +1186,7 @@ class TaskExecutor:
         resolved_key_pre_error = resolved_key  # capture before any flip
         if is_error:
             resolved_key = self._pick_wrong_key(resolved_key)
-        await page.keyboard.press(resolved_key)
+        delivery_meta = await self._fire_response_key(page, resolved_key)
 
         await self._log_trial_with_keypress_diag(
             page=page,
@@ -1035,6 +1201,7 @@ class TaskExecutor:
                 "intended_error": is_error,
                 "rt_distribution": rt_condition,
                 "cue": cue,
+                "delivery": delivery_meta,
             },
             resolved_key_pre_error=resolved_key_pre_error,
         )

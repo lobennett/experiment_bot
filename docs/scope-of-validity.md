@@ -370,6 +370,33 @@ non-claim; reviewers should weigh them as such.
   (`bot_log.session.method == 'sp10_driver'`). See
   `docs/sp11-phase6-audit-planning.md`.
 
+- **L13. (SP11 Phase 5a — executor delivery + paradigm-configurable
+  dwell.)** The executor's response-press path routes through a
+  configured `KeypressDeliverer` (`runtime.delivery_channel`:
+  `"cdp"` default, `"keyboard"` fallback, `"none"` legacy). The
+  per-paradigm dwell is read from `runtime.timing.cdp_dwell_ms`
+  (default 200 ms). The Reasoner pins paradigm-specific dwells in
+  the TaskCard when the paradigm's response window demands it
+  (stop-signal STOP trials' ~250 ms SSD typically motivates ~100 ms
+  dwell so go-trial fires remain inside the response window).
+  Per-trial `bot_log` records the `delivery.channel`,
+  `trial_marker_at_fire`, and `skipped` / `skip_reason` for the
+  Phase 6 audit script. Calibration auto-invocation is NOT enabled
+  by default in Phase 5a; the infrastructure is present
+  (`TaskExecutor._run_calibration_pass`), and Phase 5b's regenerated
+  TaskCards + Phase 7's measurement runs will set the policy.
+
+- **L14. (SP11 Phase 5a — calibration-adjusted RT sampling.)** The
+  sampler accepts an installed `CalibrationResult` via
+  `set_calibration_result(result)`. Subsequent `sample_rt` and
+  `sample_rt_with_fallback` calls apply the model's `.adjust()`
+  inversion AFTER temporal effects are applied. For `escalate` or
+  `too_few_events` results, the adjustment is a no-op (Phase 7's
+  scope-of-validity disclosure reports the un-calibrated z-score).
+  The adjustment is re-floored at `runtime.timing.rt_floor_ms`
+  (default 150 ms) so an aggressive offset cannot push the bot's
+  fire time below physiological-floor cutoffs.
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

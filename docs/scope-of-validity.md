@@ -337,6 +337,39 @@ non-claim; reviewers should weigh them as such.
   fallback's lower fidelity per SP11 scope (Chromium is the
   validation target).
 
+- **L11. (SP11 Phase 4b — four-step per-trial protocol.)** The CDP
+  and keyboard deliverers fire each key under a five-step pacing
+  protocol validated in the Phase 4a spike (100% fidelity at
+  ≥85% gate): (1) detect — read the current trial marker;
+  (2) dwell — `default_dwell_ms` (200ms default) so the press lands
+  inside the response window, not on trial-start microsecond zero;
+  (3) verify — confirm the marker hasn't advanced during dwell, else
+  skip; (4) focus + fire (Input.dispatchKeyEvent or
+  page.keyboard.press); (5) wait-for-advance — poll the marker until
+  it increments. Dwell is paradigm-configurable per fire
+  (`dwell_ms=` argument). Paradigms with short response windows
+  (e.g., stop-signal stop trials at 250ms) may need a tighter dwell;
+  paradigms expecting longer human RTs (stop-signal go ~600ms) may
+  set a longer one. The protocol is implemented uniformly across
+  CDP and keyboard deliverers — only step 4's fire mechanism
+  differs.
+
+- **L12. (SP11 Phase 4b — trial-marker pairing.)** Bot fires pair to
+  platform records by trial-marker equality, not sequential index.
+  The Phase 4a spike surfaced an off-by-one between detect-time and
+  fire-time when index-pairing was used; switching to
+  `jsPsych.getProgress().current_trial_global` as the marker (probed
+  at detect time and matched against the platform's `trial_index`
+  field) eliminated the off-by-one (26%→100% fidelity on the same
+  spike runs). The deliverer accepts paradigm-platform-aware
+  `trial_marker_js` and `records_js` overrides for non-jsPsych
+  platforms; the bot library contains no jsPsych-specific selectors
+  beyond defaults, per G1. Audit script consumes the trial marker
+  via `bot_log.session.method == 'sp11_input_layer'`; legacy sp10
+  driver runs use RT-based pairing via the same audit script
+  (`bot_log.session.method == 'sp10_driver'`). See
+  `docs/sp11-phase6-audit-planning.md`.
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

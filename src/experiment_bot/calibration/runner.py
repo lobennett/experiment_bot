@@ -15,9 +15,9 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 
-from experiment_bot.calibration.deliverer import KeypressDeliverer
+from experiment_bot.calibration.deliverer import KeypressDeliverer, KeypressEvent
 from experiment_bot.calibration.estimator import (
     CalibrationResult, estimate_calibration,
 )
@@ -87,10 +87,29 @@ class MockGateDismisser(GateDismisser):
 
 @dataclass
 class CalibrationRun:
-    """Per-session calibration result + diagnostic counts."""
+    """Per-session calibration result + diagnostic counts.
+
+    Phase 4b adds ``events`` (the raw KeypressEvent list) and
+    ``delivery_channel_counts`` (a summary dict of how many events
+    fired through each channel — e.g., ``{"cdp_dispatchKeyEvent": 30}``).
+    Callers that write bot_log.json use these to populate the per-trial
+    ``delivery.channel`` field (Phase 4b user note 5).
+    """
     result: CalibrationResult
     gate_dismissed: bool
     sequence_length: int
+    events: list[KeypressEvent] = field(default_factory=list)
+    delivery_channel_counts: dict[str, int] = field(default_factory=dict)
+
+
+def _summarize_delivery_channels(events: list[KeypressEvent]) -> dict[str, int]:
+    """Tally delivery.channel values across events. Missing channel
+    (e.g., MockDeliverer doesn't set one) maps to ``"unknown"``."""
+    counts: dict[str, int] = {}
+    for ev in events:
+        chan = ((ev.metadata or {}).get("delivery") or {}).get("channel") or "unknown"
+        counts[chan] = counts.get(chan, 0) + 1
+    return counts
 
 
 async def run_calibration(
@@ -123,4 +142,6 @@ async def run_calibration(
         result=result,
         gate_dismissed=dismissed,
         sequence_length=len(seq_keys),
+        events=list(events),
+        delivery_channel_counts=_summarize_delivery_channels(list(events)),
     )

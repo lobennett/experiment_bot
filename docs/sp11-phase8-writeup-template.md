@@ -48,6 +48,18 @@ Phase 8:**
   work should add platforms with different underlying engines to
   strengthen the cross-engine claim.
 
+### Measurement-time engine disclosure (added 2026-05-18, Phase 4b)
+
+The cross-deployment claim is bot-side. The *analysis-time* claim
+is engine-aware: when reporting Phase 7 numbers, we MUST disclose
+which engine version each paradigm's measurement session ran
+against. The audit script's pairing method (trial-counter for sp11
+input-layer path; RT-based for sp10 driver path) is one disclosure
+point; the engine-version row in the per-paradigm result table is
+the other. Reviewers should not need to dig into branch history to
+learn that three of four dev paradigms shared an engine at
+measurement time.
+
 **Bot discipline does not change.** Even though we know three
 paradigms share an engine, the bot's runtime code MUST NOT exploit
 this knowledge:
@@ -73,7 +85,10 @@ reviewer understands what the four paradigms actually exercise.
 ## Phase 8 writeup section headers (predeclared)
 
 1. Headline numbers — table of §6 gates pass/fail.
-2. Per-paradigm result tables (one per dev paradigm).
+2. Per-paradigm result tables (one per dev paradigm). Include a
+   row naming the engine version observed at measurement time
+   (jsPsych 7.3.1 / jsPsych 6.0.5 / etc.) as part of the disclosure
+   contract above.
 3. Pre/post-calibration comparison for Stroop and stop_signal.
 4. Cross-deployment vs cross-engine reconciliation (the section
    informed by the Phase 4a context note above).

@@ -285,6 +285,58 @@ non-claim; reviewers should weigh them as such.
   Reasoner can declare the field-mapping per task — that's deferred
   follow-up work.
 
+- **L9. (SP11 Phase 3 — calibration variance ceiling.)** Each session
+  starts with a calibration pass: the bot fires a known sequence of
+  keys via the platform's keyboard channel, reads back the platform's
+  recorded responses, and computes a per-platform offset model. At
+  trial time the executor adjusts sampled RTs by inverting the model
+  so the platform's recorded RT lands near the sampler's target.
+  Three model forms (per `src/experiment_bot/calibration/estimator.py`):
+  - **fixed_offset** when filtered calibration SD ≤ 30 ms absolute:
+    subtract a single mean. Phase 7 reports `(mean, sd)` per session
+    in the descriptive table.
+  - **regression** when SD > 30 ms: fit a linear `platform_rt =
+    slope * bot_intended + intercept` over the calibration trials;
+    trial-time adjustment inverts it. This is the SD-ceiling
+    fallback for platforms whose recording timing varies enough
+    that a single mean leaves a residual that re-inflates the
+    recorded distribution's sigma.
+  - **escalate** when the offset distribution is bimodal (two
+    cluster means separated by >50 ms AND smaller cluster has ≥20%
+    of mass AND separation/within-cluster-SD ≥ 3.0). Indicates the
+    platform is using two distinct recording paths; a fitted model
+    captures neither. Project owner decides remediation per SP11
+    spec §11.
+  - **too_few_events** when fewer than 5 correctly-recorded events
+    survive the filter. Calibration not estimable; same disposition
+    as escalate.
+
+  The calibration offset is computed ONLY on correctly-recorded
+  events (platform recorded the bot's intended key AND recorded
+  something at all). Per SP7 layer-d, the platform records a
+  different key on ~56% of trials in some conditions; if those
+  events were included, the offset estimate would be polluted by
+  mis-recording-induced timing.
+
+  Platform RT resolution is the underlying limit on calibration
+  precision. jsPsych uses `performance.now()` (sub-ms). Cognition.run
+  is jsPsych 7.3.1 under the hood (probed in Phase 3.1), so its
+  resolution is the same. Future platforms with coarser RT timers
+  will have a higher calibration variance ceiling — document per
+  platform when adding driver support.
+
+- **L10. (SP11 Phase 3 — calibration pass implementation channels.)**
+  The calibration runner takes a `KeypressDeliverer` abstraction
+  rather than calling Playwright APIs directly. Phase 4 will provide
+  two concrete deliverers: a primary `CDPDeliverer` using Chrome
+  DevTools `Input.dispatchKeyEvent`, and a fallback
+  `PlaywrightKeyboardDeliverer` using `page.keyboard.press`. The
+  per-session bot_log records `delivery.channel` per keypress so the
+  audit script and Phase 8 writeup can break down fidelity by
+  channel. Non-Chromium browsers (Firefox / WebKit) accept the
+  fallback's lower fidelity per SP11 scope (Chromium is the
+  validation target).
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

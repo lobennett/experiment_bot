@@ -25,3 +25,8 @@ data/human/stroop.csv
 # are regeneratable and shouldn't churn git history.
 output_smoke/
 validation/smoke_*/
+# SP11 Phase 5c variance study: work dirs (stage partials only — kept
+# locally for reproducibility, regenerable). The variance-study output
+# TaskCards under .variance_study/runN/expfactory_stroop/ ARE committed
+# for audit.
+.variance_study/work*/

@@ -181,7 +181,7 @@ def test_render_report_includes_flagged_section():
     )
     assert "**FLAGGED**" in text
     assert "16.00%" in text
-    assert "ACTION REQUIRED" in text
+    assert "Stroop variance study" in text  # variance-framing footer
     assert "**Total flagged across all paradigms:** 1" in text
 
 
@@ -201,5 +201,5 @@ def test_render_report_clean_when_no_flags():
     text = drift.render_report(
         paradigm_results, threshold_pct=10.0, baseline_tag="sp8-complete",
     )
-    assert "No drifts > threshold" in text
+    assert "No flags > threshold" in text  # variance-framing footer
     assert "**Total flagged across all paradigms:** 0" in text

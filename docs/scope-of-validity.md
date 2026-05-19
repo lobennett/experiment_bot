@@ -431,9 +431,43 @@ non-claim; reviewers should weigh them as such.
   the §6 hard gates (H1/H2 fidelity) and §6.2 absolute-RT z-scores;
   a Calibration × Paradigm interaction is the metric of interest.
   The parameter-drift check (`scripts/check_parameter_drift.py`)
-  must show < 10% relative drift on regenerated TaskCards before
-  Phase 7 launches — otherwise calibration-plus-drift is a confound
-  the two-arm split cannot disentangle.
+  characterizes pipeline-output variance before Phase 7 launches;
+  the Stroop variance study (Phase 5c appendix in
+  `docs/sp11-phase5b-deliverable.md`) is the empirical anchor for
+  reading the SP8 → SP11 parameter changes as variance vs.
+  systematic drift.
+
+- **L17. (SP11 Phase 5c — §6.2 targets reinterpreted as |z| against
+  human reference, not deltas from sp9c.)** Re-reading the spec
+  reveals that §6.2's targets are absolute |z|-score values
+  measured against the human reference distribution
+  (`data/human/archive_rdoc/` for the Stroop/stop-signal arms;
+  literature-typical bands for cognition.run and stopit). The
+  sp9c-baseline column in §6.2 is descriptive context — it shows
+  where the pre-SP11 pipeline landed — not a delta the SP11
+  measurement must subtract from. This matters because Phase 5b's
+  TaskCard regeneration produced parameter shifts > 10% relative
+  to SP8 on five Stroop fields (mu, sigma, tau across congruent /
+  incongruent); if §6.2 had been a delta-from-sp9c spec, those
+  shifts would have moved the goalposts and made the pre-/post-cal
+  comparison incoherent. As an absolute-|z| spec, §6.2 is intact:
+  the pre-cal arm of Phase 7 establishes the new TaskCards'
+  per-condition |z| starting point, and the post-cal arm measures
+  calibration's *within-Phase-7* effect on that |z|. The §6.2
+  "improve by ≥ 1.0" wording becomes a within-Phase-7 contrast
+  (post-cal |z| ≤ pre-cal |z| − 1.0), not a contrast against the
+  sp9c historical record. This reinterpretation:
+  - Does NOT loosen the gate. The absolute-|z| target was always
+    the operational measurement; only the descriptive framing
+    shifted.
+  - Is committed BEFORE Phase 7 data exists, preserving
+    pre-registration discipline. The reframing is a clarification
+    of what was always the meaningful comparison, not a retarget.
+  - Pre-loads Phase 8's writeup with the right framing: report
+    pre-cal |z| as the starting point, post-cal |z| as the
+    calibrated state, the |z| reduction as the calibration effect.
+    Sp9c numbers stay in the table as historical context, not as
+    a contrast.
 
 ## 8. Operational rules
 

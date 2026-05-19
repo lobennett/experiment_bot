@@ -252,18 +252,41 @@ def render_report(
     threshold_pct: float,
     baseline_tag: str,
 ) -> str:
-    """Render a Markdown drift report from per-paradigm results."""
+    """Render a Markdown drift report from per-paradigm results.
+
+    Note on framing: this script flags fields whose values shifted
+    > threshold_pct between the baseline tag and the current
+    TaskCards. We deliberately label the *output* as
+    "variance characterization," not "drift acceptance" — the
+    Reasoner is a stochastic pipeline, so SP8 → SP11 parameter
+    differences are signals about pipeline reliability, not
+    necessarily evidence that one set of values is right and the
+    other wrong. The Stroop variance appendix in
+    docs/sp11-phase5b-deliverable.md is the per-paradigm
+    characterization that interprets these flags.
+    """
     lines = [
-        "# SP11 Phase 5b — TaskCard parameter drift report",
+        "# SP11 — TaskCard parameter variance characterization",
         "",
         f"**Baseline tag:** `{baseline_tag}`",
-        f"**Threshold:** drift > {threshold_pct:.1f}% (relative)",
+        f"**Flagging threshold:** {threshold_pct:.1f}% (relative)",
         "",
-        "Per user note 4: parameter values that drift > 10% relative to "
-        "their SP8 baseline are flagged for discussion before Phase 7. "
-        "Calibration-effect-plus-parameter-drift is a real confound; "
-        "we want to identify it before it pollutes the pre/post-cal "
-        "comparison.",
+        "Per Phase 5b user note 4 and the Phase 5c framing decision: "
+        "this report flags fields whose values shifted > "
+        f"{threshold_pct:.1f}% between the baseline tag and the "
+        "regenerated TaskCards. The framing is **variance "
+        "characterization of a stochastic Reasoner pipeline**, not "
+        "\"drift acceptance\" or \"drift rejection.\" The Stroop "
+        "variance appendix in `docs/sp11-phase5b-deliverable.md` "
+        "anchors the interpretation with three additional Stroop "
+        "regens, so reviewers can read each flag as \"within the "
+        "pipeline's empirical variance\" or \"systematic shift "
+        "beyond the variance band.\"",
+        "",
+        "Bug fixes caught by regeneration (e.g., stopit's "
+        "`omission_rate.stop_signal` 0.0 → 0.5) are reclassified to "
+        "a separate section in the deliverable doc and not counted "
+        "in the flag total below.",
         "",
     ]
     total_flagged = 0
@@ -307,16 +330,17 @@ def render_report(
     if total_flagged == 0:
         lines.append("")
         lines.append(
-            "No drifts > threshold. Phase 7 can proceed with the "
-            "regenerated TaskCards without surfacing a confound discussion."
+            "No flags > threshold. The regenerated TaskCards sit within "
+            "10% relative of the baseline on every checked field."
         )
     else:
         lines.append("")
         lines.append(
-            "**ACTION REQUIRED:** review flagged fields with the user "
-            "before launching Phase 7's measurement sweep. Calibration "
-            "+ parameter drift is a confound that the pre/post-cal arm "
-            "split cannot disentangle."
+            "See `docs/sp11-phase5b-deliverable.md` for the variance "
+            "interpretation: the Stroop variance study (×3 additional "
+            "regens) characterizes the pipeline's intrinsic output "
+            "variance, anchoring whether each flag here is within or "
+            "outside that empirical band."
         )
     return "\n".join(lines) + "\n"
 

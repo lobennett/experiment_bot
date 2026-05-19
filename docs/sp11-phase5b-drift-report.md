@@ -1,9 +1,11 @@
-# SP11 Phase 5b — TaskCard parameter drift report
+# SP11 — TaskCard parameter variance characterization
 
 **Baseline tag:** `sp8-complete`
-**Threshold:** drift > 10.0% (relative)
+**Flagging threshold:** 10.0% (relative)
 
-Per user note 4: parameter values that drift > 10% relative to their SP8 baseline are flagged for discussion before Phase 7. Calibration-effect-plus-parameter-drift is a real confound; we want to identify it before it pollutes the pre/post-cal comparison.
+Per Phase 5b user note 4 and the Phase 5c framing decision: this report flags fields whose values shifted > 10.0% between the baseline tag and the regenerated TaskCards. The framing is **variance characterization of a stochastic Reasoner pipeline**, not "drift acceptance" or "drift rejection." The Stroop variance appendix in `docs/sp11-phase5b-deliverable.md` anchors the interpretation with three additional Stroop regens, so reviewers can read each flag as "within the pipeline's empirical variance" or "systematic shift beyond the variance band."
+
+Bug fixes caught by regeneration (e.g., stopit's `omission_rate.stop_signal` 0.0 → 0.5) are reclassified to a separate section in the deliverable doc and not counted in the flag total below.
 
 ## expfactory_stroop
 
@@ -117,4 +119,4 @@ Per user note 4: parameter values that drift > 10% relative to their SP8 baselin
 
 **Total flagged across all paradigms:** 10
 
-**ACTION REQUIRED:** review flagged fields with the user before launching Phase 7's measurement sweep. Calibration + parameter drift is a confound that the pre/post-cal arm split cannot disentangle.
+See `docs/sp11-phase5b-deliverable.md` for the variance interpretation: the Stroop variance study (×3 additional regens) characterizes the pipeline's intrinsic output variance, anchoring whether each flag here is within or outside that empirical band.

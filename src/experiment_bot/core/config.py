@@ -144,6 +144,25 @@ class FatigueDriftConfig:
 
 @dataclass
 class ConditionRepetitionConfig:
+    """Single-parameter (facilitation_ms, cost_ms) binary repetition
+    modulation.
+
+    **Deprecated in SP11 Phase 2** in favor of ``lag1_pair_modulation``,
+    which expresses the same conceptual phenomenon with a full
+    modulation_table that reproduces the cell-level 2×2 pattern real
+    Gratton has (cI > iI; cC ≈ iC). The single-parameter form cannot
+    capture that asymmetry — it only knows "same" vs "different"
+    condition labels, not the four pairs.
+
+    The handler remains functional so pre-SP11 TaskCards keep running;
+    a loud stderr deprecation warning fires at ``from_dict`` time
+    when ``enabled=True`` so the deprecation isn't silent.
+    Loud-during-window discipline: this warning should never fire on
+    the four SP11 dev paradigms after Phase 5 TaskCard regeneration;
+    if it does, the regenerated card needs to switch to
+    ``lag1_pair_modulation`` with a paradigm-appropriate
+    ``modulation_table``.
+    """
     enabled: bool = False
     facilitation_ms: float = 0.0
     cost_ms: float = 0.0
@@ -151,7 +170,21 @@ class ConditionRepetitionConfig:
 
     @classmethod
     def from_dict(cls, d: dict) -> ConditionRepetitionConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        cfg = cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+        if cfg.enabled:
+            import sys
+            print(
+                "DEPRECATION (SP11 Phase 2): temporal_effects.condition_repetition "
+                "is deprecated in favor of lag1_pair_modulation. The single-"
+                "parameter (facilitation_ms, cost_ms) form cannot express the "
+                "2×2 Gratton cell pattern. Update the source TaskCard to emit "
+                "a `lag1_pair_modulation` block with a `modulation_table` "
+                "listing the (prev, curr) → delta_ms entries for the paradigm. "
+                "The condition_repetition handler will keep working until Phase 5 "
+                "TaskCard regeneration removes references to it.",
+                file=sys.stderr,
+            )
+        return cfg
 
     def to_dict(self) -> dict:
         return asdict(self)

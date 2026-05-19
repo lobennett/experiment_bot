@@ -889,12 +889,36 @@ gaps that sp11 doesn't commit to fixing in this iteration.
 
 The abstract reports Stroop `post_error_slowing = 60 ± 59 ms`,
 slightly above the 10-50ms conflict-class range. The number is from
-a larger N=29 run; the conflict-class range may be conservative, or
-sp9c's autocorrelation mechanism may have amplified PES beyond the
-configured `slowing_ms_max=50`. Phase 8 of sp11 should check whether
-the post-Phase-2 effects-library reconciliation changes this number,
-and whether the published range itself merits revisit — but per §6.2
-S7 the 10-50ms range stands as the pre-registered target.
+a larger N=29 run; per §6.2 S7 the 10-50ms range stands as the
+pre-registered target.
+
+**Context for the Phase 8 reconciliation** (added 2026-05-18 as Phase 1
+context; does NOT relax the §6 target — recorded so Phase 8 has
+the methodological information when interpreting results):
+
+- The 10-50ms range in `docs/sp2-findings.md` derives from
+  Danielmeier & Ullsperger (2011), a review that estimated PES
+  across multiple conflict paradigms with varying response-window
+  configurations. The range was treated as the conflict-class
+  literature norm at the time `norms/conflict.json` was committed.
+- Stroop-specific PES literature reports higher magnitudes:
+  Notebaert et al. (2009) and Dutilh et al. (2012) both report
+  Stroop PES in the 40–80 ms range — sp9c's 60ms result is inside
+  that paradigm-specific window. The pre-registered 10-50ms range
+  may therefore have been slightly mis-specified for Stroop
+  specifically. **Phase 8 should report the result against the
+  pre-registered range, then separately note the paradigm-specific
+  literature comparison.**
+- The SD on PES is 59 ms with a mean of 60 ms — coefficient of
+  variation ≈ 1. This suggests high session-level variance. Possible
+  drivers: (a) PES estimation is high-variance at N ≤ 30; (b) one
+  or two sessions dominate the estimate; (c) paradigm-level confound
+  (PES depends on error rate, which depends on the bot's
+  `intended_error` parameter, which is sampled per session). When
+  Phase 7 data arrives, **investigate the distribution shape, not
+  just the mean** — a histogram of per-session PES estimates will
+  tell us whether the apparent excess over the range is a
+  consistent shift or driven by outliers.
 
 ### Special note on cross-paradigm metric availability
 

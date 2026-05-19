@@ -182,6 +182,16 @@ class TaskExecutor:
             if state == TrialLoopState.NEEDS_NAVIGATION:
                 outcome = await driver.navigate(page)
                 nav_streak += 1
+                # Some paradigms (stopit kywch) re-create pluginAPI
+                # between blocks, detaching the bot's hook. Re-call
+                # driver.setup periodically so the hook stays patched.
+                # setup is idempotent — it only re-installs when the
+                # current pluginAPI.getKeyboardResponse isn't ours.
+                if nav_streak > 0 and nav_streak % 20 == 0:
+                    try:
+                        await driver.setup(page)
+                    except Exception as e:
+                        logger.debug("periodic setup re-call raised: %s", e)
                 # Reset streak whenever the platform shows progress.
                 # Two signals (either resets):
                 # 1. jsPsych progress.current_trial_global advanced

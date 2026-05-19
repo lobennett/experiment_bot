@@ -28,14 +28,6 @@ logger = logging.getLogger(__name__)
 # constant for readability; loaded by setup().
 _INSTALL_HOOK_JS = """
 (() => {
-  if (window.__bot_hook_installed) return { ok: true, already: true };
-  window.__bot_hook_installed = true;
-  // arm_count ticks every time the plugin calls getKeyboardResponse —
-  // a per-trial signal the executor uses to reset its nav-streak guard.
-  // fire_count is incremented by wait_for_trial_end after a bot
-  // delivery; together they cover both "new trial armed" and "trial
-  // ended after bot fire".
-  window.__bot_hook = { current: null, history: [], arm_count: 0, fire_count: 0 };
   if (!window.jsPsych || !window.jsPsych.pluginAPI) {
     return { ok: false, reason: 'no_pluginAPI' };
   }
@@ -43,10 +35,25 @@ _INSTALL_HOOK_JS = """
   if (typeof orig !== 'function') {
     return { ok: false, reason: 'no_getKeyboardResponse' };
   }
+  // Robust idempotency: check whether the CURRENT
+  // pluginAPI.getKeyboardResponse is already our patched version (by
+  // looking for the hook capture comment in its toString). v6 paradigms
+  // sometimes re-create pluginAPI mid-run (between blocks for stopit),
+  // detaching the previous patch — our setup must be safe to re-call
+  // and must re-patch when needed.
+  if (orig.toString().indexOf('__bot_hook') !== -1) {
+    return { ok: true, already: true };
+  }
+  // Preserve any prior __bot_hook state (history, counters) if this
+  // is a re-install — only initialize if absent.
+  if (!window.__bot_hook) {
+    window.__bot_hook = { current: null, history: [], arm_count: 0, fire_count: 0 };
+  }
   // Monkey-patch: store the callback + valid_responses per call. Still
   // delegate to the original so jsPsych's own listener also registers
   // (preserves behavior if a real user happens to press a key).
   window.jsPsych.pluginAPI.getKeyboardResponse = function(params) {
+    // sentinel comment so toString-based detection finds us: __bot_hook
     window.__bot_hook.current = {
       callback_function: params.callback_function,
       valid_responses: params.valid_responses,
@@ -57,6 +64,7 @@ _INSTALL_HOOK_JS = """
     window.__bot_hook.arm_count = (window.__bot_hook.arm_count || 0) + 1;
     return orig.call(this, params);
   };
+  window.__bot_hook_installed = true;
   return { ok: true };
 })()
 """

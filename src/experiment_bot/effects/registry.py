@@ -82,6 +82,31 @@ EFFECT_REGISTRY: dict[str, EffectType] = {
         handler=None,
         validation_metric=None,
     ),
+    # SP11 Phase 2.3: practice effect — exponential block-wise RT
+    # reduction approaching an asymptote. Models the early-session
+    # learning curve absent from main's effect library.
+    "practice_effect": EffectType(
+        name="practice_effect",
+        params={
+            "initial_offset_ms": float,
+            "asymptote_block": int,
+            "trials_per_block": int,
+            "decay_rate": float,
+        },
+        applicable_paradigms=ALL_PARADIGM_CLASSES,
+        handler=None,
+        validation_metric=None,
+    ),
+    # SP11 Phase 2.4: vigilance decrement — zero-mean Gaussian RT
+    # noise with linearly-growing SD. RT-variance aspect only; the
+    # omission-rate aspect is deferred to a future SP.
+    "vigilance_decrement": EffectType(
+        name="vigilance_decrement",
+        params={"sd_per_100_trials_ms": float},
+        applicable_paradigms=ALL_PARADIGM_CLASSES,
+        handler=None,
+        validation_metric=None,
+    ),
 }
 
 
@@ -159,6 +184,8 @@ EFFECT_REGISTRY["condition_repetition"].handler = _h.apply_condition_repetition
 EFFECT_REGISTRY["pink_noise"].handler = _h.apply_pink_noise
 EFFECT_REGISTRY["lag1_pair_modulation"].handler = _h.apply_lag1_pair_modulation
 EFFECT_REGISTRY["post_event_slowing"].handler = _h.apply_post_event_slowing
+EFFECT_REGISTRY["practice_effect"].handler = _h.apply_practice_effect
+EFFECT_REGISTRY["vigilance_decrement"].handler = _h.apply_vigilance_decrement
 
 # Wire typed config classes for the canonical mechanisms so
 # TemporalEffectsConfig.from_dict instantiates them with full type info.
@@ -168,11 +195,14 @@ EFFECT_REGISTRY["post_event_slowing"].handler = _h.apply_post_event_slowing
 from experiment_bot.core.config import (  # noqa: E402
     AutocorrelationConfig, FatigueDriftConfig,
     ConditionRepetitionConfig, PinkNoiseConfig,
+    PracticeEffectConfig, VigilanceDecrementConfig,
 )
 EFFECT_REGISTRY["autocorrelation"].config_class = AutocorrelationConfig
 EFFECT_REGISTRY["fatigue_drift"].config_class = FatigueDriftConfig
 EFFECT_REGISTRY["condition_repetition"].config_class = ConditionRepetitionConfig
 EFFECT_REGISTRY["pink_noise"].config_class = PinkNoiseConfig
+EFFECT_REGISTRY["practice_effect"].config_class = PracticeEffectConfig
+EFFECT_REGISTRY["vigilance_decrement"].config_class = VigilanceDecrementConfig
 
 # Validation-metric assignment: lag1_pair_contrast is the generic
 # 2-back contrast computation. Norms files declare which specific

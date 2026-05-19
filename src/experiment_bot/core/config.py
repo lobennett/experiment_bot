@@ -191,6 +191,71 @@ class ConditionRepetitionConfig:
 
 
 @dataclass
+class PracticeEffectConfig:
+    """Block-wise RT reduction across the early session.
+
+    Models the learning curve: human RTs typically drop ~30-60ms across
+    the first ~30 trials of a speeded paradigm, then plateau. Without
+    a practice effect the bot's RT is flat from trial 0, which is one
+    of the most visible giveaways in real human RT data.
+
+    Decay shape: exponential approach to asymptote with rate
+    ``decay_rate`` per block. RT delta at block_idx is
+    ``+initial_offset_ms * exp(-decay_rate * block_idx)``, capped at
+    0 once block_idx >= asymptote_block. ``block_idx`` is computed
+    inside the handler from ``trial_index // trials_per_block``.
+
+    Block-counter discipline: SP11 runs single-shot sessions —
+    block_index is derived from the sampler's monotonic trial_index,
+    which restarts at 0 on each ResponseSampler construction. There
+    is no cross-session-restart state to preserve; the test
+    test_practice_effect_block_counter_resets_on_new_sampler covers
+    the new-sampler-restarts-counter invariant explicitly.
+    """
+    enabled: bool = False
+    initial_offset_ms: float = 0.0
+    asymptote_block: int = 3
+    trials_per_block: int = 30
+    decay_rate: float = 0.7
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> PracticeEffectConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
+class VigilanceDecrementConfig:
+    """Per-trial RT-variance inflation over session length.
+
+    Models attentional lapses: variance of human RT grows across a
+    sustained-attention session. Implemented as a zero-mean Gaussian
+    perturbation whose SD grows linearly with trial_index. Mean RT
+    is unchanged; variance grows.
+
+    SP11 Phase 2 scope: RT-variance only. The omission-rate aspect
+    (lapse increases over the session) is a separate executor-side
+    mechanism deferred to a future SP — the handler interface stays
+    at "additive delta_rt_ms" without a per-trial variance multiplier
+    or omission-flag return channel. See SP11 Phase 2 deliverable
+    notes for rationale.
+    """
+    enabled: bool = False
+    sd_per_100_trials_ms: float = 0.0
+    rationale: str = ""
+
+    @classmethod
+    def from_dict(cls, d: dict) -> VigilanceDecrementConfig:
+        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
+
+    def to_dict(self) -> dict:
+        return asdict(self)
+
+
+@dataclass
 class PinkNoiseConfig:
     """1/f^alpha noise applied additively to RT samples.
 

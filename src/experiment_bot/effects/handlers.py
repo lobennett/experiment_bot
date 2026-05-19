@@ -154,6 +154,55 @@ def apply_lag1_pair_modulation(state: SamplerState, cfg, rng) -> float:
     return 0.0
 
 
+def apply_practice_effect(state: SamplerState, cfg, rng) -> float:
+    """Block-wise RT reduction: exponential approach to asymptote.
+
+    RT delta at block_idx is
+    ``+initial_offset_ms * exp(-decay_rate * block_idx)``, returning 0
+    once block_idx >= asymptote_block. Block index is
+    ``trial_index // trials_per_block`` — computed inside the handler,
+    no SamplerState extension required.
+
+    Tasks with no documented practice curve leave enabled=False.
+    """
+    import math
+    if not _cfg_get(cfg, "enabled", False):
+        return 0.0
+    initial_offset = float(_cfg_get(cfg, "initial_offset_ms", 0.0) or 0.0)
+    if initial_offset <= 0:
+        return 0.0
+    trials_per_block = int(_cfg_get(cfg, "trials_per_block", 30) or 30)
+    asymptote_block = int(_cfg_get(cfg, "asymptote_block", 3) or 3)
+    decay_rate = float(_cfg_get(cfg, "decay_rate", 0.7) or 0.7)
+    if trials_per_block <= 0:
+        return 0.0
+    block_idx = state.trial_index // trials_per_block
+    if block_idx >= asymptote_block:
+        return 0.0
+    return float(initial_offset * math.exp(-decay_rate * block_idx))
+
+
+def apply_vigilance_decrement(state: SamplerState, cfg, rng) -> float:
+    """Zero-mean Gaussian RT noise with linearly-growing SD over trials.
+
+    Mean RT unchanged; variance grows. Models attentional lapses
+    (the variance facet — omission-rate aspect is deferred). Scaled
+    by ``sd_per_100_trials_ms``: SD at trial N is
+    ``sd_per_100_trials_ms * (N / 100)``.
+
+    Tasks with no documented vigilance decrement leave enabled=False.
+    """
+    if not _cfg_get(cfg, "enabled", False):
+        return 0.0
+    sd_per_100 = float(_cfg_get(cfg, "sd_per_100_trials_ms", 0.0) or 0.0)
+    if sd_per_100 <= 0:
+        return 0.0
+    sd = sd_per_100 * (state.trial_index / 100.0)
+    if sd <= 0:
+        return 0.0
+    return float(rng.normal(0.0, sd))
+
+
 def apply_post_event_slowing(state: SamplerState, cfg, rng) -> float:
     """Generic post-event slowing: RT slowing on the trial following a
     triggering event.

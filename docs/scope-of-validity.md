@@ -368,7 +368,7 @@ non-claim; reviewers should weigh them as such.
   via `bot_log.session.method == 'sp11_input_layer'`; legacy sp10
   driver runs use RT-based pairing via the same audit script
   (`bot_log.session.method == 'sp10_driver'`). See
-  `docs/sp11-phase6-audit-planning.md`.
+  `docs/sp11-complete.md` (Phase 6 summary).
 
 - **L13. (SP11 Phase 5a — executor delivery + paradigm-configurable
   dwell.)** The executor's response-press path routes through a
@@ -430,12 +430,11 @@ non-claim; reviewers should weigh them as such.
   for the same TaskCard. Phase 8's writeup compares the two arms on
   the §6 hard gates (H1/H2 fidelity) and §6.2 absolute-RT z-scores;
   a Calibration × Paradigm interaction is the metric of interest.
-  The parameter-drift check (`scripts/check_parameter_drift.py`)
-  characterizes pipeline-output variance before Phase 7 launches;
-  the Stroop variance study (Phase 5c appendix in
-  `docs/sp11-phase5b-deliverable.md`) is the empirical anchor for
-  reading the SP8 → SP11 parameter changes as variance vs.
-  systematic drift.
+  Phase 5b/5c characterized pipeline-output variance via a Stroop
+  variance study (3 additional regens), establishing 15–37% intrinsic
+  pipeline variance on ex-Gaussian parameters; see `docs/sp11-complete.md`
+  (Phase 5b/5c summary) for the empirical anchor reading SP8 → SP11
+  parameter changes as variance vs. systematic drift.
 
 - **L17. (SP11 Phase 5c — §6.2 targets reinterpreted as |z| against
   human reference, not deltas from sp9c.)** Re-reading the spec

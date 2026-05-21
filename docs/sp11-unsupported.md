@@ -34,7 +34,7 @@ patched TaskCard runs end-to-end:
 
 `task_specific.sp11_supported` flipped back to `True`. The cognitionrun
 arm is measured in Phase 7 (queued after the running 3-paradigm sweep
-finishes; see `docs/sp11-phase7-deliverable.md`).
+finishes; see `docs/sp11-complete.md` Phase 7 summary).
 
 This is a *navigation-phase-completeness* lesson worth surfacing for
 Phase 8: Stage 6 pilot's hang signature was identical to a TaskCard

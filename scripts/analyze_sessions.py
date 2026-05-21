@@ -471,9 +471,9 @@ def main(argv: list[str] | None = None) -> int:
     p.add_argument("--n", type=int, default=5)
     p.add_argument("--taskcards-dir", type=Path, default=Path("taskcards"))
     p.add_argument("--out", type=Path,
-                   default=Path("docs/sp11-phase7-results.md"))
+                   default=Path("docs/analysis-results.md"))
     p.add_argument("--json-out", type=Path,
-                   default=Path("docs/sp11-phase7-results.json"))
+                   default=Path("docs/analysis-results.json"))
     args = p.parse_args(argv)
 
     md_chunks: list[str] = [

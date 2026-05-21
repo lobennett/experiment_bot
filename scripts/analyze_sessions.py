@@ -1,4 +1,4 @@
-"""SP11 Phase 7.6 — TaskCard fidelity + human-likeness comparison.
+"""Per-paradigm session-data analysis vs TaskCard targets + human norms.
 
 For each paradigm, computes empirical performance + temporal metrics
 from N session data files and compares them against:
@@ -6,13 +6,7 @@ from N session data files and compares them against:
       performance.accuracy, temporal_effects magnitudes)
   (b) published human norms (norms/<paradigm_class>.json ranges)
 
-Outputs a Markdown decision report at `docs/sp11-phase7-results.md`
-with per-metric pass/fail and an overall stopping recommendation.
-
-Per the Phase 7.5c goal: target is 5 session files per paradigm in
-the post_cal arm. The script accepts directories and recursively
-finds session dirs; the platform_adapters dispatch picks the right
-test-row filter per paradigm.
+Outputs a Markdown decision report and a JSON dump for downstream use.
 """
 from __future__ import annotations
 
@@ -465,9 +459,11 @@ def analyze_paradigm(
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--sweep-roots", nargs="+", type=Path,
-                   default=[Path("output/phase7/post_cal"),
-                            Path("output/phase7_n5/post_cal")])
+    p.add_argument("--root", action="append", dest="sweep_roots",
+                   type=Path, required=True,
+                   help="Session-data root directory containing "
+                        "<paradigm>/<task_name>/<timestamp>/ subdirs. "
+                        "May be repeated to union across roots.")
     p.add_argument("--paradigms", nargs="+", default=[
         "expfactory_stroop", "expfactory_stop_signal",
         "stopit_stop_signal", "cognitionrun_stroop",

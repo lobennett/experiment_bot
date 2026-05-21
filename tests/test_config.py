@@ -371,23 +371,3 @@ def test_taskcard_inhibit_wait_ms_when_stop_signal(label):
     assert tc.runtime.trial_interrupt.inhibit_wait_ms > 0
 
 
-def test_runtime_config_session_agent_enabled_defaults_to_true():
-    from experiment_bot.core.config import RuntimeConfig
-    rc = RuntimeConfig()
-    assert rc.session_agent_enabled is True
-
-
-def test_runtime_config_session_agent_enabled_roundtrip():
-    from experiment_bot.core.config import RuntimeConfig
-    rc = RuntimeConfig(session_agent_enabled=False)
-    d = rc.to_dict()
-    assert d["session_agent_enabled"] is False
-    rc2 = RuntimeConfig.from_dict(d)
-    assert rc2.session_agent_enabled is False
-
-
-def test_runtime_config_session_agent_enabled_from_dict_defaults_true():
-    """Existing TaskCards without the field should default to True."""
-    from experiment_bot.core.config import RuntimeConfig
-    rc = RuntimeConfig.from_dict({})
-    assert rc.session_agent_enabled is True

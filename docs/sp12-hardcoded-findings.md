@@ -97,14 +97,6 @@ this), not paradigm-specific, but the path is implicit rather than a
 typed RuntimeConfig field. Candidate for promotion to
 `runtime.timing.max_response_ms`.
 
-### Comma-separated SessionAgent key aliases hard-code English
-
-`_KEY_ALIASES` (executor.py:325–334) maps English-word names ("comma",
-"period", "left") to Playwright keys. This is a runtime-LLM
-normalization layer; it's only consulted on `_runtime_key_mapping`
-hits (i.e., when SessionAgent fires). Not paradigm-specific, but
-ties one piece of the framework to one human language.
-
 ### `_pick_wrong_key` requires ≥2 known keys
 
 `_pick_wrong_key` returns `correct_key` (i.e., DOES NOT flip) when
@@ -114,3 +106,38 @@ only one real key exists in `_key_map` or `_seen_response_keys`
 trials silently behave as correct trials. Not necessarily wrong —
 the design is to fail closed — but it's a hidden contract worth
 documenting.
+
+### Removed in SP12 Task 4 (architectural audit follow-up)
+
+Two items the executor walk surfaced as architectural candidates have
+been removed:
+
+- **SP9a SessionAgent runtime LLM call.** The session-time LLM
+  key-mapping resolver did not improve fidelity on any of the four
+  paradigms it was evaluated against (CLAUDE.md SP9a entry: n-back
+  smoke 68.1% vs SP8 72.1%, stroop x3 32.2% vs SP8 28.9%, stop_signal
+  silently never fired due to schema mismatch). Net contribution to
+  fidelity: zero. Removed: `_invoke_session_agent`,
+  `_runtime_key_mapping` and `_session_agent_directive` instance
+  fields, the priority-0 branch in `_resolve_response_key`, the
+  `_KEY_ALIASES`/`_normalize_key` English-word normalization layer,
+  the `session_agent=` constructor parameter and `_session_agent`
+  storage, the `agent/` package (SessionAgent, page_probe,
+  KeyMappingDirective), the `_build_session_agent` wiring in cli.py,
+  and the `runtime.session_agent_enabled` config field. Tests
+  removed: `tests/test_session_agent.py`,
+  `tests/test_executor_session_agent_integration.py`, and the two
+  `test_cli_*session_agent*` tests in `tests/test_cli.py`, plus the
+  three `test_runtime_config_session_agent_enabled_*` tests in
+  `tests/test_config.py`.
+
+- **SP7 keypress diagnostic.** The per-trial page-keydown drain and
+  the four diagnostic fields it appended to each trial entry
+  (`resolved_key_pre_error`, `page_received_keys`, `keypress_received`,
+  `keyup_received`) had zero production read consumers; the
+  associated tests were self-referential. Removed:
+  `_install_keydown_listener`, `_drain_keydown_log`, and
+  `_log_trial_with_keypress_diag`; the call sites in `run()` and
+  `_execute_trial`. Per-trial logging now goes straight through
+  `writer.log_trial`. Tests removed:
+  `tests/test_executor_keypress_diagnostic.py`.

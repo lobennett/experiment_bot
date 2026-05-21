@@ -66,7 +66,6 @@ class TaskExecutor:
         seed: int | None = None,
         headless: bool = False,
         session_params: dict | None = None,
-        session_agent=None,  # SP9a: SessionAgent instance for runtime key resolution
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -123,11 +122,6 @@ class TaskExecutor:
         self._attention_check_conditions: set[str] = set(
             config.runtime.attention_check.stimulus_conditions
         ) or {"attention_check", "attention_check_response"}
-
-        # SP9a: SessionAgent runtime key resolution
-        self._session_agent = session_agent
-        self._runtime_key_mapping: dict[str, str] | None = None
-        self._session_agent_directive = None  # KeyMappingDirective | None
 
         # SP11 Phase 5a: CDP-channel keypress delivery (instantiated in .run())
         self._cdp_session = None
@@ -289,54 +283,6 @@ class TaskExecutor:
             "skip_reason": rec.skip_reason,
         }
 
-    async def _invoke_session_agent(self, page: Page) -> None:
-        """SP9a: run the SessionAgent once per session after navigation.
-
-        Caches the resolved condition→key mapping into self._runtime_key_mapping
-        and the full directive (for run_metadata) into self._session_agent_directive.
-        Skipped when session_agent_enabled is False or no agent was attached.
-        """
-        if not getattr(self._config.runtime, "session_agent_enabled", True):
-            return
-        if self._session_agent is None:
-            return
-        try:
-            task_card_dict = (
-                self._taskcard.to_dict()
-                if self._taskcard is not None
-                else self._config.to_dict()
-            )
-        except Exception:
-            task_card_dict = {}
-        directive = await self._session_agent.resolve_key_mapping(
-            page=page,
-            task_card=task_card_dict,
-        )
-        self._runtime_key_mapping = directive.mapping
-        self._session_agent_directive = directive
-        logger.info(
-            "SessionAgent: source=%s confidence=%.2f mapping=%s",
-            directive.source, directive.confidence, directive.mapping,
-        )
-
-    # SP9a: maps common English-word keynames the SessionAgent LLM may emit
-    # ("comma") to Playwright-canonical key strings (","). Unknown keys pass
-    # through unchanged — Playwright will raise if they're truly invalid.
-    _KEY_ALIASES: dict[str, str] = {
-        "comma": ",", "period": ".", "slash": "/", "semicolon": ";",
-        "space": " ", "spacebar": " ",
-        "enter": "Enter", "return": "Enter",
-        "tab": "Tab", "escape": "Escape", "esc": "Escape",
-        "left": "ArrowLeft", "leftarrow": "ArrowLeft", "arrowleft": "ArrowLeft",
-        "right": "ArrowRight", "rightarrow": "ArrowRight", "arrowright": "ArrowRight",
-        "up": "ArrowUp", "uparrow": "ArrowUp", "arrowup": "ArrowUp",
-        "down": "ArrowDown", "downarrow": "ArrowDown", "arrowdown": "ArrowDown",
-    }
-
-    @classmethod
-    def _normalize_key(cls, key: str) -> str:
-        return cls._KEY_ALIASES.get(key.lower(), key)
-
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
     # Permissive expansion: no Playwright key names match any of these strings, so
@@ -375,7 +321,6 @@ class TaskExecutor:
         """Resolve the actual key to press for a stimulus match.
 
         Resolution order:
-        0. SP9a runtime mapping (SessionAgent's directive, if any)
         1. Static key from stimulus config
         2. Per-stimulus response_key_js (evaluated on page)
         3. Global task_specific.response_key_js (evaluated on page)
@@ -385,19 +330,6 @@ class TaskExecutor:
         withhold sentinel ("", None, "none", "null" — case-insensitive).
         Callers must treat None as "do not press any key".
         """
-        # SP9a: SessionAgent runtime mapping has priority
-        runtime_map = getattr(self, "_runtime_key_mapping", None)
-        if runtime_map is not None:
-            runtime_key = runtime_map.get(match.condition)
-            if (
-                runtime_key
-                and runtime_key not in ("dynamic_mapping", "dynamic")
-                and not self._is_withhold_sentinel(runtime_key)
-            ):
-                runtime_key = self._normalize_key(runtime_key)
-                self._seen_response_keys.add(runtime_key)
-                return runtime_key
-
         # Static key from config
         if match.response_key and match.response_key not in ("dynamic_mapping", "dynamic"):
             self._seen_response_keys.add(match.response_key)
@@ -528,11 +460,6 @@ class TaskExecutor:
                 logger.info("Navigating instructions...")
                 await self._navigator.execute_all(page, self._config.navigation)
 
-                await self._install_keydown_listener(page)
-
-                # SP9a: one-call-per-session LLM key-mapping resolution
-                await self._invoke_session_agent(page)
-
                 # SP11 Phase 5b: calibration pass (auto-invoked unless
                 # runtime.calibration_run_pass=False, a test escape hatch).
                 # Result is always applied to the sampler.
@@ -583,8 +510,6 @@ class TaskExecutor:
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
-                if self._session_agent_directive is not None:
-                    metadata["session_agent_directive"] = self._session_agent_directive.to_dict()
                 # SP11 Phase 5a: persist delivery-channel + skip diagnostics
                 metadata["delivery"] = {
                     "configured_channel": self._config.runtime.delivery_channel,
@@ -835,112 +760,6 @@ class TaskExecutor:
                 # Page context may be torn down by navigation — treat as trial ended
                 return
             await asyncio.sleep(poll_s)
-
-    async def _install_keydown_listener(self, page) -> None:
-        """Inject paradigm-agnostic keyboard-event listeners at session start.
-
-        Installs three capture-phase listeners on `document`:
-        - keydown -> window.__bot_keydown_log (SP7 instrumentation)
-        - keypress -> window.__bot_keypress_log (SP9c instrumentation)
-        - keyup -> window.__bot_keyup_log (SP9c instrumentation)
-
-        Each log is an array of {key, code, time} dicts. Per-trial drain
-        reads and clears all three, surfacing the keys the PAGE's
-        listeners actually received — useful for diagnosing layer-by-
-        layer mismatches between bot.keyboard.press, Playwright
-        dispatch, page handler, and platform recording.
-
-        Capture-phase listeners so we see events before any
-        application-level handler can modify or stop propagation. The
-        method name preserves the SP7 API for backward compatibility.
-        """
-        await page.evaluate(
-            "window.__bot_keydown_log = [];"
-            " window.__bot_keypress_log = [];"
-            " window.__bot_keyup_log = [];"
-            " document.addEventListener('keydown', (e) => {"
-            "   window.__bot_keydown_log.push({"
-            "     key: e.key, code: e.code, time: Date.now()"
-            "   });"
-            " }, true);"
-            " document.addEventListener('keypress', (e) => {"
-            "   window.__bot_keypress_log.push({"
-            "     key: e.key, code: e.code, time: Date.now()"
-            "   });"
-            " }, true);"
-            " document.addEventListener('keyup', (e) => {"
-            "   window.__bot_keyup_log.push({"
-            "     key: e.key, code: e.code, time: Date.now()"
-            "   });"
-            " }, true);"
-        )
-
-    async def _drain_keydown_log(self, page) -> dict | None:
-        """Read-and-clear all three page-side event logs. Returns a dict
-        with three keys (`keydown`, `keypress`, `keyup`), each a list of
-        {key, code, time} dicts captured since the last drain, or None
-        if `page.evaluate` raises (e.g., page navigation tore down the
-        context).
-
-        Reset pattern: read all three existing logs, then assign fresh
-        empty arrays so subsequent trials don't double-count earlier
-        events.
-
-        Note: method name preserved from SP7 for backward compatibility
-        with callers; SP9c extends the return shape from list to dict.
-        """
-        try:
-            return await page.evaluate(
-                "(() => {"
-                "  const keydown = window.__bot_keydown_log || [];"
-                "  const keypress = window.__bot_keypress_log || [];"
-                "  const keyup = window.__bot_keyup_log || [];"
-                "  window.__bot_keydown_log = [];"
-                "  window.__bot_keypress_log = [];"
-                "  window.__bot_keyup_log = [];"
-                "  return { keydown, keypress, keyup };"
-                "})()"
-            )
-        except Exception:
-            return None
-
-    async def _log_trial_with_keypress_diag(
-        self,
-        *,
-        page,
-        base_payload: dict,
-        resolved_key_pre_error: str | None,
-    ) -> None:
-        """Drain the page's three event logs and write an augmented trial
-        entry. Adds four fields to `base_payload`:
-
-        - resolved_key_pre_error: the bot's response_key_js result
-          before `_pick_wrong_key` flipped it for an intended-error
-          trial. When intended_error=False, this equals
-          base_payload['response_key'].
-        - page_received_keys: list of {key, code, time} the page's
-          keydown listener captured since the last drain (SP7 name).
-        - keypress_received: same shape, for keypress events (SP9c).
-        - keyup_received: same shape, for keyup events (SP9c).
-
-        When the drain fails (page teardown), all three event-log
-        fields are None.
-
-        All fields are paradigm-agnostic — they describe the runtime
-        layer between bot and platform, not paradigm content.
-        """
-        drained = await self._drain_keydown_log(page)
-        payload = dict(base_payload)
-        payload["resolved_key_pre_error"] = resolved_key_pre_error
-        if drained is None:
-            payload["page_received_keys"] = None
-            payload["keypress_received"] = None
-            payload["keyup_received"] = None
-        else:
-            payload["page_received_keys"] = drained.get("keydown", [])
-            payload["keypress_received"] = drained.get("keypress", [])
-            payload["keyup_received"] = drained.get("keyup", [])
-        self._writer.log_trial(payload)
 
     def _stimulus_detection_js(self, stim) -> str | None:
         """Return a JS expression that returns truthy while ``stim`` is
@@ -1198,28 +1017,23 @@ class TaskExecutor:
             self._prev_interrupt_detected = False
             return
 
-        resolved_key_pre_error = resolved_key  # capture before any flip
         if is_error:
             resolved_key = self._pick_wrong_key(resolved_key)
         delivery_meta = await self._fire_response_key(page, resolved_key)
 
-        await self._log_trial_with_keypress_diag(
-            page=page,
-            base_payload={
-                "trial": self._trial_count,
-                "stimulus_id": match.stimulus_id,
-                "condition": condition,
-                "response_key": resolved_key,
-                "sampled_rt_ms": round(rt_ms, 1),
-                "actual_rt_ms": round(actual_rt, 1),
-                "omission": False,
-                "intended_error": is_error,
-                "rt_distribution": rt_condition,
-                "cue": cue,
-                "delivery": delivery_meta,
-            },
-            resolved_key_pre_error=resolved_key_pre_error,
-        )
+        self._writer.log_trial({
+            "trial": self._trial_count,
+            "stimulus_id": match.stimulus_id,
+            "condition": condition,
+            "response_key": resolved_key,
+            "sampled_rt_ms": round(rt_ms, 1),
+            "actual_rt_ms": round(actual_rt, 1),
+            "omission": False,
+            "intended_error": is_error,
+            "rt_distribution": rt_condition,
+            "cue": cue,
+            "delivery": delivery_meta,
+        })
         self._recent_errors.appendleft(is_error)
         self._prev_interrupt_detected = False
 

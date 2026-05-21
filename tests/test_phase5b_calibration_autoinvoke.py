@@ -74,37 +74,6 @@ def test_run_calibration_pass_skips_when_run_pass_false():
     ex._deliverer.deliver_sequence.assert_not_called()
 
 
-def test_run_calibration_pass_records_but_does_not_apply_when_apply_false():
-    """Pre-cal arm: run pass, store CalibrationRun, but do NOT call
-    sampler.set_calibration_result."""
-    ex = _executor_with_runtime({"calibration_apply_to_sampler": False})
-    from experiment_bot.calibration.estimator import CalibrationResult
-    from experiment_bot.calibration.runner import CalibrationRun
-    fake_result = CalibrationResult(
-        model="fixed_offset",
-        mean_offset_ms=15.0, sd_offset_ms=2.0,
-        intercept_ms=None, slope=None,
-        n_events_total=30, n_events_correctly_recorded=30,
-        n_events_dropped=0, n_events_misrecorded=0,
-    )
-    fake_run = CalibrationRun(
-        result=fake_result, gate_dismissed=True, sequence_length=30,
-        events=[], delivery_channel_counts={"cdp_dispatchKeyEvent": 30},
-    )
-    ex._deliverer = MagicMock()
-    with patch(
-        "experiment_bot.calibration.runner.run_calibration",
-        new=AsyncMock(return_value=fake_run),
-    ), patch(
-        "experiment_bot.calibration.playwright_gate_dismisser.PlaywrightGateDismisser"
-    ):
-        # Sampler should NOT receive set_calibration_result
-        ex._sampler.set_calibration_result = MagicMock()
-        asyncio.run(ex._run_calibration_pass(MagicMock()))
-    assert ex._calibration_run is fake_run
-    ex._sampler.set_calibration_result.assert_not_called()
-
-
 def test_run_calibration_pass_applies_to_sampler_by_default():
     """Post-cal arm: run pass AND install on sampler."""
     ex = _executor_with_runtime({})  # defaults

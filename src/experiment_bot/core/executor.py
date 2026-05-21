@@ -149,18 +149,13 @@ class TaskExecutor:
     ) -> None:
         """SP11 Phase 5a/5b: run a calibration sequence using the
         configured deliverer; install the resulting CalibrationResult
-        on the sampler iff ``runtime.calibration_apply_to_sampler``.
+        on the sampler.
 
-        Phase 5b semantics (per user note 1):
-        - Default (post-cal arm): run pass, install result on sampler.
-        - ``runtime.calibration_apply_to_sampler == False``
-          (pre-cal arm): run pass, record offset in metadata, DO NOT
-          install on sampler. Phase 7 compares pre-cal vs post-cal
-          under this single experimental manipulation.
-
-        No-op if no deliverer is configured (delivery_channel='none').
-        Should be called after navigation completes (so the bot is
-        inside a key-accepting state) and before _trial_loop starts.
+        No-op if no deliverer is configured (delivery_channel='none')
+        or if ``runtime.calibration_run_pass`` is False (test escape
+        hatch). Should be called after navigation completes (so the
+        bot is inside a key-accepting state) and before _trial_loop
+        starts.
         """
         if self._deliverer is None:
             logger.info("Calibration pass skipped: no deliverer configured.")
@@ -192,17 +187,13 @@ class TaskExecutor:
                 keys=keys,
                 target_intervals_ms=intervals,
             )
-            if rt.calibration_apply_to_sampler:
-                self._sampler.set_calibration_result(self._calibration_run.result)
-                applied_note = "applied to sampler"
-            else:
-                applied_note = "NOT applied (pre-cal arm)"
+            self._sampler.set_calibration_result(self._calibration_run.result)
             logger.info(
                 f"Calibration pass complete: model="
                 f"{self._calibration_run.result.model}, "
                 f"n_correctly_recorded="
                 f"{self._calibration_run.result.n_events_correctly_recorded}/"
-                f"{n_keys}, {applied_note}"
+                f"{n_keys}, applied to sampler"
             )
         except Exception as e:
             logger.warning(f"Calibration pass failed: {e}; continuing un-calibrated.")
@@ -543,9 +534,8 @@ class TaskExecutor:
                 await self._invoke_session_agent(page)
 
                 # SP11 Phase 5b: calibration pass (auto-invoked unless
-                # runtime.calibration_run_pass=False). Apply-to-sampler is
-                # governed independently by runtime.calibration_apply_to_sampler
-                # so the pre-cal arm can record offset descriptively.
+                # runtime.calibration_run_pass=False, a test escape hatch).
+                # Result is always applied to the sampler.
                 await self._run_calibration_pass(page)
 
                 # Phase 2: Trial loop

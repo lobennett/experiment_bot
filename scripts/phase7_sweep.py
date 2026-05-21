@@ -354,6 +354,7 @@ async def run_sweep(args: argparse.Namespace) -> int:
                 session_idx += 1
                 attempt_n = 0
                 last_attempt: SessionAttempt | None = None
+                network_retry_wait_total_s = 0.0
                 while attempt_n < args.max_retries + 1:
                     attempt_n += 1
                     seed = args.seed_base + 1000 * session_idx + attempt_n
@@ -369,6 +370,32 @@ async def run_sweep(args: argparse.Namespace) -> int:
                         per_session_timeout_s=args.per_session_timeout_s,
                     )
                     a.attempt = attempt_n
+                    # Network-resilience: ERR_INTERNET_DISCONNECTED /
+                    # DNS failures don't consume the retry budget.
+                    # Wait + retry (capped at network_retry_max_wait_s).
+                    if a.status == "executor_error" and (
+                        "ERR_INTERNET_DISCONNECTED" in (a.error_message or "")
+                        or "Failed to read DnsConfig" in (a.error_message or "")
+                        or "net::ERR_NAME_NOT_RESOLVED" in (a.error_message or "")
+                    ):
+                        if network_retry_wait_total_s >= args.network_retry_max_wait_s:
+                            logger.error(
+                                f"Network outage exceeded "
+                                f"{args.network_retry_max_wait_s}s of retries; "
+                                f"counting as a real attempt failure."
+                            )
+                        else:
+                            wait_s = min(60.0,
+                                         args.network_retry_max_wait_s
+                                         - network_retry_wait_total_s)
+                            logger.warning(
+                                f"  → network error; retrying after {wait_s}s "
+                                f"without consuming retry budget"
+                            )
+                            await asyncio.sleep(wait_s)
+                            network_retry_wait_total_s += wait_s
+                            attempt_n -= 1  # don't count this attempt
+                            continue
                     if a.status == "pending" and a.session_dir is not None:
                         passed, info = evaluate_session_quality(
                             Path(a.session_dir), paradigm,
@@ -463,6 +490,14 @@ def main(argv: list[str] | None = None) -> int:
                         "paradigm/arm and move on (default: 5). Prevents "
                         "a broken TaskCard from burning the entire "
                         "wall-time budget.")
+    p.add_argument("--network-retry-max-wait-s", type=float, default=1800.0,
+                   help="When a session fails with a network error "
+                        "(ERR_INTERNET_DISCONNECTED / DNS), retry without "
+                        "consuming the retry budget, sleeping a bit "
+                        "between attempts. Capped at this total wait "
+                        "across attempts for one session (default: 1800 "
+                        "= 30 min). Past this, network errors count as "
+                        "regular attempt failures.")
     p.add_argument("--per-session-timeout-s", type=float, default=1200.0,
                    help="Per-session subprocess timeout in seconds "
                         "(default: 1200 = 20 min). If the executor hangs "

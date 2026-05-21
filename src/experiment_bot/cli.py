@@ -48,8 +48,6 @@ async def _run_task(
     headless: bool,
     taskcards_dir: Path,
     seed: int | None,
-    no_calibration: bool = False,
-    skip_calibration_pass: bool = False,
 ) -> None:
     try:
         taskcard = load_latest(taskcards_dir, label=label)
@@ -58,30 +56,6 @@ async def _run_task(
             f"No TaskCard found for label '{label}' in {taskcards_dir}. "
             f"Run `experiment-bot-reason {url} --label {label}` to generate one."
         ) from e
-
-    # SP11 Phase 5b: drop-from-scope check. Refuse to run sessions for
-    # paradigms the regeneration pipeline marked sp11_supported=False.
-    sp11_supported = taskcard.task_specific.get("sp11_supported", True)
-    if sp11_supported is False:
-        raise click.ClickException(
-            f"TaskCard for '{label}' is marked sp11_supported=False. "
-            f"This paradigm failed the pilot-time alignment check during "
-            f"Phase 5b regeneration. See docs/sp11-phase5b-deliverable.md "
-            f"and the TaskCard's task_specific.sp11_unsupported_reason "
-            f"field for details. To run anyway, edit the TaskCard "
-            f"manually (the Phase 7 analysis will exclude unsupported "
-            f"paradigms regardless)."
-        )
-
-    # SP11 Phase 5b: apply CLI calibration overrides.
-    if no_calibration:
-        # Pre-cal arm: run the pass for descriptive offset, but don't
-        # apply to sampler. This is the experimental control for the
-        # post-cal arm in Phase 7.
-        taskcard.runtime.calibration_apply_to_sampler = False
-    if skip_calibration_pass:
-        # Test escape hatch: skip the calibration pass entirely.
-        taskcard.runtime.calibration_run_pass = False
 
     # Draw session-level distributional parameters and stamp them into the
     # TaskCard's response_distributions[*].value so the executor's existing
@@ -115,15 +89,8 @@ async def _run_task(
 @click.option("--seed", type=int, default=None,
               help="Random seed for session-level parameter sampling (default: random)")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable debug logging")
-@click.option("--no-calibration", is_flag=True, default=False,
-              help="Phase 7 pre-cal arm: run calibration pass for "
-                   "descriptive offset, but do not apply to sampled RTs.")
-@click.option("--skip-calibration-pass", is_flag=True, default=False,
-              help="Test escape hatch: skip the calibration pass entirely. "
-                   "Not for production use.")
 def main(url: str, label: str, headless: bool, taskcards_dir: str,
-         seed: int | None, verbose: bool, no_calibration: bool,
-         skip_calibration_pass: bool):
+         seed: int | None, verbose: bool):
     """experiment-bot: Execute a previously-reasoned TaskCard against URL.
 
     Use `experiment-bot-reason` to generate the TaskCard first.
@@ -131,6 +98,4 @@ def main(url: str, label: str, headless: bool, taskcards_dir: str,
     _setup_logging(verbose)
     asyncio.run(_run_task(
         url, label, headless, Path(taskcards_dir), seed,
-        no_calibration=no_calibration,
-        skip_calibration_pass=skip_calibration_pass,
     ))

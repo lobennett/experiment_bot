@@ -14,3 +14,14 @@ each module.
 
 ## Pipeline phases (filled in below as SP12 walks each module)
 
+## 1. CLI entry: `cli.py`
+
+The bot launches via `experiment-bot <url> --label X`. The CLI:
+1. Loads the latest TaskCard for `<label>` via `taskcard.loader.load_latest`.
+2. Samples session-level distributional parameters via
+   `taskcard.sampling.sample_session_params(seed=...)`.
+3. Builds a SessionAgent via `_build_session_agent()` (returns None if
+   no LLM credentials available; the executor degrades gracefully).
+4. Constructs a `TaskExecutor`, awaits `executor.run(url)`.
+
+Entry point: `src/experiment_bot/cli.py:main` (click command).

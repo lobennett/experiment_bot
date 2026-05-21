@@ -12,3 +12,8 @@ holds under scrutiny.
 paradigm-specific values beyond the platform_adapters dispatch,
 which is itself the generic mechanism for paradigm-awareness.)
 
+## src/experiment_bot/cli.py
+
+(no paradigm-specific values; CLI is paradigm-agnostic — `--label` routes
+to whatever TaskCard exists for that label, and the rest of the CLI
+contains no Stroop/stop_signal/jsPsych names.)

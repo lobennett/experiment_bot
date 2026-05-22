@@ -275,7 +275,7 @@ Update this charter when:
 
 ## 10. Latest framework state (auto-updated)
 
-**Last reviewed at:** sp9b-complete (SP9b: Stage 4 openalex defensive fix; next SP9 candidate: jsPsych platform-recording gap, SP7 layer d)
+**Last reviewed at:** sp12-complete (SP12: codebase simplification + antagonistic audit + runtime visibility + post-cleanup N=5 re-measurement; src/experiment_bot/ shrank by 1,068 LOC across 21 commits from the SP12 baseline)
 
 **Validator pillars currently implemented:** rt_distribution, individual_differences, sequential.
 

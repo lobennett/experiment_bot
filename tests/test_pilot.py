@@ -101,3 +101,42 @@ def test_pilot_runner_reads_config():
 def test_pilot_runner_snapshot_dom_is_static():
     """_snapshot_dom is a static method."""
     assert hasattr(PilotRunner, '_snapshot_dom')
+
+
+import hashlib
+# (existing imports already cover PilotDiagnostics)
+
+
+def _empty_diagnostic() -> PilotDiagnostics:
+    return PilotDiagnostics(
+        trials_completed=0, trials_with_stimulus_match=0,
+        conditions_observed=[], conditions_missing=[],
+        selector_results={}, phase_results={}, dom_snapshots=[],
+        anomalies=[], trial_log=[],
+    )
+
+
+def test_dom_fingerprint_empty_when_no_snapshots():
+    d = _empty_diagnostic()
+    assert d.dom_fingerprint == ""
+
+
+def test_dom_fingerprint_stable_for_same_html():
+    d = _empty_diagnostic()
+    d.dom_snapshots = [{"trigger": "after_navigation", "html": "<div>x</div>"}]
+    expected = hashlib.sha256(b"<div>x</div>").hexdigest()[:16]
+    assert d.dom_fingerprint == expected
+    assert d.dom_fingerprint == d.dom_fingerprint  # idempotent
+
+
+def test_dom_fingerprint_reflects_latest_snapshot_only():
+    d = _empty_diagnostic()
+    d.dom_snapshots = [
+        {"trigger": "after_navigation", "html": "<div>welcome</div>"},
+        {"trigger": "no_match_50_polls", "html": "<div>welcome</div>"},
+    ]
+    stuck_fp = d.dom_fingerprint
+    d.dom_snapshots.append(
+        {"trigger": "no_match_100_polls", "html": "<div>instructions</div>"}
+    )
+    assert d.dom_fingerprint != stuck_fp

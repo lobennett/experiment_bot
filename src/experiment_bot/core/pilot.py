@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import hashlib
 import logging
 import time
 from dataclasses import dataclass, field
@@ -56,6 +57,19 @@ class PilotDiagnostics:
     @property
     def match_rate(self) -> float:
         return self.trials_with_stimulus_match / max(self.trials_completed, 1)
+
+    @property
+    def dom_fingerprint(self) -> str:
+        """Stable hash of the latest DOM snapshot's HTML. Empty string if
+        no snapshots captured. Used by Stage 6's stuck-detection guard
+        to recognize when refinements aren't moving the bot off a screen.
+        """
+        if not self.dom_snapshots:
+            return ""
+        latest = self.dom_snapshots[-1].get("html", "")
+        if not latest:
+            return ""
+        return hashlib.sha256(latest.encode("utf-8")).hexdigest()[:16]
 
     def to_report(self) -> str:
         lines = [

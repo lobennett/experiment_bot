@@ -1,52 +1,28 @@
 --- before_attempt_1
 +++ after_attempt_1
-@@ -70,11 +70,19 @@
+@@ -80,7 +80,24 @@
+ 
+ # navigation
  {
-   "phases": [
-     {
-+      "action": "click",
-+      "target": "#jspsych-fullscreen-btn",
-+      "key": "",
-+      "phase": "fullscreen_prompt",
-+      "duration_ms": 1000,
-+      "steps": []
-+    },
+-  "phases": []
++  "phases": [
 +    {
-+      "action": "keypress",
-       "key": "Enter",
--      "action": "keypress",
--      "phase": "",
-       "target": "",
--      "duration_ms": 0,
-+      "phase": "instruction_feedback",
-+      "duration_ms": 1000,
-       "steps": []
-     }
-   ]
-@@ -85,11 +93,12 @@
-   "phase_detection": {
-     "complete": "!!document.getElementById('finished_message')",
-     "loading": "!document.querySelector('#jspsych-content') || !document.querySelector('#jspsych-content > *')",
--    "instructions": "(!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')) || (!!document.querySelector('.centerbox .center-block-text') && !document.querySelector('.bigbox .picture_box') && !document.getElementById('jspsych-stop-signal-stimulus') && !document.getElementById('jspsych-attention-check-rdoc-stimulus'))",
-+    "instructions": "!!document.getElementById('jspsych-fullscreen-btn') || (!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')) || (!!document.querySelector('.centerbox .center-block-text') && !document.querySelector('.bigbox .picture_box') && !document.getElementById('jspsych-stop-signal-stimulus') && !document.getElementById('jspsych-attention-check-rdoc-stimulus'))",
-     "attention_check": "!!document.getElementById('jspsych-attention-check-rdoc-stimulus')",
-     "feedback": "!!document.querySelector('.bigbox .picture_box')",
-     "practice": "!!document.querySelector('.prompt_box') && !!document.getElementById('jspsych-stop-signal-stimulus')",
--    "test": "!document.querySelector('.prompt_box') && !!document.getElementById('jspsych-stop-signal-stimulus')"
-+    "test": "!document.querySelector('.prompt_box') && !!document.getElementById('jspsych-stop-signal-stimulus')",
-+    "fullscreen_prompt": "!!document.getElementById('jspsych-fullscreen-btn')"
-   },
-   "timing": {
-     "completion_wait_ms": 5000,
-@@ -111,9 +120,9 @@
-       "Enter"
-     ],
-     "feedback_selectors": [
-+      "#jspsych-fullscreen-btn",
-       "#jspsych-instructions-next",
--      "#jspsych-survey-text-next",
--      "#jspsych-fullscreen-btn"
-+      "#jspsych-survey-text-next"
-     ],
-     "pre_keypress_js": "",
-     "exit_pager_key": ""
++      "name": "fullscreen_prompt",
++      "detection": {
++        "method": "js_eval",
++        "selector": "document.querySelector('#jspsych-fullscreen-btn') !== null"
++      },
++      "action": {
++        "type": "click",
++        "selector": "#jspsych-fullscreen-btn"
++      },
++      "phase": "",
++      "target": "",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    }
++  ]
+ }
+ 
+ # runtime

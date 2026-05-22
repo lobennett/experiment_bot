@@ -26,7 +26,6 @@ from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.normalize import normalize_partial
 from experiment_bot.reasoner.parse_retry import parse_with_retry
-from experiment_bot.reasoner.validate import validate_stage1_output
 from experiment_bot.taskcard.types import ReasoningStep
 
 logger = logging.getLogger(__name__)

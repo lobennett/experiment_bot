@@ -837,3 +837,184 @@ Paradigm semantics live entirely in the TaskCard payload itself.)
 ### hashing.py
 - Paradigm-agnostic. Canonicalizes via `sort_keys + (",", ":")` separators.
 
+## src/experiment_bot/reasoner/ (SP12 Task 14)
+
+Walked the 5-stage offline pipeline (1872 LOC across 14 .py files + 4
+stage prompt .md files). Constraint: must not touch `prompts/system.md`,
+`prompts/schema.json`, or any `reasoner/prompts/stage*.md` — those force
+TaskCard regen. Removed only `validate_stage1_output` dead import from
+`stage6_pilot.py` (pyflakes-confirmed; only true unused import in dir).
+Suite green: 674 passed, 3 skipped.
+
+### `pipeline.py`
+- Hardcodes `Path("taskcards")` as default `_taskcards_dir` (line 43)
+  — same default in `cli.py`, so functionally redundant but not
+  paradigm-specific.
+- Resume scan iterates explicitly `(5, 4, 3, 2, 1)` — adding a future
+  stage requires editing this tuple.
+- Paradigm-agnostic; no hardcoded paradigm names.
+
+### `cli.py`
+- Hardcodes `"claude-opus-4-7"` and `"1.0.0"` scraper version as
+  fallback `produced_by` metadata in `_wrap_for_taskcard` (lines 78-85).
+  Falls back only when partial lacks `schema_version` (legacy path);
+  current Stage 1 emits this, so dead in practice — but provenance
+  could lie if it ever fires.
+- Paradigm-agnostic.
+
+### `normalize.py`
+- Pure key-alias mapping. Canonical aliases are LLM-output coercions
+  (`detect`→`detection`, `type`→`method`, `selector`→`target`,
+  `duration`→`duration_ms`). No paradigm names.
+- `_normalize_performance` injects `accuracy = {"default": 0.95}` when
+  the LLM omits accuracy entirely (line 41). The 0.95 is a hardcoded
+  bot-side default; documented as "interrupt tasks measuring inhibition
+  rate" but the value itself is not citation-backed. **Soft finding:**
+  consider sourcing from norms or surfacing as warning.
+- `_normalize_stimulus` falls through to `id = "unknown_stimulus"`
+  when no ID-like key exists (line 62). Silent — Stage 1 validation
+  doesn't check IDs for uniqueness either.
+
+### `stage1_structural.py`
+- **REQUIRED_FIELDS_CHECKLIST (lines 20-61)** is appended to the
+  user prompt in `_build_stage1_prompt`. Contains paradigm/platform
+  examples: "STOP-IT calls a custom `jsPsych.data.getInteractionData()`"
+  (line 40). This is paradigm-name leakage in prompt content.
+  **NOT REMOVED** — modifying it changes Stage 1 outputs (TaskCard
+  regen). Flag for SP-prompt-cleanup pass.
+- Hardcoded source-text truncation: `description_text[:5000]`,
+  `content[:60000]` (lines 81-83). Tuned for jsPsych task sizes; could
+  decay for very large paradigm sources. No fallback warning.
+- `_extract_json` is the canonical JSON extractor for all stages
+  (re-exported via parse_retry); historical reason but stage2 still
+  imports it directly from here (`stage2_behavioral.py` line 7).
+  Cleaner home would be a `_json.py` module.
+- `max_retries=3` for validation loop is hardcoded.
+
+### `stage2_behavioral.py`
+- `STAGE2_MAX_REFINEMENTS = 3` hardcoded.
+- `_SLOT_RULES` list (lines 31-38) defines slot-extraction depth
+  per top-level path. `between_subject_jitter` collapses to whole
+  slot; `temporal_effects` / `performance` / `task_specific` /
+  `response_distributions` collapse to depth-2. **Adding a new
+  slot-bearing top-level key requires editing this list** — a
+  future paradigm with a different top-level structure would silently
+  fall through to the depth-1 default.
+- `_render_slot_refinement_prompt` builds a multi-section refinement
+  prompt inline (lines 92-115). Includes the docstring-anchored
+  reference to the "Concrete shape examples" section of `system.md`
+  — coupled to system prompt structure.
+- Paradigm-agnostic; mechanism vocabulary read from `EFFECT_REGISTRY`
+  at runtime.
+
+### `stage3_citations.py`
+- `path.split("/", 2)` (line 47) — section-key separator is hardcoded
+  `/`. Same convention as enumeration. Dispatch on `section` name is
+  a static if/elif chain over the three known sections.
+- Paradigm-agnostic.
+
+### `stage4_doi_verify.py`
+- `_iter_citations` walks the same three sections by hardcoded names
+  (`response_distributions`, `temporal_effects`,
+  `between_subject_jitter`). Identical pattern to stage3 / stage5
+  dispatch — three copies of the section list across the reasoner.
+- Paradigm-agnostic.
+
+### `stage5_sensitivity.py`
+- Same hardcoded section list as stages 3/4 (lines 30-35).
+- Path-parts dispatch (2 vs 3 segments) is hardcoded; malformed
+  paths silently skipped.
+- Paradigm-agnostic.
+
+### `stage6_pilot.py`
+- **REFINEMENT_PROMPT (lines 39-85)** is a paradigm-agnostic prompt
+  template, but it does name the specific structural fields that
+  pilot evidence can refine: stimuli, navigation,
+  runtime.advance_behavior, runtime.phase_detection,
+  runtime.data_capture, task_specific. Coupled to the TaskCard
+  shape.
+- `_partial_to_pilot_config` builds a TaskConfig that imports 8
+  dataclasses from `core.config` — strongest tight coupling in the
+  reasoner directory.
+- Splice list (`stimuli`, `navigation`, `runtime`, ...) at line 180
+  duplicates the structural-fields list in `_partial_to_pilot_config`
+  and again in `_save_refinement_diff` (line 229). 3 hardcoded
+  copies of the same list — divergence risk.
+- Hardcoded source truncations: `[:5000]`, `[:30000]` (lines 154-156)
+  diverge from Stage 1's `[:5000]`, `[:60000]`. Stage 6 sees less
+  source context than Stage 1 did; intentional? Undocumented.
+- Removed unused `validate_stage1_output` import (pyflakes-clean).
+
+### `validate.py`
+- `validate_stage2_schema` reads `EFFECT_REGISTRY` at function-call
+  time (line 83) — late binding intentional so dynamic
+  `register_effect` calls work.
+- Hardcoded list of validated top-level keys: `temporal_effects`,
+  `between_subject_jitter`, `performance.accuracy`,
+  `performance.omission_rate`, `task_specific.key_map`. Adding a new
+  validation target requires editing this function.
+- Comment block (lines 78-81) names removed paradigm vocabulary
+  (`congruency_sequence`, `post_error_slowing`) as historical
+  context; safe — comment only, not in any prompt.
+- `validate_stage1_output` hardcodes the executor's contract:
+  advance_keys vs feedback_selectors, data_capture.method enum.
+  Tightly coupled to executor's expectations.
+
+### `parse_retry.py`
+- `max_retries=3` default hardcoded.
+- Defers import of `_extract_json` to avoid a circular dependency
+  with `stage1_structural.py` (comment lines 69-74). **Architectural
+  smell:** `_extract_json` should live in `parse_retry.py` (or a
+  shared `_json.py`); other stages import it from stage1 only by
+  historical accident.
+
+### `openalex.py`
+- Hardcoded URL template `OPENALEX_URL` (line 7) and HTTP timeout
+  `10.0`s. Both reasonable defaults; configurable via env var would
+  be nicer.
+- Surname-matching tokenization is heuristic: tokens with length > 2
+  and capitalized first letter (lines 41-45). Will mis-tokenize
+  hyphenated names, single-syllable surnames ≤ 2 chars (e.g., "Yu"),
+  and non-Western name orders.
+- SP9b string-vs-list normalization (lines 39-40) is paradigm-
+  agnostic.
+
+### `norms_extractor.py`
+- `_RANGE_KEYS` (lines 25-29) hardcodes the set of acceptable range
+  keys: `range`, `range_ms`, `mu_range`, `sigma_range`, `tau_range`,
+  `mu_sd_range`, `sigma_sd_range`, `tau_sd_range`. Adding a new
+  range-bearing key (e.g., `gamma_range` for a future distribution)
+  requires editing.
+- Validator allows EITHER concrete range OR explicit-null with
+  reason — paradigm-agnostic policy.
+
+### `norms_cli.py`
+- Lightweight click wrapper. Single hardcoded default `norms` dir.
+
+## Cross-cutting reasoner findings
+
+1. **Three copies of the section-list dispatch.** `stage3`, `stage4`,
+   `stage5` each hardcode `response_distributions` /
+   `temporal_effects` / `between_subject_jitter`. If a future Stage
+   adds a fourth top-level numeric section (e.g.,
+   `within_subject_jitter`), all three must be updated in lockstep.
+   Candidate for a shared `SECTIONS_WITH_PARAMS` constant.
+2. **`_extract_json` belongs in `parse_retry.py`.** Its current
+   home in `stage1_structural.py` is historical; the circular-import
+   workaround in `parse_retry.py` is the symptom.
+3. **`REQUIRED_FIELDS_CHECKLIST` paradigm leakage.** Lives in
+   `stage1_structural.py` but is prompt content. STOP-IT named
+   directly. Cleanup requires a Stage 1 TaskCard regen pass —
+   defer to a future SP.
+4. **Hardcoded source truncation budgets diverge.** Stage 1 uses
+   60k chars per file; Stage 6 refinement uses 30k. No documented
+   reason. May silently shrink the LLM's view between attempts.
+5. **`_normalize_performance` default `accuracy = 0.95`.** Soft
+   default with no citation hook. For tasks that legitimately omit
+   accuracy, this number ends up in the TaskCard and propagates
+   through the executor. Worth a logged warning or
+   norms-file lookup.
+6. **Pipeline resume tuple `(5, 4, 3, 2, 1)`.** Adding stage 7+ is
+   a 2-line edit, but the order is also embedded in the chained
+   `start_after < N` conditions in `run()`.
+

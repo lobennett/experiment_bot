@@ -159,3 +159,18 @@ Entry point: `taskcard/loader.py:load_latest`.
 
 Entry point: `taskcard/loader.py:load_latest`.
 
+## 12. Reasoner pipeline: `reasoner/` (offline, pre-session)
+
+5-stage offline pipeline that produces a TaskCard from a paradigm
+URL + literature. Not traversed during sessions.
+
+| Stage | Module | Role |
+|---|---|---|
+| 1 | stage1_structural.py | Parse page source → stimuli, navigation, runtime |
+| 2 | stage2_behavioral.py | Add response_distributions, performance, temporal_effects |
+| 3 | stage3_citations.py | Attach literature citations to numeric parameters |
+| 4 | stage4_doi_verify.py | Verify citation DOIs via OpenAlex |
+| 5 | stage5_sensitivity.py | Tag sensitivity per parameter |
+| 6 | stage6_pilot.py | Live-DOM pilot validation against URL (optional via --skip-pilot) |
+
+Entry point: `reasoner/pipeline.py:ReasonerPipeline.run`.

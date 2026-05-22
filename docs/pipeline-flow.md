@@ -105,3 +105,17 @@ Per-condition RT sampling with temporal-effects application:
 4. Applies calibration adjustment if a CalibrationResult is installed.
 
 Entry point: `core/distributions.py:ResponseSampler.sample_rt`.
+
+## 7. Stimulus detection + phase: `core/stimulus.py`, `core/phase_detection.py`
+
+`StimulusLookup.identify(page)` polls the page DOM/state for any of
+the configured stimuli. Each stimulus's `detection` block declares
+method (`dom_query`, `js_eval`) and selector. The first match wins.
+
+`detect_phase(page, config)` classifies the current page state into
+TaskPhase.{INSTRUCTIONS, FEEDBACK, TEST, COMPLETE, etc.} via the
+TaskCard's `phase_detection` JS predicates. The trial loop dispatches
+on phase to know whether to fire a response, advance instructions,
+or finalize.
+
+Entry point: `core/stimulus.py:StimulusLookup.identify`.

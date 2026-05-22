@@ -454,3 +454,103 @@ Walked under SP12 Task 8. Findings:
   comments aligned with G2 (no paradigm vocabulary in bot library).
   No behavior change.
 
+## src/experiment_bot/core/stimulus.py
+
+Walked under SP12 Task 9. No paradigm names appear in the file; the
+module dispatches on the TaskCard's `detection.method` string.
+
+### Hardcoded method-name vocabulary (framework-level contract)
+
+- `_check_rule` (stimulus.py:56–76) dispatches on four literal method
+  strings: `"dom_query"`, `"js_eval"`, `"text_content"`,
+  `"canvas_state"`. These are the Reasoner→Executor contract for
+  stimulus-detection mechanics. Adding a fifth detection mechanism
+  requires editing both this dispatch and `core/pilot.py:_check_rule`
+  + `core/executor.py:_stimulus_detection_js` (and the Stage 2
+  validator). The vocabulary is bot-mechanic, not paradigm-specific
+  — generalizable, but the dispatch is duplicated in three places
+  (see "Architectural" below).
+- `"canvas_state"` and `"js_eval"` collapse to identical behavior in
+  `_check_rule` (both: `await page.evaluate(rule.selector)` then
+  `bool(result)`). The two branches are textually distinct but
+  semantically identical. Probably intentional for Reasoner-facing
+  semantic clarity ("canvas_state" tells the Reasoner this selector
+  reads canvas pixel data; "js_eval" is generic). Not a defect.
+
+### Dead-field carry: `_StimulusRule.alt_method`
+
+- `_StimulusRule.alt_method` (stimulus.py:25) is populated in the
+  constructor (stimulus.py:39) but never read by `_check_rule` or
+  anywhere else in the bot library. The field tracks
+  `DetectionConfig.alt_method` (config.py:41) which is similarly
+  unread at runtime — it appears in TaskCard JSON, in fixtures, and
+  in the Stage 2 schema, but no code consumes it. Either the
+  Reasoner is meant to use it as a fallback method (intent visible in
+  the field name) and the runtime fallback was never wired, or the
+  field is vestigial schema. Report-don't-remove because the JSON
+  schema is committed and TaskCards already serialize it.
+
+### Architectural concerns (report, don't remove)
+
+- **Three sites duplicate the detection-method dispatch.**
+  `stimulus.py:_check_rule`, `pilot.py:_check_rule` (lines 214-221),
+  and `executor.py:_stimulus_detection_js` (line 764+) each interpret
+  the `detection.method` vocabulary independently. They agree today
+  but a future Reasoner-side mechanism (e.g., `"shadow_dom"`,
+  `"iframe_query"`) would need three matching edits. A small
+  `core/detection_dispatch.py` (or method strategy table) would
+  consolidate the contract.
+- **Bare-`except` in `_check_rule`.** Line 73 catches all exceptions
+  and logs at DEBUG. Sufficient for the documented "page context
+  torn down by navigation" failure mode, but it also swallows JS
+  syntax errors in the TaskCard's `detection.selector` — those
+  manifest as "stimulus never matches" rather than a loud failure.
+  The Stage 2 validator should catch malformed JS pre-flight; if it
+  doesn't, this is a silent-failure surface.
+
+## src/experiment_bot/core/phase_detection.py
+
+Walked under SP12 Task 9. The module is paradigm-agnostic; all
+phase predicates flow from `PhaseDetectionConfig` (TaskCard).
+
+### Clear-cut removal applied
+
+- The trailing `if config.test: return TaskPhase.TEST; return
+  TaskPhase.TEST` (original lines 33-35) had identical return on
+  both branches — dead code. Replaced with a single
+  `return TaskPhase.TEST` plus a comment documenting that
+  `config.test` is unused at runtime (TEST is always the
+  fall-through default). Pytest green (675 passed).
+
+### Hardcoded phase-name vocabulary (framework-level contract)
+
+- The phase ordering tuple at lines 14-21 is the canonical
+  evaluation order: `complete > loading > instructions >
+  attention_check > feedback > practice`. Order matters because
+  the first truthy predicate wins. Editing this order is a runtime
+  semantics change. The names also match `TaskPhase` enum values
+  (config.py:18-25) and the keys the Reasoner emits in
+  `phase_detection.*` — three-way contract.
+
+### Architectural concerns (report, don't remove)
+
+- **`PhaseDetectionConfig.method` is unused at runtime.**
+  Defaulted to `"js_eval"` (config.py:595), only surfaced by a
+  `test_analyzer.py:161` roundtrip assertion. `detect_phase` always
+  calls `page.evaluate` regardless. Either remove the field from
+  the schema and roundtrip, or wire it through the dispatch (so the
+  Reasoner can emit `"dom_query"` for paradigms whose phase markers
+  are pure CSS selectors). Today it's a schema artifact only.
+- **Context-destroyed → COMPLETE heuristic is paradigm-agnostic but
+  fragile.** Line 29-31: any exception during `page.evaluate` is
+  interpreted as "page navigated away → task complete." Correct for
+  the dev paradigms (their completion flows always navigate), but
+  an unrelated JS error in the Reasoner-emitted predicate would
+  also silently report COMPLETE and terminate the trial loop. Same
+  silent-failure shape as the `stimulus.py` bare-except.
+- **`PhaseDetectionConfig.to_dict` omits empty strings**
+  (config.py:608-609: `if v`). The empty default `test=""` would
+  drop out of JSON, but the default is `test="true"`, so this
+  doesn't lose data today. Worth noting that the dataclass
+  defaults and the to_dict filter are coupled.
+

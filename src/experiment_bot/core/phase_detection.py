@@ -30,6 +30,7 @@ async def detect_phase(page: Page, config: PhaseDetectionConfig) -> TaskPhase:
                 # Context destroyed (page navigated away) typically means complete
                 return TaskPhase.COMPLETE
 
-    if config.test:
-        return TaskPhase.TEST
+    # No phase predicate matched — default to TEST (the trial loop's
+    # "do work" state). `config.test` exists in the schema for symmetry
+    # but is not consulted: TEST is always the fall-through.
     return TaskPhase.TEST

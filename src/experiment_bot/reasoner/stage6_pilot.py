@@ -36,51 +36,61 @@ class PilotValidationError(RuntimeError):
 
 
 REFINEMENT_PROMPT = """\
-You previously produced structural fields for an experiment-bot TaskCard.
-A pilot run executed those fields against the live experiment URL via
-Playwright and captured diagnostics. Below are the original fields, the
-pilot's diagnostic report, and the experiment source. Fix the structural
-fields based on the pilot evidence.
+You are refining an experiment-bot TaskCard one step at a time. The bot ran the
+TaskCard against the live experiment URL via Playwright and got stuck. Your job
+is to propose the SMALLEST possible advance that moves the bot ONE DOM state
+forward — not to fix everything at once.
 
-## Your Original Structural Fields
+## Your Current Structural Fields
 {partial_json}
 
-## Pilot Diagnostic Report
+## Pilot Diagnostic Report (latest run)
 {diagnostic_report}
 
 ## Original Experiment Source (excerpt)
 {source_summary}
 
+## Prior Refinement Attempts (chronological)
+{prior_diffs_section}
+
 ## Instructions
 
-The pilot's evidence is ground truth — selectors that NEVER MATCHED do
-not match the live DOM, phases that NEVER FIRED do not match, conditions
-listed as MISSING were not produced by the live experiment with your
-configuration. Fix accordingly:
+Read the latest DOM Snapshot in the diagnostic report — that is the screen the
+bot is looking at right now. Identify what's blocking THIS specific screen.
 
-1. **Stimuli with NEVER MATCHED selectors:** rewrite using the actual
-   DOM structure shown in the snapshots. Read the snapshot HTML and
-   write a CSS or JS expression that matches what's actually rendered.
-2. **Missing conditions:** the pilot couldn't reach trials of these
-   conditions. Either the navigation isn't getting past instructions
-   to the test phase, or the stimulus detector for those conditions
-   doesn't match.
-3. **Phase expressions that never fired:** check against the snapshots
-   and fix the JS expression for the affected phase.
-4. **Empty navigation.phases when the page has multi-screen entry
-   flow:** examine the DOM snapshots for fullscreen prompts, instruction
-   carousels, consent screens, etc. Each requires a navigation phase
-   (click on the right selector or press the right key).
+Propose ONE change. Choose the right kind based on what the diagnostic shows:
 
-Fix ONLY structural fields: stimuli, navigation, runtime.advance_behavior,
-runtime.phase_detection, runtime.data_capture, task_specific. Do NOT
-modify response_distributions, temporal_effects, between_subject_jitter,
-or performance.accuracy/omission_rate — those are set by later Reasoner
-stages and the pilot's evidence does not bear on them.
+1. **Bot stuck on an interstitial screen** (fullscreen prompt, instructions with
+   a Next/Continue button, consent form, attention check, etc.): add ONE entry
+   to `navigation.phases` that clicks the visible button (use the selector
+   shown in the DOM snapshot) or presses the right key. Do NOT add multiple
+   navigation phases speculatively — the pilot will rerun and reveal the next
+   screen.
 
-Return ONLY a JSON object containing the fields you changed. Unchanged
-fields can be omitted; the pipeline will splice your output into the
-existing partial. Return JSON only, no preamble.
+2. **Bot reached trials but selector_results show 0 matches** (test phase fired
+   but no stimulus detected): examine the latest DOM snapshot for the actual
+   trial-rendering structure. Update ONE stimulus's `detection.selector` to
+   match what's rendered. Do NOT change conditions, response keys, or other
+   fields.
+
+3. **Phase_detection expression never fires but should** (e.g. instructions
+   phase shows "never fired" yet the DOM shows an instructions screen): update
+   that ONE phase_detection JS expression to match what's in the DOM.
+
+If "Prior Refinement Attempts" contains diffs from earlier passes, do NOT undo
+them. Build on prior progress: the bot is now in a DIFFERENT state than when
+the first refinement ran. If you see yourself trying the same change twice,
+something else is blocking; switch to a different observation.
+
+Fix ONLY structural fields: `stimuli`, `navigation`, `runtime.advance_behavior`,
+`runtime.phase_detection`, `runtime.data_capture`, `task_specific`. Do NOT modify
+`response_distributions`, `temporal_effects`, `between_subject_jitter`, or
+`performance.accuracy/omission_rate` — those are set by other Reasoner stages
+and the pilot's evidence does not bear on them.
+
+Return ONLY a JSON object containing the field(s) you changed. Unchanged fields
+should be omitted; the pipeline will splice your output into the existing
+partial. Return JSON only, no preamble.
 """
 
 
@@ -141,9 +151,18 @@ def _pilot_passed(diagnostics: PilotDiagnostics, config: TaskConfig) -> tuple[bo
 
 
 async def _refine_partial(
-    client: LLMClient, partial: dict, diagnostics: PilotDiagnostics, bundle: SourceBundle,
+    client: LLMClient,
+    partial: dict,
+    diagnostics: PilotDiagnostics,
+    bundle: SourceBundle,
+    *,
+    prior_diffs: list[str],
 ) -> dict:
-    """Ask Claude to fix structural fields based on the pilot diagnostic.
+    """Ask Claude to propose the next smallest advance for the stuck pilot.
+
+    `prior_diffs` is the chronological list of unified-diff strings from
+    previous refinement attempts in this run. The LLM uses them to avoid
+    undoing earlier progress.
 
     Returns a NEW partial with refined structural fields spliced in;
     behavioral fields (response_distributions, temporal_effects, etc.)
@@ -162,10 +181,19 @@ async def _refine_partial(
             "performance", "pilot_validation_config",
         }
     }
+    if prior_diffs:
+        prior_diffs_section = "\n\n".join(
+            f"### Attempt {i + 1}\n```diff\n{d}\n```"
+            for i, d in enumerate(prior_diffs)
+        )
+    else:
+        prior_diffs_section = "(none yet — this is the first refinement)"
+
     user = REFINEMENT_PROMPT.format(
         partial_json=json.dumps(structural_only, indent=2),
         diagnostic_report=diagnostics.to_report(),
         source_summary=source_summary,
+        prior_diffs_section=prior_diffs_section,
     )
     refined = await parse_with_retry(
         client, system="", user=user, stage_name="stage6_pilot_refinement",
@@ -187,11 +215,6 @@ async def _refine_partial(
         else:
             out[key] = refined[key]
     out = normalize_partial(out)
-    # Don't validate the refined partial — if the LLM produced something
-    # broken (empty advance_keys, missing selectors, etc.), the next pilot
-    # iteration will surface the problem via its own diagnostic. Hard-
-    # failing here would short-circuit the retry loop's ability to
-    # recover, even when later refinements might fix the issue.
     return out
 
 
@@ -325,7 +348,9 @@ async def run_stage6(
 
         # Refine and retry; capture the diff for provenance.
         before = copy.deepcopy(partial)
-        partial = await _refine_partial(client, partial, diagnostics, bundle)
+        partial = await _refine_partial(
+            client, partial, diagnostics, bundle, prior_diffs=[],
+        )
         _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)
         # Persist the refined partial back to the resume point so that
         # if Stage 6 hard-fails on a later attempt, --resume continues

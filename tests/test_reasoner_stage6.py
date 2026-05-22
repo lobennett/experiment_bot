@@ -188,7 +188,7 @@ async def test_stage6_persists_refinements_via_save_partial_callback(tmp_path):
         pr.run = AsyncMock(return_value=_failing_diagnostic())
         pr_cls.return_value = pr
         # Each refinement adds a marker key so we can verify it propagated.
-        async def fake_refine(client, p, diag, bundle):
+        async def fake_refine(client, p, diag, bundle, *, prior_diffs):
             import copy
             new_p = copy.deepcopy(p)
             new_p[f"_refinement_{len(saved_partials) + 1}"] = "applied"
@@ -269,3 +269,38 @@ async def test_stage6_pilot_crash_treated_as_failure(tmp_path):
             )
     diag = (tmp_path / "fake_task" / "pilot.md").read_text()
     assert "Pilot crashed" in diag
+
+
+@pytest.mark.asyncio
+async def test_refinement_prompt_uses_sequential_framing(tmp_path):
+    """REFINEMENT_PROMPT must instruct the LLM to propose the SMALLEST next
+    advance and reference 'Prior Refinement Attempts' for history."""
+    from experiment_bot.reasoner.stage6_pilot import REFINEMENT_PROMPT
+    assert "smallest" in REFINEMENT_PROMPT.lower(), \
+        "prompt must instruct LLM to propose smallest advance"
+    assert "Prior Refinement Attempts" in REFINEMENT_PROMPT, \
+        "prompt must have a section for prior attempts"
+    # Anti-regression: the old "fix all structural fields" framing should be gone.
+    assert "Fix accordingly" not in REFINEMENT_PROMPT, \
+        "old whole-fix framing should be removed"
+
+
+@pytest.mark.asyncio
+async def test_refine_partial_includes_prior_diffs_in_prompt(tmp_path):
+    """When prior_diffs is non-empty, the refinement prompt rendered to the
+    LLM must contain the prior diff text so the LLM can see what was tried."""
+    from experiment_bot.reasoner.stage6_pilot import _refine_partial
+    fake_client = AsyncMock()
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text="{}"))
+    partial = _stage5_partial()
+    prior_diff = "--- before_attempt_1\n+++ after_attempt_1\n+ added fullscreen click\n"
+    await _refine_partial(
+        fake_client, partial, _failing_diagnostic(), _bundle(),
+        prior_diffs=[prior_diff],
+    )
+    # Inspect the prompt that was sent to the LLM
+    sent_user = fake_client.complete.await_args.kwargs.get("user") \
+                or fake_client.complete.await_args.args[1]
+    assert "added fullscreen click" in sent_user, \
+        "prior diff text must appear in the refinement prompt"
+    assert "Prior Refinement Attempts" in sent_user

@@ -1018,3 +1018,76 @@ Suite green: 674 passed, 3 skipped.
    a 2-line edit, but the order is also embedded in the chained
    `start_after < N` conditions in `run()`.
 
+## src/experiment_bot/effects/ (SP12 Task 15)
+
+Walked the four files. No auto-removals applied — every symbol is
+imported by oracle.py, scripts/analyze_sessions.py, or tests/.
+
+### Things that look removable but aren't
+
+1. **`apply_condition_repetition` handler.** Every committed
+   TaskCard sets `temporal_effects.condition_repetition.enabled =
+   False`; the runtime delta is always 0. But the mechanism is
+   under an explicit SP11 Phase 2 deprecation arc
+   (`core/config.py:_emit_condition_repetition_deprecation`), with
+   tests gating the warning behavior and the registry wiring still
+   live. Per G2, the mechanism vocabulary entry is retained until
+   Phase 5 removal; the Reasoner could re-enable it on a future
+   paradigm by setting `enabled: true` and supplying non-zero
+   `facilitation_ms`/`cost_ms`. Keep.
+
+2. **`SamplerState.mu`/`sigma`/`tau` fields.** Doc says they are
+   "kept for back-compat with handlers/tests that reference
+   ex-Gaussian parameters directly" and `apply_autocorrelation`
+   falls back to `state.mu + state.tau` when `expected_rt` is 0.
+   Several tests construct `SamplerState` without setting
+   `expected_rt` and rely on this fallback. Removal would break
+   them. Keep until those tests migrate.
+
+### Architectural items (reported, not removed)
+
+1. **`registry.py` does post-hoc wiring of handlers and
+   config_classes at import time** (lines 178–211). Each registry
+   entry is built with `handler=None` / `validation_metric=None`
+   then mutated after the dataclass is constructed. The comment
+   says "filled in by Task A2" — that task is long-done.
+   Refactoring this to declare handler/config_class/validation_metric
+   inline at the `EffectType(...)` call site would remove the
+   two-phase init and the `# noqa: E402` imports, but requires
+   resolving the `effects ↔ core.config` circular-import shape
+   (handlers references SamplerState; config references handlers
+   indirectly via validation). Defer until the circular shape is
+   investigated holistically.
+
+2. **`apply_post_event_slowing.decay_weights` is documented but
+   not implemented.** The handler's docstring (lines 222–228)
+   describes per-position decay weights consulted "only [for]
+   error-event triggers"; the body never reads
+   `decay_weights`. Either prune the docstring claim or wire it
+   up. Affects SP2-E3 fidelity follow-ups already tracked in
+   `docs/sp2-validation-followups.md`.
+
+3. **`effects/__init__.py` is empty.** All consumers import from
+   submodules directly (`from experiment_bot.effects.handlers
+   import ...`, `from experiment_bot.effects.registry import
+   EFFECT_REGISTRY`). Empty `__init__.py` is fine — no re-export
+   layer to maintain. Noting only because the next sibling
+   walk-throughs may want to keep this pattern consistent.
+
+4. **`fit_ex_gaussian` hardcodes the [150ms, 5000ms] outlier
+   filter and bounds `(50, 5000)` / `(1, 1000)` / `(1, 2000)`.**
+   These are physiologically motivated and documented in the
+   docstring. Worth flagging because the bot's library should
+   ideally read RT plausibility bounds from a single source
+   (currently also referenced in `distributions.py` and in the
+   norms files). Candidate for a `RT_PLAUSIBILITY_RANGE_MS`
+   constant. Defer.
+
+5. **`cse_magnitude` lives in `effects/validation_metrics.py`
+   despite being explicitly paradigm-conventional language.**
+   The docstring is clear that the name is retained because the
+   conflict literature standardizes it — the implementation is a
+   thin wrapper around `lag1_pair_contrast`. This is a deliberate
+   exception under the G2 carve-out for metric NAMES (vs.
+   mechanism names). No change.
+

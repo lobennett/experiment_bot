@@ -174,3 +174,21 @@ URL + literature. Not traversed during sessions.
 | 6 | stage6_pilot.py | Live-DOM pilot validation against URL (optional via --skip-pilot) |
 
 Entry point: `reasoner/pipeline.py:ReasonerPipeline.run`.
+
+## 13. Effects library: `effects/`
+
+Generic temporal-effects mechanisms applied by the sampler.
+
+- `registry.py` — name → handler dispatch
+- `handlers.py` — per-mechanism implementations (autocorrelation,
+  fatigue_drift, lag1_pair_modulation, post_event_slowing,
+  practice_effect, vigilance_decrement, pink_noise)
+- `validation_metrics.py` — computation functions for population-level
+  metrics (lag1_autocorrelation, post_error_slowing_magnitude,
+  ssrt_integration, fit_ex_gaussian, cse_magnitude, lag1_pair_contrast)
+
+Per G2, mechanisms are named in mechanism vocabulary, not paradigm
+vocabulary. Conflict-paradigm "CSE" is exposed as `cse_magnitude` in
+validation_metrics.py as a thin wrapper around `lag1_pair_contrast`.
+
+Entry point: `effects/registry.py:EFFECT_REGISTRY`.

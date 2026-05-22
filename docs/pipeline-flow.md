@@ -119,3 +119,16 @@ on phase to know whether to fire a response, advance instructions,
 or finalize.
 
 Entry point: `core/stimulus.py:StimulusLookup.identify`.
+
+## 10. LLM client abstraction: `llm/`
+
+Two-implementation client pattern (Reasoner-only consumer; SessionAgent
+removed in Task 4):
+- `cli_client.py` — wraps the `claude` CLI binary
+- `api_client.py` — wraps the Anthropic Python SDK
+
+`factory.py:build_default_client(model=...)` picks based on env (API
+key → SDK; else CLI on PATH). Used by:
+- Reasoner pipeline stages (offline, before sessions)
+
+Entry point: `llm/factory.py:build_default_client`.

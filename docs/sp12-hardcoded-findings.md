@@ -669,3 +669,104 @@ hardcoded values beyond the constructor default.
   Decision deferred — the standalone module is cleanly tested in
   isolation and the call-site cost is one import; inlining is a
   cosmetic refactor with no fidelity impact.
+
+## src/experiment_bot/llm/
+
+Walked under SP12 Task 12. Five files, ~150 LOC total. Paradigm-
+agnostic LLM client abstraction; no paradigm vocabulary, no hardcoded
+norms/magnitudes. The only consumer chain after SessionAgent removal
+(Task 4) is the offline Reasoner pipeline.
+
+### src/experiment_bot/llm/__init__.py
+
+Empty (0 bytes). Re-exports nothing. Consumers always import from the
+submodule (e.g. `from experiment_bot.llm.protocol import LLMResponse`).
+Leave as-is.
+
+### src/experiment_bot/llm/protocol.py
+
+- **`LLMResponse` dataclass** (text + `stop_reason`); `stop_reason`
+  default `"end_turn"` is an Anthropic-protocol literal, not a
+  paradigm-specific tunable.
+- **`LLMClient` Protocol** with one method `complete(system, user,
+  max_tokens=16384, output_format="text", images=None)`. The
+  `max_tokens=16384` default is a model-capability ceiling, not a
+  fidelity parameter. The `images: list[bytes] | None` slot is now
+  dead in production (no Reasoner stage passes images; SessionAgent
+  removal in Task 4 was the only image-passing caller). Kept in the
+  protocol for parity with the SDK; no call sites left to migrate.
+- No hardcoded paradigm values. Consumed broadly by reasoner stages
+  1, 2, 3, 5, 6, parse_retry, norms_extractor, pipeline.
+
+### src/experiment_bot/llm/cli_client.py
+
+- **`claude_binary="claude"`** constructor default — paradigm-agnostic
+  binary name on PATH.
+- **`model="claude-opus-4-7"`** constructor default — framework-wide
+  model selection, surfaced through `build_default_client(model=...)`
+  override.
+- **`timeout_s=1200.0`** constructor default (20-minute LLM call
+  ceiling) — bot-mechanic, paradigm-agnostic.
+- **`--output-format json`** hardcoded CLI arg (line 50). The CLI's
+  JSON envelope is parsed; this is the binary's own format flag, not
+  the per-call `output_format="text"/"json"` parameter (which is
+  silently ignored on the CLI path).
+- **Multimodal warn-and-degrade** (lines 36–42). When images are
+  passed, logs a warning and proceeds text-only. Post-SessionAgent-
+  removal, this branch is dead code in production but cheap to keep.
+- **Usage-limit error sniffing** (line 70) keys on the strings
+  `"usage limit"` / `"quota"` in stderr. CLI-binary contract, not a
+  paradigm value.
+- Sole instantiation: `factory.py:_build_cli_client` (+ tests).
+
+### src/experiment_bot/llm/api_client.py
+
+- **`model="claude-opus-4-7"`** constructor default — same framework
+  default as the CLI client. Matched override path via factory.
+- **`media_type="image/png"`** hardcoded (line 31). Reasonable for
+  the only historical caller (SessionAgent screenshots, now removed).
+  No paradigm coupling; PNG is the Playwright screenshot default.
+- **`output_format` parameter is documented as informational only on
+  the API path** (lines 22–23) — the API enforces JSON via prompt
+  text, not a request flag. Matches CLI's silent-ignore behavior.
+- Sole instantiation: `factory.py:_build_api_client` (+ tests).
+
+### src/experiment_bot/llm/factory.py
+
+- **`EXPERIMENT_BOT_LLM_CLIENT`** env var with values `"cli"` /
+  `"api"` selects the implementation explicitly. Default branch
+  prefers CLI if `claude` is on PATH, else API if
+  `ANTHROPIC_API_KEY` is set, else raises. Clean two-step resolution.
+- **`build_default_client(model: str | None = None)`** is the lone
+  public entry. Used by:
+  - `reasoner/cli.py:55` (Reasoner TaskCard generation)
+  - `reasoner/norms_cli.py:24` (norms extractor)
+- No hardcoded paradigm values; the only literals are env-var names
+  and the protocol-default model id (overridable).
+
+### Architectural candidate (report, don't remove)
+
+- **Two client implementations, one remaining consumer surface
+  (Reasoner, offline).** Prior to Task 4, SessionAgent was the only
+  caller that needed multimodal (screenshots) and explicitly required
+  the API path. With SessionAgent gone, every remaining caller is
+  text-only, so the API client's distinguishing capability
+  (multimodal image input) is no longer exercised in production. The
+  two-implementation pattern still has a real UX rationale — CLI uses
+  the user's Max subscription via `claude login`, API uses
+  `ANTHROPIC_API_KEY` — and the `images=None` branch in both clients
+  is cheap, so neither is a clear-cut removal. Decision deferred:
+  consolidating to a single client (either) would simplify the
+  abstraction by ~40 LOC but trade off the no-API-key UX. Logged as
+  an architectural call, no auto-apply.
+- **`output_format` parameter on `LLMClient.complete`** is now
+  silently ignored on both implementations (CLI uses
+  `--output-format json` unconditionally; API enforces JSON via
+  prompt text). Could be dropped from the Protocol with a sweep
+  through reasoner call sites, but the change touches every stage and
+  has zero fidelity impact. Architectural call, deferred.
+- **`images` parameter on `LLMClient.complete`** is no longer passed
+  by any production call site (Task 4 removed SessionAgent, the only
+  caller). Same disposition as `output_format`: removal is safe but
+  touches the protocol and both implementations for cosmetic gain.
+  Deferred.

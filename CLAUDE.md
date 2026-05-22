@@ -277,6 +277,26 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   (4) Also outstanding: commit SP8-regenerated TaskCards to sp8
   branch (done in b06122e, but not on a new tag — sp8-complete still
   references the docs commit).
+- **SP12**: Codebase simplification + antagonistic audit + runtime
+  visibility + post-cleanup re-measurement. Top-down walk-and-prune
+  from CLI entry through every module exercised in a production run.
+  Removed: 14 one-shot SP-era scripts, 14 SP11 phase deliverable docs
+  (consolidated to sp11-complete.md), SessionAgent path entirely
+  (SP9a hypothesis empirically not supported), SP7 keypress diagnostic
+  (zero production readers), 2 unused CLI flags, drop_from_scope/
+  keyboard_deliverer/focus calibration modules, eisenberg validation
+  module, v1-legacy TaskCard wrappers. Net src/experiment_bot/ shrink:
+  -1,068 LOC across 21 commits (from SP12 baseline `2436289`; 26
+  commits from the design-spec commit `19b809b`). Added:
+  docs/pipeline-flow.md (13-section walkthrough), [sp12] stdout
+  narration (5 lines/session), run_trace.json (structured per-stage
+  trace), and docs/sp12-hardcoded-findings.md (paradigm-specific
+  assumptions surfaced during the walk). Post-cleanup re-measurement
+  on 4 SP11 paradigms × 5 sessions shows 3/4 paradigms behaviorally
+  stable vs Phase 7 N=5 baseline; one notable shift on
+  expfactory_stop_signal SSRT (178→353 ms, within baseline's wide SD)
+  attributable to diagnostic-noise reduction. Tag `sp12-complete`.
+  ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

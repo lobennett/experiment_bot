@@ -314,3 +314,41 @@ calibration/ after: 1145 LOC across 7 files (drop_from_scope.py,
 keyboard_deliverer.py, focus.py removed; cdp_deliverer.py trimmed by
 the focus path).
 
+## src/experiment_bot/output/writer.py
+
+Walked under SP12 Task 7. Findings:
+
+### Soft defaults / fallback literals (acceptable; configurable)
+
+- **`DEFAULT_OUTPUT_DIR`** is `<repo>/output` (writer.py:13). Overridable
+  via the `EXPERIMENT_BOT_OUTPUT_DIR` env var, which the SP11 Phase 7
+  sweep wrapper uses to route per-arm sessions into per-arm subtrees.
+  Framework-level; no paradigm-specific value.
+- **Timestamp microsecond suffix** in `create_run` (writer.py:37):
+  `"%Y-%m-%d_%H-%M-%S-%f"`. Inline comment notes the microsecond field
+  exists to prevent concurrent-run directory collisions; framework-
+  level, paradigm-agnostic.
+
+### Method signature contract
+
+- `save_task_data(data, filename)` — both args required at every call
+  site (executor passes `f"experiment_data.{ext}"`, tests pass explicit
+  CSV/TSV names). The legacy `filename: str = "task_data.csv"` default
+  had zero readers across src/, tests/, and scripts/ — removed in this
+  walk so the call signature reflects the actual contract.
+
+### No paradigm-specific values
+
+The writer has no paradigm-named strings, no Stroop/stop_signal/n-back
+references, and no jsPsych-specific output knobs. File-name constants
+(`bot_log.json`, `run_metadata.json`, `config.json`, `screenshots/`)
+are framework-level contract values consumed by the validation oracle
+and audit scripts via the platform_adapters dispatch.
+
+### Removed in SP12 Task 7
+
+- **`save_task_data` default `filename="task_data.csv"`.** No caller
+  relied on the default — executor explicitly passes
+  `f"experiment_data.{ext}"` and both `test_save_task_data_*` tests
+  pass an explicit extension. Default removed; argument now required.
+

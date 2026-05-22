@@ -73,3 +73,21 @@ Surviving files (per Task 6 walk):
 - `playwright_gate_dismisser.py` — visible-button + keyboard-fallback gate
 
 Entry point: `src/experiment_bot/core/executor.py:TaskExecutor._run_calibration_pass`.
+
+## 5. Output writer: `output/writer.py`
+
+Writes the per-session output dir at `<output_root>/<task_name>/<timestamp>/`.
+Honors `EXPERIMENT_BOT_OUTPUT_DIR` env var (overrides the repo-relative
+default — used by orchestration scripts).
+
+Outputs per session:
+- `bot_log.json` — per-trial log + per-trial delivery metadata
+- `run_metadata.json` — session-level metadata (seed, params, delivery
+  channel counts, calibration result summary)
+- `config.json` — the TaskCard's effective config for this run
+- `experiment_data.{csv,json}` — platform's own data export (saved by
+  executor before finalize)
+- `screenshots/` — startup + error screenshots
+- (Phase 2 will add `run_trace.json` — see Phase 2 plan)
+
+Entry point: `src/experiment_bot/output/writer.py:OutputWriter.create_run`.

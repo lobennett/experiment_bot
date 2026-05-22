@@ -47,7 +47,7 @@ class OutputWriter:
     def log_trial(self, trial_data: dict) -> None:
         self._trials.append(trial_data)
 
-    def save_task_data(self, data: str, filename: str = "task_data.csv") -> None:
+    def save_task_data(self, data: str, filename: str) -> None:
         if self._run_dir:
             path = self._run_dir / filename
             path.write_text(data)

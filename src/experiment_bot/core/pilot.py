@@ -167,6 +167,7 @@ class PilotRunner:
             context = await browser.new_context(viewport=config.runtime.timing.viewport)
             page = await context.new_page()
 
+            crash_error: str | None = None
             try:
                 await page.goto(url, wait_until="domcontentloaded")
                 await navigator.execute_all(page, config.navigation)
@@ -300,8 +301,28 @@ class PilotRunner:
                     if trials_completed >= pilot_cfg.min_trials and (not target or conditions_seen >= target):
                         break
 
+            except Exception as e:
+                # Pilot ran into a Playwright / navigation failure. Capture
+                # the current page DOM as a "crash" snapshot so Stage 6's
+                # stuck-detection guard (which compares dom_fingerprint across
+                # attempts) can still recognize when consecutive crashes hit
+                # the same screen. Without this, crashed() returns empty
+                # dom_snapshots → dom_fingerprint="" → stuck-detection
+                # short-circuits on the falsy check and the refiner burns
+                # the full budget on a stuck-but-crashing page.
+                crash_error = str(e)
+                try:
+                    dom_snapshots.append({
+                        "trigger": "crash",
+                        "html": await self._snapshot_dom(page, container_sel),
+                    })
+                except Exception:
+                    pass  # page may already be torn down
             finally:
                 await browser.close()
+
+        if crash_error is not None:
+            anomalies.append(f"Pilot crashed: {crash_error}")
 
         missing = sorted(target - conditions_seen)
         return PilotDiagnostics(

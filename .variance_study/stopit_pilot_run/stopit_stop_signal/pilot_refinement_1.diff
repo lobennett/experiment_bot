@@ -1,0 +1,29 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -55,18 +55,18 @@
+   "phases": [
+     {
+       "action": "click",
+-      "target": "#jspsych-instructions-next",
+-      "phase": "",
+-      "key": "",
+-      "duration_ms": 0,
+-      "steps": []
+-    },
+-    {
+-      "action": "click",
+       "target": "#jspsych-fullscreen-btn",
+       "phase": "",
+       "key": "",
+       "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "action": "wait",
++      "duration_ms": 1200,
++      "phase": "",
++      "target": "",
++      "key": "",
+       "steps": []
+     },
+     {

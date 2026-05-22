@@ -1,0 +1,11 @@
+--- before_attempt_1
++++ after_attempt_1
+@@ -50,7 +50,7 @@
+   },
+   "phase_detection": {
+     "complete": "document.querySelector('#jspsych-data-display') !== null",
+-    "loading": "(!document.querySelector('#jspsych-content') || document.querySelector('#jspsych-content').innerHTML.trim() === '') && document.querySelector('#jspsych-data-display') === null",
++    "loading": "(() => { if (document.querySelector('#jspsych-data-display')) return false; if (document.querySelector('#jspsych-html-keyboard-response-stimulus')) return false; const body = (document.body && document.body.innerText) ? document.body.innerText.trim() : ''; if (body.length === 0) return true; const lc = body.toLowerCase(); if (lc.includes('welcome') || lc.includes('press space') || lc.includes('continue') || lc.includes('start the experiment')) return false; return true; })()",
+     "instructions": "(() => { if (document.querySelector('#jspsych-data-display')) return false; const stim = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (stim) { const t = (stim.textContent || '').trim().toLowerCase(); if (['red','green','blue','yellow'].includes(t)) return false; } const body = (document.body && document.body.innerText) ? document.body.innerText.toLowerCase() : ''; return body.includes('press space') || body.includes('welcome to the experiment'); })()",
+     "attention_check": "false",
+     "feedback": "false",

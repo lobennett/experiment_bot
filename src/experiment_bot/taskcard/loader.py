@@ -26,13 +26,3 @@ def load_latest(base_dir: Path, label: str) -> TaskCard:
     if not candidates:
         raise FileNotFoundError(f"No TaskCards in {out_dir}")
     return TaskCard.from_dict(json.loads(candidates[0].read_text()))
-
-
-def load_by_hash(base_dir: Path, label: str, hash_prefix: str) -> TaskCard:
-    """Load TaskCard by hash prefix (typically the first 8 hex chars)."""
-    candidates = list((Path(base_dir) / label).glob(f"{hash_prefix}*.json"))
-    if not candidates:
-        raise FileNotFoundError(f"No TaskCard matching {hash_prefix} in {base_dir}/{label}")
-    if len(candidates) > 1:
-        raise ValueError(f"Multiple TaskCards match {hash_prefix}: {candidates}")
-    return TaskCard.from_dict(json.loads(candidates[0].read_text()))

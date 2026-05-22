@@ -132,11 +132,11 @@ class TaskCard:
             task_specific=d.get("task_specific", {}),
             performance=PerformanceConfig.from_dict(d["performance"]),
             response_distributions={
-                k: ParameterValue.from_dict(v) if "value" in v else _wrap_legacy_dist(v)
+                k: ParameterValue.from_dict(v)
                 for k, v in d.get("response_distributions", {}).items()
             },
             temporal_effects={
-                k: ParameterValue.from_dict(v) if "value" in v else _wrap_legacy_effect(v)
+                k: ParameterValue.from_dict(v)
                 for k, v in d.get("temporal_effects", {}).items()
             },
             between_subject_jitter=d.get("between_subject_jitter", {}),
@@ -166,33 +166,3 @@ class TaskCard:
         }
 
 
-def _wrap_legacy_dist(d: dict) -> ParameterValue:
-    """Wrap a v1 DistributionConfig dict into a ParameterValue with empty provenance.
-
-    v1 layout: {"distribution": "ex_gaussian", "params": {...}, "unit": "ms"}
-    v2 layout: {"value": {...}, ...}
-    """
-    return ParameterValue(
-        value=d.get("params", {}),
-        literature_range=None,
-        between_subject_sd=None,
-        citations=[],
-        rationale="",
-        sensitivity="unknown",
-    )
-
-
-def _wrap_legacy_effect(d: dict) -> ParameterValue:
-    """Wrap a v1 temporal-effect dict into a ParameterValue.
-
-    v1 layout: {"enabled": bool, "<param>": <number>, "rationale": "..."}
-    v2 layout: {"value": {"enabled": bool, "<param>": ...}, "rationale": "..."}
-    """
-    return ParameterValue(
-        value={k: v for k, v in d.items() if k != "rationale"},
-        literature_range=None,
-        between_subject_sd=None,
-        citations=[],
-        rationale=d.get("rationale", ""),
-        sensitivity="unknown",
-    )

@@ -1,7 +1,7 @@
 import json
 from pathlib import Path
 import pytest
-from experiment_bot.taskcard.loader import save_taskcard, load_latest, load_by_hash
+from experiment_bot.taskcard.loader import save_taskcard, load_latest
 from experiment_bot.taskcard.types import TaskCard
 
 
@@ -58,14 +58,6 @@ def test_load_latest_returns_most_recent(tmp_path, minimal_taskcard_dict):
     p2 = save_taskcard(tc2, base, label="stroop")
     latest = load_latest(base, label="stroop")
     assert latest.task.name == "stroop_v2"
-
-
-def test_load_by_hash(tmp_path, minimal_taskcard_dict):
-    base = tmp_path / "taskcards"
-    tc = TaskCard.from_dict(minimal_taskcard_dict)
-    path = save_taskcard(tc, base, label="stroop")
-    loaded = load_by_hash(base, label="stroop", hash_prefix=path.stem)
-    assert loaded.schema_version == "2.0"
 
 
 def test_load_missing_raises(tmp_path):

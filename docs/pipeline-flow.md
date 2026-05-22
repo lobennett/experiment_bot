@@ -132,3 +132,30 @@ key → SDK; else CLI on PATH). Used by:
 - Reasoner pipeline stages (offline, before sessions)
 
 Entry point: `llm/factory.py:build_default_client`.
+
+## 11. TaskCard load + sample: `taskcard/`
+
+- `loader.py` — `load_latest(taskcards_dir, label)` finds the most-recent
+  TaskCard JSON for a label (by file mtime).
+- `types.py` — `TaskCard` Pydantic / dataclass shape with
+  `produced_by` provenance.
+- `sampling.py` — `sample_session_params(taskcard_dict, seed)` draws
+  between-subject jitter for the session.
+- `hashing.py` — SHA256 over the TaskCard for `produced_by.taskcard_sha256`.
+
+Entry point: `taskcard/loader.py:load_latest`.
+
+## 11. TaskCard load + sample: `taskcard/`
+
+- `loader.py` — `load_latest(taskcards_dir, label)` finds the most-recent
+  TaskCard JSON for a label (by file mtime). `save_taskcard` writes a
+  new card with SHA-prefixed filename.
+- `types.py` — `TaskCard` dataclass + nested types (Citation, ProducedBy,
+  ParameterValue with provenance, ReasoningStep, TaskMetadata).
+- `sampling.py` — `sample_session_params(taskcard_dict, seed)` draws
+  per-session distributional parameter values from `N(mean, between_subject_sd**2)`,
+  clipped to `literature_range`.
+- `hashing.py` — SHA256 over canonicalized TaskCard for `produced_by.taskcard_sha256`.
+
+Entry point: `taskcard/loader.py:load_latest`.
+

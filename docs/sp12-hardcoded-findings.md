@@ -770,3 +770,70 @@ Leave as-is.
   caller). Same disposition as `output_format`: removal is safe but
   touches the protocol and both implementations for cosmetic gain.
   Deferred.
+
+## src/experiment_bot/taskcard/
+
+(no paradigm-specific values; the module is purely structural — JSON
+load/save, dataclass shaping, hashing, between-subject jitter draw.
+Paradigm semantics live entirely in the TaskCard payload itself.)
+
+### `__init__.py`
+
+- Empty file (0 bytes). No re-exports, no public-API surface declared
+  at package level. Architectural note, not a finding.
+
+### `loader.py`
+
+- `load_by_hash(base_dir, label, hash_prefix)` was dead code — only
+  referenced by its own test (`test_load_by_hash`). No production
+  call site, not exported from `__init__.py`. **Auto-removed**
+  alongside its test in this walk.
+- `load_latest` resolves "most recent" by `file.stat().st_mtime`. This
+  is correct for the current single-writer pipeline (Stage 6 saves
+  once per regeneration) but would silently pick the wrong card if
+  `touch`-style operations bumped mtime without re-saving content.
+  Not a hardcoded-paradigm issue; logging the assumption here.
+
+### `types.py`
+
+- `_wrap_legacy_dist` / `_wrap_legacy_effect` adapt v1 (`{"params":
+  {...}, "distribution": ..., "unit": ...}`) TaskCard payloads to the
+  v2 `ParameterValue` shape on load. Grep across the committed
+  `taskcards/` tree shows zero v1 payloads remain. These wrappers are
+  dead-on-arrival for any current TaskCard but live behind a defensive
+  `"value" in v` branch and have no paradigm coupling. Architectural
+  item — removal is safe, but the safety net is also cheap. Deferred.
+- `Citation.doi_verified_at` is typed `str | None` and serialized via
+  `asdict`; no ISO-8601 invariant is enforced at the dataclass layer.
+  Stage 4's openalex verifier writes this value. Not paradigm-specific.
+
+### `sampling.py`
+
+- `sample_session_params` clips draws to `literature_range` per
+  sub-parameter when present. The clip is paradigm-agnostic (operates
+  on whatever keys appear in `value`), and the SD-zero branch returns
+  the mean unchanged. No hardcoded paradigm vocabulary.
+
+### `hashing.py`
+
+- `taskcard_sha256` zeroes `produced_by.taskcard_sha256` before
+  hashing so the hash is content-addressed and self-verifying. Uses
+  `sort_keys=True` and `separators=(",", ":")` for canonical form.
+  No paradigm coupling.
+
+## src/experiment_bot/taskcard/
+
+### types.py
+- `_wrap_legacy_dist` / `_wrap_legacy_effect` REMOVED — all current TaskCards use v2 layout (`value` key present); the legacy v1 wrappers (with hardcoded `sensitivity="unknown"` fallback) had zero live callers.
+- `between_subject_jitter` field type is `Any` (dict | BetweenSubjectJitterConfig) with a duck-typed `to_dict` check in `TaskCard.to_dict`. Fragile contract — should be normalized to a single type in a follow-up SP.
+
+### loader.py
+- Paradigm-agnostic. `load_latest` picks newest by mtime, not by SHA — adequate but means an older card with a newer mtime would shadow a newer one.
+
+### sampling.py
+- Paradigm-agnostic. Single function used by `cli.py`.
+- Silent fallback: missing `between_subject_sd` → `spread = 0` (deterministic draw), no warning.
+
+### hashing.py
+- Paradigm-agnostic. Canonicalizes via `sort_keys + (",", ":")` separators.
+

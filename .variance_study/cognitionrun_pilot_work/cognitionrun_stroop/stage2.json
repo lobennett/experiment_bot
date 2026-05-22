@@ -1,0 +1,270 @@
+{
+  "task": {
+    "name": "Stroop Online (cognition.run)",
+    "url": "https://strooptest.cognition.run/",
+    "framework": "jsPsych 7.3.1",
+    "paradigm_classes": [
+      "speeded_choice",
+      "conflict"
+    ],
+    "constructs": [],
+    "reference_literature": []
+  },
+  "stimuli": [
+    {
+      "id": "congruent",
+      "description": "Color word displayed in matching ink color (e.g., the word 'red' in red).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); const colors = ['red','green','blue','yellow']; if (!colors.includes(text)) return false; let c = ((el.style && el.style.color) || '').toLowerCase().trim(); const rgbMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; if (rgbMap[c]) c = rgbMap[c]; if (!colors.includes(c)) return false; return c === text; })()"
+      },
+      "response": {
+        "condition": "congruent",
+        "key": null,
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) return window.correctResponse; const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return null; const map = {'red':'r','green':'g','blue':'b','yellow':'y'}; let c = ((el.style && el.style.color) || '').toLowerCase().trim(); if (map[c]) return map[c]; const rgbMap = {'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'}; return rgbMap[c] || null; })()"
+      }
+    },
+    {
+      "id": "incongruent",
+      "description": "Color word displayed in non-matching ink color (e.g., the word 'red' in blue ink).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); const colors = ['red','green','blue','yellow']; if (!colors.includes(text)) return false; let c = ((el.style && el.style.color) || '').toLowerCase().trim(); const rgbMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; if (rgbMap[c]) c = rgbMap[c]; if (!colors.includes(c)) return false; return c !== text; })()"
+      },
+      "response": {
+        "condition": "incongruent",
+        "key": null,
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) return window.correctResponse; const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return null; const map = {'red':'r','green':'g','blue':'b','yellow':'y'}; let c = ((el.style && el.style.color) || '').toLowerCase().trim(); if (map[c]) return map[c]; const rgbMap = {'rgb(255, 0, 0)':'r','rgb(0, 128, 0)':'g','rgb(0, 0, 255)':'b','rgb(255, 255, 0)':'y'}; return rgbMap[c] || null; })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": []
+  },
+  "runtime": {
+    "timing": {
+      "response_window_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','blue','yellow'].includes(text)) return false; let c = ((el.style && el.style.color) || '').toLowerCase().trim(); const rgbMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; if (rgbMap[c]) c = rgbMap[c]; return ['red','green','blue','yellow'].includes(c); })()",
+      "trial_context_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return ''; const text = (el.textContent || '').trim().toLowerCase(); let c = ((el.style && el.style.color) || '').toLowerCase().trim(); const rgbMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; if (rgbMap[c]) c = rgbMap[c]; return 'word=' + text + ' ink=' + c; })()",
+      "completion_wait_ms": 2500,
+      "max_no_stimulus_polls": 300,
+      "cdp_dwell_ms": 200.0,
+      "rt_floor_ms": 150.0,
+      "navigation_delay_ms": 800,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "trial_marker_js": "() => (window.jsPsych && typeof window.jsPsych.getProgress === 'function') ? window.jsPsych.getProgress().current_trial_global : null",
+      "records_js": "() => (window.jsPsych && window.jsPsych.data) ? window.jsPsych.data.get().values() : []"
+    },
+    "phase_detection": {
+      "complete": "document.querySelector('#jspsych-data-display') !== null",
+      "loading": "(!document.querySelector('#jspsych-content') || document.querySelector('#jspsych-content').innerHTML.trim() === '') && document.querySelector('#jspsych-data-display') === null",
+      "instructions": "(() => { if (document.querySelector('#jspsych-data-display')) return false; const stim = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (stim) { const t = (stim.textContent || '').trim().toLowerCase(); if (['red','green','blue','yellow'].includes(t)) return false; } const body = (document.body && document.body.innerText) ? document.body.innerText.toLowerCase() : ''; return body.includes('press space') || body.includes('welcome to the experiment'); })()",
+      "attention_check": "false",
+      "feedback": "false",
+      "practice": "false",
+      "test": "(() => { if (document.querySelector('#jspsych-data-display')) return false; const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); return ['red','green','blue','yellow'].includes(text); })()"
+    },
+    "advance_behavior": {
+      "advance_keys": [
+        " "
+      ],
+      "feedback_fallback_keys": [
+        " "
+      ],
+      "pre_keypress_js": "",
+      "exit_pager_key": "",
+      "feedback_selectors": []
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "(window.jsPsych && window.jsPsych.data) ? window.jsPsych.data.get().csv() : ''",
+      "format": "csv"
+    },
+    "navigation_stimulus_condition": "",
+    "trial_interrupt": {},
+    "attention_check": {}
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": null,
+      "fixation_duration_ms": 500,
+      "iti_duration_ms": 250
+    }
+  },
+  "performance": {
+    "accuracy": {},
+    "omission": {},
+    "omission_rate": {
+      "congruent": 0.01,
+      "incongruent": 0.02
+    }
+  },
+  "pilot_validation_config": {
+    "min_trials": 6,
+    "target_conditions": [
+      "congruent",
+      "incongruent"
+    ],
+    "max_blocks": 1,
+    "stimulus_container_selector": "#jspsych-content",
+    "rationale": "Experiment has a fixed 15 trials with each trial independently assigned to congruent or incongruent with p=0.5. Six trials are sufficient to observe both conditions with very high probability (P(both | n=6) = 1 - 2*(0.5^6) \u2248 0.97). Single block runs the full experiment with no practice/test split, so max_blocks=1. Container is the standard jsPsych content div (#jspsych-content)."
+  },
+  "_reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'Stroop Online (cognition.run)' with 2 stimuli. Source files: jspsych.js, plugin-html-keyboard-response.js, plugin-instructions.js, runner-D7ZihNOY.js, jspsych.css, styles.css, inline_script_1.js, inline_script_2.js.",
+      "evidence_lines": [
+        "jspsych.js",
+        "plugin-html-keyboard-response.js",
+        "plugin-instructions.js",
+        "runner-D7ZihNOY.js",
+        "jspsych.css"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage2_behavioral",
+      "input_hash": "",
+      "inference": "Produced ex-Gaussian (mu/sigma/tau) parameters for 2 conditions; enabled 5 temporal effects.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    }
+  ],
+  "response_distributions": {
+    "congruent": {
+      "distribution": "ex_gaussian",
+      "value": {
+        "mu": 520,
+        "sigma": 55,
+        "tau": 140
+      },
+      "rationale": "Ex-Gaussian is the standard fitted family for Stroop RT distributions (Heathcote, Popiel, & Mewhort, 1991; Spieler, Balota, & Faust, 1996). Congruent-trial population means cluster around 650-680 ms with mu ~500-540 ms reflecting the Gaussian mode of fast decisions and tau ~130-150 ms capturing the right-skewed tail typical of word-reading interference baselines."
+    },
+    "incongruent": {
+      "distribution": "ex_gaussian",
+      "value": {
+        "mu": 555,
+        "sigma": 65,
+        "tau": 175
+      },
+      "rationale": "Incongruent trials produce a larger mu shift and substantially larger tau than congruent \u2014 the Stroop effect lives primarily in the slow tail (tau), not in the mode (Spieler et al., 1996; Heathcote et al., 1991). Mean ~730 ms yields a Stroop effect of ~70 ms, within the 50-100 ms range typical of healthy adults on 4-color manual-key Stroop variants."
+    }
+  },
+  "temporal_effects": {
+    "autocorrelation": {
+      "value": {
+        "enabled": true,
+        "phi": 0.2
+      },
+      "rationale": "Trial-to-trial RT autocorrelation in speeded-choice tasks is well established (Gilden, 2001; Wagenmakers, Farrell, & Ratcliff, 2004) with lag-1 phi typically 0.15-0.25 in Stroop-like designs."
+    },
+    "fatigue_drift": {
+      "value": {
+        "enabled": false,
+        "drift_per_trial_ms": 0
+      },
+      "rationale": "Task has only 15 trials; fatigue-related linear drift is not detectable or documented at this length. Leaving disabled per G3."
+    },
+    "condition_repetition": {
+      "value": {
+        "enabled": true,
+        "facilitation_ms": 12,
+        "cost_ms": 8
+      },
+      "rationale": "Simple condition-repetition priming (separate from lag-1 conflict adaptation) produces small facilitation (~10-15 ms) on repeats and a small cost on switches in 2-condition Stroop designs (Mayr, Awh, & Laurey, 2003)."
+    },
+    "pink_noise": {
+      "value": {
+        "enabled": true,
+        "sd_ms": 25,
+        "alpha": 1.0
+      },
+      "rationale": "1/f-style long-range temporal structure in human RT series is documented across speeded-decision paradigms (Gilden, Thornton, & Mallon, 1995; Van Orden, Holden, & Turvey, 2003). Alpha~1 with modest sd captures pink-noise residual fluctuations on top of the trial-level model."
+    },
+    "lag1_pair_modulation": {
+      "value": {
+        "enabled": true,
+        "modulation_table": [
+          {
+            "prev": "incongruent",
+            "curr": "incongruent",
+            "delta_ms": -22
+          },
+          {
+            "prev": "congruent",
+            "curr": "incongruent",
+            "delta_ms": 12
+          },
+          {
+            "prev": "incongruent",
+            "curr": "congruent",
+            "delta_ms": 8
+          },
+          {
+            "prev": "congruent",
+            "curr": "congruent",
+            "delta_ms": -10
+          }
+        ],
+        "skip_after_error": true
+      },
+      "rationale": "Sequential modulation of the congruency effect (Gratton, Coles, & Donchin, 1992; Egner, 2007) is a robust Stroop phenomenon: incongruent trials following incongruent are faster than incongruent after congruent (~20-40 ms reduction), with smaller but reliable congruent-after-congruent priming. Typical convention skips trials following errors (Notebaert & Verguts, 2007)."
+    },
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": [
+          {
+            "event": "error",
+            "slowing_ms_min": 25,
+            "slowing_ms_max": 55
+          }
+        ]
+      },
+      "rationale": "Post-error slowing is well documented in Stroop and other conflict tasks, with magnitudes typically 20-60 ms on the trial immediately following a commission error (Rabbitt, 1966; Danielmeier & Ullsperger, 2011)."
+    },
+    "practice_effect": {
+      "value": {
+        "enabled": false,
+        "initial_offset_ms": 0,
+        "asymptote_block": 1,
+        "trials_per_block": 15,
+        "decay_rate": 0
+      },
+      "rationale": "Disabled: 15 trials is below the typical block size where practice asymptote curves are estimated for Stroop; literature does not document a stable practice curve at this length."
+    },
+    "vigilance_decrement": {
+      "value": {
+        "enabled": false,
+        "sd_per_100_trials_ms": 0
+      },
+      "rationale": "Vigilance decrement requires sustained attention over many minutes / hundreds of trials (Mackworth, 1948; See, Howe, Warm, & Dember, 1995). Not applicable to a 15-trial session."
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 75,
+      "rt_condition_sd_ms": 18,
+      "sigma_tau_range": [
+        0.85,
+        1.15
+      ],
+      "accuracy_sd": 0.025,
+      "omission_sd": 0.01,
+      "accuracy_clip_range": [
+        0.85,
+        0.99
+      ],
+      "omission_clip_range": [
+        0.0,
+        0.06
+      ]
+    },
+    "rationale": "Healthy-adult Stroop population variability: between-subject RT mean SD ~70-80 ms (Hedge, Powell, & Sumner, 2018), condition-specific SD ~15-20 ms, ex-Gaussian sigma/tau scale within \u00b115% across subjects. Accuracy SD ~2-3% with a floor near 0.85 to exclude pathological inattention; omission rate stays under ~6% in a brief manual-key task."
+  }
+}

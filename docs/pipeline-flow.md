@@ -198,11 +198,11 @@ Entry point: `effects/registry.py:EFFECT_REGISTRY`.
 Optional post-session validation. Reads platform data export +
 TaskCard, computes per-metric values, gates against norms file ranges.
 
-- `oracle.py` — `METRIC_REGISTRY` dispatch + `compute_session(...)`
+- `oracle.py` — `METRIC_REGISTRY` dispatch + `validate_session_set(...)`
 - `platform_adapters.py` — paradigm-aware dispatch:
   - `PLATFORM_ADAPTERS` (label → reader function)
   - `TEST_ROW_PREDICATES` (label → raw-row test-trial predicate, used
     by `scripts/audit_alignment.py`)
 - `cli.py` — `experiment-bot-validate <session_dir>` standalone validator
 
-Entry point: `validation/oracle.py:compute_session`.
+Entry point: `validation/oracle.py:validate_session_set`.

@@ -63,27 +63,54 @@ def _safe_float(v) -> float | None:
 
 def _find_sessions(arm_dirs: list[Path], paradigm: str, limit: int = 5) -> list[Path]:
     """Return up to ``limit`` session dirs (most-recent first) for
-    paradigm, unioned across all ``arm_dirs`` (handles split outputs
-    e.g. overnight phase7/ + targeted phase7_n5/ trees).
+    paradigm, unioned across all ``arm_dirs``.
 
-    Skips empty bot_logs (failed overnight sessions sometimes wrote
-    2-byte ``[]`` files before crashing on network errors)."""
+    Supports two output layouts:
+    (a) `<root>/<paradigm>/<task_name>/<ts>/` (Phase 7 sweep wrapper)
+    (b) `<root>/<task_name>/<ts>/` (direct CLI runs without wrapper) —
+        candidate session_dirs are filtered by checking each
+        session's `config.json` for a matching paradigm hint via
+        `task_name`.
+
+    Skips empty bot_logs (failed sessions sometimes wrote 2-byte
+    ``[]`` files before crashing on network errors)."""
     candidates: list[Path] = []
     for arm_dir in arm_dirs:
-        paradigm_root = arm_dir / paradigm
-        if not paradigm_root.exists():
+        if not arm_dir.exists():
             continue
-        for task_dir in paradigm_root.iterdir():
-            if not task_dir.is_dir():
+        # Layout (a): paradigm subdir present
+        paradigm_root = arm_dir / paradigm
+        if paradigm_root.exists():
+            for task_dir in paradigm_root.iterdir():
+                if not task_dir.is_dir():
+                    continue
+                for sess_dir in task_dir.iterdir():
+                    bot_log = sess_dir / "bot_log.json"
+                    if not (sess_dir.is_dir() and bot_log.exists()):
+                        continue
+                    if bot_log.stat().st_size < 100:
+                        continue
+                    candidates.append(sess_dir)
+            continue
+        # Layout (b): flat layout. Look up the paradigm's TaskCard to
+        # find the writer-normalized task_name, then look in
+        # <arm_dir>/<task_name>/<ts>/ for sessions.
+        try:
+            from experiment_bot.taskcard.loader import load_latest
+            tc = load_latest(Path("taskcards"), label=paradigm)
+            tc_task_name = tc.task.name.replace(" ", "_").lower()
+        except Exception:
+            continue
+        task_dir = arm_dir / tc_task_name
+        if not task_dir.exists():
+            continue
+        for sess_dir in task_dir.iterdir():
+            bot_log = sess_dir / "bot_log.json"
+            if not (sess_dir.is_dir() and bot_log.exists()):
                 continue
-            for sess_dir in task_dir.iterdir():
-                bot_log = sess_dir / "bot_log.json"
-                if not (sess_dir.is_dir() and bot_log.exists()):
-                    continue
-                # Skip empty bot_logs from failed sessions
-                if bot_log.stat().st_size < 100:
-                    continue
-                candidates.append(sess_dir)
+            if bot_log.stat().st_size < 100:
+                continue
+            candidates.append(sess_dir)
     candidates.sort(key=lambda p: p.stat().st_mtime, reverse=True)
     return candidates[:limit]
 

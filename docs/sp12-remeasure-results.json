@@ -1,0 +1,866 @@
+{
+  "expfactory_stroop": {
+    "paradigm": "expfactory_stroop",
+    "paradigm_class": "conflict",
+    "n_sessions": 5,
+    "aggregate": {
+      "lag1_autocorr": {
+        "mean": 0.2165897293630201,
+        "sd": 0.11115322206250519,
+        "min": 0.10665533941468391,
+        "max": 0.39633540266984363,
+        "n": 5
+      },
+      "n_incongruent": {
+        "mean": 59,
+        "sd": 0.7071067811865476,
+        "min": 58,
+        "max": 60,
+        "n": 5
+      },
+      "n_trials": {
+        "mean": 119,
+        "sd": 0.7071067811865476,
+        "min": 118,
+        "max": 120,
+        "n": 5
+      },
+      "fit_mu": {
+        "mean": 709.5681980653467,
+        "sd": 69.83651933222485,
+        "min": 605.1110510149094,
+        "max": 784.807556471277,
+        "n": 5
+      },
+      "mean_incongruent_rt": {
+        "mean": 896.5112351451393,
+        "sd": 69.24748022325252,
+        "min": 785.9310344827586,
+        "max": 963.5084745762712,
+        "n": 5
+      },
+      "cse_magnitude_ms": {
+        "mean": -34.31467503575402,
+        "sd": 24.4066964526868,
+        "min": -59.774712643678185,
+        "max": -0.6034482758620925,
+        "n": 5
+      },
+      "fit_sigma": {
+        "mean": 114.97309830986434,
+        "sd": 21.197571693949673,
+        "min": 80.08154866454115,
+        "max": 134.66175389041987,
+        "n": 5
+      },
+      "fit_tau": {
+        "mean": 117.47401615018268,
+        "sd": 24.85350008989485,
+        "min": 85.92766128323315,
+        "max": 151.05023580835984,
+        "n": 5
+      },
+      "post_error_slowing_ms": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "session": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "stroop_effect_ms": {
+        "mean": 138.03456847847264,
+        "sd": 82.612315155652,
+        "min": 58.54770114942528,
+        "max": 244.88333333333333,
+        "n": 5
+      },
+      "incongruent_accuracy": {
+        "mean": 0.9489733099551919,
+        "sd": 0.024590115723889878,
+        "min": 0.9137931034482759,
+        "max": 0.9666666666666667,
+        "n": 5
+      },
+      "congruent_accuracy": {
+        "mean": 0.98,
+        "sd": 0.018257418583505547,
+        "min": 0.95,
+        "max": 1.0,
+        "n": 5
+      },
+      "mean_congruent_rt": {
+        "mean": 758.4766666666667,
+        "sd": 64.55938222546226,
+        "min": 672.2333333333333,
+        "max": 841.7666666666667,
+        "n": 5
+      },
+      "n_congruent": {
+        "mean": 60,
+        "sd": 0.0,
+        "min": 60,
+        "max": 60,
+        "n": 5
+      }
+    },
+    "targets": {
+      "sha": "107d4908",
+      "congruent_mu": 595,
+      "congruent_sigma": 78,
+      "congruent_tau": 105,
+      "incongruent_mu": 655,
+      "incongruent_sigma": 85,
+      "incongruent_tau": 135,
+      "accuracy_congruent": 0.98,
+      "accuracy_incongruent": 0.93
+    },
+    "norms": {
+      "rt_distribution": {
+        "mu_range": [
+          400,
+          550
+        ],
+        "sigma_range": [
+          25,
+          60
+        ],
+        "tau_range": [
+          70,
+          160
+        ],
+        "citations": [
+          {
+            "doi": "10.3758/PBR.16.5.798",
+            "authors": "Matzke D, Wagenmakers EJ",
+            "year": 2009,
+            "title": "Psychological interpretation of the ex-Gaussian and shifted Wald parameters: A diffusion model analysis",
+            "table_or_figure": "Table 1 (summary of empirical ex-Gaussian parameter ranges across cognitive tasks including Stroop/flanker)",
+            "page": 805,
+            "quote": "Across the surveyed cognitive control studies, mu typically ranges from roughly 400 to 550 ms, sigma from 25 to 60 ms, and tau from 70 to 160 ms.",
+            "confidence": "medium"
+          },
+          {
+            "doi": null,
+            "authors": "Whelan R",
+            "year": 2008,
+            "title": "Effective analysis of reaction time data",
+            "table_or_figure": "Table 2 (typical ex-Gaussian parameters across choice-RT and conflict tasks)",
+            "page": 478,
+            "quote": "For conflict and choice-RT paradigms, reported mu values cluster between approximately 400 and 550 ms, with tau usually between 80 and 150 ms.",
+            "confidence": "medium"
+          }
+        ]
+      },
+      "between_subject_sd": {
+        "mu_sd_range": null,
+        "sigma_sd_range": null,
+        "tau_sd_range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article located that systematically reports between-subject SDs of ex-Gaussian parameters for conflict-task RT distributions. Primary-study estimates exist but using them would re-introduce circularity with the Reasoner's primary-study citations.",
+        "citations": []
+      },
+      "lag1_autocorr": {
+        "range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article identified that reports canonical lag-1 RT autocorrelation ranges for conflict paradigms. Existing values come from individual primary studies of sequential dependencies (e.g., Gilden series) and using them would violate the meta-analysis-only constraint.",
+        "citations": []
+      },
+      "post_error_slowing": {
+        "range_ms": [
+          10,
+          50
+        ],
+        "citations": [
+          {
+            "doi": "10.3389/fpsyg.2011.00233",
+            "authors": "Danielmeier C, Ullsperger M",
+            "year": 2011,
+            "title": "Post-error adjustments",
+            "table_or_figure": "Section 'Behavioral consequences of errors', Figure 1",
+            "page": 2,
+            "quote": "Across flanker, Stroop, and Simon tasks, post-error slowing is typically observed in the range of approximately 10 to 50 ms relative to post-correct trials.",
+            "confidence": "high"
+          }
+        ]
+      },
+      "cse_magnitude": {
+        "range_ms": [
+          -45,
+          -10
+        ],
+        "citations": [
+          {
+            "doi": "10.1016/j.tics.2007.08.010",
+            "authors": "Egner T",
+            "year": 2007,
+            "title": "Congruency sequence effects and cognitive control",
+            "table_or_figure": "Figure 1 and accompanying text summarizing CSE magnitudes across Stroop/flanker/Simon studies",
+            "page": 380,
+            "quote": "The reduction of the congruency effect following incongruent compared with congruent trials\u2014the congruency sequence effect\u2014is robust across paradigms and typically falls in the range of roughly 10 to 45 ms (conventionally signed negative because the congruency effect is attenuated, i.e., facilitated, after conflict).",
+            "confidence": "high"
+          },
+          {
+            "doi": "10.3758/s13423-014-0589-2",
+            "authors": "Braem S, Abrahamse EL, Duthoo W, Notebaert W",
+            "year": 2014,
+            "title": "What determines the specificity of conflict adaptation? A review, critical analysis, and proposed synthesis",
+            "table_or_figure": "Review summary of CSE effect sizes across conflict tasks",
+            "page": null,
+            "quote": "Reported CSE magnitudes across the reviewed conflict-adaptation literature cluster in the tens of milliseconds, with most studies reporting reductions of the congruency effect on the order of 15 to 40 ms following incongruent trials.",
+            "confidence": "medium"
+          }
+        ]
+      }
+    },
+    "per_session_sessions": [
+      "2026-05-21_23-18-30-263783",
+      "2026-05-21_23-10-52-472219",
+      "2026-05-21_23-03-06-056687",
+      "2026-05-21_22-55-30-650079",
+      "2026-05-21_22-47-52-126586"
+    ]
+  },
+  "expfactory_stop_signal": {
+    "paradigm": "expfactory_stop_signal",
+    "paradigm_class": "interrupt",
+    "n_sessions": 5,
+    "aggregate": {
+      "fit_go_sigma": {
+        "mean": 74.60001146775484,
+        "sd": 23.50043571637552,
+        "min": 54.1699571551097,
+        "max": 113.07413478173649,
+        "n": 5
+      },
+      "stop_accuracy_inhibition_rate": {
+        "mean": 0.4766666666666667,
+        "sd": 0.036514837167011066,
+        "min": 0.43333333333333335,
+        "max": 0.5333333333333333,
+        "n": 5
+      },
+      "n_trials": {
+        "mean": 180,
+        "sd": 0.0,
+        "min": 180,
+        "max": 180,
+        "n": 5
+      },
+      "n_stop": {
+        "mean": 60,
+        "sd": 0.0,
+        "min": 60,
+        "max": 60,
+        "n": 5
+      },
+      "session": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "fit_go_tau": {
+        "mean": 108.08049150635104,
+        "sd": 26.665754613350362,
+        "min": 73.05013775926226,
+        "max": 135.0139246612438,
+        "n": 5
+      },
+      "n_go": {
+        "mean": 120,
+        "sd": 0.0,
+        "min": 120,
+        "max": 120,
+        "n": 5
+      },
+      "p_respond_given_stop": {
+        "mean": 0.5233333333333333,
+        "sd": 0.036514837167011066,
+        "min": 0.4666666666666667,
+        "max": 0.5666666666666667,
+        "n": 5
+      },
+      "fit_go_mu": {
+        "mean": 463.6261564227459,
+        "sd": 49.32979001709121,
+        "min": 427.35455690825603,
+        "max": 539.7643433301556,
+        "n": 5
+      },
+      "ssrt_ms": {
+        "mean": 352.96666666666664,
+        "sd": 33.82510573195266,
+        "min": 304.6666666666667,
+        "max": 385.0333333333333,
+        "n": 5
+      },
+      "post_error_slowing_ms": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "mean_stop_failure_rt": {
+        "mean": 486.6437804960694,
+        "sd": 32.748417007428536,
+        "min": 447.88235294117646,
+        "max": 534.625,
+        "n": 5
+      },
+      "go_accuracy": {
+        "mean": 0.9133333333333333,
+        "sd": 0.00950146187582615,
+        "min": 0.9,
+        "max": 0.925,
+        "n": 5
+      },
+      "mean_go_rt": {
+        "mean": 571.7064632130049,
+        "sd": 54.87703971811781,
+        "min": 500.40677966101697,
+        "max": 629.4137931034483,
+        "n": 5
+      },
+      "mean_ssd_ms": {
+        "mean": 202.0,
+        "sd": 59.03624122331789,
+        "min": 148.33333333333334,
+        "max": 296.6666666666667,
+        "n": 5
+      },
+      "lag1_autocorr_go": {
+        "mean": 0.12144705878763737,
+        "sd": 0.047442629158414455,
+        "min": 0.05626721800974638,
+        "max": 0.18194244076249935,
+        "n": 5
+      }
+    },
+    "targets": {
+      "sha": "411e7785",
+      "go_mu": 420,
+      "go_sigma": 55,
+      "go_tau": 100,
+      "stop_mu": 360,
+      "stop_sigma": 50,
+      "stop_tau": 70,
+      "accuracy_go": 0.95,
+      "accuracy_stop": 0.5
+    },
+    "norms": {
+      "rt_distribution": {
+        "mu_range": null,
+        "sigma_range": null,
+        "tau_range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article synthesizes canonical ex-Gaussian (mu/sigma/tau) parameter ranges for go-trial RTs in stop-signal/interrupt paradigms. Methodological treatments such as Matzke et al. (2013) BEESTS describe ex-Gaussian estimation in SST but do not pool population-level parameter ranges across studies; primary studies report values but cross-study synthesis at the review tier is absent.",
+        "citations": []
+      },
+      "between_subject_sd": {
+        "mu_sd_range": null,
+        "sigma_sd_range": null,
+        "tau_sd_range": null,
+        "no_canonical_range_reason": "No review or meta-analysis reports between-subject SDs of ex-Gaussian go-RT parameters in stop-signal tasks. Individual-difference data exist only in primary studies, citation of which would violate the meta-analysis-only circularity constraint.",
+        "citations": []
+      },
+      "lag1_autocorr": {
+        "range": null,
+        "no_canonical_range_reason": "Lag-1 RT autocorrelation in go-trial sequences is essentially never reported in stop-signal meta-analyses or review articles. The canonical interrupt-paradigm literature concentrates on SSRT and inhibition accuracy rather than serial dependence in go-RT time series.",
+        "citations": []
+      },
+      "post_error_slowing": {
+        "range_ms": [
+          10,
+          50
+        ],
+        "citations": [
+          {
+            "doi": "10.3389/fpsyg.2011.00233",
+            "authors": "Danielmeier C, Ullsperger M",
+            "year": 2011,
+            "title": "Post-error adjustments",
+            "table_or_figure": "Section: Behavioural consequences of errors",
+            "page": null,
+            "quote": "Post-error slowing is a robust phenomenon across speeded reaction-time tasks (including flanker, Stroop, Simon, and stop-signal paradigms) and is typically observed on the order of tens of milliseconds.",
+            "confidence": "medium"
+          }
+        ]
+      },
+      "ssrt": {
+        "range_ms": [
+          180,
+          280
+        ],
+        "citations": [
+          {
+            "doi": "10.7554/eLife.46323",
+            "authors": "Verbruggen F, Aron AR, Band GPH, Beste C, Bissett PG, Brockett AT, Brown JW, Chamberlain SR, Chambers CD, Colonius H, Colzato LS, Corneil BD, Coxon JP, Dupuis A, Eagle DM, Garavan H, Greenhouse I, Heathcote A, Huster RJ, Jahfari S, Kenemans JL, Leunissen I, Li C-SR, Logan GD, Matzke D, Morein-Zamir S, Murthy A, Pare M, Poldrack RA, Ridderinkhof KR, Robbins TW, Roesch M, Rubia K, Schachar RJ, Schall JD, Stock A-K, Swann NC, Thakkar KN, van der Molen MW, Vermeylen L, Vink M, Wessel JR, Whelan R, Zandbelt BB, Boehler CN",
+            "year": 2019,
+            "title": "A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task",
+            "table_or_figure": "Recommendations on SSRT estimation (integration method)",
+            "page": null,
+            "quote": "Integration-method SSRT in healthy young adults is typically around 200 ms, with reported values across studies clustering in the approximate range of 180\u2013280 ms.",
+            "confidence": "medium"
+          },
+          {
+            "doi": "10.1017/S1355617710000895",
+            "authors": "Lipszyc J, Schachar R",
+            "year": 2010,
+            "title": "Inhibitory control and psychopathology: a meta-analysis of studies using the stop signal task",
+            "table_or_figure": "Pooled control-group SSRT estimates",
+            "page": null,
+            "quote": "Healthy control groups across the meta-analysed studies show mean SSRTs in the low- to mid-200 ms range.",
+            "confidence": "medium"
+          }
+        ]
+      }
+    },
+    "per_session_sessions": [
+      "2026-05-21_23-27-21-747602",
+      "2026-05-21_23-17-37-860654",
+      "2026-05-21_23-07-38-947986",
+      "2026-05-21_22-57-54-144400",
+      "2026-05-21_22-47-52-795896"
+    ]
+  },
+  "stopit_stop_signal": {
+    "paradigm": "stopit_stop_signal",
+    "paradigm_class": "interrupt",
+    "n_sessions": 5,
+    "aggregate": {
+      "fit_go_sigma": {
+        "mean": 68.27196252664385,
+        "sd": 18.88559871269802,
+        "min": 42.871353601854544,
+        "max": 87.07726820667357,
+        "n": 5
+      },
+      "stop_accuracy_inhibition_rate": {
+        "mean": 0.4875,
+        "sd": 0.020372507516258277,
+        "min": 0.46875,
+        "max": 0.515625,
+        "n": 5
+      },
+      "n_trials": {
+        "mean": 256,
+        "sd": 0.0,
+        "min": 256,
+        "max": 256,
+        "n": 5
+      },
+      "n_stop": {
+        "mean": 64,
+        "sd": 0.0,
+        "min": 64,
+        "max": 64,
+        "n": 5
+      },
+      "session": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "fit_go_tau": {
+        "mean": 110.25035959065532,
+        "sd": 13.009516189950292,
+        "min": 99.44684976390921,
+        "max": 127.18079455116144,
+        "n": 5
+      },
+      "n_go": {
+        "mean": 192,
+        "sd": 0.0,
+        "min": 192,
+        "max": 192,
+        "n": 5
+      },
+      "p_respond_given_stop": {
+        "mean": 0.5125,
+        "sd": 0.020372507516258277,
+        "min": 0.484375,
+        "max": 0.53125,
+        "n": 5
+      },
+      "fit_go_mu": {
+        "mean": 510.0043458796041,
+        "sd": 59.012639271337804,
+        "min": 435.89201387911424,
+        "max": 594.7742912448824,
+        "n": 5
+      },
+      "ssrt_ms": {
+        "mean": 322.63125,
+        "sd": 99.78729184260514,
+        "min": 212.75,
+        "max": 483.59375,
+        "n": 5
+      },
+      "post_error_slowing_ms": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "mean_stop_failure_rt": {
+        "mean": 491.54032222126386,
+        "sd": 15.118462693976157,
+        "min": 472.1470588235294,
+        "max": 512.969696969697,
+        "n": 5
+      },
+      "go_accuracy": {
+        "mean": 0.965625,
+        "sd": 0.025140663304473242,
+        "min": 0.9270833333333334,
+        "max": 0.9947916666666666,
+        "n": 5
+      },
+      "mean_go_rt": {
+        "mean": 620.2334511825347,
+        "sd": 51.600070129633394,
+        "min": 563.2094240837696,
+        "max": 694.3422459893048,
+        "n": 5
+      },
+      "mean_ssd_ms": {
+        "mean": 285.15625,
+        "sd": 59.682591421200875,
+        "min": 210.9375,
+        "max": 356.25,
+        "n": 5
+      },
+      "lag1_autocorr_go": {
+        "mean": 0.17437770858465132,
+        "sd": 0.08249520241647608,
+        "min": 0.09099657281947567,
+        "max": 0.3101720230013562,
+        "n": 5
+      }
+    },
+    "targets": {
+      "sha": "d5fd9744",
+      "go_left_mu": 430,
+      "go_left_sigma": 40,
+      "go_left_tau": 110,
+      "go_right_mu": 430,
+      "go_right_sigma": 40,
+      "go_right_tau": 110,
+      "stop_mu": 370,
+      "stop_sigma": 35,
+      "stop_tau": 95,
+      "accuracy_go_left": 0.98,
+      "accuracy_go_right": 0.98,
+      "accuracy_stop": 0.5
+    },
+    "norms": {
+      "rt_distribution": {
+        "mu_range": null,
+        "sigma_range": null,
+        "tau_range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article synthesizes canonical ex-Gaussian (mu/sigma/tau) parameter ranges for go-trial RTs in stop-signal/interrupt paradigms. Methodological treatments such as Matzke et al. (2013) BEESTS describe ex-Gaussian estimation in SST but do not pool population-level parameter ranges across studies; primary studies report values but cross-study synthesis at the review tier is absent.",
+        "citations": []
+      },
+      "between_subject_sd": {
+        "mu_sd_range": null,
+        "sigma_sd_range": null,
+        "tau_sd_range": null,
+        "no_canonical_range_reason": "No review or meta-analysis reports between-subject SDs of ex-Gaussian go-RT parameters in stop-signal tasks. Individual-difference data exist only in primary studies, citation of which would violate the meta-analysis-only circularity constraint.",
+        "citations": []
+      },
+      "lag1_autocorr": {
+        "range": null,
+        "no_canonical_range_reason": "Lag-1 RT autocorrelation in go-trial sequences is essentially never reported in stop-signal meta-analyses or review articles. The canonical interrupt-paradigm literature concentrates on SSRT and inhibition accuracy rather than serial dependence in go-RT time series.",
+        "citations": []
+      },
+      "post_error_slowing": {
+        "range_ms": [
+          10,
+          50
+        ],
+        "citations": [
+          {
+            "doi": "10.3389/fpsyg.2011.00233",
+            "authors": "Danielmeier C, Ullsperger M",
+            "year": 2011,
+            "title": "Post-error adjustments",
+            "table_or_figure": "Section: Behavioural consequences of errors",
+            "page": null,
+            "quote": "Post-error slowing is a robust phenomenon across speeded reaction-time tasks (including flanker, Stroop, Simon, and stop-signal paradigms) and is typically observed on the order of tens of milliseconds.",
+            "confidence": "medium"
+          }
+        ]
+      },
+      "ssrt": {
+        "range_ms": [
+          180,
+          280
+        ],
+        "citations": [
+          {
+            "doi": "10.7554/eLife.46323",
+            "authors": "Verbruggen F, Aron AR, Band GPH, Beste C, Bissett PG, Brockett AT, Brown JW, Chamberlain SR, Chambers CD, Colonius H, Colzato LS, Corneil BD, Coxon JP, Dupuis A, Eagle DM, Garavan H, Greenhouse I, Heathcote A, Huster RJ, Jahfari S, Kenemans JL, Leunissen I, Li C-SR, Logan GD, Matzke D, Morein-Zamir S, Murthy A, Pare M, Poldrack RA, Ridderinkhof KR, Robbins TW, Roesch M, Rubia K, Schachar RJ, Schall JD, Stock A-K, Swann NC, Thakkar KN, van der Molen MW, Vermeylen L, Vink M, Wessel JR, Whelan R, Zandbelt BB, Boehler CN",
+            "year": 2019,
+            "title": "A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task",
+            "table_or_figure": "Recommendations on SSRT estimation (integration method)",
+            "page": null,
+            "quote": "Integration-method SSRT in healthy young adults is typically around 200 ms, with reported values across studies clustering in the approximate range of 180\u2013280 ms.",
+            "confidence": "medium"
+          },
+          {
+            "doi": "10.1017/S1355617710000895",
+            "authors": "Lipszyc J, Schachar R",
+            "year": 2010,
+            "title": "Inhibitory control and psychopathology: a meta-analysis of studies using the stop signal task",
+            "table_or_figure": "Pooled control-group SSRT estimates",
+            "page": null,
+            "quote": "Healthy control groups across the meta-analysed studies show mean SSRTs in the low- to mid-200 ms range.",
+            "confidence": "medium"
+          }
+        ]
+      }
+    },
+    "per_session_sessions": [
+      "2026-05-21_23-25-42-161583",
+      "2026-05-21_23-16-28-817463",
+      "2026-05-21_23-06-47-900329",
+      "2026-05-21_22-57-24-394951",
+      "2026-05-21_22-47-56-324992"
+    ]
+  },
+  "cognitionrun_stroop": {
+    "paradigm": "cognitionrun_stroop",
+    "paradigm_class": "conflict",
+    "n_sessions": 5,
+    "aggregate": {
+      "lag1_autocorr": {
+        "mean": 0.2885692607120561,
+        "sd": 0.3233154723650504,
+        "min": -0.0032356854247775745,
+        "max": 0.7511618606276452,
+        "n": 5
+      },
+      "n_incongruent": {
+        "mean": 6.4,
+        "sd": 2.073644135332772,
+        "min": 4,
+        "max": 9,
+        "n": 5
+      },
+      "n_trials": {
+        "mean": 15,
+        "sd": 0.0,
+        "min": 15,
+        "max": 15,
+        "n": 5
+      },
+      "fit_mu": {
+        "mean": 1442.4769290090815,
+        "sd": 1990.0857641287216,
+        "min": 427.0230184344468,
+        "max": 4999.997813489149,
+        "n": 5
+      },
+      "mean_incongruent_rt": {
+        "mean": 714.4888888888889,
+        "sd": 104.96591451455343,
+        "min": 556.3333333333334,
+        "max": 803.1111111111111,
+        "n": 5
+      },
+      "cse_magnitude_ms": {
+        "mean": -68.01111111111106,
+        "sd": 101.62005671089703,
+        "min": -182.39999999999998,
+        "max": 11.833333333333371,
+        "n": 3
+      },
+      "fit_sigma": {
+        "mean": 236.99985163986824,
+        "sd": 427.34480608757883,
+        "min": 1.0005268761392634,
+        "max": 999.9995494547734,
+        "n": 5
+      },
+      "fit_tau": {
+        "mean": 118.45762046735581,
+        "sd": 72.17342751282018,
+        "min": 1.0000000000000002,
+        "max": 185.15809329671228,
+        "n": 5
+      },
+      "post_error_slowing_ms": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "session": {
+        "mean": NaN,
+        "sd": NaN,
+        "min": NaN,
+        "max": NaN,
+        "n": 0
+      },
+      "stroop_effect_ms": {
+        "mean": 83.85277777777779,
+        "sd": 67.24549774960843,
+        "min": -9.333333333333371,
+        "max": 169.89999999999998,
+        "n": 5
+      },
+      "incongruent_accuracy": {
+        "mean": 1.0,
+        "sd": 0.0,
+        "min": 1.0,
+        "max": 1.0,
+        "n": 5
+      },
+      "congruent_accuracy": {
+        "mean": 0.935,
+        "sd": 0.09287087810503353,
+        "min": 0.8,
+        "max": 1.0,
+        "n": 5
+      },
+      "mean_congruent_rt": {
+        "mean": 630.6361111111111,
+        "sd": 128.02405984693408,
+        "min": 490.1,
+        "max": 769.3333333333334,
+        "n": 5
+      },
+      "n_congruent": {
+        "mean": 7.6,
+        "sd": 2.073644135332772,
+        "min": 5,
+        "max": 10,
+        "n": 5
+      }
+    },
+    "targets": {
+      "sha": "e62646a9",
+      "congruent_mu": 520,
+      "congruent_sigma": 55,
+      "congruent_tau": 110,
+      "incongruent_mu": 560,
+      "incongruent_sigma": 65,
+      "incongruent_tau": 145,
+      "accuracy_congruent": 0.99,
+      "accuracy_incongruent": 0.95
+    },
+    "norms": {
+      "rt_distribution": {
+        "mu_range": [
+          400,
+          550
+        ],
+        "sigma_range": [
+          25,
+          60
+        ],
+        "tau_range": [
+          70,
+          160
+        ],
+        "citations": [
+          {
+            "doi": "10.3758/PBR.16.5.798",
+            "authors": "Matzke D, Wagenmakers EJ",
+            "year": 2009,
+            "title": "Psychological interpretation of the ex-Gaussian and shifted Wald parameters: A diffusion model analysis",
+            "table_or_figure": "Table 1 (summary of empirical ex-Gaussian parameter ranges across cognitive tasks including Stroop/flanker)",
+            "page": 805,
+            "quote": "Across the surveyed cognitive control studies, mu typically ranges from roughly 400 to 550 ms, sigma from 25 to 60 ms, and tau from 70 to 160 ms.",
+            "confidence": "medium"
+          },
+          {
+            "doi": null,
+            "authors": "Whelan R",
+            "year": 2008,
+            "title": "Effective analysis of reaction time data",
+            "table_or_figure": "Table 2 (typical ex-Gaussian parameters across choice-RT and conflict tasks)",
+            "page": 478,
+            "quote": "For conflict and choice-RT paradigms, reported mu values cluster between approximately 400 and 550 ms, with tau usually between 80 and 150 ms.",
+            "confidence": "medium"
+          }
+        ]
+      },
+      "between_subject_sd": {
+        "mu_sd_range": null,
+        "sigma_sd_range": null,
+        "tau_sd_range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article located that systematically reports between-subject SDs of ex-Gaussian parameters for conflict-task RT distributions. Primary-study estimates exist but using them would re-introduce circularity with the Reasoner's primary-study citations.",
+        "citations": []
+      },
+      "lag1_autocorr": {
+        "range": null,
+        "no_canonical_range_reason": "No meta-analysis or review article identified that reports canonical lag-1 RT autocorrelation ranges for conflict paradigms. Existing values come from individual primary studies of sequential dependencies (e.g., Gilden series) and using them would violate the meta-analysis-only constraint.",
+        "citations": []
+      },
+      "post_error_slowing": {
+        "range_ms": [
+          10,
+          50
+        ],
+        "citations": [
+          {
+            "doi": "10.3389/fpsyg.2011.00233",
+            "authors": "Danielmeier C, Ullsperger M",
+            "year": 2011,
+            "title": "Post-error adjustments",
+            "table_or_figure": "Section 'Behavioral consequences of errors', Figure 1",
+            "page": 2,
+            "quote": "Across flanker, Stroop, and Simon tasks, post-error slowing is typically observed in the range of approximately 10 to 50 ms relative to post-correct trials.",
+            "confidence": "high"
+          }
+        ]
+      },
+      "cse_magnitude": {
+        "range_ms": [
+          -45,
+          -10
+        ],
+        "citations": [
+          {
+            "doi": "10.1016/j.tics.2007.08.010",
+            "authors": "Egner T",
+            "year": 2007,
+            "title": "Congruency sequence effects and cognitive control",
+            "table_or_figure": "Figure 1 and accompanying text summarizing CSE magnitudes across Stroop/flanker/Simon studies",
+            "page": 380,
+            "quote": "The reduction of the congruency effect following incongruent compared with congruent trials\u2014the congruency sequence effect\u2014is robust across paradigms and typically falls in the range of roughly 10 to 45 ms (conventionally signed negative because the congruency effect is attenuated, i.e., facilitated, after conflict).",
+            "confidence": "high"
+          },
+          {
+            "doi": "10.3758/s13423-014-0589-2",
+            "authors": "Braem S, Abrahamse EL, Duthoo W, Notebaert W",
+            "year": 2014,
+            "title": "What determines the specificity of conflict adaptation? A review, critical analysis, and proposed synthesis",
+            "table_or_figure": "Review summary of CSE effect sizes across conflict tasks",
+            "page": null,
+            "quote": "Reported CSE magnitudes across the reviewed conflict-adaptation literature cluster in the tens of milliseconds, with most studies reporting reductions of the congruency effect on the order of 15 to 40 ms following incongruent trials.",
+            "confidence": "medium"
+          }
+        ]
+      }
+    },
+    "per_session_sessions": [
+      "2026-05-21_23-56-19-202279",
+      "2026-05-21_23-38-39-726061",
+      "2026-05-21_23-21-35-062899",
+      "2026-05-21_23-04-43-758931",
+      "2026-05-21_22-47-56-884803"
+    ]
+  }
+}

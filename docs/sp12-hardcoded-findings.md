@@ -141,3 +141,107 @@ been removed:
   `_execute_trial`. Per-trial logging now goes straight through
   `writer.log_trial`. Tests removed:
   `tests/test_executor_keypress_diagnostic.py`.
+
+## src/experiment_bot/core/config.py
+
+Walked top-to-bottom under SP12 Task 5. Findings:
+
+### Soft defaults / fallback literals (acceptable; configurable via TaskCard)
+
+- **`AttentionCheckConfig.stimulus_conditions` default** is
+  `["attention_check", "attention_check_response"]` (config.py:699–701).
+  Back-compat default so legacy configs without this field still work;
+  configurable.
+- **`RuntimeConfig.navigation_stimulus_condition` default** is `""`;
+  empty triggers the executor's legacy hardcoded `"navigation"` label
+  (config.py:726). Back-compat default; configurable.
+- **`RuntimeConfig.delivery_channel` default** is `"cdp"`
+  (config.py:734). Framework-level — `"cdp"`, `"keyboard"`, `"none"`
+  are bot-mechanic identifiers, not paradigm names.
+- **`AdvanceBehaviorConfig.feedback_selectors` default** is `["button"]`
+  (config.py:649). A generic HTML-element selector, not
+  paradigm-specific; configurable.
+- **`TimingConfig.viewport` default** is
+  `{"width": 1280, "height": 800}` (config.py:624). A standard desktop
+  size; paradigm-agnostic.
+
+### Magic numbers in TimingConfig defaults
+
+All TimingConfig timing defaults are bot-mechanic values, not
+paradigm-specific — but several are unconfigured in current TaskCards
+so they act as de facto framework constants:
+
+- `poll_interval_ms = 20` (config.py:614)
+- `max_no_stimulus_polls = 500` (config.py:615)
+- `stuck_timeout_s = 10.0` (config.py:616)
+- `completion_wait_ms = 5000` (config.py:617)
+- `feedback_delay_ms = 2000` (config.py:618)
+- `omission_wait_ms = 2000` (config.py:619)
+- `rt_floor_ms = 150.0` (config.py:620) — minimum bot RT floor
+- `rt_cap_fraction = 0.90` (config.py:621) — fraction of max RT cap
+- `navigation_delay_ms = 1000` (config.py:626)
+- `attention_check_delay_ms = 1500` (config.py:627)
+- `completion_settle_ms = 2000` (config.py:628)
+- `trial_end_timeout_s = 5.0` (config.py:629)
+- `cdp_dwell_ms = 200.0` (config.py:631)
+- `calibration_n_keys = 30` (config.py:739, RuntimeConfig) — number
+  of calibration keypresses
+
+### Practice-effect defaults are bot-library mechanic values
+
+`PracticeEffectConfig` defaults (config.py:264–269):
+- `asymptote_block = 3`
+- `trials_per_block = 30`
+- `decay_rate = 0.7`
+
+These are the exponential-decay mechanism's defaults when enabled;
+the Reasoner emits paradigm-specific values from literature when the
+mechanism is on. Disabled-by-default contributes zero.
+
+### BetweenSubjectJitter clip-range defaults
+
+- `accuracy_clip_range = [0.60, 0.995]` (config.py:455)
+- `omission_clip_range = [0.0, 0.04]` (config.py:456)
+
+The inline comment notes these "reflect typical conflict/interrupt-
+task ranges" and that "the Reasoner should override these per
+paradigm class". This is a soft default tuned to dev paradigms;
+configurable, but the default carries dev-paradigm assumptions. G3-
+adjacent (defaults assume a paradigm class) — worth surfacing.
+
+### PilotConfig defaults assume short-block paradigms
+
+- `min_trials = 20` (config.py:469)
+- `max_blocks = 3` (config.py:475) — "covers paradigms with a
+  single-trial practice block followed by feedback"
+
+Documented soft defaults; per-paradigm override expected.
+
+### Deprecated dataclasses kept for back-compat
+
+- **`ConditionRepetitionConfig`** (config.py:146–179): docstring
+  declares it "Deprecated in SP11 Phase 2" in favor of
+  `lag1_pair_modulation`. Fires a once-per-process stderr deprecation
+  when `enabled=True`. Among current TaskCards, only
+  `expfactory_flanker/2e7fe980.json` still has `enabled=True`; the
+  other 10 have it disabled. Removing the dataclass would also
+  remove the `condition_repetition` effect-registry entry and
+  `apply_condition_repetition` handler — architectural decision.
+- **`PinkNoiseConfig.hurst` legacy field**: handled via from_dict
+  conversion (config.py:333–359). Fires once-per-process stderr
+  deprecation; 6 of 11 current TaskCards still emit `hurst` (no card
+  emits `alpha` directly). Removing the alias would require
+  regenerating those 6 TaskCards.
+
+### Removed in SP12 Task 5
+
+- **`RuntimeConfig.calibration_run_pass`** — Task 3 removed the
+  `--no-calibration` CLI flag that set it; the only remaining
+  consumer was the test escape hatch
+  `test_run_calibration_pass_skips_when_run_pass_false`. Per G5,
+  field + executor branch + test removed; `_run_calibration_pass`
+  now always runs when a deliverer is configured.
+- **`RuntimeConfig.calibration_apply_to_sampler`** — Task 4 removed
+  the executor branching that read it; the field was only consumed
+  by config round-trip tests. Removed from the dataclass and tests.
+  Result is now always installed on the sampler.

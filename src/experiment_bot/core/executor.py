@@ -145,21 +145,14 @@ class TaskExecutor:
         configured deliverer; install the resulting CalibrationResult
         on the sampler.
 
-        No-op if no deliverer is configured (delivery_channel='none')
-        or if ``runtime.calibration_run_pass`` is False (test escape
-        hatch). Should be called after navigation completes (so the
-        bot is inside a key-accepting state) and before _trial_loop
-        starts.
+        No-op if no deliverer is configured (delivery_channel='none').
+        Should be called after navigation completes (so the bot is
+        inside a key-accepting state) and before _trial_loop starts.
         """
         if self._deliverer is None:
             logger.info("Calibration pass skipped: no deliverer configured.")
             return
         rt = self._config.runtime
-        if not rt.calibration_run_pass:
-            logger.info(
-                "Calibration pass skipped: runtime.calibration_run_pass=False."
-            )
-            return
         from experiment_bot.calibration.playwright_gate_dismisser import (
             PlaywrightGateDismisser,
         )
@@ -460,9 +453,9 @@ class TaskExecutor:
                 logger.info("Navigating instructions...")
                 await self._navigator.execute_all(page, self._config.navigation)
 
-                # SP11 Phase 5b: calibration pass (auto-invoked unless
-                # runtime.calibration_run_pass=False, a test escape hatch).
-                # Result is always applied to the sampler.
+                # SP11 Phase 5b: calibration pass (auto-invoked when a
+                # deliverer is configured). Result is always applied to
+                # the sampler.
                 await self._run_calibration_pass(page)
 
                 # Phase 2: Trial loop

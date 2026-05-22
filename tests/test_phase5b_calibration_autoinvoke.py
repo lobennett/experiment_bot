@@ -1,8 +1,8 @@
-"""SP11 Phase 5b — calibration auto-invocation + apply policy.
+"""SP11 Phase 5b — calibration auto-invocation behavior.
 
-Tests the runtime.calibration_* fields drive the executor's
-_run_calibration_pass behavior correctly across the pre-cal and
-post-cal arms.
+Tests the executor's _run_calibration_pass: it runs whenever a
+deliverer is configured and installs the result on the sampler;
+it short-circuits when no deliverer is available.
 """
 from __future__ import annotations
 
@@ -12,34 +12,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from experiment_bot.core.config import RuntimeConfig
 
 
-def test_runtime_calibration_defaults_are_full_on():
-    """Default behavior: run pass AND apply to sampler (post-cal arm)."""
+def test_runtime_calibration_n_keys_default():
+    """Default n_keys for the calibration pass is 30."""
     rc = RuntimeConfig()
-    assert rc.calibration_run_pass is True
-    assert rc.calibration_apply_to_sampler is True
     assert rc.calibration_n_keys == 30
-
-
-def test_runtime_calibration_no_apply_round_trip():
-    """Phase 7 pre-cal arm: run pass, skip application."""
-    rc = RuntimeConfig.from_dict({
-        "calibration_apply_to_sampler": False,
-    })
-    assert rc.calibration_run_pass is True  # still runs pass
-    assert rc.calibration_apply_to_sampler is False
-    d = rc.to_dict()
-    assert d["calibration_apply_to_sampler"] is False
-    assert d["calibration_run_pass"] is True
-
-
-def test_runtime_calibration_full_skip_round_trip():
-    """Test escape hatch: skip pass entirely."""
-    rc = RuntimeConfig.from_dict({
-        "calibration_run_pass": False,
-    })
-    assert rc.calibration_run_pass is False
-    assert rc.calibration_apply_to_sampler is True  # irrelevant when pass skipped
-    assert rc.to_dict()["calibration_run_pass"] is False
 
 
 def _executor_with_runtime(runtime_overrides: dict):
@@ -61,17 +37,6 @@ def _executor_with_runtime(runtime_overrides: dict):
         "runtime": runtime_overrides,
     }
     return TaskExecutor(TaskConfig.from_dict(base))
-
-
-def test_run_calibration_pass_skips_when_run_pass_false():
-    """runtime.calibration_run_pass=False short-circuits the executor."""
-    ex = _executor_with_runtime({"calibration_run_pass": False})
-    # Plug a fake deliverer so the early-return path is the one being tested.
-    ex._deliverer = MagicMock()
-    # If _run_calibration_pass actually ran, it'd touch the deliverer
-    asyncio.run(ex._run_calibration_pass(MagicMock()))
-    assert ex._calibration_run is None
-    ex._deliverer.deliver_sequence.assert_not_called()
 
 
 def test_run_calibration_pass_applies_to_sampler_by_default():

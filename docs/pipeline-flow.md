@@ -42,3 +42,12 @@ The executor coordinates one bot session. Flow:
    captures data, writes bot_log.json + run_metadata.json.
 
 Entry point: `src/experiment_bot/core/executor.py:TaskExecutor.run`.
+
+## 3. TaskCard config: `core/config.py`
+
+Dataclass tree representing the TaskCard JSON. Loaded via
+`taskcard.loader.load_latest`. Roundtrip through `to_dict`/`from_dict`
+preserves fidelity. Each runtime knob has a dataclass field with a
+default; the Reasoner emits values for the ones it determines.
+
+Entry point: `src/experiment_bot/core/config.py:TaskConfig.from_dict`.

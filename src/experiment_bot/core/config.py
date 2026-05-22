@@ -732,19 +732,10 @@ class RuntimeConfig:
     # "none" preserves the legacy SP10-era page.keyboard.press path
     # so SP10 archive sessions can be replayed unmodified.
     delivery_channel: str = "cdp"
-    # SP11 Phase 5b: calibration auto-invocation policy.
-    # `run_pass`: when True (default), the executor invokes
-    #   _run_calibration_pass during session startup. False is the
-    #   test-only escape hatch.
-    # `apply_to_sampler`: when True (default), the calibration
-    #   result is installed on the sampler. False is the Phase 7
-    #   "pre-cal arm" — the calibration pass still runs and the
-    #   offset is recorded in run_metadata, but sampled RTs are not
-    #   adjusted. Phase 7 compares pre-cal vs post-cal under this
-    #   single manipulation.
-    # `n_keys`: how many calibration keypresses to fire.
-    calibration_run_pass: bool = True
-    calibration_apply_to_sampler: bool = True
+    # SP11 Phase 5b: number of calibration keypresses to fire during
+    # the auto-invoked calibration pass at session startup. The pass
+    # always runs when a deliverer is configured and the result is
+    # always installed on the sampler.
     calibration_n_keys: int = 30
 
     @classmethod
@@ -758,8 +749,6 @@ class RuntimeConfig:
             attention_check=AttentionCheckConfig.from_dict(d.get("attention_check", {})),
             navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
             delivery_channel=d.get("delivery_channel", "cdp"),
-            calibration_run_pass=d.get("calibration_run_pass", True),
-            calibration_apply_to_sampler=d.get("calibration_apply_to_sampler", True),
             calibration_n_keys=d.get("calibration_n_keys", 30),
         )
 
@@ -774,8 +763,6 @@ class RuntimeConfig:
             # Always emit for round-trip stability, matching AttentionCheckConfig policy.
             "navigation_stimulus_condition": self.navigation_stimulus_condition,
             "delivery_channel": self.delivery_channel,
-            "calibration_run_pass": self.calibration_run_pass,
-            "calibration_apply_to_sampler": self.calibration_apply_to_sampler,
             "calibration_n_keys": self.calibration_n_keys,
         }
 

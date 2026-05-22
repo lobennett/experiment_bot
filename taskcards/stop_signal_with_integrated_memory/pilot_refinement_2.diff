@@ -1,0 +1,32 @@
+--- before_attempt_2
++++ after_attempt_2
+@@ -69,14 +69,6 @@
+ # navigation
+ {
+   "phases": [
+-    {
+-      "action": "click",
+-      "target": "#jspsych-fullscreen-btn",
+-      "key": "",
+-      "phase": "fullscreen_prompt",
+-      "duration_ms": 1000,
+-      "steps": []
+-    },
+     {
+       "action": "keypress",
+       "key": "Enter",
+@@ -93,11 +85,11 @@
+   "phase_detection": {
+     "complete": "!!document.getElementById('finished_message')",
+     "loading": "!document.querySelector('#jspsych-content') || !document.querySelector('#jspsych-content > *')",
+-    "instructions": "!!document.getElementById('jspsych-fullscreen-btn') || (!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')) || (!!document.querySelector('.centerbox .center-block-text') && !document.querySelector('.bigbox .picture_box') && !document.getElementById('jspsych-stop-signal-stimulus') && !document.getElementById('jspsych-attention-check-rdoc-stimulus'))",
++    "instructions": "(!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')) || (!!document.querySelector('.centerbox .center-block-text') && !document.querySelector('.bigbox .picture_box') && !document.getElementById('jspsych-stop-signal-stimulus') && !document.getElementById('jspsych-attention-check-rdoc-stimulus'))",
+     "attention_check": "!!document.getElementById('jspsych-attention-check-rdoc-stimulus')",
+     "feedback": "!!document.querySelector('.bigbox .picture_box')",
+-    "practice": "!!document.querySelector('.prompt_box') && !!document.getElementById('jspsych-stop-signal-stimulus')",
+-    "test": "!document.querySelector('.prompt_box') && !!document.getElementById('jspsych-stop-signal-stimulus')",
++    "practice": "!!document.querySelector('.prompt_box') && (!!document.getElementById('jspsych-stop-signal-stimulus') || !!document.querySelector('.container .stimulus') || !!document.querySelector('.letter-text'))",
++    "test": "!document.querySelector('.prompt_box') && (!!document.getElementById('jspsych-stop-signal-stimulus') || !!document.querySelector('.container .stimulus') || !!document.querySelector('.letter-text'))",
+     "fullscreen_prompt": "!!document.getElementById('jspsych-fullscreen-btn')"
+   },
+   "timing": {

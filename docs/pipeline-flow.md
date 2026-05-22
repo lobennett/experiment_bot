@@ -124,7 +124,22 @@ or finalize.
 
 Entry point: `core/stimulus.py:StimulusLookup.identify`.
 
-## 10. LLM client abstraction: `llm/`
+## 8. Instruction navigation: `navigation/navigator.py`
+
+`InstructionNavigator.execute_all(page, navigation_config)` runs the
+TaskCard's nav phases in order. Phases are:
+- `click <selector>` — wait + click; raises on timeout (1.5s)
+- `keypress <key>` — page.keyboard.press
+- `wait <duration_ms>` — fixed sleep
+- `sequence`, `repeat` — composite
+
+Called once by `TaskExecutor.run` after page.goto. Re-invoked by the
+trial loop's INSTRUCTIONS-phase branch (to advance any mid-experiment
+instruction screens).
+
+Entry point: `navigation/navigator.py:InstructionNavigator.execute_all`.
+
+## 9. LLM client abstraction: `llm/`
 
 Two-implementation client pattern (Reasoner-only consumer; SessionAgent
 removed in Task 4):
@@ -137,19 +152,7 @@ key → SDK; else CLI on PATH). Used by:
 
 Entry point: `llm/factory.py:build_default_client`.
 
-## 11. TaskCard load + sample: `taskcard/`
-
-- `loader.py` — `load_latest(taskcards_dir, label)` finds the most-recent
-  TaskCard JSON for a label (by file mtime).
-- `types.py` — `TaskCard` Pydantic / dataclass shape with
-  `produced_by` provenance.
-- `sampling.py` — `sample_session_params(taskcard_dict, seed)` draws
-  between-subject jitter for the session.
-- `hashing.py` — SHA256 over the TaskCard for `produced_by.taskcard_sha256`.
-
-Entry point: `taskcard/loader.py:load_latest`.
-
-## 11. TaskCard load + sample: `taskcard/`
+## 10. TaskCard load + sample: `taskcard/`
 
 - `loader.py` — `load_latest(taskcards_dir, label)` finds the most-recent
   TaskCard JSON for a label (by file mtime). `save_taskcard` writes a
@@ -163,7 +166,7 @@ Entry point: `taskcard/loader.py:load_latest`.
 
 Entry point: `taskcard/loader.py:load_latest`.
 
-## 12. Reasoner pipeline: `reasoner/` (offline, pre-session)
+## 11. Reasoner pipeline: `reasoner/` (offline, pre-session)
 
 5-stage offline pipeline that produces a TaskCard from a paradigm
 URL + literature. Not traversed during sessions.
@@ -179,7 +182,7 @@ URL + literature. Not traversed during sessions.
 
 Entry point: `reasoner/pipeline.py:ReasonerPipeline.run`.
 
-## 13. Effects library: `effects/`
+## 12. Effects library: `effects/`
 
 Generic temporal-effects mechanisms applied by the sampler.
 
@@ -197,7 +200,7 @@ validation_metrics.py as a thin wrapper around `lag1_pair_contrast`.
 
 Entry point: `effects/registry.py:EFFECT_REGISTRY`.
 
-## 14. Validation oracle: `validation/`
+## 13. Validation oracle: `validation/`
 
 Optional post-session validation. Reads platform data export +
 TaskCard, computes per-metric values, gates against norms file ranges.

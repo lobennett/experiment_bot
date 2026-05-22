@@ -1091,3 +1091,94 @@ imported by oracle.py, scripts/analyze_sessions.py, or tests/.
    exception under the G2 carve-out for metric NAMES (vs.
    mechanism names). No change.
 
+## src/experiment_bot/validation/
+
+Walked top-to-bottom under SP12 Task 16. Files reviewed:
+`oracle.py`, `platform_adapters.py`, `cli.py`, `__init__.py`, and
+the now-removed `eisenberg.py`.
+
+### Removed (dead code)
+
+- **`validation/eisenberg.py`** — `load_eisenberg_summary(...)` had
+  no callers in `src/`, `scripts/`, or `tests/`. The function read
+  trial-level CSVs into ex-Gaussian fits for "descriptive-only"
+  side-by-side comparison; that comparison path was never wired
+  into the oracle or CLI in the final SP2 implementation (the
+  spec/plan mentioned it but the wiring was dropped). PARADIGM_CLASS
+  filenames (`stroop_eisenberg.csv`, `stop_signal_eisenberg.csv`)
+  also hardcoded `conflict` / `interrupt` → dev-paradigm names, which
+  would have been a G1 generalizability violation if it had been
+  exercised. Removed.
+
+### Architectural items (reported, not removed)
+
+1. **`platform_adapters.PLATFORM_ADAPTERS` carries hardcoded
+   paradigm labels** (`stop_signal_rdoc`, `stroop_rdoc`,
+   `flanker_rdoc`, `n_back_rdoc`, `stop_signal_kywch_jspsych`,
+   `stop_signal_task_(stop-it,_jspsych_port)`,
+   `stroop_online_(cognition.run)`, plus URL-label aliases
+   `expfactory_stroop`, etc.). The module docstring already
+   acknowledges this: "Long-term, these adapters belong in the
+   TaskCard (the Reasoner could emit field-mapping config during
+   Stage 1+ from source-code analysis). For now, they live in code
+   with one dispatch entry per dev paradigm." This is the canonical
+   G1 generalizability soft-spot — adding a new paradigm requires a
+   code edit here, not just a TaskCard. Tracked; not removed
+   because no replacement TaskCard schema exists yet.
+
+2. **`TEST_ROW_PREDICATES` mirrors `PLATFORM_ADAPTERS` label list
+   1:1.** Same paradigm-labeled dispatch shape, same generalizability
+   concern, same long-term destination (TaskCard-emitted filter
+   config). Both registries should migrate together; until then the
+   parallel structure is fine.
+
+3. **`read_cognitionrun_stroop` silently treats every keyed
+   response as `correct=True`** (platform_adapters.py:268,
+   "Without the runtime key→colour map, treat any keyed response
+   as a successful response and let the oracle's RT-distribution
+   metrics ignore correctness for this paradigm"). This is
+   documented but breaks the oracle's correctness-based metric
+   contract for this label. Acceptable for the population-level
+   RT/CSE/PES metrics currently gated; risky if a future norms file
+   adds accuracy gates. Worth flagging in scope-of-validity.
+
+4. **`read_expfactory_n_back` canonicalizes condition labels
+   inline** (`f"{cond}_{delay}back"` on line 185). The
+   normalization is paradigm-specific (n-back's `(condition, delay)`
+   pair → `<condition>_<delay>back`). It lives in the adapter
+   because the platform export emits the two fields separately;
+   the TaskCard expects them concatenated. Acceptable — adapters
+   are explicitly the place for per-paradigm field-mapping — but
+   the in-band string templating could move to a more declarative
+   pattern when this registry migrates to TaskCard config.
+
+5. **`oracle.METRIC_REGISTRY` includes `cse_magnitude` as a
+   built-in entry** (oracle.py:291–295). Per the SP12 effects walk
+   finding #5, the metric NAME is acceptable as conflict-paradigm
+   conventional language; the underlying compute (`_compute_cse`)
+   is the generic `cse_magnitude` wrapper that itself dispatches
+   to `lag1_pair_contrast`. CLAUDE.md / "When editing the
+   validation oracle" explicitly carves this out. No change.
+
+6. **`_default_bot_log_loader` fallback path is deprecated but
+   retained** (oracle.py:76–112). Used only when no adapter is
+   registered for a label; CLI emits a WARNING in that case. G4
+   ("Authoritative data sources") says the oracle reads the
+   platform export, not `bot_log.json`. The fallback violates that
+   in spirit but is gated behind an explicit warning and only
+   fires when adapters are missing. Keep as a back-compat safety
+   net; the warning is the durable user-facing signal.
+
+7. **`cli.py:_load_lag1_contrast_labels` infers (high, low) from
+   `modulation_table` sign conventions** ("prev == curr and delta
+   < 0" → high; the other label is low). This is paradigm-agnostic
+   in implementation but depends on the Reasoner emitting tables
+   that follow the documented sign convention. A malformed table
+   returns None silently, and the dependent metric NaNs out — fail-
+   open by design. The convention is documented in the docstring.
+   Acceptable.
+
+8. **`validation/__init__.py` is empty.** Consumers import from
+   submodules directly. Consistent with `effects/__init__.py`
+   (finding #3 above). No re-export layer to maintain.
+

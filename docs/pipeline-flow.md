@@ -192,3 +192,17 @@ vocabulary. Conflict-paradigm "CSE" is exposed as `cse_magnitude` in
 validation_metrics.py as a thin wrapper around `lag1_pair_contrast`.
 
 Entry point: `effects/registry.py:EFFECT_REGISTRY`.
+
+## 14. Validation oracle: `validation/`
+
+Optional post-session validation. Reads platform data export +
+TaskCard, computes per-metric values, gates against norms file ranges.
+
+- `oracle.py` — `METRIC_REGISTRY` dispatch + `compute_session(...)`
+- `platform_adapters.py` — paradigm-aware dispatch:
+  - `PLATFORM_ADAPTERS` (label → reader function)
+  - `TEST_ROW_PREDICATES` (label → raw-row test-trial predicate, used
+    by `scripts/audit_alignment.py`)
+- `cli.py` — `experiment-bot-validate <session_dir>` standalone validator
+
+Entry point: `validation/oracle.py:compute_session`.

@@ -178,9 +178,17 @@ URL + literature. Not traversed during sessions.
 | 3 | stage3_citations.py | Attach literature citations to numeric parameters |
 | 4 | stage4_doi_verify.py | Verify citation DOIs via OpenAlex |
 | 5 | stage5_sensitivity.py | Tag sensitivity per parameter |
-| 6 | stage6_pilot.py | Live-DOM pilot validation against URL (optional via --skip-pilot) |
+| 6 | stage6_pilot.py | Live-DOM pilot validation + sequential refinement walker against URL (optional via --skip-pilot) |
 
 Entry point: `reasoner/pipeline.py:ReasonerPipeline.run`.
+
+**Stage 6 refinement (SP13):** When the pilot fails, the refiner is asked
+to propose ONE smallest advance — click past a single interstitial screen,
+or update a single stimulus selector to match observed DOM. Each attempt
+sees prior attempts' diffs so it can build on earlier progress without
+undoing it. A DOM-fingerprint guard aborts early if two consecutive
+attempts can't move the bot off the same screen. Budget defaults to 12
+total attempts (`--pilot-max-retries 11`).
 
 ## 12. Effects library: `effects/`
 

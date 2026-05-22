@@ -182,10 +182,26 @@ async def test_stage6_persists_refinements_via_save_partial_callback(tmp_path):
         import copy
         saved_partials.append(copy.deepcopy(p))
 
+    # Use distinct DOM snapshots so stuck-detection doesn't fire early.
+    def _failing_with_html(html: str) -> PilotDiagnostics:
+        return PilotDiagnostics(
+            trials_completed=0, trials_with_stimulus_match=0,
+            conditions_observed=[], conditions_missing=["go"],
+            selector_results={"go": {"matches": 0, "polls": 100}},
+            phase_results={},
+            dom_snapshots=[{"trigger": "no_match_50_polls", "html": html}],
+            anomalies=["100 consecutive polls with no stimulus match"],
+            trial_log=[],
+        )
+
     with patch("experiment_bot.reasoner.stage6_pilot.PilotRunner") as pr_cls, \
          patch("experiment_bot.reasoner.stage6_pilot._refine_partial") as refine_mock:
         pr = AsyncMock()
-        pr.run = AsyncMock(return_value=_failing_diagnostic())
+        pr.run = AsyncMock(side_effect=[
+            _failing_with_html("<div>screen-1</div>"),
+            _failing_with_html("<div>screen-2</div>"),
+            _failing_with_html("<div>screen-3</div>"),
+        ])
         pr_cls.return_value = pr
         # Each refinement adds a marker key so we can verify it propagated.
         async def fake_refine(client, p, diag, bundle, *, prior_diffs):
@@ -304,3 +320,48 @@ async def test_refine_partial_includes_prior_diffs_in_prompt(tmp_path):
     assert "added fullscreen click" in sent_user, \
         "prior diff text must appear in the refinement prompt"
     assert "Prior Refinement Attempts" in sent_user
+
+
+@pytest.mark.asyncio
+async def test_stage6_stuck_detection_aborts_early(tmp_path):
+    """When two consecutive failed attempts produce the same dom_fingerprint,
+    Stage 6 raises PilotValidationError without consuming the rest of the
+    budget — refinements that don't move the bot won't move it by trying
+    again. The error message names the stuck state."""
+    fake_client = AsyncMock()
+    # Refinement returns a no-op so the partial doesn't actually change
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text="{}"))
+    partial = _stage5_partial()
+
+    stuck_diag = PilotDiagnostics(
+        trials_completed=0,
+        trials_with_stimulus_match=0,
+        conditions_observed=[],
+        conditions_missing=["go"],
+        selector_results={"go": {"matches": 0, "polls": 100}},
+        phase_results={},
+        dom_snapshots=[{"trigger": "no_match_50_polls",
+                        "html": "<div>same screen each time</div>"}],
+        anomalies=["100 consecutive polls with no stimulus match"],
+        trial_log=[],
+    )
+
+    pilot_call_count = 0
+    async def fake_pilot_run(*args, **kwargs):
+        nonlocal pilot_call_count
+        pilot_call_count += 1
+        return stuck_diag  # identical fingerprint every call
+
+    with patch("experiment_bot.reasoner.stage6_pilot.PilotRunner") as pr_cls:
+        pr = AsyncMock()
+        pr.run = AsyncMock(side_effect=fake_pilot_run)
+        pr_cls.return_value = pr
+        with pytest.raises(PilotValidationError, match="stuck"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=11,  # large budget; guard should fire first
+            )
+    # Stuck-detection fires after 2nd identical fingerprint → pilot called 2x, NOT 12x.
+    assert pilot_call_count == 2, \
+        f"expected stuck-detection to abort after 2 pilots, got {pilot_call_count}"

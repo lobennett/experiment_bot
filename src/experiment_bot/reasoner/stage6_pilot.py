@@ -240,10 +240,12 @@ def _save_diagnostic(diagnostics: PilotDiagnostics, taskcards_dir: Path, label: 
 
 def _save_refinement_diff(
     before: dict, after: dict, taskcards_dir: Path, label: str, attempt: int,
-) -> None:
+) -> str:
     """Persist a unified diff of the structural fields the bot changed
     during a refinement attempt. Lives alongside pilot.md so the user
-    can audit what the refinement loop did at each step.
+    can audit what the refinement loop did at each step. Returns the
+    diff text so run_stage6 can also pass it back to the LLM as
+    "Prior Refinement Attempts" context.
     """
     import difflib
     out_dir = Path(taskcards_dir) / label
@@ -259,13 +261,14 @@ def _save_refinement_diff(
         after_lines.append(f"# {f}")
         after_lines.extend(json.dumps(after.get(f, {}), indent=2).splitlines())
         after_lines.append("")
-    diff = difflib.unified_diff(
+    diff_text = "\n".join(difflib.unified_diff(
         before_lines, after_lines,
         fromfile=f"before_attempt_{attempt}",
         tofile=f"after_attempt_{attempt}",
         lineterm="",
-    )
-    (out_dir / f"pilot_refinement_{attempt}.diff").write_text("\n".join(diff))
+    ))
+    (out_dir / f"pilot_refinement_{attempt}.diff").write_text(diff_text)
+    return diff_text
 
 
 async def run_stage6(
@@ -298,6 +301,8 @@ async def run_stage6(
     pilot_runner = PilotRunner()
     history: list[str] = []
     evidence: list[str] = []
+    fingerprint_history: list[str] = []
+    prior_diffs: list[str] = []
 
     for attempt in range(max_retries + 1):
         config = _partial_to_pilot_config(partial)
@@ -338,6 +343,24 @@ async def run_stage6(
         history.append(f"Attempt {attempt + 1}: " + "; ".join(reasons))
         logger.warning("Pilot attempt %d failed: %s", attempt + 1, "; ".join(reasons))
 
+        # Stuck-detection: if the last 2 failed attempts produced the same
+        # non-empty DOM fingerprint, the refiner isn't moving the bot. Abort
+        # early rather than burning the rest of the budget on the same screen.
+        fp = diagnostics.dom_fingerprint
+        fingerprint_history.append(fp)
+        if (
+            len(fingerprint_history) >= 2
+            and fingerprint_history[-1]
+            and fingerprint_history[-1] == fingerprint_history[-2]
+        ):
+            _save_diagnostic(diagnostics, taskcards_dir, label)
+            raise PilotValidationError(
+                f"Pilot stuck at same DOM state across {len(fingerprint_history)} "
+                f"attempts (fingerprint {fp}); refinements aren't advancing the "
+                f"bot. Latest diagnostic saved to {taskcards_dir}/{label}/pilot.md.\n"
+                f"Attempt history:\n  - " + "\n  - ".join(history)
+            )
+
         if attempt == max_retries:
             _save_diagnostic(diagnostics, taskcards_dir, label)
             raise PilotValidationError(
@@ -349,12 +372,10 @@ async def run_stage6(
         # Refine and retry; capture the diff for provenance.
         before = copy.deepcopy(partial)
         partial = await _refine_partial(
-            client, partial, diagnostics, bundle, prior_diffs=[],
+            client, partial, diagnostics, bundle, prior_diffs=prior_diffs,
         )
-        _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)
-        # Persist the refined partial back to the resume point so that
-        # if Stage 6 hard-fails on a later attempt, --resume continues
-        # from the refined state instead of re-discovering the same
-        # navigation / detection refinements from scratch.
+        diff_text = _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)
+        if diff_text:
+            prior_diffs.append(diff_text)
         if save_partial is not None:
             save_partial(partial)

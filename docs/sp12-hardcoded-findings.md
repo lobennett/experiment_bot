@@ -554,3 +554,118 @@ phase predicates flow from `PhaseDetectionConfig` (TaskCard).
   doesn't lose data today. Worth noting that the dataclass
   defaults and the to_dict filter are coupled.
 
+## 8. Instruction navigation: `navigation/navigator.py`
+
+`InstructionNavigator.execute_all(page, navigation_config)` runs the
+TaskCard's nav phases in order. Phases are:
+- `click <selector>` — wait + click; raises on timeout (1.5s)
+- `keypress <key>` — page.keyboard.press
+- `wait <duration_ms>` — fixed sleep
+- `sequence`, `repeat` — composite
+
+Called once by `TaskExecutor.run` after page.goto. Re-invoked by the
+trial loop's INSTRUCTIONS-phase branch (to advance any mid-experiment
+instruction screens).
+
+Entry point: `navigation/navigator.py:InstructionNavigator.execute_all`.
+
+## src/experiment_bot/navigation/navigator.py
+
+Walked top-to-bottom under SP12 Task 10. No paradigm names appear in
+the file; the navigator dispatches on the TaskCard's
+`navigation.phases[*].action` string.
+
+### Hardcoded action-name vocabulary (framework-level contract)
+
+- `execute_phase` (navigator.py:23–49) dispatches on five literal
+  action strings: `"click"`, `"press"` / `"keypress"` (aliases),
+  `"wait"`, `"sequence"`, `"repeat"`. These are the Reasoner→Executor
+  contract for navigation mechanics. Unknown actions log
+  `"Skipping unknown/meta action: ..."` and fall through (vs raise) —
+  a soft contract that tolerates Reasoner-emitted meta-actions like
+  documentation phases.
+- The dual `"press"` / `"keypress"` accept-both is deliberate
+  back-compat (Stage 1 prompt may emit either); no paradigm
+  vocabulary in scope.
+
+### Soft defaults / fallback literals (acceptable; configurable)
+
+- **`reading_delay_range` constructor default** is `(3.0, 8.0)` seconds
+  (navigator.py:16). `PilotRunner` overrides to `(1.0, 2.0)` for faster
+  pilots (pilot.py:123). The executor uses the default. Framework-level
+  human-pacing emulation; not paradigm-specific.
+- **Click timeout `1500` ms** (navigator.py:63). Documented in the
+  docstring as a deliberate fast-fail threshold (originally 10000 ms,
+  caused ~170 s of phantom-button-clicking on expfactory_stop_signal
+  and lost 35 of 180 trials — see SP2.5 entry in CLAUDE.md). Pinned by
+  the `test_do_click_timeout_is_short_for_fast_fail` regression test.
+  Framework-level; not paradigm-specific.
+
+### Magic numbers / heuristics
+
+- **`max_iterations = 20`** for the `repeat` action (navigator.py:39).
+  Local literal (no config knob). The repeat loop exits early when the
+  inner click raises (`PlaywrightError` re-raised from `_do_click`), so
+  in practice the cap rarely fires. The test docstring
+  (`tests/test_navigator.py:73`) claims "default 50" — doc rot; the
+  actual cap is 20. Behaviorally inert in dev paradigms because the
+  break-on-exception path dominates.
+
+### Clear-cut removal applied
+
+- **Unused exception-bound variable `e`** in `_do_click`
+  (navigator.py:65): `except PlaywrightError as e:` → `except
+  PlaywrightError:`. The variable was never referenced in the body
+  (only the bare `raise` re-raised the current exception). No behavior
+  change. Pytest green (675 passed).
+
+### Architectural concerns (report, don't remove)
+
+- **Action-vocabulary dispatch duplicates the `NavigationPhase`
+  schema.** `execute_phase`'s five `elif phase.action == ...` branches
+  encode the same vocabulary that `core/config.py:NavigationPhase`
+  (and the Stage 2 schema) already declares. A future
+  Reasoner-side mechanism (e.g., `"focus"`, `"scroll"`) would need
+  edits in both places + the Stage 2 validator. A small dispatch
+  table (or strategy registry) would consolidate the contract; same
+  shape as the `stimulus.py` / `pilot.py` / `executor.py` triple-site
+  detection-method dispatch flagged in Task 9.
+- **Bare `Exception` catch in `_exec_pre_js`** (navigator.py:80).
+  Catches all exceptions and logs at DEBUG. Sufficient for the
+  documented "page context torn down by navigation" failure mode, but
+  also swallows JS syntax errors in Reasoner-emitted `pre_js` strings.
+  Same silent-failure shape as `stimulus.py:_check_rule` (Task 9) and
+  `phase_detection.py` context-destroyed → COMPLETE (Task 9).
+- **`repeat` swallows all sub-step exceptions to break out**
+  (navigator.py:45–47). A non-Playwright bug inside a `sequence` step
+  (e.g., a TypeError in a future composite action) would silently end
+  the loop with no log line. The bare `except Exception:` is a
+  deliberate "any failure → done" semantic for the dev paradigm
+  pattern (click Next until it disappears), but it shares the
+  silent-failure shape with the items above.
+
+## src/experiment_bot/navigation/stuck.py
+
+Walked under SP12 Task 10. Pure utility module — paradigm-agnostic, no
+hardcoded values beyond the constructor default.
+
+### Soft default
+
+- **`timeout_seconds = 10.0`** constructor default (stuck.py:12).
+  Overridden in the only production call site by
+  `config.runtime.timing.stuck_timeout_s` (executor.py:522).
+  Framework-level pacing; not paradigm-specific.
+
+### Architectural candidate (report, don't remove)
+
+- **Single production call site.** `StuckDetector` is imported and
+  instantiated only in `core/executor.py:_trial_loop` (the test file
+  `tests/test_stuck.py` is the only other consumer). The class is a
+  21-line wrapper around `time.monotonic()` + a timeout. Per Task 10
+  protocol, a single-call-site utility is a candidate for inlining
+  back into the caller (the entire class is three operations:
+  `__init__`, `heartbeat()`, and the `is_stuck` property — `_trial_loop`
+  could track `last_heartbeat` directly with no loss of clarity).
+  Decision deferred — the standalone module is cleanly tested in
+  isolation and the call-site cost is one import; inlining is a
+  cosmetic refactor with no fidelity impact.

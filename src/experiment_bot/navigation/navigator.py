@@ -62,7 +62,7 @@ class InstructionNavigator:
         try:
             await locator.wait_for(state="visible", timeout=1500)
             await locator.click()
-        except PlaywrightError as e:
+        except PlaywrightError:
             logger.info(f"Click target not visible (skipping): {target}")
             raise
 

@@ -1,8 +1,12 @@
 # experiment_bot pipeline flow
 
-Quick reference for what happens between `experiment-bot <url> --label X`
-and the final `bot_log.json` write. Sections are added as SP12 walks
-each module.
+A new reader who wants to understand what happens during
+`experiment-bot <url> --label <paradigm>` can read this doc top-to-
+bottom in ~10 minutes. Each section names a module, what it does in
+2–4 sentences, and the entry point function with its line ref.
+
+The bot's flow: CLI → executor.run → navigation → calibration → trial
+loop → finalize. Section numbers below match the order of execution.
 
 ## Surviving scripts
 

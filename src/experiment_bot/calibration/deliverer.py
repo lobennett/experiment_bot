@@ -83,7 +83,8 @@ class KeypressDeliverer(ABC):
     Phase 4 provides:
       - ``CDPDeliverer`` — fires via Chrome DevTools Protocol
         ``Input.dispatchKeyEvent`` with proper key/code/keyCode.
-      - ``PlaywrightKeyboardDeliverer`` — fallback using
+        This is the only surviving production deliverer; if a CDP
+        session can't be acquired the executor falls through to
         ``page.keyboard.press``.
     """
 

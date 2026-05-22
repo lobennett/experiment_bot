@@ -154,14 +154,12 @@ class CDPDeliverer(KeypressDeliverer):
         Default: jsPsych ``data.get().values()``.
       ``record_marker_field`` — Field on each platform record that
         equals the trial marker. Default: ``"trial_index"`` (jsPsych).
-      ``listener_focus_js`` — Optional JS arrow that focuses the active
-        listener target. If provided, runs before each fire. Generic —
-        caller decides selector. Default: ``None`` (no focus management).
       ``trial_advance_timeout_s`` — Per-fire upper bound on step 5 wait
         before giving up. Default: 30.0.
 
-    A single-channel mode is provided; non-CDP fallback is
-    :class:`~experiment_bot.calibration.keyboard_deliverer.PlaywrightKeyboardDeliverer`.
+    CDP is the only supported delivery channel. If a CDP session can't
+    be acquired (Firefox / WebKit / mocked tests), the executor falls
+    through to ``page.keyboard.press``.
     """
 
     DEFAULT_DWELL_MS: float = 200.0
@@ -177,7 +175,6 @@ class CDPDeliverer(KeypressDeliverer):
         trial_marker_js: str = DEFAULT_TRIAL_MARKER_JS,
         records_js: str = DEFAULT_RECORDS_JS,
         record_marker_field: str = DEFAULT_RECORD_MARKER_FIELD,
-        listener_focus_js: str | None = None,
         trial_advance_timeout_s: float = DEFAULT_TRIAL_ADVANCE_TIMEOUT_S,
     ):
         self._page = page
@@ -186,7 +183,6 @@ class CDPDeliverer(KeypressDeliverer):
         self._trial_marker_js = trial_marker_js
         self._records_js = records_js
         self._record_marker_field = record_marker_field
-        self._listener_focus_js = listener_focus_js
         self._trial_advance_timeout_s = float(trial_advance_timeout_s)
 
     async def _read_trial_marker(self):
@@ -201,14 +197,6 @@ class CDPDeliverer(KeypressDeliverer):
             return list(recs or [])
         except Exception:
             return []
-
-    async def _focus_listener_target(self) -> None:
-        if self._listener_focus_js is None:
-            return
-        try:
-            await self._page.evaluate(self._listener_focus_js)
-        except Exception:
-            pass
 
     async def _fire_cdp_pair(self, key: str) -> dict[str, Any]:
         """Issue rawKeyDown + keyUp via CDP. Returns the field set used
@@ -285,8 +273,7 @@ class CDPDeliverer(KeypressDeliverer):
                 cdp_fields=cdp_fields_for(key),
             )
 
-        # Step 4: Focus + Fire
-        await self._focus_listener_target()
+        # Step 4: Fire
         fired_at = time.monotonic()
         fields = await self._fire_cdp_pair(key)
 

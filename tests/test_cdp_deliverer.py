@@ -114,12 +114,10 @@ class _FakePage:
         *,
         marker_sequence: list[Any] | None = None,
         records: list[dict] | None = None,
-        focus_calls_collector: list | None = None,
     ):
         self._markers = list(marker_sequence or [])
         self._marker_idx = 0
         self._records = list(records or [])
-        self._focus_calls = focus_calls_collector
         self.evaluate_log: list[str] = []
 
     async def evaluate(self, js: str):
@@ -132,10 +130,6 @@ class _FakePage:
             return self._markers[-1] if self._markers else None
         if "data.get" in js or "values" in js:
             return list(self._records)
-        if "focus" in js or "activeElement" in js:
-            if self._focus_calls is not None:
-                self._focus_calls.append(js)
-            return None
         return None
 
 
@@ -216,38 +210,6 @@ def test_deliver_at_trial_start_uses_dwell_override():
     rec = _run(deliverer.deliver_at_trial_start(",", dwell_ms=10.0))
     assert rec.intended_dwell_ms == 10.0
     assert rec.observed_dwell_ms < 100.0  # under default 200ms
-
-
-def test_deliver_at_trial_start_runs_focus_when_provided():
-    """Phase 4b user note 5: focus management before each press. If
-    ``listener_focus_js`` is set, it should be evaluated before fire."""
-    cdp = _FakeCDP()
-    focus_calls: list[str] = []
-    page = _FakePage(
-        marker_sequence=[5, 5, 6],
-        focus_calls_collector=focus_calls,
-    )
-    deliverer = CDPDeliverer(
-        page, cdp,
-        default_dwell_ms=1.0,
-        listener_focus_js="() => document.body.focus()",
-    )
-    _run(deliverer.deliver_at_trial_start(","))
-    assert len(focus_calls) >= 1
-    assert "focus" in focus_calls[0]
-
-
-def test_deliver_at_trial_start_no_focus_when_not_configured():
-    """Without listener_focus_js, no focus call is issued."""
-    cdp = _FakeCDP()
-    focus_calls: list[str] = []
-    page = _FakePage(
-        marker_sequence=[5, 5, 6],
-        focus_calls_collector=focus_calls,
-    )
-    deliverer = CDPDeliverer(page, cdp, default_dwell_ms=1.0)
-    _run(deliverer.deliver_at_trial_start(","))
-    assert len(focus_calls) == 0
 
 
 def test_deliver_at_trial_start_skips_on_marker_mismatch():

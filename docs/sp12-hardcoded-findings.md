@@ -245,3 +245,72 @@ Documented soft defaults; per-paradigm override expected.
   the executor branching that read it; the field was only consumed
   by config round-trip tests. Removed from the dataclass and tests.
   Result is now always installed on the sampler.
+
+## src/experiment_bot/calibration/
+
+Walked under SP12 Task 6. Findings:
+
+### Removed (no remaining production consumers)
+
+- **`drop_from_scope.py` + `test_drop_from_scope.py`** — Task 3 removed
+  the CLI guard that read `task_specific.sp11_supported`. The
+  `PilotVerdict` / `pilot_with_retry` / `mark_taskcard_unsupported` /
+  `append_unsupported_note` machinery had zero remaining callers in
+  src/, tests/, or scripts/. Net -152 LOC source + the dedicated test
+  file.
+
+- **`keyboard_deliverer.py` + `test_keyboard_deliverer.py`** — All 5
+  production TaskCards set `runtime.delivery_channel = "cdp"`. Nothing
+  in production sets `"keyboard"`. The `elif channel == "keyboard":`
+  branch in `TaskExecutor._setup_keypress_deliverer` was dead code.
+  Removed the branch + the deliverer file. The
+  `RuntimeConfig.delivery_channel` field is preserved with `"cdp"` as
+  the default and `"none"` as the legacy-flow escape hatch; passing
+  any other value now logs `Unknown delivery_channel=` and falls
+  through to `page.keyboard.press`.
+
+- **`focus.py`** — Defined three paradigm-agnostic JS focus helpers
+  (`JSPSYCH_DISPLAY_FOCUS_JS`, `BODY_FOCUS_JS`, `IFRAME_CONTENT_FOCUS_JS`)
+  but no caller anywhere in src/, tests/, scripts/, or taskcards/
+  imported them or passed their values via `listener_focus_js=`. The
+  `CDPDeliverer` accepted `listener_focus_js: str | None = None` as a
+  constructor kwarg that was always `None` in production. Removed
+  the JS-string module, the constructor kwarg, the
+  `_focus_listener_target` helper, and the two
+  `test_deliver_at_trial_start_runs_focus*` tests in
+  `test_cdp_deliverer.py`.
+
+### Architectural candidates surfaced (no auto-removal)
+
+- **`estimator.py` `regression` model branch.** Surveyed every
+  `run_metadata.json` under `output/` (658 files). All of them report
+  `model: too_few_events`; none report `fixed_offset`, `regression`,
+  or `escalate`. The `regression` and `escalate` branches in
+  `estimate_calibration` have never fired in a real production
+  session. Possible reasons: every session pairs fewer than the
+  estimator's 5-event minimum (suggests `_summarize_delivery_channels`
+  or the gate-dismisser is dropping events upstream), OR the SD-based
+  trigger thresholds need recalibration. Either way, `regression` is
+  dormant code. Controller decision: keep (defensive), tighten the
+  trigger thresholds, or remove the branch.
+
+- **`KEY_TO_CDP_FIELDS` table coverage.** The dict in
+  `cdp_deliverer.py:42-69` has 27 explicit entries. Across all
+  current TaskCards the only static response-key values that resolve
+  to this table are: `" "`, `"ArrowLeft"`, `"ArrowRight"`, `"Enter"`,
+  and the single letters `b`, `g`, `r`, `y` (which fall through the
+  alphabetic fallback, not the table). Unused-by-current-paradigms
+  table entries: `,`, `.`, `/`, all digits 0-9, `Space` (string
+  literal — the executor only ever passes `" "`), `ArrowUp`,
+  `ArrowDown`, `Escape`, `Tab`, `Backspace`. Defensive value (a novel
+  paradigm using `1234` for n-back or `,/.` for Stroop would hit the
+  table). Controller decision: keep as-is (defensive coverage) vs
+  prune to current paradigms.
+
+### LOC delta
+
+calibration/ before: 1588 LOC across 9 files.
+calibration/ after: 1145 LOC across 7 files (drop_from_scope.py,
+keyboard_deliverer.py, focus.py removed; cdp_deliverer.py trimmed by
+the focus path).
+

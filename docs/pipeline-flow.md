@@ -51,3 +51,25 @@ preserves fidelity. Each runtime knob has a dataclass field with a
 default; the Reasoner emits values for the ones it determines.
 
 Entry point: `src/experiment_bot/core/config.py:TaskConfig.from_dict`.
+
+## 4. Calibration: `src/experiment_bot/calibration/`
+
+Optional pre-trial-loop pass that fires N keys to measure platform-side
+recording offset. Result is installed on the sampler; subsequent RT
+samples are adjusted to compensate. Four model outcomes:
+
+| Model | Trigger | Action |
+|---|---|---|
+| `fixed_offset` | SD ≤ 30ms, unimodal | shift sampler RT by mean |
+| `regression` | SD > 30ms, unimodal | invert linear fit |
+| `escalate` | bimodal detected | no adjustment |
+| `too_few_events` | < 5 paired events | no adjustment |
+
+Surviving files (per Task 6 walk):
+- `deliverer.py` — abstract `KeypressDeliverer` interface + MockDeliverer
+- `cdp_deliverer.py` — Chrome DevTools Protocol implementation (canonical, only channel)
+- `runner.py` — orchestrator: `run_calibration(deliverer, gate_dismisser)`
+- `estimator.py` — fit per-event offsets to one of the 4 models above
+- `playwright_gate_dismisser.py` — visible-button + keyboard-fallback gate
+
+Entry point: `src/experiment_bot/core/executor.py:TaskExecutor._run_calibration_pass`.

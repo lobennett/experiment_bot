@@ -219,16 +219,6 @@ class TaskExecutor:
                 self._cdp_session = None
                 self._deliverer = None
                 return
-        if channel == "keyboard":
-            from experiment_bot.calibration.keyboard_deliverer import (
-                PlaywrightKeyboardDeliverer,
-            )
-            self._deliverer = PlaywrightKeyboardDeliverer(
-                page, default_dwell_ms=dwell_ms,
-                trial_marker_js=marker_js or "",
-                records_js=records_js or "",
-            )
-            return
         logger.warning(
             f"Unknown delivery_channel={channel!r}; keeping legacy "
             f"page.keyboard.press path."

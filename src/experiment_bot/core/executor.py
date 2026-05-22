@@ -138,6 +138,17 @@ class TaskExecutor:
             return dict(ts["key_map"])
         return {}
 
+    def _narrate(self, stage: str, detail: str) -> None:
+        """SP12 Phase 2: narrate one stage transition to stdout.
+
+        Emits a single line per major stage. The full 5-line readout
+        is: navigate, calibration, trial_loop, wait_completion, save.
+        Suppressible via --verbose (which switches to per-trial DEBUG
+        logging via the standard logger; the `[sp12]` prefix makes
+        these narration lines greppable in any case).
+        """
+        print(f"[sp12] {stage}: {detail}", flush=True)
+
     async def _run_calibration_pass(
         self, page: Page, n_keys: int | None = None,
     ) -> None:
@@ -435,6 +446,7 @@ class TaskExecutor:
             try:
                 logger.info(f"Navigating to {task_url}")
                 await page.goto(task_url, wait_until="networkidle")
+                self._narrate("navigate", f"loaded {task_url}")
 
                 # SP11 Phase 5a: open CDP session + construct deliverer
                 await self._setup_keypress_deliverer(page, context)
@@ -447,10 +459,20 @@ class TaskExecutor:
                 # deliverer is configured). Result is always applied to
                 # the sampler.
                 await self._run_calibration_pass(page)
+                cal = self._calibration_run
+                if cal is None:
+                    self._narrate("calibration", "skipped")
+                else:
+                    self._narrate(
+                        "calibration",
+                        f"model={cal.result.model} "
+                        f"n_paired={cal.result.n_events_correctly_recorded}",
+                    )
 
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
                 await self._trial_loop(page)
+                self._narrate("trial_loop", f"trials={self._trial_count}")
 
                 # Hard-fail when the trial loop captured zero trials.
                 # This catches the silent-failure mode where the bot can't
@@ -475,6 +497,7 @@ class TaskExecutor:
                 # Phase 3: Wait for completion and data
                 logger.info("Waiting for task completion...")
                 await self._wait_for_completion(page)
+                self._narrate("wait_completion", "ok")
 
             except Exception as e:
                 logger.error(f"Task execution failed: {e}")
@@ -514,6 +537,7 @@ class TaskExecutor:
                     }
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
+                self._narrate("save", f"output={self._writer.run_dir}")
                 await browser.close()
 
     async def _trial_loop(self, page: Page) -> None:

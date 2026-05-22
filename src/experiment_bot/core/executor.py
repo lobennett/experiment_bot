@@ -445,8 +445,13 @@ class TaskExecutor:
 
             try:
                 logger.info(f"Navigating to {task_url}")
+                _t0 = time.monotonic()
                 await page.goto(task_url, wait_until="networkidle")
                 self._narrate("navigate", f"loaded {task_url}")
+                self._writer.record_trace(
+                    "navigate", {"url": task_url},
+                    duration_s=time.monotonic() - _t0,
+                )
 
                 # SP11 Phase 5a: open CDP session + construct deliverer
                 await self._setup_keypress_deliverer(page, context)
@@ -458,21 +463,39 @@ class TaskExecutor:
                 # SP11 Phase 5b: calibration pass (auto-invoked when a
                 # deliverer is configured). Result is always applied to
                 # the sampler.
+                _t0 = time.monotonic()
                 await self._run_calibration_pass(page)
                 cal = self._calibration_run
                 if cal is None:
                     self._narrate("calibration", "skipped")
+                    self._writer.record_trace(
+                        "calibration", {"status": "skipped"},
+                        duration_s=time.monotonic() - _t0,
+                    )
                 else:
                     self._narrate(
                         "calibration",
                         f"model={cal.result.model} "
                         f"n_paired={cal.result.n_events_correctly_recorded}",
                     )
+                    self._writer.record_trace(
+                        "calibration",
+                        {
+                            "model": cal.result.model,
+                            "n_paired": cal.result.n_events_correctly_recorded,
+                        },
+                        duration_s=time.monotonic() - _t0,
+                    )
 
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
+                _t0 = time.monotonic()
                 await self._trial_loop(page)
                 self._narrate("trial_loop", f"trials={self._trial_count}")
+                self._writer.record_trace(
+                    "trial_loop", {"trials": self._trial_count},
+                    duration_s=time.monotonic() - _t0,
+                )
 
                 # Hard-fail when the trial loop captured zero trials.
                 # This catches the silent-failure mode where the bot can't
@@ -496,8 +519,13 @@ class TaskExecutor:
 
                 # Phase 3: Wait for completion and data
                 logger.info("Waiting for task completion...")
+                _t0 = time.monotonic()
                 await self._wait_for_completion(page)
                 self._narrate("wait_completion", "ok")
+                self._writer.record_trace(
+                    "wait_completion", {"status": "ok"},
+                    duration_s=time.monotonic() - _t0,
+                )
 
             except Exception as e:
                 logger.error(f"Task execution failed: {e}")
@@ -535,6 +563,14 @@ class TaskExecutor:
                             self._calibration_run.delivery_channel_counts
                         ),
                     }
+                # record_trace("save") must run BEFORE finalize() so the
+                # entry lands in run_trace.json on disk. The "save"
+                # stage's duration_s is left None because the work it
+                # bookends (save_metadata + finalize itself) happens on
+                # either side of this call.
+                self._writer.record_trace(
+                    "save", {"output": str(self._writer.run_dir)},
+                )
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 self._narrate("save", f"output={self._writer.run_dir}")

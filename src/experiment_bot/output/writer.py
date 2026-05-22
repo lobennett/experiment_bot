@@ -30,6 +30,9 @@ class OutputWriter:
         self._base_dir = base_dir
         self._run_dir: Path | None = None
         self._trials: list[dict] = []
+        # SP12 Phase 2: structured per-stage trace, written to
+        # run_trace.json beside bot_log.json in finalize().
+        self._trace_stages: list[dict] = []
 
     def create_run(self, task_name: str, config: TaskConfig) -> Path:
         # Include microseconds so concurrent runs that start in the
@@ -46,6 +49,26 @@ class OutputWriter:
 
     def log_trial(self, trial_data: dict) -> None:
         self._trials.append(trial_data)
+
+    def record_trace(
+        self,
+        stage: str,
+        data: dict,
+        duration_s: float | None = None,
+    ) -> None:
+        """SP12 Phase 2: append a structured stage entry to the run trace.
+
+        Entries are written to ``run_trace.json`` in ``finalize()``.
+        Each entry captures ``stage`` (e.g. navigate, calibration,
+        trial_loop, wait_completion, save), a ``data`` dict of
+        stage-specific payload, and an optional ``duration_s``
+        measured by the caller via ``time.monotonic()``.
+        """
+        self._trace_stages.append({
+            "stage": stage,
+            "data": data,
+            "duration_s": duration_s,
+        })
 
     def save_task_data(self, data: str, filename: str) -> None:
         if self._run_dir:
@@ -66,6 +89,11 @@ class OutputWriter:
             log_path = self._run_dir / "bot_log.json"
             log_path.write_text(json.dumps(self._trials, indent=2))
             logger.info(f"Saved {len(self._trials)} trial logs to {log_path}")
+            # SP12 Phase 2: structured per-stage trace beside bot_log.json
+            trace_path = self._run_dir / "run_trace.json"
+            trace_path.write_text(
+                json.dumps({"stages": self._trace_stages}, indent=2)
+            )
 
     @property
     def run_dir(self) -> Path | None:

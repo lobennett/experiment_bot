@@ -324,7 +324,7 @@ def jitter_distributions(config: TaskConfig, rng: np.random.Generator) -> TaskCo
         return config
 
     # Shared between-subject speed shift (a fast person is fast on all conditions)
-    # preserves inter-condition differences like switch cost.
+    # preserves inter-condition RT differences.
     if bsj.rt_mean_sd_ms > 0:
         shared_mu_shift = rng.normal(0, bsj.rt_mean_sd_ms)
     else:

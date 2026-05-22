@@ -352,3 +352,105 @@ and audit scripts via the platform_adapters dispatch.
   `f"experiment_data.{ext}"` and both `test_save_task_data_*` tests
   pass an explicit extension. Default removed; argument now required.
 
+## src/experiment_bot/core/distributions.py
+
+Walked under SP12 Task 8. Findings:
+
+### Hardcoded family names (acceptable; data-driven dispatch)
+
+- **`_build_sampler` family dispatch** (distributions.py:107-122) lists
+  the three supported distribution families: `"ex_gaussian"`,
+  `"lognormal"`, `"shifted_wald"`. Names appear as string literals
+  because the TaskCard's `response_distributions.<cond>.distribution`
+  string is the dispatch key. Unknown families raise a clear
+  ValueError pointing the user at this file. Stage 2 prompt
+  (`reasoner/prompts/stage2_behavioral.md`) documents the same three
+  family names for the Reasoner. Adding a new family requires a new
+  Sampler class + dispatch entry — that's by design (G2: small set
+  of generic mechanisms).
+- **No paradigm-specific condition labels.** All condition strings
+  flow through the `distributions: dict[str, DistributionConfig]`
+  constructor argument. The sampler treats condition names as opaque
+  dict keys.
+- **`condition_repetition` name check** at distributions.py:269.
+  Hardcoded effect name in the temporal-effects loop is the
+  registry key — same as how `_EXECUTOR_APPLIED_EFFECTS` references
+  `post_event_slowing`. Both are documented contracts between the
+  sampler and the effect registry, not paradigm vocabulary.
+
+### Magic floor/ceiling values
+
+- **`floor_ms: float = 150.0`** constructor default
+  (distributions.py:163). Overridden per-paradigm by
+  `config.runtime.timing.rt_floor_ms` (executor.py:93 passes it
+  through). Default reflects the conventional "fast-guess" cutoff
+  (Whelan 2008) documented in `prompts/system.md:140`. Per-paradigm
+  override is encouraged for simple-RT and perceptual-threshold
+  tasks. Framework-level default, paradigm-configurable.
+- **`1e-6` divide-by-zero guard** in `ShiftedWaldSampler`
+  (distributions.py:84, :92). Defensive lower bound on `drift_rate`
+  to avoid `ZeroDivisionError`; tiny enough not to materially shift
+  the mean. Framework-level numerical safety.
+- **Pink noise buffer size `2048`** (distributions.py:187). Fixed-
+  length precomputed FFT-synthesized 1/f^alpha noise series. Long
+  sessions exceeding 2048 trials would wrap around — currently no
+  paradigm in scope generates that many trials, but flagged as a
+  potential silent-failure mode. Not paradigm-specific, but the
+  ceiling is undocumented in the constructor signature.
+
+### Architectural concern (report, don't remove)
+
+- **`jitter_distributions` only handles `ex_gaussian`**
+  (distributions.py:334). The `for dist in
+  config.response_distributions.values(): if dist.distribution ==
+  "ex_gaussian":` branch means lognormal and shifted-Wald
+  distributions silently receive ZERO between-subject jitter on
+  their parameters. Per-condition accuracy / omission jitter still
+  applies (lines 345-358 are family-agnostic). If/when the
+  Reasoner ever picks lognormal or shifted-Wald for a condition,
+  that condition's RT distribution will not vary between
+  simulated subjects. Surface this as a future SP item, not a
+  walk-and-prune target — the asymmetric coverage was deliberate
+  (only ex-Gaussian is exercised by current TaskCards), but the
+  behavior is undocumented at the call site.
+- **`LogNormalSampler.mu` and `ShiftedWaldSampler.shift_ms` have
+  different units than `ExGaussianSampler.mu`.** The
+  `getattr(sampler, "mu", 0.0)` defensive read at line 238
+  populates `SamplerState.mu` from whichever sampler is active —
+  for ex-Gaussian, `mu` is ms; for lognormal, `mu` is the
+  log-space location parameter (dimensionless). Handlers that
+  consume `state.mu` directly (none currently — only
+  `apply_autocorrelation` does, gated by `state.expected_rt`)
+  would get nonsense values for lognormal samplers. The
+  `expected_rt` short-circuit hides this from current handlers
+  but is fragile. Not a defect today; a latent contract gap.
+
+### Sampler-family pruning candidates considered, none removed
+
+- `LogNormalSampler` (distributions.py:35) — zero current TaskCards
+  set `distribution = "lognormal"`. Kept because Stage 2 prompt
+  documents it as an option for the Reasoner; it's part of the
+  Reasoner's generic toolkit, not dead. Same logic as paradigm-
+  agnostic effect handlers that no current paradigm enables.
+- `ShiftedWaldSampler` (distributions.py:61) — same reasoning as
+  `LogNormalSampler`. Zero current callers; documented Reasoner
+  option for diffusion-style speeded decisions.
+
+### `_EXECUTOR_APPLIED_EFFECTS` contract
+
+- **`frozenset({"post_event_slowing"})`** at distributions.py:157.
+  Kept and documented. Effects in this set are applied by the
+  executor at the right point in the trial loop (after error
+  detection), not by the sampler. The sampler skips them in its
+  iteration to avoid double-invocation. This is a documented
+  contract between `core/distributions.py` and `core/executor.py`.
+
+### Comment edit (cosmetic)
+
+- Line 327 comment originally read "preserves inter-condition
+  differences like switch cost." The "switch cost" example is
+  paradigm-specific phenomenon vocabulary; replaced with the
+  generic "preserves inter-condition RT differences" to keep
+  comments aligned with G2 (no paradigm vocabulary in bot library).
+  No behavior change.
+

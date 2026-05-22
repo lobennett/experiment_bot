@@ -91,3 +91,17 @@ Outputs per session:
 - (Phase 2 will add `run_trace.json` — see Phase 2 plan)
 
 Entry point: `src/experiment_bot/output/writer.py:OutputWriter.create_run`.
+
+## 6. RT sampler: `core/distributions.py`
+
+Per-condition RT sampling with temporal-effects application:
+1. Pulls the per-condition ex-Gaussian / lognormal / shifted-Wald
+   distribution from the TaskCard's `response_distributions`.
+2. Draws a raw RT.
+3. Applies temporal effects in registry order (autocorrelation,
+   fatigue_drift, condition_repetition [deprecated], pink_noise,
+   practice_effect, vigilance_decrement, lag1_pair_modulation,
+   post_event_slowing).
+4. Applies calibration adjustment if a CalibrationResult is installed.
+
+Entry point: `core/distributions.py:ResponseSampler.sample_rt`.

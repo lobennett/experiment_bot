@@ -365,3 +365,34 @@ async def test_stage6_stuck_detection_aborts_early(tmp_path):
     # Stuck-detection fires after 2nd identical fingerprint → pilot called 2x, NOT 12x.
     assert pilot_call_count == 2, \
         f"expected stuck-detection to abort after 2 pilots, got {pilot_call_count}"
+
+
+@pytest.mark.asyncio
+async def test_stage6_max_retries_override_respected(tmp_path):
+    """Caller-supplied max_retries overrides the function-signature default.
+    Verifies the budget is still configurable from the CLI / pipeline."""
+    fake_client = AsyncMock()
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text="{}"))
+    partial = _stage5_partial()
+    # Use varying fingerprints so stuck-detection doesn't short-circuit.
+    diags = [
+        PilotDiagnostics(
+            trials_completed=0, trials_with_stimulus_match=0,
+            conditions_observed=[], conditions_missing=["go"],
+            selector_results={"go": {"matches": 0, "polls": 100}},
+            phase_results={}, dom_snapshots=[
+                {"trigger": "no_match_50_polls", "html": f"<div>screen-{i}</div>"}],
+            anomalies=[], trial_log=[],
+        )
+        for i in range(5)
+    ]
+    with patch("experiment_bot.reasoner.stage6_pilot.PilotRunner") as pr_cls:
+        pr = AsyncMock()
+        pr.run = AsyncMock(side_effect=diags)
+        pr_cls.return_value = pr
+        with pytest.raises(PilotValidationError, match="4 attempts"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=3,  # override → 4 total attempts
+            )

@@ -27,8 +27,10 @@ from experiment_bot.taskcard.types import TaskCard
 @click.option("--pilot-headed", is_flag=True, default=False,
               help="Run the Stage 6 pilot with a visible browser window "
                    "(default: headless).")
-@click.option("--pilot-max-retries", type=int, default=2,
-              help="Max refinement retries when Stage 6 pilot fails (default: 2).")
+@click.option("--pilot-max-retries", type=int, default=11,
+              help="Max refinement retries when Stage 6 pilot fails (default: "
+                   "11 → 12 total attempts). Stuck-detection aborts early if "
+                   "two consecutive attempts hit the same DOM state.")
 @click.option("-v", "--verbose", is_flag=True, default=False)
 def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
          resume: bool, skip_pilot: bool, pilot_headed: bool,
@@ -49,7 +51,7 @@ def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
 
 
 async def _run(url, label, hint, taskcards_dir, work_dir, resume,
-               *, skip_pilot=False, pilot_headed=False, pilot_max_retries=1):
+               *, skip_pilot=False, pilot_headed=False, pilot_max_retries=11):
     from experiment_bot.reasoner.normalize import normalize_partial
     bundle = await scrape_experiment_source(url=url, hint=hint)
     client = build_default_client()

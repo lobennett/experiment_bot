@@ -30,7 +30,7 @@ class ReasonerPipeline:
         *,
         run_pilot: bool = True,
         pilot_headless: bool = True,
-        pilot_max_retries: int = 1,
+        pilot_max_retries: int = 11,
         taskcards_dir: Path | None = None,
     ):
         self._client = client

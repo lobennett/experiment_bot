@@ -318,6 +318,12 @@ async def test_refinement_prompt_includes_navigation_phase_schema(tmp_path):
     for action_name in ("click", "keypress", "wait", "sequence"):
         assert f'"action": "{action_name}"' in REFINEMENT_PROMPT, \
             f"prompt must include a concrete example of action={action_name}"
+    # APPEND ordering rule: SP14 re-test showed the LLM prepending a new phase
+    # to the array (breaking execution order). Prompt must explicitly say APPEND.
+    assert "APPEND" in REFINEMENT_PROMPT, \
+        "prompt must teach the LLM to APPEND new phases to the end of the array"
+    assert "never prepend" in REFINEMENT_PROMPT, \
+        "prompt must explicitly forbid prepending/reordering"
 
 
 @pytest.mark.asyncio

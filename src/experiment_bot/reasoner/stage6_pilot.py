@@ -82,6 +82,15 @@ them. Build on prior progress: the bot is now in a DIFFERENT state than when
 the first refinement ran. If you see yourself trying the same change twice,
 something else is blocking; switch to a different observation.
 
+**APPEND ordering rule** (load-bearing). When adding a new `navigation.phases`
+entry, APPEND it to the END of the existing array — never prepend, reorder, or
+replace an existing entry. The navigator executes phases in array order, and
+that order matches the order screens appear during the experiment. The DOM
+snapshot you're looking at is the screen the bot reached AFTER all previously-
+listed phases ran successfully, so any new phase you add belongs LAST. If you
+think a new phase should run before an existing one, you are wrong — the
+existing phase already advanced the bot past its target screen.
+
 Fix ONLY structural fields: `stimuli`, `navigation`, `runtime.advance_behavior`,
 `runtime.phase_detection`, `runtime.data_capture`, `task_specific`. Do NOT modify
 `response_distributions`, `temporal_effects`, `between_subject_jitter`, or

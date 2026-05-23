@@ -88,6 +88,50 @@ Fix ONLY structural fields: `stimuli`, `navigation`, `runtime.advance_behavior`,
 `performance.accuracy/omission_rate` — those are set by other Reasoner stages
 and the pilot's evidence does not bear on them.
 
+## Navigation phase JSON schema (CRITICAL — get this right)
+
+The navigator consumes a FLAT phase shape. Top-level fields are `action`,
+`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+Do NOT nest under `action.type`/`action.selector` — that nested shape is
+silently ignored by the navigator and produces no behavior (a common failure
+mode that wastes refinement budget).
+
+Supported `action` values and the fields each uses:
+
+- **click** — uses `target` (CSS selector). The navigator clicks the first
+  matching visible element. Times out at 1.5s if not visible; subsequent
+  refinements should pick a different target if this one disappeared.
+  ```json
+  {{"phase": "fullscreen_prompt", "action": "click", "target": "#jspsych-fullscreen-btn", "key": "", "duration_ms": 0, "steps": []}}
+  ```
+
+- **keypress** (also accepts `press`) — uses `key` (Playwright key name like
+  `" "` for Space, `"Enter"`, `"ArrowRight"`).
+  ```json
+  {{"phase": "instructions", "action": "keypress", "target": "", "key": " ", "duration_ms": 0, "steps": []}}
+  ```
+
+- **wait** — uses `duration_ms` (integer milliseconds).
+  ```json
+  {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **sequence** — uses `steps` (array of nested flat phases). Useful when one
+  logical advance requires several keystrokes/clicks in order. Each step is a
+  flat phase dict with its own `action`/`target`/`key`/`duration_ms` fields.
+  ```json
+  {{"phase": "instructions_multi_page", "action": "sequence", "target": "", "key": "", "duration_ms": 0,
+   "steps": [
+     {{"action": "keypress", "key": " ", "duration_ms": 0}},
+     {{"action": "wait", "duration_ms": 500}},
+     {{"action": "keypress", "key": " ", "duration_ms": 0}}
+   ]}}
+  ```
+
+When in doubt: use a single `click` phase with the exact CSS selector visible in
+the DOM snapshot. Add unused fields as empty strings / 0 / `[]` to keep the
+shape consistent — the navigator ignores them.
+
 Return ONLY a JSON object containing the field(s) you changed. Unchanged fields
 should be omitted; the pipeline will splice your output into the existing
 partial. Return JSON only, no preamble.

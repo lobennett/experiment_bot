@@ -302,6 +302,25 @@ async def test_refinement_prompt_uses_sequential_framing(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_refinement_prompt_includes_navigation_phase_schema(tmp_path):
+    """SP14: REFINEMENT_PROMPT must show the LLM the FLAT navigation-phase
+    schema (action/target/key/duration_ms/steps), not the nested
+    action.type/action.selector shape that the navigator silently ignores.
+    Held-out paradigm stop_signal_with_integrated_memory failed under SP13
+    because the LLM produced nested-action diffs; SP14 closes that gap by
+    showing concrete schema examples in the prompt itself."""
+    from experiment_bot.reasoner.stage6_pilot import REFINEMENT_PROMPT
+    assert "Navigation phase JSON schema" in REFINEMENT_PROMPT
+    # Anti-pattern called out explicitly so the LLM doesn't reinvent it
+    assert "action.type" in REFINEMENT_PROMPT and "silently ignored" in REFINEMENT_PROMPT, \
+        "prompt must explicitly warn against the nested action.type/selector shape"
+    # The 4 supported actions each have at least one example
+    for action_name in ("click", "keypress", "wait", "sequence"):
+        assert f'"action": "{action_name}"' in REFINEMENT_PROMPT, \
+            f"prompt must include a concrete example of action={action_name}"
+
+
+@pytest.mark.asyncio
 async def test_refine_partial_includes_prior_diffs_in_prompt(tmp_path):
     """When prior_diffs is non-empty, the refinement prompt rendered to the
     LLM must contain the prior diff text so the LLM can see what was tried."""

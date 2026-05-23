@@ -22,7 +22,9 @@ from experiment_bot.core.config import (
     NavigationConfig, PerformanceConfig, PilotConfig, RuntimeConfig,
     SourceBundle, StimulusConfig, TaskConfig, TaskMetadata,
 )
-from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner
+from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner, _NO_MATCH_EARLY_STOP
+from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.stimulus import StimulusLookup
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.normalize import normalize_partial
 from experiment_bot.reasoner.parse_retry import parse_with_retry
@@ -489,103 +491,188 @@ async def run_stage6(
     label: str,
     taskcards_dir: Path,
     headless: bool = True,
-    max_retries: int = 2,
+    max_retries: int = 11,
     save_partial: Callable[[dict], None] | None = None,
 ) -> tuple[dict, ReasoningStep]:
     """Run pilot validation; refine on failure; persist diagnostic + diffs.
 
-    Returns the (possibly refined) partial plus a ReasoningStep entry.
-    Raises PilotValidationError if pilot fails after max_retries refinements.
+    Owns a single PilotSession for the entire refinement loop. Navigation
+    phases accumulate in-session; stimulus selector updates mutate the live
+    lookup in-place. Accumulators are spliced into partial only on success.
 
-    `save_partial`, when supplied, is called with the refined partial
-    after each refinement attempt. The pipeline passes a callback that
-    overwrites stage5.json so subsequent `--resume` runs pick up the
-    refinements rather than re-walking them from the unrefined state.
-    Without this, every resume burns a fresh refinement budget on the
-    same problem.
+    Raises PilotValidationError if pilot fails after max_retries refinements
+    or if stuck-detection fires (2 consecutive identical DOM fingerprints).
 
-    For provenance, each refinement attempt's structural diff is saved to
-    `taskcards/<label>/pilot_refinement_<N>.diff` so the user can audit
-    exactly what the bot changed at each refinement step.
+    `save_partial`, when supplied, is called after each successful nav-phase
+    append so --resume runs pick up refinements rather than re-walking them.
     """
-    pilot_runner = PilotRunner()
-    history: list[str] = []
-    evidence: list[str] = []
+    config = _partial_to_pilot_config(partial)
+    accumulated_phases: list[dict] = list(partial.get('navigation', {}).get('phases', []))
+    accumulated_stim_overrides: dict[str, str] = {}
     fingerprint_history: list[str] = []
     prior_diffs: list[str] = []
+    history: list[str] = []
+    evidence: list[str] = []
+    nav_refinement_count = 0
+    stim_refinement_count = 0
 
-    for attempt in range(max_retries + 1):
-        config = _partial_to_pilot_config(partial)
-        try:
-            diagnostics = await pilot_runner.run(config, bundle.url, headless=headless)
-        except Exception as e:
-            diagnostics = PilotDiagnostics.crashed(str(e))
+    async with PilotSession(headless=headless, viewport=config.runtime.timing.viewport) as session:
+        await session.goto(bundle.url)
+        # Apply initial nav phases on the live session ONCE
+        for phase_dict in accumulated_phases:
+            from experiment_bot.core.config import NavigationPhase as _NavPhase
+            await session.try_phase(_NavPhase.from_dict(phase_dict))
 
-        passed, reasons = _pilot_passed(diagnostics, config)
-        evidence.append(
-            f"attempt_{attempt + 1}: trials={diagnostics.trials_with_stimulus_match}, "
-            f"conditions={diagnostics.conditions_observed}, "
-            f"missing={diagnostics.conditions_missing}, "
-            f"anomalies={len(diagnostics.anomalies)}"
-        )
-        if passed:
-            _save_diagnostic(diagnostics, taskcards_dir, label)
-            if attempt == 0:
-                inference = (
-                    f"Pilot passed first attempt: "
-                    f"{diagnostics.trials_with_stimulus_match} trials matched, "
-                    f"conditions {diagnostics.conditions_observed} all observed."
+        # Build lookup; we'll mutate its selectors on stim refinements
+        lookup = StimulusLookup(config)
+
+        for attempt in range(max_retries + 1):
+            # Capture DOM state before polling
+            container_sel = config.pilot.stimulus_container_selector or "body"
+            after_nav_snap = await session.dom_snapshot(container_sel)
+
+            # Poll stimuli against the live session
+            try:
+                result = await session.poll_stimuli(
+                    lookup,
+                    max_polls=_NO_MATCH_EARLY_STOP,
+                    advance_keys=config.runtime.advance_behavior.advance_keys,
                 )
+            except Exception as e:
+                result = {
+                    "trials_completed": 0,
+                    "trials_with_stimulus_match": 0,
+                    "conditions_observed": [],
+                    "selector_results": {},
+                    "phase_results": {},
+                    "dom_snapshots": [{"trigger": "crash", "html": after_nav_snap}],
+                    "anomalies": [f"poll_stimuli crashed: {e}"],
+                    "trial_log": [],
+                }
+
+            # Assemble diagnostic from result dict
+            target_set = set(config.pilot.target_conditions)
+            conditions_observed = result.get("conditions_observed", [])
+            diagnostics = PilotDiagnostics(
+                trials_completed=result.get("trials_completed", 0),
+                trials_with_stimulus_match=result.get("trials_with_stimulus_match", 0),
+                conditions_observed=conditions_observed,
+                conditions_missing=sorted(target_set - set(conditions_observed)),
+                selector_results=result.get("selector_results", {}),
+                phase_results=result.get("phase_results", {}),
+                dom_snapshots=(
+                    [{"trigger": "after_navigation", "html": after_nav_snap}]
+                    + result.get("dom_snapshots", [])
+                ),
+                anomalies=result.get("anomalies", []),
+                trial_log=result.get("trial_log", []),
+            )
+            evidence.append(
+                f"attempt_{attempt + 1}: trials={diagnostics.trials_with_stimulus_match}, "
+                f"conditions={conditions_observed}, missing={diagnostics.conditions_missing}"
+            )
+            passed, reasons = _pilot_passed(diagnostics, config)
+
+            if passed:
+                # SUCCESS — splice accumulator state into partial
+                partial.setdefault('navigation', {})['phases'] = accumulated_phases
+                for stim_id, new_sel in accumulated_stim_overrides.items():
+                    for s in partial.get('stimuli', []):
+                        if s.get('id') == stim_id:
+                            s.setdefault('detection', {})['selector'] = new_sel
+                _save_diagnostic(diagnostics, taskcards_dir, label)
+                if attempt == 0 and not accumulated_stim_overrides:
+                    inference = (
+                        f"Pilot passed first attempt: "
+                        f"{diagnostics.trials_with_stimulus_match} trials, "
+                        f"conditions {conditions_observed} all observed."
+                    )
+                else:
+                    inference = (
+                        f"Pilot passed after {nav_refinement_count} navigation "
+                        f"refinement(s), {stim_refinement_count} selector update(s): "
+                        f"{diagnostics.trials_with_stimulus_match} trials, "
+                        f"conditions {conditions_observed}."
+                    )
+                return partial, ReasoningStep(
+                    step="stage6_pilot",
+                    inference=inference,
+                    evidence_lines=evidence,
+                    confidence="high",
+                )
+
+            history.append(f"Attempt {attempt + 1}: " + "; ".join(reasons))
+            logger.warning("Pilot attempt %d failed: %s", attempt + 1, "; ".join(reasons))
+
+            # Stuck-detection: 2 consecutive identical non-empty fingerprints
+            fp = diagnostics.dom_fingerprint
+            fingerprint_history.append(fp)
+            if (
+                len(fingerprint_history) >= 2
+                and fingerprint_history[-1]
+                and fingerprint_history[-1] == fingerprint_history[-2]
+            ):
+                _save_diagnostic(diagnostics, taskcards_dir, label)
+                raise PilotValidationError(
+                    f"Pilot stuck at same DOM state across {len(fingerprint_history)} "
+                    f"attempts (fingerprint {fp}); refinements aren't advancing the "
+                    f"bot. Latest diagnostic saved to {taskcards_dir}/{label}/pilot.md.\n"
+                    f"Attempt history:\n  - " + "\n  - ".join(history)
+                )
+
+            if attempt == max_retries:
+                _save_diagnostic(diagnostics, taskcards_dir, label)
+                raise PilotValidationError(
+                    f"Pilot failed after {max_retries + 1} attempts:\n  - "
+                    + "\n  - ".join(history)
+                    + f"\n\nLatest diagnostic saved to {taskcards_dir}/{label}/pilot.md"
+                )
+
+            # Decide refinement type
+            current_dom = diagnostics.dom_snapshots[-1].get("html", "") if diagnostics.dom_snapshots else ""
+            if diagnostics.trials_completed > 0 and diagnostics.trials_with_stimulus_match == 0:
+                # Stimulus refinement: trials rendering but no selector matches
+                try:
+                    update = await _propose_stimulus_update(
+                        client, current_dom, partial.get('stimuli', []), prior_diffs,
+                    )
+                    stim_id = update.get('stim_id')
+                    new_sel = update.get('new_selector')
+                    new_method = update.get('detection_method', 'dom_query')
+                    if stim_id and new_sel:
+                        lookup.update_selector(stim_id, new_sel, new_method)
+                        accumulated_stim_overrides[stim_id] = new_sel
+                        stim_refinement_count += 1
+                        prior_diffs.append(f"Stim update {stim_id}: selector={new_sel[:120]}")
+                except Exception as e:
+                    logger.warning("_propose_stimulus_update failed: %s — skipping", e)
+                    prior_diffs.append(f"(failed) Stim update error: {e}")
             else:
-                inference = (
-                    f"Pilot passed after {attempt} refinement(s): "
-                    f"{diagnostics.trials_with_stimulus_match} trials matched, "
-                    f"conditions {diagnostics.conditions_observed} all observed. "
-                    f"See pilot_refinement_*.diff for changes the bot made."
-                )
-            return partial, ReasoningStep(
-                step="stage6_pilot",
-                inference=inference,
-                evidence_lines=evidence,
-                confidence="high",
-            )
-
-        history.append(f"Attempt {attempt + 1}: " + "; ".join(reasons))
-        logger.warning("Pilot attempt %d failed: %s", attempt + 1, "; ".join(reasons))
-
-        # Stuck-detection: if the last 2 failed attempts produced the same
-        # non-empty DOM fingerprint, the refiner isn't moving the bot. Abort
-        # early rather than burning the rest of the budget on the same screen.
-        fp = diagnostics.dom_fingerprint
-        fingerprint_history.append(fp)
-        if (
-            len(fingerprint_history) >= 2
-            and fingerprint_history[-1]
-            and fingerprint_history[-1] == fingerprint_history[-2]
-        ):
-            _save_diagnostic(diagnostics, taskcards_dir, label)
-            raise PilotValidationError(
-                f"Pilot stuck at same DOM state across {len(fingerprint_history)} "
-                f"attempts (fingerprint {fp}); refinements aren't advancing the "
-                f"bot. Latest diagnostic saved to {taskcards_dir}/{label}/pilot.md.\n"
-                f"Attempt history:\n  - " + "\n  - ".join(history)
-            )
-
-        if attempt == max_retries:
-            _save_diagnostic(diagnostics, taskcards_dir, label)
-            raise PilotValidationError(
-                f"Pilot failed after {max_retries + 1} attempts:\n  - "
-                + "\n  - ".join(history)
-                + f"\n\nLatest diagnostic saved to {taskcards_dir}/{label}/pilot.md"
-            )
-
-        # Refine and retry; capture the diff for provenance.
-        before = copy.deepcopy(partial)
-        partial = await _refine_partial(
-            client, partial, diagnostics, bundle, prior_diffs=prior_diffs,
-        )
-        diff_text = _save_refinement_diff(before, partial, taskcards_dir, label, attempt + 1)
-        if diff_text:
-            prior_diffs.append(diff_text)
-        if save_partial is not None:
-            save_partial(partial)
+                # Navigation refinement: bot stuck on a pre-trial screen
+                try:
+                    new_phase_dict = await _propose_next_phase(
+                        client, current_dom, accumulated_phases, prior_diffs,
+                    )
+                    from experiment_bot.core.config import NavigationPhase as _NavPhase
+                    # Defensive fill for missing optional fields
+                    new_phase_dict.setdefault('steps', [])
+                    new_phase_dict.setdefault('key', '')
+                    new_phase_dict.setdefault('target', '')
+                    new_phase_dict.setdefault('duration_ms', 0)
+                    new_phase_dict.setdefault('phase', '')
+                    new_phase = _NavPhase.from_dict(new_phase_dict)
+                    attempt_result = await session.try_phase(new_phase)
+                    if attempt_result.success:
+                        accumulated_phases.append(new_phase_dict)
+                        partial.setdefault('navigation', {})['phases'] = accumulated_phases
+                        nav_refinement_count += 1
+                        prior_diffs.append(f"Nav phase {nav_refinement_count}: {new_phase_dict}")
+                        if save_partial is not None:
+                            save_partial(partial)
+                    else:
+                        prior_diffs.append(
+                            f"(failed) Nav phase: {new_phase_dict}; error={attempt_result.error}"
+                        )
+                except Exception as e:
+                    logger.warning("_propose_next_phase failed: %s — skipping", e)
+                    prior_diffs.append(f"(failed) Nav phase error: {e}")

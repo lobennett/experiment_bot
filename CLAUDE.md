@@ -297,6 +297,26 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   expfactory_stop_signal SSRT (178→353 ms, within baseline's wide SD)
   attributable to diagnostic-noise reduction. Tag `sp12-complete`.
   ✓ Complete.
+- **SP13**: Iterative pilot refinement. Stage 6's one-shot refiner replaced
+  with a sequential walker that advances one DOM state per attempt.
+  `PilotDiagnostics.dom_fingerprint` enables stuck-detection (2 consecutive
+  identical fingerprints → early `PilotValidationError`). `REFINEMENT_PROMPT`
+  rewritten to "propose the smallest next advance"; prior-attempt diffs are
+  forwarded so the LLM doesn't undo earlier progress. Budget bumped 3 → 12
+  total attempts. Mid-SP13 fix: `PilotRunner.run` captures the page DOM on
+  Playwright crashes so stuck-detection fires regardless of failure mode
+  (was a real gap surfaced by the dev-4 regression run). Internal CI: 683
+  passed (was 676); +7 tests across fingerprint, prompt invariants,
+  prior_diffs rendering, stuck-detection, budget override. External:
+  held-out paradigm `stop_signal_with_integrated_memory` STUCK-DOM FAIL at
+  attempt 2 (stuck-detection correctly aborted; LLM proposed a navigation
+  phase in nested-action JSON shape rather than the navigator's flat shape
+  — surfaces "REFINEMENT_PROMPT lacks navigation-phase schema knowledge" as
+  the next gap, motivating SP14). Dev-4 paradigms pass Stage 6 with the
+  same refinement counts as pre-SP13 (3 on attempt 1, stopit_stop_signal
+  needed 1 refinement same as before — backward-compatible). See
+  `docs/sp13-spec.md` and `docs/sp13-results.md`. Tag `sp13-complete`.
+  ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

@@ -1,16 +1,16 @@
 ## Pilot Run Diagnostic Report
 
 ### Summary
-- Trials completed: 50
-- Trials with stimulus match: 50/50
+- Trials completed: 20
+- Trials with stimulus match: 20/20
 - Conditions observed: ['congruent', 'incongruent']
 
 ### Selector Results
-- congruent: 49 matches / 111 polls (44.1%)
-- incongruent: 1 matches / 111 polls (0.9%)
+- congruent: 14 matches / 52 polls (26.9%)
+- incongruent: 6 matches / 52 polls (11.5%)
 
 ### DOM Snapshot (after_navigation)
-<div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="centerbox"><div class="fixation">+</div></div></div>
+<body tabindex="0" class=" jspsych-display-element" style="margin: 0px; height: 100%; width: 100%;"><div class="jspsych-content-wrapper"><div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="centerbox"><div class="fixation">+</div></div></div>
   <div class="prompt_box">
     <p class="center-block-text" style="font-size:16px; line-height:80%;">
       <span class="large" style="color:#FF7070">WORD</span>: comma key (,) 
@@ -21,10 +21,10 @@
     <p class="center-block-text" style="font-size:16px; line-height:80%;">
       <span class="large" style="color:#70FF70">WORD</span>: forward slash key (/) 
     </p>
-  </div></div>
+  </div></div></div></body>
 
 ### DOM Snapshot (first_stimulus_match)
-<div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="centerbox"><div class="stroop-stim" style="color:#FF7070">red</div></div></div>
+<body tabindex="0" class=" jspsych-display-element" style="margin: 0px; height: 100%; width: 100%;"><div class="jspsych-content-wrapper"><div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="centerbox"><div class="stroop-stim" style="color:#70FF70">green</div></div></div>
   <div class="prompt_box">
     <p class="center-block-text" style="font-size:16px; line-height:80%;">
       <span class="large" style="color:#FF7070">WORD</span>: comma key (,) 
@@ -35,7 +35,7 @@
     <p class="center-block-text" style="font-size:16px; line-height:80%;">
       <span class="large" style="color:#70FF70">WORD</span>: forward slash key (/) 
     </p>
-  </div></div>
+  </div></div></div></body>
 
 ### Phase Detection
 - test: fired on trial 0
@@ -55,10 +55,9 @@
 - Trial 12: congruent (congruent)
 - Trial 13: congruent (congruent)
 - Trial 14: congruent (congruent)
-- Trial 15: congruent (congruent)
-- Trial 16: congruent (congruent)
-- Trial 17: congruent (congruent)
-- Trial 18: congruent (congruent)
-- Trial 19: congruent (congruent)
-- Trial 20: congruent (congruent)
-  ... and 30 more
+- Trial 15: incongruent (incongruent)
+- Trial 16: incongruent (incongruent)
+- Trial 17: incongruent (incongruent)
+- Trial 18: incongruent (incongruent)
+- Trial 19: incongruent (incongruent)
+- Trial 20: incongruent (incongruent)

@@ -1,19 +1,27 @@
-# SP15 — Persistent-Session Pilot Walker (design spec)
+# SP15 — Platform-Aware Stage 1 + Persistent-Session Pilot Walker (design spec)
 
 ## Goal
 
-Replace Stage 6's per-attempt fresh-browser pattern with a **single persistent Playwright session** that walks the experiment one DOM advance at a time, across BOTH the navigation phase and the stimulus-matching phase. Each LLM refinement produces a single delta (one new nav phase OR one updated stimulus selector) applied to the live session, not a full TaskCard re-write.
+**Enable realistic behavioral data collection on held-out paradigms hosted on known platforms** (expfactory, cognition.run, kywch.github.io) by closing two compounding gaps:
+
+1. **Part A**: Stage 1 fails to extract canonical navigation phases for known hosting platforms, producing TaskCards with empty `navigation.phases` that force Stage 6 into a long refinement walk. Add platform-aware defaults so Stage 1 emits the right nav sequence on first generation.
+2. **Part B**: Stage 6's per-attempt fresh-browser pattern is wasteful and detectable (multiple Chromium tabs in rapid succession) for cases where refinement IS still needed. Replace with a single persistent Playwright session that walks the experiment one DOM advance at a time.
+
+After both parts land, held-out paradigms on supported platforms should pass Stage 6 on attempt 1 (Part A), and paradigms that DO need refinement should walk efficiently and discretely in a single browser session (Part B).
 
 ## Motivation
 
-SP13 + SP14 made the walker semantically correct (sequential refinement, append-only nav phases, schema-aware prompts). But the OPERATIONAL pattern is wasteful and slightly dangerous:
+### The compounding diagnosis
 
-- Each attempt launches a fresh Chromium (~3-5s overhead).
-- Each attempt re-runs ALL prior nav phases from scratch (linear-growth wall time).
-- Each `page.goto` re-renders the experiment → re-randomization, re-init JS, lost session state. A bot that "fixed" itself at attempt N may see a different page at attempt N+1 just because the experiment re-randomized.
-- The "smallest advance" mental model is fictional internally — every attempt is "redo everything + one more thing."
+The held-out paradigm `stop_signal_with_integrated_memory` (deploy.expfactory.org/preview/80) exposed two distinct failure modes that compounded:
 
-SP14's held-out re-run made this visible: the walker took ~6 minutes to traverse 4 DOM states, most of it spent re-clicking already-clicked buttons. With persistent session, the SAME 4-state walk should finish in <1 minute.
+**1. Stage 1 omission.** For dev paradigms hosted on expfactory (Stroop, stop_signal), Stage 1 emits a complete 10-phase nav sequence (fullscreen click → Enter → instructions-next × N → Enter). For the held-out paradigm, despite identical hosting platform and identical jsPsych plugin manifest, Stage 1 emitted `"phases": []`. Stage 1's prompt failed to extract the standard expfactory flow on a paradigm it had never seen.
+
+**2. Stage 6 walker inefficiency.** Forced to discover the entire nav sequence from scratch via refinement, the SP14 walker took 5 attempts and ~6 minutes, opening Chromium 5 times in rapid succession. The "discrete bot" goal (avoiding platform detection) is compromised by this pattern. The "smallest advance" mental model was also fictional — each attempt re-ran ALL prior nav phases from scratch, causing linear wall-time growth and re-randomizing the experiment between attempts.
+
+### Why a single SP
+
+Part A is the higher-leverage fix: it eliminates the walker invocation entirely for held-out paradigms on supported platforms. Part B is the safety net for paradigms that still need refinement (genuinely novel platforms, custom stimulus DOM) AND fixes the discreteness problem in any walker invocation. Done together they cover both the root cause and the residual failure mode.
 
 ## What this preserves
 
@@ -26,7 +34,92 @@ SP14's held-out re-run made this visible: the walker took ~6 minutes to traverse
 
 ## What this changes
 
-### 1. New module: `core/pilot_session.py`
+### PART A: Stage 1 platform-aware nav defaults
+
+#### A1. New module: `reasoner/platform_defaults.py`
+
+A static lookup from URL pattern → canonical `navigation.phases` array for known hosting platforms. Each entry encodes the *infrastructure* navigation for that platform (fullscreen handling, instructions plugin advances, consent screens), NOT paradigm-specific stimulus or response logic.
+
+```python
+# Pseudo-shape; concrete JSON in the implementation
+PLATFORM_NAV_DEFAULTS: list[PlatformDefault] = [
+    PlatformDefault(
+        name="expfactory",
+        url_patterns=[r"deploy\.expfactory\.org/", r"expfactory\.org/preview/"],
+        # The canonical expfactory entry flow: fullscreen → wait → Enter → wait → next × N → wait → Enter
+        phases=[
+            {"action": "wait",     "duration_ms": 1000, ...},
+            {"action": "click",    "target": "#jspsych-fullscreen-btn", ...},
+            {"action": "wait",     "duration_ms": 1000, ...},
+            {"action": "keypress", "key": "Enter", ...},
+            {"action": "wait",     "duration_ms": 1000, ...},
+            {"action": "click",    "target": "#jspsych-instructions-next", ...},
+            {"action": "wait",     "duration_ms": 1000, ...},
+            {"action": "click",    "target": "#jspsych-instructions-next", ...},
+            {"action": "wait",     "duration_ms": 1000, ...},
+            {"action": "keypress", "key": "Enter", ...},
+        ],
+    ),
+    PlatformDefault(
+        name="cognition.run",
+        url_patterns=[r"\.cognition\.run"],
+        # The canonical cognition.run entry flow (per taskcards/cognitionrun_stroop/e62646a9.json)
+        phases=[ {"action": "sequence", "steps": [...5 space-presses with waits...]} ],
+    ),
+    PlatformDefault(
+        name="kywch.github.io",
+        url_patterns=[r"kywch\.github\.io"],
+        # The canonical kywch stop-it entry flow (per taskcards/stopit_stop_signal/*.json)
+        phases=[ ... ],
+    ),
+]
+```
+
+Each entry derived directly from the dev-paradigm TaskCards that already pass Stage 6. This is *infrastructure recognition*, not paradigm overfitting (per [[avoid-paradigm-overfitting]] memory): the same canonical phases work for every paradigm on the same platform.
+
+#### A2. Hook platform-defaults into Stage 1
+
+After `run_stage1` produces its partial, a post-processing step in `reasoner/stage1_structural.py` (or pipeline.py) matches the URL against `PLATFORM_NAV_DEFAULTS`. If a match is found AND the LLM-emitted `navigation.phases` is empty or shorter than the platform default, the platform defaults are spliced in.
+
+```python
+def apply_platform_defaults(partial: dict, url: str) -> dict:
+    """If the URL matches a known platform AND the LLM emitted an empty or
+    sub-default navigation, use the platform's canonical phases.
+    LLM-emitted nav takes precedence ONLY when it's at least as long as the
+    platform default (assumption: LLM has extra paradigm-specific knowledge)."""
+    default = _match_platform(url)
+    if default is None:
+        return partial
+    current_phases = partial.get("navigation", {}).get("phases", [])
+    if len(current_phases) >= len(default.phases):
+        # LLM may have paradigm-specific knowledge; trust it
+        return partial
+    # Backfill with platform default
+    partial.setdefault("navigation", {})["phases"] = default.phases
+    return partial
+```
+
+The decision rule "LLM emit takes precedence if at least as long" is conservative: the LLM is allowed to do better than the platform default but never to under-emit silently. For the held-out paradigm, LLM emitted 0 phases → platform default (10 phases) backfills.
+
+#### A3. Tests for platform defaults
+
+1. `test_platform_default_matches_expfactory_url` — URLs like `deploy.expfactory.org/preview/80` → expfactory default
+2. `test_platform_default_matches_cognition_run_url` — `https://strooptest.cognition.run/` → cognition.run default
+3. `test_platform_default_no_match_returns_partial_unchanged` — unknown platform → no-op
+4. `test_platform_default_does_not_clobber_richer_llm_nav` — LLM emitted 12 phases, platform default has 10 → LLM wins
+5. `test_platform_default_backfills_empty_llm_nav` — LLM emitted 0 phases → platform default applies
+
+#### A4. Held-out validation for Part A
+
+Re-run the Reasoner against `stop_signal_with_integrated_memory`. Stage 1 should now emit the expfactory canonical nav, Stage 6 pilot should pass on attempt 1 with NO walker invocation. The success criterion for Part A: TaskCard generated, Stage 6 PASS, 0 refinements, 1 browser tab opened total.
+
+If Part A succeeds, Part B becomes a quality improvement rather than a blocker. Even if a future held-out paradigm needs walker refinement, Part B ensures it remains discrete.
+
+---
+
+### PART B: Persistent-Session Pilot Walker
+
+#### 1. New module: `core/pilot_session.py`
 
 A `PilotSession` async context manager that owns the browser/context/page for the walker's lifetime:
 
@@ -203,15 +296,21 @@ All 4 dev paradigms should still pass Stage 6 under SP15 (the non-refinement pas
 ## Pass / fail criteria for SP15
 
 ### Internal (must all hold)
-1. All new + rewritten tests pass.
+1. All new + rewritten tests pass (platform-defaults, PilotSession, refactored Stage 6).
 2. Existing tests that aren't intentionally rewritten continue to pass (PilotDiagnostics tests, executor tests, etc.).
 3. `uv run pytest -x -q` reports 0 failures.
 4. `PilotRunner.run` keeps its signature; no executor-facing changes.
 
-### External
-1. Dev-4 regression: all 4 paradigms pass Stage 6 under SP15 (most on first probe; stopit_stop_signal may need its same 1 refinement, now via the new walker).
-2. Held-out paradigm: walker either CONVERGES (best case — TaskCard written), or FAILS with a precisely-articulated stuck or budget message at a state genuinely beyond observation-via-snapshot.
-3. **Wall-time benchmark**: held-out walker completes in <5 minutes (was ~10+ minutes under SP14).
+### External (Part A — root-cause fix)
+1. **Held-out paradigm `stop_signal_with_integrated_memory`**: Stage 1 emits the expfactory canonical nav (10 phases), Stage 6 pilot passes on attempt 1, **0 refinements consumed**, **1 browser tab opened total**.
+2. **Dev-4 regression**: all 4 paradigms continue to pass on attempt 1 (Part A doesn't override their LLM-emitted nav since the LLM already produces ≥10 phases for those).
+
+### External (Part B — walker quality)
+3. **Wall-time benchmark for refinement-requiring paradigms**: any future paradigm that DOES trigger the walker completes in **<5 minutes** wall-time and opens **1 browser tab** total (was ~10+ min, 5+ tabs under SP14).
+4. **Discreteness**: per-session bot behavior under the new walker should be indistinguishable from a single human session at the platform level (one tab, reading delays preserved, no rapid-launch pattern).
+
+### External (the actual goal)
+5. **Behavioral data on the held-out paradigm**: with a working TaskCard from Part A, the executor produces ≥5 sessions of stop_signal_with_integrated_memory trial data; SSRT, go-RT, accuracy validated against published stop-signal + working-memory norms. This is the deliverable SP15 unblocks; the data-generation runs are a follow-up phase (SP15-validation) after SP15 ships.
 
 ## Risks and mitigations
 
@@ -233,13 +332,27 @@ All 4 dev paradigms should still pass Stage 6 under SP15 (the non-refinement pas
 
 ## Decomposition (preview)
 
-1. **PilotSession class** with try_phase/probe_stimulus/dom_snapshot + unit tests.
-2. **PilotRunner.run reimplemented via PilotSession** (backward-compatible refactor); existing pilot tests still pass.
-3. **Split REFINEMENT_PROMPT** into NAVIGATION_REFINEMENT_PROMPT + STIMULUS_REFINEMENT_PROMPT with delta-shaped outputs.
-4. **Rewrite `run_stage6`** to use the persistent-session walker.
-5. **Update stage6 tests** for new contract.
-6. **Held-out re-validation** + dev-4 regression.
-7. **Docs**: `sp15-results.md`, `pipeline-flow.md` Stage 6 update, `CLAUDE.md` SP15 entry.
+**Part A first** (most leverage; held-out paradigm likely passes after task 3):
+1. `platform_defaults.py` module — URL pattern → canonical nav phases lookup; tests.
+2. Hook `apply_platform_defaults` into Stage 1 post-LLM step; tests.
+3. **Part A held-out validation**: re-run Reasoner against `stop_signal_with_integrated_memory`; expect Stage 6 PASS on attempt 1, 0 refinements.
+
+**Part B** (walker efficiency + discreteness, needed for novel-platform held-outs):
+4. `PilotSession` class with try_phase/probe_stimulus/dom_snapshot + unit tests.
+5. `PilotRunner.run` reimplemented via `PilotSession` (backward-compatible refactor); existing pilot tests still pass.
+6. Split `REFINEMENT_PROMPT` into `NAVIGATION_REFINEMENT_PROMPT` + `STIMULUS_REFINEMENT_PROMPT` with delta-shaped outputs.
+7. Rewrite `run_stage6` to use the persistent-session walker.
+8. Update stage6 tests for the new contract.
+
+**Validation** (the SP15 deliverable):
+9. Dev-4 regression: all 4 paradigms still pass Stage 6 on attempt 1.
+10. Held-out paradigm: confirm Part A makes Stage 6 pass on first attempt; document wall-time.
+11. **Behavioral data run**: executor × 5 sessions against the held-out paradigm using the new TaskCard; analyze SSRT, go-RT, accuracy vs published norms. Deliver as `docs/sp15-heldout-behavior.md`.
+
+**Docs**:
+12. `docs/sp15-results.md` (held-out + dev-4 outcomes + wall-time benchmarks).
+13. `docs/pipeline-flow.md` Stage 6 + Stage 1 platform-defaults updates.
+14. `CLAUDE.md` SP15 entry; tag `sp15-complete`.
 
 ## What success looks like at SP15 close
 

@@ -1,23 +1,15 @@
 --- before_attempt_1
 +++ after_attempt_1
-@@ -80,7 +80,24 @@
+@@ -82,7 +82,16 @@
  
  # navigation
  {
 -  "phases": []
 +  "phases": [
 +    {
-+      "name": "fullscreen_prompt",
-+      "detection": {
-+        "method": "js_eval",
-+        "selector": "document.querySelector('#jspsych-fullscreen-btn') !== null"
-+      },
-+      "action": {
-+        "type": "click",
-+        "selector": "#jspsych-fullscreen-btn"
-+      },
-+      "phase": "",
-+      "target": "",
++      "phase": "fullscreen_prompt",
++      "action": "click",
++      "target": "#jspsych-fullscreen-btn",
 +      "key": "",
 +      "duration_ms": 0,
 +      "steps": []

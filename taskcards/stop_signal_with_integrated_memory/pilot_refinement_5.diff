@@ -1,0 +1,17 @@
+--- before_attempt_5
++++ after_attempt_5
+@@ -101,6 +101,14 @@
+     },
+     {
+       "phase": "instructions_next",
++      "action": "click",
++      "target": "#jspsych-instructions-next",
++      "key": "",
++      "duration_ms": 0,
++      "steps": []
++    },
++    {
++      "phase": "instructions_next_page2",
+       "action": "click",
+       "target": "#jspsych-instructions-next",
+       "key": "",

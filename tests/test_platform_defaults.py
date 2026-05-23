@@ -65,3 +65,45 @@ def test_platform_default_handles_missing_navigation_key():
     out = apply_platform_defaults(partial, "https://deploy.expfactory.org/preview/80/")
     assert "navigation" in out
     assert len(out["navigation"]["phases"]) == 10
+
+
+import pytest
+from unittest.mock import AsyncMock
+
+from experiment_bot.core.config import SourceBundle
+from experiment_bot.llm.protocol import LLMResponse
+
+
+@pytest.mark.asyncio
+async def test_stage1_applies_platform_default_when_llm_emits_empty_nav():
+    """Stage 1: when the LLM emits empty navigation.phases for an expfactory
+    URL, platform_defaults backfills the canonical 10-phase sequence."""
+    from experiment_bot.reasoner.stage1_structural import run_stage1
+    bundle = SourceBundle(
+        url="https://deploy.expfactory.org/preview/80/",
+        source_files={"experiment.js": "// stub"},
+        description_text="<html></html>",
+    )
+    # LLM returns a minimal valid partial with EMPTY navigation.phases
+    llm_output = """{
+        "task": {"name": "Test", "constructs": [], "paradigm_classes": ["speeded_choice"]},
+        "stimuli": [{"id": "s1", "description": "x",
+                    "detection": {"method": "dom_query", "selector": "#s"},
+                    "response": {"key": "f", "condition": "c1"}}],
+        "navigation": {"phases": []},
+        "runtime": {"advance_behavior": {"advance_keys": [" "], "feedback_fallback_keys": ["Enter"],
+                                         "feedback_selectors": []},
+                    "data_capture": {"method": "js_expression",
+                                     "expression": "jsPsych.data.get().json()", "format": "json"}},
+        "task_specific": {"key_map": {"c1": "f"}},
+        "performance": {"accuracy": {"c1": 0.95}},
+        "pilot_validation_config": {"min_trials": 5, "target_conditions": ["c1"]}
+    }"""
+    client = AsyncMock()
+    client.complete = AsyncMock(return_value=LLMResponse(text=llm_output))
+    partial, step = await run_stage1(client, bundle)
+    # Platform default backfilled
+    assert len(partial["navigation"]["phases"]) == 10
+    assert partial["navigation"]["phases"][1]["target"] == "#jspsych-fullscreen-btn"
+    # Inference text mentions backfill
+    assert "platform" in step.inference.lower() or "expfactory" in step.inference.lower()

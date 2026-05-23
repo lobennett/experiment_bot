@@ -393,6 +393,23 @@ async def test_stage6_stuck_detection_aborts_early(tmp_path):
 
 
 @pytest.mark.asyncio
+async def test_navigation_refinement_prompt_has_schema_section():
+    from experiment_bot.reasoner.stage6_pilot import NAVIGATION_REFINEMENT_PROMPT
+    assert "Navigation phase JSON schema" in NAVIGATION_REFINEMENT_PROMPT
+    assert "APPEND" in NAVIGATION_REFINEMENT_PROMPT
+    for a in ("click", "keypress", "wait", "sequence"):
+        assert f'"action": "{a}"' in NAVIGATION_REFINEMENT_PROMPT
+
+
+@pytest.mark.asyncio
+async def test_stimulus_refinement_prompt_has_expected_fields():
+    from experiment_bot.reasoner.stage6_pilot import STIMULUS_REFINEMENT_PROMPT
+    assert "stim_id" in STIMULUS_REFINEMENT_PROMPT
+    assert "new_selector" in STIMULUS_REFINEMENT_PROMPT
+    assert "detection_method" in STIMULUS_REFINEMENT_PROMPT
+
+
+@pytest.mark.asyncio
 async def test_stage6_max_retries_override_respected(tmp_path):
     """Caller-supplied max_retries overrides the function-signature default.
     Verifies the budget is still configurable from the CLI / pipeline."""

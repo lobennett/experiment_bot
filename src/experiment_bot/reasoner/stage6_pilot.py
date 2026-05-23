@@ -147,6 +147,109 @@ partial. Return JSON only, no preamble.
 """
 
 
+NAVIGATION_REFINEMENT_PROMPT = """\
+You are advancing an experiment-bot through one screen of an experiment. The
+bot ran all known navigation phases and is now stuck at the screen described
+in the DOM snapshot below. Your job: propose ONE additional navigation phase
+to APPEND to the current sequence.
+
+## Current DOM (the screen the bot is stuck on)
+{dom_snapshot}
+
+## Phases already executed (in order)
+{accumulated_phases}
+
+## Prior refinement attempts (chronological)
+{prior_diffs_section}
+
+## Instructions
+
+Identify what's blocking THIS specific screen. Propose ONE new navigation
+phase that gets the bot off this screen.
+
+Do NOT undo earlier progress — if prior attempts are listed above, the bot
+is now in a DIFFERENT state. If you see yourself trying the same change twice,
+something else is blocking; switch to a different observation.
+
+## Navigation phase JSON schema (CRITICAL — get this right)
+
+The navigator consumes a FLAT phase shape. Top-level fields are `action`,
+`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+Do NOT nest under `action.type`/`action.selector` — that nested shape is
+silently ignored by the navigator and produces no behavior (a common failure
+mode that wastes refinement budget).
+
+Supported `action` values and the fields each uses:
+
+- **click** — uses `target` (CSS selector). The navigator clicks the first
+  matching visible element. Times out at 1.5s if not visible; subsequent
+  refinements should pick a different target if this one disappeared.
+  ```json
+  {{"phase": "fullscreen_prompt", "action": "click", "target": "#jspsych-fullscreen-btn", "key": "", "duration_ms": 0, "steps": []}}
+  ```
+
+- **keypress** (also accepts `press`) — uses `key` (Playwright key name like
+  `" "` for Space, `"Enter"`, `"ArrowRight"`).
+  ```json
+  {{"phase": "instructions", "action": "keypress", "target": "", "key": " ", "duration_ms": 0, "steps": []}}
+  ```
+
+- **wait** — uses `duration_ms` (integer milliseconds).
+  ```json
+  {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **sequence** — uses `steps` (array of nested flat phases). Useful when one
+  logical advance requires several keystrokes/clicks in order. Each step is a
+  flat phase dict with its own `action`/`target`/`key`/`duration_ms` fields.
+  ```json
+  {{"phase": "instructions_multi_page", "action": "sequence", "target": "", "key": "", "duration_ms": 0,
+   "steps": [
+     {{"action": "keypress", "key": " ", "duration_ms": 0}},
+     {{"action": "wait", "duration_ms": 500}},
+     {{"action": "keypress", "key": " ", "duration_ms": 0}}
+   ]}}
+  ```
+
+**APPEND ordering rule** (load-bearing). APPEND the new phase to the END of
+the existing sequence — never prepend, reorder, or replace an existing entry.
+The navigator executes phases in array order. The DOM snapshot above is the
+screen the bot reached AFTER all previously-listed phases ran successfully, so
+the new phase belongs LAST.
+
+When in doubt: use a single `click` phase with the exact CSS selector visible
+in the DOM snapshot. Add unused fields as empty strings / 0 / `[]` to keep
+the shape consistent — the navigator ignores them.
+
+Return ONLY one JSON object matching the flat navigation-phase schema —
+the single phase to APPEND to the existing sequence. Do NOT return an array,
+do NOT return a full TaskCard edit. Return JSON only.
+"""
+
+
+STIMULUS_REFINEMENT_PROMPT = """\
+The bot reached the experiment's trial-rendering phase but none of the
+configured stimulus selectors matched the DOM. Propose ONE selector update.
+
+## Current DOM (the trial-rendering screen)
+{dom_snapshot}
+
+## Current stimulus configurations (id -> selector)
+{stim_table}
+
+## Prior refinement attempts (chronological)
+{prior_diffs_section}
+
+## Instructions
+
+Examine the DOM. Identify which stimulus is currently rendered (it should
+match one of the conditions in the stim table). Propose ONE selector update.
+
+Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
+"detection_method": "dom_query" | "js_eval" | "text_content"}}. No preamble.
+"""
+
+
 def _partial_to_pilot_config(partial: dict) -> TaskConfig:
     """Build a TaskConfig from a Reasoner partial that's runnable for pilot.
 
@@ -269,6 +372,60 @@ async def _refine_partial(
             out[key] = refined[key]
     out = normalize_partial(out)
     return out
+
+
+async def _propose_next_phase(
+    client: LLMClient,
+    dom: str,
+    accumulated_phases: list[dict],
+    prior_diffs: list[str],
+) -> dict:
+    """Ask the LLM for ONE navigation phase to append. Returns the phase dict."""
+    prior_section = (
+        "\n\n".join(
+            f"### Attempt {i + 1}\n```diff\n{d}\n```"
+            for i, d in enumerate(prior_diffs)
+        )
+        if prior_diffs else "(none yet — this is the first refinement)"
+    )
+    user = NAVIGATION_REFINEMENT_PROMPT.format(
+        dom_snapshot=dom[:4000],
+        accumulated_phases=json.dumps(accumulated_phases, indent=2)[:3000],
+        prior_diffs_section=prior_section,
+    )
+    return await parse_with_retry(
+        client, system="", user=user, stage_name="stage6_nav_refinement",
+    )
+
+
+async def _propose_stimulus_update(
+    client: LLMClient,
+    dom: str,
+    stimuli: list[dict],
+    prior_diffs: list[str],
+) -> dict:
+    """Ask the LLM for ONE stimulus selector update. Returns dict with
+    stim_id + new_selector + detection_method."""
+    stim_table = "\n".join(
+        f"- {s['id']}: method={s.get('detection', {}).get('method', '?')}, "
+        f"selector={s.get('detection', {}).get('selector', '?')[:120]}"
+        for s in stimuli
+    )
+    prior_section = (
+        "\n\n".join(
+            f"### Attempt {i + 1}\n```diff\n{d}\n```"
+            for i, d in enumerate(prior_diffs)
+        )
+        if prior_diffs else "(none yet)"
+    )
+    user = STIMULUS_REFINEMENT_PROMPT.format(
+        dom_snapshot=dom[:4000],
+        stim_table=stim_table,
+        prior_diffs_section=prior_section,
+    )
+    return await parse_with_retry(
+        client, system="", user=user, stage_name="stage6_stim_refinement",
+    )
 
 
 def _deep_merge(base: dict, overlay: dict) -> dict:

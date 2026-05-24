@@ -203,17 +203,19 @@ async def test_stage6_raises_after_max_retries_exhausted(tmp_path):
 
 @pytest.mark.asyncio
 async def test_stage6_stuck_detection_aborts_early(tmp_path):
-    """When two consecutive failed attempts produce the same dom_fingerprint,
+    """When three consecutive failed attempts produce the same dom_fingerprint,
     Stage 6 raises PilotValidationError without consuming the rest of the
-    budget — refinements that don't move the bot won't move it by trying
-    again."""
+    budget. SP15 raised the threshold from 2 to 3 so the LLM gets one chance
+    after a no-op refinement to try a different action (some refinements
+    succeed at session.try_phase but don't actually advance the DOM, e.g.,
+    keypress Enter on a screen that ignores it)."""
     fake_client = AsyncMock()
     fake_client.complete = AsyncMock(return_value=LLMResponse(text="""{
         "phase": "x", "action": "click", "target": "#x",
         "key": "", "duration_ms": 0, "steps": []
     }"""))
     partial = _stage5_partial()
-    # Same HTML → same dom_fingerprint → stuck
+    # Same HTML → same dom_fingerprint → stuck after 3 consecutive
     stuck_html = "<div>same screen each time</div>"
     poll_call_count = 0
 
@@ -230,11 +232,11 @@ async def test_stage6_stuck_detection_aborts_early(tmp_path):
             await run_stage6(
                 fake_client, partial, _bundle(),
                 label="fake_task", taskcards_dir=tmp_path,
-                headless=True, max_retries=11,  # large budget; guard should fire first
+                headless=True, max_retries=11,
             )
-    # Stuck-detection fires after 2nd identical fingerprint → poll called 2x, NOT 12x.
-    assert poll_call_count == 2, \
-        f"expected stuck-detection to abort after 2 polls, got {poll_call_count}"
+    # Stuck-detection fires after 3rd identical fingerprint → poll called 3x, NOT 12x.
+    assert poll_call_count == 3, \
+        f"expected stuck-detection to abort after 3 polls, got {poll_call_count}"
 
 
 @pytest.mark.asyncio

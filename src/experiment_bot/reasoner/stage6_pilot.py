@@ -604,13 +604,20 @@ async def run_stage6(
             history.append(f"Attempt {attempt + 1}: " + "; ".join(reasons))
             logger.warning("Pilot attempt %d failed: %s", attempt + 1, "; ".join(reasons))
 
-            # Stuck-detection: 2 consecutive identical non-empty fingerprints
+            # Stuck-detection: 3 consecutive identical non-empty fingerprints.
+            # SP15 raised the threshold from 2 to 3: under the persistent-session
+            # walker, the LLM's first refinement after a stuck-DOM may "succeed"
+            # at session.try_phase (no Playwright error) but not actually advance
+            # the DOM (e.g., keypress Enter on a screen with a Next button — the
+            # press fires but the page ignores it). Three identical fingerprints
+            # gives the LLM ONE more chance after seeing its own no-op diff in
+            # prior_diffs to try a different action.
             fp = diagnostics.dom_fingerprint
             fingerprint_history.append(fp)
             if (
-                len(fingerprint_history) >= 2
+                len(fingerprint_history) >= 3
                 and fingerprint_history[-1]
-                and fingerprint_history[-1] == fingerprint_history[-2]
+                and fingerprint_history[-1] == fingerprint_history[-2] == fingerprint_history[-3]
             ):
                 _save_diagnostic(diagnostics, taskcards_dir, label)
                 raise PilotValidationError(
@@ -673,6 +680,17 @@ async def run_stage6(
                         prior_diffs.append(
                             f"(failed) Nav phase: {new_phase_dict}; error={attempt_result.error}"
                         )
+                    # Persist this refinement's proposed phase + outcome for
+                    # post-hoc debugging. One file per refinement attempt.
+                    _diff_dir = Path(taskcards_dir) / label
+                    _diff_dir.mkdir(parents=True, exist_ok=True)
+                    _diff_path = _diff_dir / f"pilot_refinement_{attempt + 1}.diff"
+                    _diff_path.write_text(
+                        f"# Attempt {attempt + 1} navigation refinement\n"
+                        f"# success={attempt_result.success}\n"
+                        f"# error={attempt_result.error}\n\n"
+                        + json.dumps(new_phase_dict, indent=2)
+                    )
                 except Exception as e:
                     logger.warning("_propose_next_phase failed: %s — skipping", e)
                     prior_diffs.append(f"(failed) Nav phase error: {e}")

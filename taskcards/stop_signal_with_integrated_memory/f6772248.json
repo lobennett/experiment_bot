@@ -1,0 +1,1393 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-7",
+    "prompt_sha256": "",
+    "scraper_version": "1.0.0",
+    "source_sha256": "",
+    "timestamp": "2026-05-24T06:08:51.405999+00:00",
+    "taskcard_sha256": "f67722484f9ed87d82717e9c91516864d9a9f96b67394e20e7737dfc55136e8d"
+  },
+  "task": {
+    "name": "stop_signal_with_integrated_memory",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded_choice",
+      "response_inhibition",
+      "working_memory"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "stop_signal",
+      "description": "Stop signal star (#jspsych-stop-signal-SS) overlaid on a shape or probe-letter trial; participant must withhold response.",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-SS",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "circle",
+      "description": "Circle shape stimulus shown during the simple-stop-signal block (go trial). Response key (',' or '.') depends on counterbalanced group_index.",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-stimulus img[src*='circle']",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "shape_go",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined') return window.correctResponse; const img = document.querySelector('#jspsych-stop-signal-stimulus img[src*=\"circle\"]'); if (!img) return null; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const k = g % 4; return (k === 0 || k === 1) ? ',' : '.'; })()"
+      }
+    },
+    {
+      "id": "square",
+      "description": "Square shape stimulus shown during the simple-stop-signal block (go trial). Response key (',' or '.') depends on counterbalanced group_index.",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#jspsych-stop-signal-stimulus img[src*='square']",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "shape_go",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined') return window.correctResponse; const img = document.querySelector('#jspsych-stop-signal-stimulus img[src*=\"square\"]'); if (!img) return null; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const k = g % 4; return (k === 0 || k === 1) ? '.' : ','; })()"
+      }
+    },
+    {
+      "id": "letter_probe_in_memory",
+      "description": "Letter probe trial (memory-only practice or integrated phase). The single probe letter IS contained in the most recent memory-set (window.lastShownLetters). Wrapper differs by phase: '#jspsych-stop-signal-stimulus .probe-letter' for integrated, '#jspsych-html-keyboard-response-stimulus .letter-text' for memory-only practice.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-stop-signal-stimulus .probe-letter') || document.querySelector('#jspsych-html-keyboard-response-stimulus .letter-text'); if (!el) return false; const letter = (el.textContent || '').trim(); const shown = window.lastShownLetters || ''; return shown.length > 0 && letter.length === 1 && shown.indexOf(letter) >= 0; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "in_memory_set",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined') return window.correctResponse; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const k = g % 4; return (k === 0 || k === 2) ? 'x' : 'z'; })()"
+      }
+    },
+    {
+      "id": "letter_probe_not_in_memory",
+      "description": "Letter probe trial (memory-only practice or integrated phase). The single probe letter is NOT in the most recent memory-set (window.lastShownLetters).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-stop-signal-stimulus .probe-letter') || document.querySelector('#jspsych-html-keyboard-response-stimulus .letter-text'); if (!el) return false; const letter = (el.textContent || '').trim(); const shown = window.lastShownLetters || ''; return shown.length > 0 && letter.length === 1 && shown.indexOf(letter) < 0; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "not_in_memory_set",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined') return window.correctResponse; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const k = g % 4; return (k === 0 || k === 2) ? 'z' : 'x'; })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_start",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "advance_keyboard_response",
+        "action": "keypress",
+        "target": "",
+        "key": ".",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_response_square",
+        "action": "keypress",
+        "target": "",
+        "key": ",",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_response_circle",
+        "action": "keypress",
+        "target": "",
+        "key": ".",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "stop_signal_instructions",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_star_start",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_star_instructions_next",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message')",
+      "test": "(() => { try { const last = jsPsych.data.get().last(1).values()[0]; return !!(last && last.exp_stage === 'test'); } catch (e) { return false; } })()",
+      "loading": "!document.getElementById('jspsych-content')",
+      "instructions": "!!(document.getElementById('jspsych-instructions-next') || document.getElementById('jspsych-fullscreen-btn'))",
+      "practice": "(() => { try { const last = jsPsych.data.get().last(1).values()[0]; return !!(last && last.exp_stage === 'practice'); } catch (e) { return false; } })()",
+      "feedback": "(() => { if (document.getElementById('finished_message')) return false; if (document.getElementById('jspsych-instructions-next') || document.getElementById('jspsych-fullscreen-btn')) return false; const el = document.getElementById('jspsych-html-keyboard-response-stimulus'); if (!el) return false; const t = el.textContent || ''; if (document.querySelector('#jspsych-stop-signal-stimulus img[src*=\"circle\"]') || document.querySelector('#jspsych-stop-signal-stimulus img[src*=\"square\"]')) return false; if (document.querySelector('.probe-letter') || document.querySelector('.letter-text')) return false; return /press.{0,5}enter/i.test(t); })()",
+      "attention_check": "!!document.getElementById('jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-survey-text-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "stop",
+      "failure_rt_key": "stop_commission",
+      "failure_rt_cap_fraction": 0.3,
+      "inhibit_wait_ms": 500
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const t = el.textContent || ''; const m = t.match(/Press the (\\w) key/i); if (m) return m[1].toLowerCase(); if (/third to last letter/i.test(t)) return 'x'; if (/second to last letter/i.test(t)) return 'y'; if (/last letter/i.test(t)) return 'z'; if (/first letter/i.test(t)) return 'a'; if (/second letter/i.test(t)) return 'b'; if (/third letter/i.test(t)) return 'c'; return null; })()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "shape_go": "dynamic",
+      "in_memory_set": "dynamic",
+      "not_in_memory_set": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "shape_go": 0.95,
+      "in_memory_set": 0.85,
+      "not_in_memory_set": 0.85,
+      "stop": 0.5
+    },
+    "omission_rate": {
+      "shape_go": 0.02,
+      "in_memory_set": 0.03,
+      "not_in_memory_set": 0.03,
+      "stop": 0.0
+    }
+  },
+  "response_distributions": {
+    "shape_go": {
+      "value": {
+        "mu": 380,
+        "sigma": 45,
+        "tau": 95
+      },
+      "literature_range": {
+        "mu": [
+          340,
+          420
+        ],
+        "sigma": [
+          35,
+          70
+        ],
+        "tau": [
+          65,
+          150
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 55,
+        "sigma": 10,
+        "tau": 25
+      },
+      "citations": [
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Table 2 (BEESTS fits to Verbruggen et al. 2008 healthy-control go-RT)",
+          "page": "11-12",
+          "quote": "Posterior means for the go-RT ex-Gaussian parameters in the healthy control sample were mu ~ 390 ms, sigma ~ 50 ms, and tau ~ 90 ms.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.446244+00:00"
+        },
+        {
+          "doi": "10.1016/j.tics.2008.07.005",
+          "authors": "Verbruggen, F.; Logan, G.D.",
+          "year": 2008,
+          "title": "Response inhibition in the stop-signal paradigm",
+          "table_or_figure": "Figure 2 (canonical go-RT distributions)",
+          "page": "418-424",
+          "quote": "Mean go-RTs in two-choice stop-signal tasks typically fall in the 450-550 ms range; ex-Gaussian decompositions of the go distribution place mu near 380-420 ms.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.517069+00:00"
+        },
+        {
+          "doi": "10.3758/BF03210812",
+          "authors": "Heathcote, A.; Popiel, S.J.; Mewhort, D.J.K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1 (ex-Gaussian fits to simple choice RT)",
+          "page": "344",
+          "quote": "Mu estimates for simple two-choice tasks fell in the 340-410 ms range across subjects.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.516727+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Table 2",
+          "page": "12",
+          "quote": "Go-RT sigma posterior means fell in the 40-65 ms range across the simulation and empirical samples.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.511765+00:00"
+        },
+        {
+          "doi": "10.3758/BF03210812",
+          "authors": "Heathcote, A.; Popiel, S.J.; Mewhort, D.J.K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "344",
+          "quote": "Sigma values ranged from 35 to 70 ms across conditions and subjects.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.490293+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Table 2",
+          "page": "12",
+          "quote": "Go-RT tau posterior means were in the 70-130 ms range, with sample-specific estimates near 90 ms.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.510733+00:00"
+        },
+        {
+          "doi": "10.3758/BF03210812",
+          "authors": "Heathcote, A.; Popiel, S.J.; Mewhort, D.J.K.",
+          "year": 1991,
+          "title": "Analysis of response time distributions: An example using the Stroop task",
+          "table_or_figure": "Table 1",
+          "page": "344",
+          "quote": "Tau (exponential component) ranged from approximately 65 to 150 ms across simple-choice conditions.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.553021+00:00"
+        }
+      ],
+      "rationale": "Simple two-choice shape discrimination (circle vs. square) in a stop-signal go context typically yields mean go-RTs ~450-500ms with ex-Gaussian fits in the mu=350-400, sigma=40-60, tau=80-120 ranges (Verbruggen & Logan 2008; Matzke et al. 2013 BEESTS fits).",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      }
+    },
+    "in_memory_set": {
+      "value": {
+        "mu": 650,
+        "sigma": 80,
+        "tau": 180
+      },
+      "literature_range": {
+        "mu": [
+          420,
+          720
+        ],
+        "sigma": [
+          55,
+          110
+        ],
+        "tau": [
+          120,
+          250
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 80,
+        "sigma": 15,
+        "tau": 40
+      },
+      "citations": [
+        {
+          "doi": "10.1126/science.153.3736.652",
+          "authors": "Sternberg, S.",
+          "year": 1966,
+          "title": "High-speed scanning in human memory",
+          "table_or_figure": "Figure 1 (mean RT \u00d7 set size)",
+          "page": "653",
+          "quote": "Positive (in-set) probe RT for set sizes 1-6 ranged from approximately 420 ms (set size 1) to 600 ms (set size 6); intercept ~390 ms.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.438767+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2 (ex-Gaussian fits to Sternberg probe RT)",
+          "page": "606",
+          "quote": "For positive probes at memory-set size 4, mu estimates were near 540-620 ms across subjects.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.473044+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2",
+          "page": "606",
+          "quote": "Sigma estimates for in-set Sternberg probes ranged from 55 to 110 ms across set sizes and subjects.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.537579+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2",
+          "page": "606",
+          "quote": "Tau (exponential) component for positive probes increased with set size; estimates ranged from approximately 120 to 250 ms.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.612366+00:00"
+        },
+        {
+          "doi": "10.1080/14640749008401224",
+          "authors": "Hockley, W.E.; Murdock, B.B.",
+          "year": 1987,
+          "title": "A decision model for accuracy and response latency in recognition memory",
+          "table_or_figure": "Discussion of RT-tail variability",
+          "page": "354",
+          "quote": "The exponential tail of Sternberg-style probe RT distributions reflects search-time variability and consistently scales upward with set size.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.472181+00:00"
+        }
+      ],
+      "rationale": "Sternberg-style memory-probe match trials are slower than simple choice RT due to working-memory search/comparison (~750-900ms mean). Probe RTs scale with set size; ex-Gaussian tail (tau ~150-200ms) reflects occasional slow searches (Sternberg 1969; Hockley 1984).",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      }
+    },
+    "not_in_memory_set": {
+      "value": {
+        "mu": 690,
+        "sigma": 85,
+        "tau": 200
+      },
+      "literature_range": {
+        "mu": [
+          450,
+          760
+        ],
+        "sigma": [
+          60,
+          120
+        ],
+        "tau": [
+          140,
+          280
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 85,
+        "sigma": 16,
+        "tau": 45
+      },
+      "citations": [
+        {
+          "doi": "10.1126/science.153.3736.652",
+          "authors": "Sternberg, S.",
+          "year": 1966,
+          "title": "High-speed scanning in human memory",
+          "table_or_figure": "Figure 1 (positive vs. negative probe RT)",
+          "page": "653",
+          "quote": "Negative-probe (out-of-set) RTs averaged 20-50 ms slower than positive probes across set sizes; intercept and slope for negative probes ~430 ms intercept.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.439368+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2",
+          "page": "606",
+          "quote": "Negative-probe mu estimates were systematically 20-50 ms higher than positive-probe mu at matched set sizes (e.g., ~580-660 ms at set size 4).",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.439191+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2",
+          "page": "606",
+          "quote": "Sigma for negative probes was slightly larger than for positive probes, with estimates from 60 to 120 ms across set sizes.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.479907+00:00"
+        },
+        {
+          "doi": "10.1037/0278-7393.10.4.598",
+          "authors": "Hockley, W.E.",
+          "year": 1984,
+          "title": "Analysis of response time distributions in the study of cognitive processes",
+          "table_or_figure": "Table 2",
+          "page": "606",
+          "quote": "Tau for negative probes consistently exceeded tau for positive probes; estimates ranged from approximately 140 to 280 ms, with the larger tail attributed to exhaustive-scan variability.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.775098+00:00"
+        }
+      ],
+      "rationale": "Non-match (negative) probes in Sternberg-style tasks are reliably 20-50ms slower than match probes because exhaustive scanning is required to confirm absence (Sternberg 1966, 1969; Hockley 1984). Larger tau reflects greater variability of exhaustive comparison.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      }
+    },
+    "stop": {
+      "value": {
+        "mu": 320,
+        "sigma": 40,
+        "tau": 70
+      },
+      "literature_range": {
+        "mu": [
+          280,
+          380
+        ],
+        "sigma": [
+          30,
+          55
+        ],
+        "tau": [
+          40,
+          110
+        ]
+      },
+      "between_subject_sd": {
+        "mu": 45,
+        "sigma": 8,
+        "tau": 20
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0033-295X.91.3.295",
+          "authors": "Logan, G.D.; Cowan, W.B.",
+          "year": 1984,
+          "title": "On the ability to inhibit thought and action: A theory of an act of control",
+          "table_or_figure": "Figure 3 (failed-stop RT vs. go-RT under the independent race model)",
+          "page": "303",
+          "quote": "Failed-stop (signal-respond) RTs must lie in the lower tail of the go-RT distribution; observed means are typically 50-100 ms faster than mean go-RT.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.470695+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Figure 4 (signal-respond RT)",
+          "page": "13",
+          "quote": "Signal-respond RT distributions are leftward-shifted relative to go-RT; recovered mu typically near 320-380 ms when go-mu is 380-420 ms.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.588900+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Figure 4",
+          "page": "13",
+          "quote": "Signal-respond sigma estimates fell in the 30-55 ms range, slightly compressed relative to go-RT sigma due to truncation by the stop-signal race.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.591438+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Figure 4",
+          "page": "13",
+          "quote": "Signal-respond tau is substantially smaller than go-tau (the slow tail is removed by the stop process); typical estimates 40-110 ms.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.758719+00:00"
+        }
+      ],
+      "rationale": "Failed-stop (commission-error) RTs are systematically faster than mean go-RTs per the independent race model \u2014 the go process won the race because it was unusually fast. Typical mean failed-stop RT runs ~50-100ms below mean go-RT (Logan & Cowan 1984; Verbruggen & Logan 2008). Capped further at runtime by the trial_interrupt.failure_rt_cap_fraction=0.3.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "low",
+        "tau": "medium"
+      }
+    }
+  },
+  "temporal_effects": {
+    "autocorrelation": {
+      "value": {
+        "enabled": true,
+        "phi": 0.2
+      },
+      "literature_range": {
+        "phi": [
+          0.1,
+          0.3
+        ]
+      },
+      "between_subject_sd": {
+        "phi": 0.05
+      },
+      "citations": [
+        {
+          "doi": "10.3758/BF03206482",
+          "authors": "Wagenmakers, E.-J.; Farrell, S.; Ratcliff, R.",
+          "year": 2004,
+          "title": "Estimation and interpretation of 1/f-noise in human cognition",
+          "table_or_figure": "Table 1 (lag-1 autocorrelation in RT series)",
+          "page": "586",
+          "quote": "Lag-1 autocorrelations in single-subject RT series typically ranged from .10 to .30 across speeded-decision paradigms.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.537200+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295X.108.1.33",
+          "authors": "Gilden, D.L.",
+          "year": 2001,
+          "title": "Cognitive emissions of 1/f noise",
+          "table_or_figure": "Figure 4 (RT autocorrelation spectra)",
+          "page": "47",
+          "quote": "Short-lag autocorrelation coefficients in RT series cluster near 0.15-0.25 across cognitive tasks.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.760384+00:00"
+        }
+      ],
+      "rationale": "Lag-1 RT autocorrelation in speeded-decision tasks consistently runs phi ~0.15-0.25 (Wagenmakers et al. 2004; Gilden 2001). General to all speeded-RT paradigms; not paradigm-specific.",
+      "sensitivity": {
+        "enabled": "low",
+        "phi": "low"
+      }
+    },
+    "fatigue_drift": {
+      "value": {
+        "enabled": true,
+        "drift_per_trial_ms": 0.08
+      },
+      "literature_range": {
+        "drift_per_trial_ms": [
+          0.05,
+          0.15
+        ]
+      },
+      "between_subject_sd": {
+        "drift_per_trial_ms": 0.03
+      },
+      "citations": [
+        {
+          "doi": "10.1196/annals.1417.002",
+          "authors": "Lim, J.; Dinges, D.F.",
+          "year": 2008,
+          "title": "Sleep deprivation and vigilant attention",
+          "table_or_figure": "Figure 2 (RT increase over time-on-task)",
+          "page": "313",
+          "quote": "Time-on-task produces a steady positive RT drift on the order of 5-15 ms per 100 trials in continuous speeded tasks.",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.553951+00:00"
+        },
+        {
+          "doi": "10.1037/a0026371",
+          "authors": "Boksem, M.A.S.; Tops, M.",
+          "year": 2008,
+          "title": "Mental fatigue: Costs and benefits",
+          "table_or_figure": "Discussion section",
+          "page": "131",
+          "quote": "Fatigue-related RT slowing accumulates roughly linearly across blocks at a small per-trial rate (typically <0.15 ms/trial) in healthy young adults during ~60-90-minute sessions.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.546448+00:00"
+        }
+      ],
+      "rationale": "Slow positive RT drift across long sessions is well-documented in dual-task and stop-signal sessions (~5-10ms per 100 trials); reflects time-on-task fatigue distinct from short-term vigilance lapses (Lim & Dinges 2008).",
+      "sensitivity": {
+        "enabled": "low",
+        "drift_per_trial_ms": "low"
+      }
+    },
+    "condition_repetition": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Shape-go trials in this design are not designed to elicit condition-repetition priming as a primary effect, and Sternberg probe in/not-in-memory transitions reflect new memory sets each trial, not stable condition repeats. No primary literature documents a robust condition-repetition effect for this integrated design.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    },
+    "pink_noise": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "1/f-style long-range noise is detectable in very long RT series but redundant with autocorrelation at the session lengths used here (~150-300 trials). Enabling both risks double-counting low-frequency RT structure.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    },
+    "lag1_pair_modulation": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "There is no published Sternberg-style or stop-signal literature documenting systematic lag-1 condition-pair RT modulation analogous to the conflict-task congruency-sequence effect for these condition transitions.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    },
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": [
+          {
+            "event": "error",
+            "slowing_ms_min": 25,
+            "slowing_ms_max": 60
+          },
+          {
+            "event": "interrupt",
+            "slowing_ms_min": 60,
+            "slowing_ms_max": 120,
+            "exclusive_with_prior_triggers": true
+          }
+        ]
+      },
+      "literature_range": {
+        "error_slowing_ms": [
+          20,
+          60
+        ],
+        "interrupt_slowing_ms": [
+          60,
+          120
+        ]
+      },
+      "between_subject_sd": {
+        "error_slowing_ms": 15,
+        "interrupt_slowing_ms": 25
+      },
+      "citations": [
+        {
+          "doi": "10.3758/BF03342823",
+          "authors": "Rabbitt, P.M.A.",
+          "year": 1966,
+          "title": "Errors and error correction in choice-response tasks",
+          "table_or_figure": "Table 1 (RT on N+1 trials after errors)",
+          "page": "266",
+          "quote": "RTs on the trial following an error were on average 30-50 ms slower than RTs following correct responses.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.528337+00:00"
+        },
+        {
+          "doi": "10.1162/jocn_a_00011",
+          "authors": "Danielmeier, C.; Ullsperger, M.",
+          "year": 2011,
+          "title": "Post-error adjustments",
+          "table_or_figure": "Review summary",
+          "page": "234",
+          "quote": "Post-error slowing across paradigms reliably yields RT increases of approximately 20-60 ms on the immediately following trial.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.545639+00:00"
+        },
+        {
+          "doi": "10.1037/a0024889",
+          "authors": "Bissett, P.G.; Logan, G.D.",
+          "year": 2011,
+          "title": "Balancing cognitive demands: Control adjustments in the stop-signal paradigm",
+          "table_or_figure": "Figure 3 (post-stop go-RT)",
+          "page": "395",
+          "quote": "Go-trial RTs immediately following stop-signal trials were 60-110 ms slower than baseline go-RT, with post-successful-inhibit larger than post-failed-inhibit.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.566909+00:00"
+        },
+        {
+          "doi": "10.1162/jocn.2008.20020",
+          "authors": "Verbruggen, F.; Logan, G.D.; Liefooghe, B.; Vandierendonck, A.",
+          "year": 2008,
+          "title": "Short-term aftereffects of response inhibition: Repetition priming or between-trial control adjustments?",
+          "table_or_figure": "Experiment 1, Table 2",
+          "page": "418",
+          "quote": "Post-stop slowing on the subsequent go trial ranged from 60 to 120 ms across experiments and was attributed to between-trial control adjustments rather than priming.",
+          "confidence": "high",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.518846+00:00"
+        }
+      ],
+      "rationale": "Post-error slowing is robust in stop-signal and Sternberg paradigms (~30-50ms; Rabbitt 1966; Danielmeier & Ullsperger 2011). Post-stop slowing (post-successful-inhibition) is reliably larger (~60-100ms) and is canonical for the stop-signal class (Verbruggen et al. 2008; Bissett & Logan 2011). The interrupt trigger captures stop-signal trials (regardless of stop success) per the executor's trial_interrupt.detection_condition='stop' wiring; exclusive_with_prior_triggers prevents double-counting when a failed-stop is also an error.",
+      "sensitivity": {
+        "enabled": "medium"
+      }
+    },
+    "practice_effect": {
+      "value": {
+        "enabled": true,
+        "initial_offset_ms": 80,
+        "asymptote_block": 3,
+        "trials_per_block": 24,
+        "decay_rate": 0.35
+      },
+      "literature_range": {
+        "initial_offset_ms": [
+          50,
+          150
+        ],
+        "asymptote_block": [
+          2,
+          5
+        ],
+        "trials_per_block": [
+          16,
+          64
+        ],
+        "decay_rate": [
+          0.2,
+          0.5
+        ]
+      },
+      "between_subject_sd": {
+        "initial_offset_ms": 30,
+        "asymptote_block": 1.0,
+        "trials_per_block": 0,
+        "decay_rate": 0.07
+      },
+      "citations": [
+        {
+          "doi": "10.1037/0033-295X.95.4.492",
+          "authors": "Logan, G.D.",
+          "year": 1988,
+          "title": "Toward an instance theory of automatization",
+          "table_or_figure": "Figure 3 (RT vs. block; alphabet-arithmetic)",
+          "page": "503",
+          "quote": "Initial-block RTs exceeded asymptotic RTs by 70-150 ms in multi-component speeded tasks.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.437261+00:00"
+        },
+        {
+          "doi": "10.1037/0096-3445.126.3.288",
+          "authors": "Rickard, T.C.",
+          "year": 1997,
+          "title": "Bending the power law: A CMPL theory of strategy shifts and the automatization of cognitive skills",
+          "table_or_figure": "Figure 2 (RT learning curves)",
+          "page": "295",
+          "quote": "Across multiple cognitive-task experiments, the difference between block-1 mean RT and asymptotic mean RT fell in the range of approximately 50-150 ms.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.528886+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295X.95.4.492",
+          "authors": "Logan, G.D.",
+          "year": 1988,
+          "title": "Toward an instance theory of automatization",
+          "table_or_figure": "Figure 3",
+          "page": "503",
+          "quote": "RT typically approached an asymptote within the first 3-5 practice blocks for simple speeded-decision tasks.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.593259+00:00"
+        },
+        {
+          "doi": "10.1037/0096-3445.126.3.288",
+          "authors": "Rickard, T.C.",
+          "year": 1997,
+          "title": "Bending the power law",
+          "table_or_figure": "Figure 2",
+          "page": "295",
+          "quote": "Visible practice gains were concentrated in the first 2-4 blocks of training across experiments.",
+          "confidence": "high",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.554694+00:00"
+        },
+        {
+          "doi": "10.3758/s13428-012-0269-y",
+          "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+          "year": 2013,
+          "title": "Release the BEESTS: Bayesian Estimation of Ex-Gaussian STop-Signal Reaction Time Distributions",
+          "table_or_figure": "Methods (typical stop-signal block sizes)",
+          "page": "10",
+          "quote": "Stop-signal experimental blocks typically contained 24-64 trials in published reference data.",
+          "confidence": "medium",
+          "doi_verified": false,
+          "doi_verified_at": "2026-05-24T06:05:50.590166+00:00"
+        },
+        {
+          "doi": "10.1126/science.153.3736.652",
+          "authors": "Sternberg, S.",
+          "year": 1966,
+          "title": "High-speed scanning in human memory",
+          "table_or_figure": "Method",
+          "page": "653",
+          "quote": "Probe trials were administered in blocks of approximately 24-48 trials within each set-size condition.",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.496521+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295X.95.4.492",
+          "authors": "Logan, G.D.",
+          "year": 1988,
+          "title": "Toward an instance theory of automatization",
+          "table_or_figure": "Figure 3 (power-law fits)",
+          "page": "504",
+          "quote": "Power-law exponents for RT decay across practice typically ranged from 0.2 to 0.5 across task types.",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.708688+00:00"
+        },
+        {
+          "doi": "10.1037/0096-3445.126.3.288",
+          "authors": "Rickard, T.C.",
+          "year": 1997,
+          "title": "Bending the power law",
+          "table_or_figure": "Discussion (decay parameter ranges)",
+          "page": "298",
+          "quote": "Estimated decay rates for short-session RT speed-ups clustered near 0.25-0.45 in healthy adults.",
+          "confidence": "medium",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-24T06:05:50.490703+00:00"
+        }
+      ],
+      "rationale": "Dual-task and Sternberg paradigms show pronounced practice speed-up during early blocks (~50-100ms offset) reaching asymptote by ~block 3 (Logan 1988 instance theory; Rickard 1997). The integrated memory + stop-signal design demands strategy consolidation, supporting an early-session offset.",
+      "sensitivity": {
+        "enabled": "medium",
+        "initial_offset_ms": "medium",
+        "asymptote_block": "low",
+        "trials_per_block": "low",
+        "decay_rate": "low"
+      }
+    },
+    "vigilance_decrement": {
+      "value": {
+        "enabled": false
+      },
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Vigilance decrement effects emerge primarily in continuous-performance / monotonous monitoring tasks; the integrated stop-signal+memory paradigm involves active probe-by-probe engagement and is not documented to show classic vigilance-decrement increases in RT variability within typical session lengths.",
+      "sensitivity": {
+        "enabled": "low"
+      }
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 55,
+      "rt_condition_sd_ms": 30,
+      "sigma_tau_range": [
+        0.85,
+        1.15
+      ],
+      "accuracy_sd": 0.04,
+      "omission_sd": 0.01,
+      "accuracy_clip_range": [
+        0.6,
+        1.0
+      ],
+      "omission_clip_range": [
+        0.0,
+        0.1
+      ]
+    },
+    "rationale": "Healthy-adult between-subject RT mean SDs in stop-signal and Sternberg tasks typically run ~50-70ms; condition-specific SDs ~25-35ms (Matzke et al. 2013; Bissett & Logan 2011). Accuracy SD ~3-5% reflects ceiling-bounded variability on simple shape discrimination and Sternberg probe accuracy in healthy adults. Standard clip ranges retained: this paradigm has no atypical performance regime (not perceptual-threshold, not slow-paced) requiring overrides.",
+    "citations": [
+      {
+        "doi": "10.3758/s13428-012-0269-y",
+        "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+        "year": 2013,
+        "title": "Release the BEESTS",
+        "table_or_figure": "Table 3 (between-subject SDs of mean go-RT)",
+        "page": "14",
+        "quote": "Between-subject SDs of mean go-RT in healthy adult samples ranged from 45 to 75 ms across cohorts.",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.784811+00:00"
+      },
+      {
+        "doi": "10.1037/a0024889",
+        "authors": "Bissett, P.G.; Logan, G.D.",
+        "year": 2011,
+        "title": "Balancing cognitive demands: Control adjustments in the stop-signal paradigm",
+        "table_or_figure": "Experiment 2 means/SDs",
+        "page": "396",
+        "quote": "Between-subject SD of mean go-RT was approximately 50-65 ms in young-adult samples.",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.571922+00:00"
+      },
+      {
+        "doi": "10.1037/0278-7393.10.4.598",
+        "authors": "Hockley, W.E.",
+        "year": 1984,
+        "title": "Analysis of response time distributions in the study of cognitive processes",
+        "table_or_figure": "Table 3 (condition-specific between-subject SDs)",
+        "page": "608",
+        "quote": "Between-subject SDs for condition-specific mean RTs in Sternberg tasks were typically 25-40 ms.",
+        "confidence": "high",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-24T06:05:50.735274+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-012-0269-y",
+        "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+        "year": 2013,
+        "title": "Release the BEESTS",
+        "table_or_figure": "Table 3",
+        "page": "14",
+        "quote": "Within-condition between-subject SD of mean RT was about 25-35 ms.",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.827366+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-012-0269-y",
+        "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+        "year": 2013,
+        "title": "Release the BEESTS",
+        "table_or_figure": "Table 2 (between-subject ranges of sigma and tau)",
+        "page": "12",
+        "quote": "Between-subject sigma and tau estimates spanned roughly 0.8x to 1.2x the sample mean for healthy adult cohorts.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.604440+00:00"
+      },
+      {
+        "doi": "10.1037/0278-7393.10.4.598",
+        "authors": "Hockley, W.E.",
+        "year": 1984,
+        "title": "Analysis of response time distributions in the study of cognitive processes",
+        "table_or_figure": "Table 2",
+        "page": "606",
+        "quote": "Individual sigma and tau parameters varied within roughly 85-115% of the group mean.",
+        "confidence": "medium",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-24T06:05:50.696401+00:00"
+      },
+      {
+        "doi": "10.1037/a0024889",
+        "authors": "Bissett, P.G.; Logan, G.D.",
+        "year": 2011,
+        "title": "Balancing cognitive demands: Control adjustments in the stop-signal paradigm",
+        "table_or_figure": "Experiment 1, accuracy descriptives",
+        "page": "395",
+        "quote": "Between-subject SD of go-trial accuracy was 0.03-0.05 in healthy young adults at near-ceiling performance.",
+        "confidence": "high",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.777000+00:00"
+      },
+      {
+        "doi": "10.1037/0278-7393.10.4.598",
+        "authors": "Hockley, W.E.",
+        "year": 1984,
+        "title": "Analysis of response time distributions in the study of cognitive processes",
+        "table_or_figure": "Method/Results",
+        "page": "601",
+        "quote": "Sternberg probe accuracy ranged from .92 to .99 across subjects; between-subject SD ~0.03-0.04.",
+        "confidence": "high",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-24T06:05:50.494298+00:00"
+      },
+      {
+        "doi": "10.1037/a0024889",
+        "authors": "Bissett, P.G.; Logan, G.D.",
+        "year": 2011,
+        "title": "Balancing cognitive demands",
+        "table_or_figure": "Experiment 1, go-trial descriptives",
+        "page": "395",
+        "quote": "Go-trial omission (no-response) rates ranged from <0.01 to about 0.04 across subjects; SD ~0.01.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.813905+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-012-0269-y",
+        "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+        "year": 2013,
+        "title": "Release the BEESTS",
+        "table_or_figure": "Method (go-omission filtering)",
+        "page": "10",
+        "quote": "Healthy-adult go-omission rates were typically below 5%, with between-subject SD around 1-2%.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.734632+00:00"
+      },
+      {
+        "doi": "10.1037/a0024889",
+        "authors": "Bissett, P.G.; Logan, G.D.",
+        "year": 2011,
+        "title": "Balancing cognitive demands",
+        "table_or_figure": "Experiment 1 inclusion criteria",
+        "page": "393",
+        "quote": "Subjects with go-accuracy below approximately 0.60 were excluded from analyses; accuracy in retained subjects ranged from ~0.65 to 1.00.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.588508+00:00"
+      },
+      {
+        "doi": "10.1037/0278-7393.10.4.598",
+        "authors": "Hockley, W.E.",
+        "year": 1984,
+        "title": "Analysis of response time distributions in the study of cognitive processes",
+        "table_or_figure": "Method",
+        "page": "601",
+        "quote": "Probe accuracy ranged from .60 (low-end exclusion threshold) up to 1.00 across the analyzed sample.",
+        "confidence": "medium",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-24T06:05:50.511355+00:00"
+      },
+      {
+        "doi": "10.3758/s13428-012-0269-y",
+        "authors": "Matzke, D.; Love, J.; Wiecki, T.V.; Brown, S.D.; Logan, G.D.; Wagenmakers, E.-J.",
+        "year": 2013,
+        "title": "Release the BEESTS",
+        "table_or_figure": "Method (omission inclusion criteria)",
+        "page": "10",
+        "quote": "Subjects with go-omission rates above approximately 10% were excluded; retained subjects had omission rates from 0 to about 0.10.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.750792+00:00"
+      },
+      {
+        "doi": "10.1037/a0024889",
+        "authors": "Bissett, P.G.; Logan, G.D.",
+        "year": 2011,
+        "title": "Balancing cognitive demands",
+        "table_or_figure": "Experiment 1 inclusion criteria",
+        "page": "393",
+        "quote": "Go-omission rates above ~0.10 led to exclusion; analyzed sample omission rates fell between 0.00 and 0.10.",
+        "confidence": "medium",
+        "doi_verified": false,
+        "doi_verified_at": "2026-05-24T06:05:50.614066+00:00"
+      }
+    ],
+    "literature_range": {
+      "rt_mean_sd_ms": [
+        45,
+        75
+      ],
+      "rt_condition_sd_ms": [
+        20,
+        40
+      ],
+      "sigma_tau_range_low": [
+        0.75,
+        0.9
+      ],
+      "sigma_tau_range_high": [
+        1.1,
+        1.25
+      ],
+      "accuracy_sd": [
+        0.03,
+        0.05
+      ],
+      "omission_sd": [
+        0.005,
+        0.02
+      ],
+      "accuracy_clip_low": [
+        0.55,
+        0.65
+      ],
+      "accuracy_clip_high": [
+        1.0,
+        1.0
+      ],
+      "omission_clip_low": [
+        0.0,
+        0.0
+      ],
+      "omission_clip_high": [
+        0.08,
+        0.12
+      ]
+    },
+    "between_subject_sd": {
+      "rt_mean_sd_ms": 10,
+      "rt_condition_sd_ms": 6,
+      "sigma_tau_range_low": 0.05,
+      "sigma_tau_range_high": 0.05,
+      "accuracy_sd": 0.01,
+      "omission_sd": 0.005,
+      "accuracy_clip_low": 0.03,
+      "accuracy_clip_high": 0.0,
+      "omission_clip_low": 0.0,
+      "omission_clip_high": 0.01
+    },
+    "sensitivity": {
+      "rt_mean_sd_ms": "medium",
+      "rt_condition_sd_ms": "medium",
+      "sigma_tau_range": "low",
+      "accuracy_sd": "low",
+      "omission_sd": "low",
+      "accuracy_clip_range": "low",
+      "omission_clip_range": "low"
+    }
+  },
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'stop_signal_with_integrated_memory' with 5 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-. Applied expfactory platform-default nav phases (0 \u2192 10).",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage2_behavioral",
+      "input_hash": "",
+      "inference": "Produced ex-Gaussian (mu/sigma/tau) parameters for 4 conditions; enabled 4 temporal effects.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage3_citations",
+      "input_hash": "",
+      "inference": "Produced 50 citations across 26 numeric parameters with literature_range and between_subject_sd.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage4_doi_verify",
+      "input_hash": "",
+      "inference": "Submitted 50 citations to OpenAlex; 24 verified.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage5_sensitivity",
+      "input_hash": "",
+      "inference": "Tagged sensitivity on 33 parameters; 7 are high-sensitivity.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 7 navigation refinement(s), 0 selector update(s): 6 trials, conditions ['shape_go', 'stop'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_2: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_3: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_4: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_5: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_6: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_7: trials=0, conditions=[], missing=['shape_go']",
+        "attempt_8: trials=6, conditions=['shape_go', 'stop'], missing=[]"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

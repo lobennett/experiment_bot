@@ -77,6 +77,12 @@ class PilotSession:
                 await self._playwright.stop()
 
     @property
+    def context(self) -> BrowserContext:
+        if self._context is None:
+            raise RuntimeError("PilotSession not entered")
+        return self._context
+
+    @property
     def page(self) -> Page:
         if self._page is None:
             raise RuntimeError("PilotSession not entered")

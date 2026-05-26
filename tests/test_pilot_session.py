@@ -106,3 +106,17 @@ async def test_pilot_session_context_manager_cleans_up_on_exception(fixture_url)
     assert raised
     # No assertion on browser-closed (Playwright cleanup is implicit in __aexit__);
     # this test passes if no resource leak warnings appear.
+
+
+@pytest.mark.asyncio
+async def test_pilot_session_exposes_context(fixture_url):
+    """SP16 prerequisite: PilotSession.context returns the BrowserContext
+    so callers (TaskExecutor) can create CDP sessions on it."""
+    async with PilotSession(headless=True) as session:
+        await session.goto(fixture_url)
+        ctx = session.context
+        assert ctx is not None
+        # Smoke: context can spawn a CDP session
+        cdp = await ctx.new_cdp_session(session.page)
+        assert cdp is not None
+        await cdp.detach()

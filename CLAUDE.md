@@ -317,6 +317,46 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   needed 1 refinement same as before — backward-compatible). See
   `docs/sp13-spec.md` and `docs/sp13-results.md`. Tag `sp13-complete`.
   ✓ Complete.
+- **SP14**: Refinement-prompt schema knowledge. Two surgical additions to
+  `REFINEMENT_PROMPT`: (a) explicit "Navigation phase JSON schema" section
+  with concrete examples for each supported action (click, keypress, wait,
+  sequence) and warning against the nested `action.type/selector` shape
+  the navigator silently ignores; (b) APPEND-only ordering rule —
+  navigation phases run in array order matching screen-encounter order, so
+  new phases append to the end, never prepend or replace. Surfaced by SP13
+  held-out test's two refinement bugs (replace + prepend). Internal: 683
+  passing; +3 invariant tests. External: SP14 held-out re-test advanced
+  past fullscreen but new gap surfaced (wasteful per-attempt re-launches +
+  paradigm-specific instruction flow beyond canonical expfactory), motivating
+  SP15. Tag `sp14-complete` (rolled into SP15 commit history at `cc8a886`).
+  ✓ Complete.
+- **SP15**: Platform-aware Stage 1 + persistent-session pilot walker.
+  Part A: new `reasoner/platform_defaults.py` registry backfills canonical
+  navigation phases for expfactory.org, cognition.run, kywch.github.io when
+  the LLM emits empty or under-specified `navigation.phases`. Derived
+  verbatim from committed dev TaskCards (infrastructure recognition, not
+  paradigm overfitting). Part B: new `core/pilot_session.py` async context
+  manager owns one Playwright session for the entire Stage 6 walker loop;
+  `PilotRunner.run` reimplemented as a thin facade (backward-compat);
+  `REFINEMENT_PROMPT` split into `NAVIGATION_REFINEMENT_PROMPT` (single
+  phase delta) + `STIMULUS_REFINEMENT_PROMPT` (single selector update);
+  `run_stage6` rewritten as persistent-session walker that accumulates
+  phases + selector overrides in-memory, splices into partial only on
+  success; stuck-detection threshold relaxed 2 → 3 to allow one no-op
+  refinement before abort. Internal: 702 passing (was 683); +19 tests
+  across platform-defaults (8), pilot-session (6), walker-flow (2),
+  prompt-invariants (3). External: held-out paradigm
+  `stop_signal_with_integrated_memory` Stage 6 PASS after 7 nav
+  refinements, 6 trials captured, one browser tab. **However: the
+  walker's TaskCard cannot be replayed by the executor** because the
+  walker accumulates trial-response keypresses as nav phases (the page
+  state changes after each press, so the walker treats them as advances)
+  — the executor's fresh-browser nav-then-trial-loop pipeline can't
+  apply them. This is an architectural limit of the executor, not an SP15
+  defect; it's the precisely-articulated next gap that motivates SP16.
+  Behavioral session data on the held-out paradigm is therefore deferred
+  to SP16. See `docs/sp15-spec.md` and `docs/sp15-results.md`. Tag
+  `sp15-complete`. ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

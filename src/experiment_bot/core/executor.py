@@ -610,6 +610,8 @@ class TaskExecutor:
                             self._calibration_run.delivery_channel_counts
                         ),
                     }
+                # SP16: adaptive nav summary — aggregated counts for analysis scripts
+                metadata["adaptive_nav"] = self._compute_adaptive_nav_summary()
                 # record_trace("save") must run BEFORE finalize() so the
                 # entry lands in run_trace.json on disk. The "save"
                 # stage's duration_s is left None because the work it
@@ -1244,6 +1246,22 @@ class TaskExecutor:
             self._adaptive_nav_uses, phase_dict.get("action"), attempt.success, advanced,
         )
         return advanced
+
+    def _compute_adaptive_nav_summary(self) -> dict:
+        """SP16: summarise per-session adaptive nav usage for run_metadata.json.
+
+        Filters bot_log entries by type=='adaptive_nav' to aggregate counts.
+        Called from run() finalization so analysis scripts don't need to
+        iterate bot_log entries themselves.
+        """
+        adaptive_entries = [e for e in self._bot_log if e.get("type") == "adaptive_nav"]
+        return {
+            "uses": self._adaptive_nav_uses,
+            "budget": _ADAPTIVE_NAV_BUDGET,
+            "successful_proposals": sum(1 for e in adaptive_entries if e.get("success")),
+            "dom_advances": sum(1 for e in adaptive_entries if e.get("advanced")),
+            "llm_disabled": self._llm_client is None,
+        }
 
     async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""

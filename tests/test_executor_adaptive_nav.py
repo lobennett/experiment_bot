@@ -139,3 +139,23 @@ async def test_taskexecutor_constants_match_spec():
     """SP16 budget constants match the spec values."""
     assert _ADAPTIVE_NAV_STUCK_POLLS == 20
     assert _ADAPTIVE_NAV_BUDGET == 10
+
+
+def test_run_metadata_has_adaptive_nav_summary(make_executor):
+    """run_metadata.json's adaptive_nav block summarizes per-session
+    adaptive nav usage. _bot_log is a read-only property backed by
+    _writer._trials, so entries are seeded there directly."""
+    executor = make_executor(with_llm_client=False)  # llm_disabled=True
+    # Seed bot_log via the underlying _writer._trials list
+    executor._writer._trials.extend([
+        {"type": "adaptive_nav", "success": True, "advanced": True},
+        {"type": "adaptive_nav", "success": True, "advanced": False},
+        {"type": "trial", "trial_index": 1},
+    ])
+    executor._adaptive_nav_uses = 2
+    summary = executor._compute_adaptive_nav_summary()
+    assert summary["uses"] == 2
+    assert summary["successful_proposals"] == 2
+    assert summary["dom_advances"] == 1
+    assert summary["llm_disabled"] is True
+    assert summary["budget"] == _ADAPTIVE_NAV_BUDGET

@@ -449,7 +449,7 @@ async def test_feedback_phase_overridden_by_trial_stimulus():
         return TaskPhase.COMPLETE
 
     with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
-        await executor._trial_loop(page)
+        await executor._trial_loop(AsyncMock(), page)
 
     # Should have logged a trial (not just handled feedback)
     assert executor._trial_count == 1
@@ -480,7 +480,7 @@ async def test_feedback_proceeds_when_no_trial_stimulus():
         return TaskPhase.COMPLETE
 
     with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
-        await executor._trial_loop(page)
+        await executor._trial_loop(AsyncMock(), page)
 
     # No trials — feedback was handled, then completion
     assert executor._trial_count == 0
@@ -752,7 +752,7 @@ async def test_trial_loop_uses_config_navigation_condition():
     executor._lookup.identify = AsyncMock(side_effect=[nav_match, None])
 
     with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
-        await executor._trial_loop(page)
+        await executor._trial_loop(AsyncMock(), page)
 
     # Confirm navigation key was pressed (not a trial)
     assert executor._trial_count == 0
@@ -793,7 +793,7 @@ async def test_trial_loop_uses_config_attention_check_conditions():
     executor._handle_attention_check = mock_handle_ac
 
     with patch("experiment_bot.core.executor.detect_phase", side_effect=mock_detect_phase):
-        await executor._trial_loop(page)
+        await executor._trial_loop(AsyncMock(), page)
 
     assert len(handle_ac_calls) == 1
 

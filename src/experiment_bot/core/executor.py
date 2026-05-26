@@ -24,6 +24,10 @@ from experiment_bot.output.data_capture import ConfigDrivenCapture
 
 logger = logging.getLogger(__name__)
 
+# SP16: adaptive nav constants
+_ADAPTIVE_NAV_STUCK_POLLS = 20
+_ADAPTIVE_NAV_BUDGET = 10
+
 
 def _taskcard_to_config(tc):
     """Project a TaskCard into a TaskConfig the executor knows how to drive.
@@ -142,6 +146,7 @@ class TaskExecutor:
         self._adaptive_nav_uses = 0
         self._adaptive_nav_diffs: list[str] = []
         self._runtime_nav_phases: list[dict] = []
+        self._session_start: float = 0.0  # set at run() entry for session_t offsets
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -150,6 +155,11 @@ class TaskExecutor:
         if "key_map" in ts:
             return dict(ts["key_map"])
         return {}
+
+    @property
+    def _bot_log(self) -> list[dict]:
+        """SP16: expose the writer's trial list for adaptive_nav logging + test access."""
+        return self._writer._trials
 
     def _narrate(self, stage: str, detail: str) -> None:
         """SP12 Phase 2: narrate one stage transition to stdout.
@@ -446,6 +456,8 @@ class TaskExecutor:
 
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
+        import time as _time
+        self._session_start = _time.monotonic()
         task_name = self._config.task.name.replace(" ", "_").lower()
         run_dir = self._writer.create_run(task_name, self._config)
 
@@ -525,7 +537,7 @@ class TaskExecutor:
                 # Phase 2: Trial loop
                 logger.info("Entering trial loop...")
                 _t0 = time.monotonic()
-                await self._trial_loop(page)
+                await self._trial_loop(session, page)
                 self._narrate("trial_loop", f"trials={self._trial_count}")
                 self._writer.record_trace(
                     "trial_loop", {"trials": self._trial_count},
@@ -610,7 +622,7 @@ class TaskExecutor:
                 self._writer.finalize()
                 self._narrate("save", f"output={self._writer.run_dir}")
 
-    async def _trial_loop(self, page: Page) -> None:
+    async def _trial_loop(self, session, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""
         timing = self._config.runtime.timing
         stuck_detector = StuckDetector(timeout_seconds=timing.stuck_timeout_s)
@@ -690,6 +702,17 @@ class TaskExecutor:
                 match = await self._lookup.identify(page)
             if match is None:
                 consecutive_misses += 1
+                # SP16: adaptive nav fallback — fires at poll 20, 40, 60, ...
+                if (
+                    consecutive_misses >= _ADAPTIVE_NAV_STUCK_POLLS
+                    and self._llm_client is not None
+                    and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
+                    and consecutive_misses % _ADAPTIVE_NAV_STUCK_POLLS == 0
+                ):
+                    advanced = await self._adaptive_nav_step(session, page)
+                    if advanced:
+                        consecutive_misses = 0
+                        continue
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     break
@@ -1157,6 +1180,70 @@ class TaskExecutor:
         for key in ab.feedback_fallback_keys:
             await page.keyboard.press(key)
             await asyncio.sleep(0.5)
+
+    async def _adaptive_nav_step(self, session, page) -> bool:
+        """LLM-driven one-step adaptive nav. Returns True if the bot's DOM
+        advanced after the proposed phase executed. Logs the attempt into
+        bot_log with type 'adaptive_nav' for full auditability.
+
+        The LLM call is bounded by self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET;
+        the caller is responsible for checking that gate before invoking.
+        """
+        import hashlib
+        from experiment_bot.core.config import NavigationPhase
+        from experiment_bot.reasoner.stage6_pilot import _propose_next_phase
+
+        dom_before = await session.dom_snapshot()
+        fp_before = hashlib.sha256(dom_before.encode()).hexdigest()[:16] if dom_before else ""
+
+        try:
+            phase_dict = await _propose_next_phase(
+                self._llm_client, dom_before,
+                self._runtime_nav_phases, self._adaptive_nav_diffs,
+            )
+        except Exception as e:
+            logger.warning("Adaptive nav: LLM proposal failed: %s", e)
+            self._adaptive_nav_uses += 1
+            return False
+
+        phase_dict.setdefault("steps", [])
+        phase_dict.setdefault("key", "")
+        phase_dict.setdefault("target", "")
+        phase_dict.setdefault("duration_ms", 0)
+        phase_dict.setdefault("phase", f"adaptive_{self._adaptive_nav_uses + 1}")
+        new_phase = NavigationPhase.from_dict(phase_dict)
+
+        attempt = await session.try_phase(new_phase)
+        self._adaptive_nav_uses += 1
+
+        dom_after = await session.dom_snapshot()
+        fp_after = hashlib.sha256(dom_after.encode()).hexdigest()[:16] if dom_after else ""
+        advanced = bool(fp_before and fp_after and fp_before != fp_after)
+
+        self._runtime_nav_phases.append(phase_dict)
+        self._adaptive_nav_diffs.append(
+            f"Adaptive {self._adaptive_nav_uses}: "
+            f"{phase_dict} (success={attempt.success}, advanced={advanced})"
+        )
+
+        # Bot_log audit entry (via writer, exposed as _bot_log property)
+        self._writer.log_trial({
+            "type": "adaptive_nav",
+            "step": self._adaptive_nav_uses,
+            "session_t": time.monotonic() - self._session_start,
+            "phase": phase_dict,
+            "success": attempt.success,
+            "advanced": advanced,
+            "error": attempt.error,
+            "dom_fingerprint_before": fp_before,
+            "dom_fingerprint_after": fp_after,
+        })
+
+        logger.info(
+            "Adaptive nav step %d: action=%s success=%s advanced=%s",
+            self._adaptive_nav_uses, phase_dict.get("action"), attempt.success, advanced,
+        )
+        return advanced
 
     async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""

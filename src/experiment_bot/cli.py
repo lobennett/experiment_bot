@@ -20,6 +20,7 @@ def _setup_logging(verbose: bool) -> None:
 from experiment_bot.taskcard.loader import load_latest
 from experiment_bot.taskcard.sampling import sample_session_params
 from experiment_bot.core.executor import TaskExecutor
+from experiment_bot.llm.factory import build_default_client
 
 
 async def _run_task(
@@ -28,6 +29,7 @@ async def _run_task(
     headless: bool,
     taskcards_dir: Path,
     seed: int | None,
+    no_llm_client: bool = False,
 ) -> None:
     try:
         taskcard = load_latest(taskcards_dir, label=label)
@@ -49,9 +51,11 @@ async def _run_task(
     click.echo(f"Seed: {seed} | Sampled session parameters for {len(sampled)} conditions")
 
     click.echo(f"Running task at {url}")
+    llm_client = None if no_llm_client else build_default_client()
     executor = TaskExecutor(
         taskcard, headless=headless,
         seed=seed, session_params=sampled,
+        llm_client=llm_client,
     )
     await executor.run(url)
     click.echo("Done!")
@@ -66,13 +70,15 @@ async def _run_task(
 @click.option("--seed", type=int, default=None,
               help="Random seed for session-level parameter sampling (default: random)")
 @click.option("--verbose", "-v", is_flag=True, default=False, help="Enable debug logging")
+@click.option("--no-llm-client", is_flag=True, default=False,
+              help="Disable LLM client (skips adaptive nav; for deterministic / no-LLM runs)")
 def main(url: str, label: str, headless: bool, taskcards_dir: str,
-         seed: int | None, verbose: bool):
+         seed: int | None, verbose: bool, no_llm_client: bool):
     """experiment-bot: Execute a previously-reasoned TaskCard against URL.
 
     Use `experiment-bot-reason` to generate the TaskCard first.
     """
     _setup_logging(verbose)
     asyncio.run(_run_task(
-        url, label, headless, Path(taskcards_dir), seed,
+        url, label, headless, Path(taskcards_dir), seed, no_llm_client,
     ))

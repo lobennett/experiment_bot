@@ -38,7 +38,9 @@ def test_cli_loads_taskcard_and_runs_executor(tmp_path):
     fake_executor = MagicMock()
     fake_executor.run = AsyncMock()
 
-    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor):
+    fake_client = MagicMock()
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor), \
+         patch("experiment_bot.cli.build_default_client", return_value=fake_client):
         result = runner.invoke(main, [
             "http://example.com/stroop",
             "--label", "stroop",
@@ -74,9 +76,11 @@ def test_cli_samples_session_params_at_start(tmp_path):
     fake_executor.run = AsyncMock()
 
     sampled_params = {"default": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}}
+    fake_client = MagicMock()
     with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
          patch("experiment_bot.cli.sample_session_params",
-               return_value=sampled_params) as samp:
+               return_value=sampled_params) as samp, \
+         patch("experiment_bot.cli.build_default_client", return_value=fake_client):
         result = runner.invoke(main, [
             "http://example.com/x",
             "--label", "stroop",

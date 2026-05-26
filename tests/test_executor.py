@@ -1239,3 +1239,21 @@ def test_executor_persists_session_seed_and_params_to_metadata():
     saved = saved_args[0]
     assert saved["session_seed"] == 12345
     assert saved["session_params"]["go"]["mu"] == 510.0
+
+
+# SP16: TaskExecutor accepts llm_client kwarg
+def test_taskexecutor_accepts_llm_client_kwarg():
+    """TaskExecutor.llm_client defaults to None; accepts an AsyncMock client."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+
+    # Default: no llm_client
+    e1 = TaskExecutor(config, seed=42)
+    assert e1._llm_client is None
+    assert e1._adaptive_nav_uses == 0
+    assert e1._adaptive_nav_diffs == []
+    assert e1._runtime_nav_phases == []
+
+    # With an explicit client
+    fake = AsyncMock()
+    e2 = TaskExecutor(config, seed=42, llm_client=fake)
+    assert e2._llm_client is fake

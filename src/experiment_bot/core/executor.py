@@ -4,6 +4,10 @@ import asyncio
 import logging
 import random
 import time
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from experiment_bot.llm.protocol import LLMClient
 
 import numpy as np
 from playwright.async_api import Page
@@ -64,9 +68,11 @@ class TaskExecutor:
     def __init__(
         self,
         config,  # TaskCard or TaskConfig
+        *,
         seed: int | None = None,
         headless: bool = False,
         session_params: dict | None = None,
+        llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -130,6 +136,12 @@ class TaskExecutor:
         self._calibration_run = None  # set if calibration pass runs
         self._delivery_channel_log: dict[str, int] = {}  # tally by channel
         self._fire_skip_log: list[dict] = []  # per-trial skip metadata
+
+        # SP16: adaptive nav state
+        self._llm_client = llm_client
+        self._adaptive_nav_uses = 0
+        self._adaptive_nav_diffs: list[str] = []
+        self._runtime_nav_phases: list[dict] = []
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:

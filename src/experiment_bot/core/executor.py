@@ -458,9 +458,30 @@ class TaskExecutor:
                 # SP11 Phase 5a: open CDP session + construct deliverer
                 await self._setup_keypress_deliverer(page, context)
 
-                # Phase 1: Navigate instructions
+                # Phase 1: Navigate instructions (per-phase with skip-on-fail)
                 logger.info("Navigating instructions...")
-                await self._navigator.execute_all(page, self._config.navigation)
+                self._entry_nav_phase_results: list[dict] = []
+                _t1 = time.monotonic()
+                for nav_phase in self._config.navigation.phases:
+                    attempt = await session.try_phase(nav_phase)
+                    self._entry_nav_phase_results.append({
+                        "phase": nav_phase.phase or "<unnamed>",
+                        "action": nav_phase.action,
+                        "target": nav_phase.target,
+                        "key": nav_phase.key,
+                        "success": attempt.success,
+                        "error": attempt.error,
+                    })
+                    if not attempt.success:
+                        logger.info(
+                            f"Entry nav phase '{nav_phase.phase or '<unnamed>'}' "
+                            f"skipped: {attempt.error}"
+                        )
+                self._writer.record_trace(
+                    "entry_navigation",
+                    {"phases": self._entry_nav_phase_results},
+                    duration_s=time.monotonic() - _t1,
+                )
 
                 # SP11 Phase 5b: calibration pass (auto-invoked when a
                 # deliverer is configured). Result is always applied to

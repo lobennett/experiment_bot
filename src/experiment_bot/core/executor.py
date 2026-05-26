@@ -6,11 +6,12 @@ import random
 import time
 
 import numpy as np
-from playwright.async_api import Page, async_playwright
+from playwright.async_api import Page
 
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.distributions import ResponseSampler
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
+from experiment_bot.core.pilot_session import PilotSession
 from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
@@ -436,12 +437,13 @@ class TaskExecutor:
         task_name = self._config.task.name.replace(" ", "_").lower()
         run_dir = self._writer.create_run(task_name, self._config)
 
-        async with async_playwright() as p:
-            browser = await p.chromium.launch(headless=self._headless)
-            context = await browser.new_context(
-                viewport=self._config.runtime.timing.viewport,
-            )
-            page = await context.new_page()
+        async with PilotSession(
+            headless=self._headless,
+            viewport=self._config.runtime.timing.viewport,
+            reading_delay_range=(3.0, 8.0),
+        ) as session:
+            page = session.page
+            context = session.context
 
             try:
                 logger.info(f"Navigating to {task_url}")
@@ -574,7 +576,6 @@ class TaskExecutor:
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 self._narrate("save", f"output={self._writer.run_dir}")
-                await browser.close()
 
     async def _trial_loop(self, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""

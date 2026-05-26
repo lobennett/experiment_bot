@@ -27,6 +27,12 @@ logger = logging.getLogger(__name__)
 # SP16: adaptive nav constants
 _ADAPTIVE_NAV_STUCK_POLLS = 20
 _ADAPTIVE_NAV_BUDGET = 10
+# SP16: adaptive nav fires only when an INSTRUCTIONS-phase screen survives this
+# many consecutive standard nav re-runs without its DOM changing. Gating on a
+# stuck INSTRUCTIONS DOM (not on stimulus-polling misses) prevents false-firing
+# during normal between-trial gaps (fixation, ITI, response-window-closed),
+# which would otherwise press keys that skip real trials.
+_ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
 
 
 def _taskcard_to_config(tc):
@@ -631,6 +637,8 @@ class TaskExecutor:
         max_no_stimulus_polls = timing.max_no_stimulus_polls
 
         consecutive_misses = 0
+        instructions_stuck_fp = ""
+        instructions_stuck_count = 0
         while True:
             phase = await detect_phase(page, self._config.runtime.phase_detection)
             if phase == TaskPhase.COMPLETE:
@@ -662,6 +670,33 @@ class TaskExecutor:
                         await self._handle_feedback(page)
                     else:
                         await self._navigator.execute_all(page, self._config.navigation)
+                        # SP16: if the standard nav re-run left us on the SAME
+                        # instruction DOM across consecutive detections, the
+                        # TaskCard's fixed nav can't advance this screen — fire
+                        # adaptive nav. Gated on a stuck INSTRUCTIONS DOM (not on
+                        # stimulus-poll misses) so normal between-trial gaps never
+                        # trigger it.
+                        import hashlib as _hashlib
+                        try:
+                            _dom = await page.evaluate(
+                                "document.body ? document.body.outerHTML.slice(0,4000) : ''"
+                            )
+                        except Exception:
+                            _dom = ""
+                        _fp = _hashlib.sha256(_dom.encode()).hexdigest()[:16] if _dom else ""
+                        if _fp and _fp == instructions_stuck_fp:
+                            instructions_stuck_count += 1
+                        else:
+                            instructions_stuck_fp = _fp
+                            instructions_stuck_count = 0
+                        if (
+                            instructions_stuck_count >= _ADAPTIVE_NAV_INSTRUCTIONS_STUCK
+                            and self._llm_client is not None
+                            and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
+                        ):
+                            await self._adaptive_nav_step(session, page)
+                            instructions_stuck_count = 0
+                            instructions_stuck_fp = ""
                     consecutive_misses = 0
                     continue
                 logger.debug("Trial stimulus %s overrides %s phase", probe.stimulus_id, phase.value)
@@ -704,17 +739,6 @@ class TaskExecutor:
                 match = await self._lookup.identify(page)
             if match is None:
                 consecutive_misses += 1
-                # SP16: adaptive nav fallback — fires at poll 20, 40, 60, ...
-                if (
-                    consecutive_misses >= _ADAPTIVE_NAV_STUCK_POLLS
-                    and self._llm_client is not None
-                    and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
-                    and consecutive_misses % _ADAPTIVE_NAV_STUCK_POLLS == 0
-                ):
-                    advanced = await self._adaptive_nav_step(session, page)
-                    if advanced:
-                        consecutive_misses = 0
-                        continue
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     break

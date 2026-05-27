@@ -357,6 +357,35 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   Behavioral session data on the held-out paradigm is therefore deferred
   to SP16. See `docs/sp15-spec.md` and `docs/sp15-results.md`. Tag
   `sp15-complete`. ✓ Complete.
+- **SP16**: TaskExecutor refactor with adaptive nav. `TaskExecutor.run`
+  browser lifecycle migrated to `PilotSession` (one tab/session; CDP on
+  `session.context`). Entry nav switched to per-phase `session.try_phase`
+  (skip-on-fail; recorded in run_trace under `entry_navigation`). New
+  constructor kwarg `llm_client: LLMClient | None`; CLI builds via
+  `build_default_client()` with `--no-llm-client` opt-out. New
+  `_adaptive_nav_step`: when a trial-loop INSTRUCTIONS screen survives
+  `_ADAPTIVE_NAV_INSTRUCTIONS_STUCK=2` consecutive nav re-runs without DOM
+  change, the LLM proposes ONE nav phase (`_propose_next_phase`, shared
+  with Stage 6's walker), applied via `session.try_phase`, logged to
+  bot_log as `type:"adaptive_nav"`. Budget 10/session;
+  `run_metadata.adaptive_nav` summary. Two fixes during validation: (1)
+  initial adaptive-nav trigger lived in the stimulus-poll-miss branch and
+  false-fired on dev paradigms during normal between-trial gaps (skipped
+  real trials, 61 vs 124 on stroop) — moved to the INSTRUCTIONS-phase
+  branch gated on a stuck DOM; (2) the INSTRUCTIONS-branch
+  `_navigator.execute_all` re-run could RAISE mid-sequence (re-clicking an
+  already-dismissed fullscreen button) and crash the session — wrapped so
+  it falls through to adaptive nav. Internal CI: 710 passing (+7 tests).
+  External: dev-4 all backward-compatible (adaptive_nav_uses==0, trial
+  counts restored). **Held-out `stop_signal_with_integrated_memory` × 1
+  session: 666 trials, all 5 conditions, calibrated humanlike RTs, 10
+  adaptive-nav steps navigated the between-block instruction flow — the
+  framework's first behavioral dataset on this held-out paradigm.**
+  Race-model ordering holds (stop-fail 505ms < go 826ms), inhibition rate
+  0.516; SSRT 458ms ABOVE the 180-280ms norm (dual-task memory load + the
+  bot's systemic SSRT-high pattern from SP12). ×5 statistical run
+  deferred. See `docs/sp16-spec.md`, `docs/sp16-results.md`,
+  `docs/sp16-heldout-behavior.md`. Tag `sp16-complete`. ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

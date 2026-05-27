@@ -32,11 +32,14 @@ Entry point: `src/experiment_bot/cli.py:main` (click command).
 
 The executor coordinates one bot session. Flow:
 
-1. **Open page** via Playwright → CDP session.
+1. **Open page** via `PilotSession` (SP16) → one browser/context/page for
+   the whole session → CDP session on `session.context`.
 2. **Construct KeypressDeliverer** (`_setup_keypress_deliverer`).
    CDP is default; falls back to page.keyboard.press if CDP
    unavailable (Firefox/WebKit).
-3. **Navigate instructions** (`_navigator.execute_all`).
+3. **Navigate instructions** (SP16: per-phase `session.try_phase`,
+   skip-on-fail — a stale TaskCard nav phase no longer crashes session
+   start; results recorded in run_trace.json under `entry_navigation`).
 4. **Calibration pass** (`_run_calibration_pass`) — fires N keys with
    the four-step protocol; estimates offset; installs result on
    sampler when model is non-escalate.
@@ -46,6 +49,18 @@ The executor coordinates one bot session. Flow:
    captures data, writes bot_log.json + run_metadata.json.
 
 Entry point: `src/experiment_bot/core/executor.py:TaskExecutor.run`.
+
+**Adaptive nav (SP16):** when a trial-loop INSTRUCTIONS-phase screen
+survives 2 consecutive standard nav re-runs without its DOM changing —
+i.e., the TaskCard's fixed nav can't advance an interleaved between-block
+instruction screen — `_adaptive_nav_step` fires: the LLM proposes ONE nav
+phase (same `_propose_next_phase` helper Stage 6's walker uses), it's
+applied via `session.try_phase`, and the attempt is logged to bot_log as a
+`type: "adaptive_nav"` entry. Budget: 10 steps/session. Disabled with
+`--no-llm-client` (deterministic runs). This is the executor counterpart
+to Stage 6's persistent-session walker — it lets the bot collect behavioral
+data on paradigms with instruction flows too complex for a fixed nav
+sequence (e.g. the held-out `stop_signal_with_integrated_memory`).
 
 ## 3. TaskCard config: `core/config.py`
 

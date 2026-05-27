@@ -83,6 +83,7 @@ class TaskExecutor:
         headless: bool = False,
         session_params: dict | None = None,
         llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
+        keep_open: bool = False,  # leave the browser open after the session ends
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -93,6 +94,7 @@ class TaskExecutor:
             self._taskcard = None
         self._config = config
         self._headless = headless
+        self._keep_open = keep_open
         # Persisted to run_metadata.json so a session is exactly reproducible
         # (same seed + same TaskCard hash = same output) and the per-session
         # sampled values are auditable post-hoc. Without these fields, the
@@ -629,6 +631,22 @@ class TaskExecutor:
                 self._writer.save_metadata(metadata)
                 self._writer.finalize()
                 self._narrate("save", f"output={self._writer.run_dir}")
+
+            # keep_open: hold the browser open after the session finishes so the
+            # final experiment state can be inspected. Waits until the user
+            # closes the window manually (or the process is interrupted). Lives
+            # inside the `async with PilotSession` so the browser is still alive.
+            if self._keep_open:
+                logger.info(
+                    "keep_open: session finished; browser staying open. "
+                    "Close the window (or Ctrl+C the process) to exit."
+                )
+                self._narrate("keep_open", "browser held open; close window to exit")
+                try:
+                    await page.wait_for_event("close", timeout=0)
+                except Exception:
+                    # Page/context may already be closed, or wait was interrupted.
+                    pass
 
     async def _trial_loop(self, session, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""

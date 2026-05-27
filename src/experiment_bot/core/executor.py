@@ -669,7 +669,19 @@ class TaskExecutor:
                     if phase == TaskPhase.FEEDBACK:
                         await self._handle_feedback(page)
                     else:
-                        await self._navigator.execute_all(page, self._config.navigation)
+                        # The TaskCard's fixed nav re-run can RAISE mid-sequence
+                        # (e.g. clicking an already-dismissed #jspsych-fullscreen-btn
+                        # times out). Catch it so the bot falls through to
+                        # stuck-detection + adaptive nav instead of crashing the
+                        # whole session. Dev paradigms whose nav re-run succeeds
+                        # are unaffected (no exception to catch).
+                        try:
+                            await self._navigator.execute_all(page, self._config.navigation)
+                        except Exception as _nav_err:
+                            logger.info(
+                                "Nav re-run raised mid-sequence (continuing to "
+                                "stuck-detection/adaptive nav): %s", _nav_err,
+                            )
                         # SP16: if the standard nav re-run left us on the SAME
                         # instruction DOM across consecutive detections, the
                         # TaskCard's fixed nav can't advance this screen — fire

@@ -167,6 +167,37 @@ def validate_stage2_schema(partial: dict) -> None:
                 err_path += f".{path}"
             errors.append((err_path, e.message))
 
+    # response_distributions: each condition's declared `distribution` must
+    # have matching param keys. Catches mismatches that would KeyError at
+    # runtime (e.g. lognormal missing sigma, or ex_gaussian missing tau).
+    # Keys confirmed from core/distributions.py _build_sampler dispatch.
+    _FAMILY_PARAMS: dict[str, frozenset[str]] = {
+        "ex_gaussian": frozenset({"mu", "sigma", "tau"}),
+        "lognormal": frozenset({"mu", "sigma"}),
+        "shifted_wald": frozenset({"drift_rate", "boundary", "shift_ms"}),
+    }
+    for cond, entry in (partial.get("response_distributions") or {}).items():
+        family = entry.get("distribution", "ex_gaussian") if isinstance(entry, dict) else "ex_gaussian"
+        value = _value_only(entry) if isinstance(entry, dict) else {}
+        if not isinstance(value, dict):
+            continue
+        required = _FAMILY_PARAMS.get(family)
+        if required is None:
+            errors.append((
+                f"response_distributions.{cond}.distribution",
+                f"unknown distribution family {family!r}; supported: "
+                f"{sorted(_FAMILY_PARAMS)}",
+            ))
+            continue
+        got = frozenset(k for k in value if k != "distribution")
+        missing = required - got
+        if missing:
+            errors.append((
+                f"response_distributions.{cond}.value",
+                f"distribution={family!r} requires params {sorted(required)}; "
+                f"missing: {sorted(missing)}",
+            ))
+
     if errors:
         raise Stage2SchemaError(errors)
 

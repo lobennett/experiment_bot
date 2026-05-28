@@ -100,9 +100,14 @@ def _build_sampler(dist_config: "DistributionConfig", seed: int | None):
       - "lognormal"     → LogNormalSampler(mu, sigma)
       - "shifted_wald"  → ShiftedWaldSampler(drift_rate, boundary, shift_ms)
 
-    Raises ValueError for unknown distribution names. The Reasoner picks
-    the distribution per condition based on which family the literature
-    reports for the paradigm.
+    All three families are selectable and honored end-to-end. The Reasoner
+    picks the family per condition (Stage 2) based on what the literature
+    reports for the paradigm; `ParameterValue.distribution` carries the
+    choice through `_taskcard_to_config` into this dispatch. Stage 2
+    validation (`reasoner/validate.py`) checks param-key completeness
+    against the declared family before a session is started.
+
+    Raises ValueError for unknown distribution names.
     """
     name = dist_config.distribution
     p = dist_config.params

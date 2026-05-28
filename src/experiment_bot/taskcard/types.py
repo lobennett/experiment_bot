@@ -34,6 +34,11 @@ class ParameterValue:
       - A dict keyed by sub-parameter name: e.g. {"mu": "high", "sigma": "medium"}
         — used when Stage 5 of the Reasoner tags individual sub-parameters
         (mu/sigma/tau) at different sensitivity levels.
+
+    The `distribution` field names the RT sampler family the Reasoner chose
+    for this condition. Defaults to "ex_gaussian" for backward compatibility
+    with existing TaskCards that predate this field. The executor honors it
+    via _taskcard_to_config → DistributionConfig; see core/distributions.py.
     """
     value: dict
     literature_range: dict | None = None
@@ -41,6 +46,7 @@ class ParameterValue:
     citations: list[Citation] = field(default_factory=list)
     rationale: str = ""
     sensitivity: Literal["high", "medium", "low", "unknown"] | dict = "unknown"
+    distribution: str = "ex_gaussian"
 
     @classmethod
     def from_dict(cls, d: dict) -> "ParameterValue":
@@ -52,11 +58,13 @@ class ParameterValue:
             citations=cits,
             rationale=d.get("rationale", ""),
             sensitivity=d.get("sensitivity", "unknown"),
+            distribution=d.get("distribution", "ex_gaussian"),
         )
 
     def to_dict(self) -> dict:
         return {
             "value": self.value,
+            "distribution": self.distribution,
             "literature_range": self.literature_range,
             "between_subject_sd": self.between_subject_sd,
             "citations": [c.to_dict() for c in self.citations],

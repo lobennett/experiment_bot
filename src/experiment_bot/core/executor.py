@@ -51,7 +51,9 @@ def _taskcard_to_config(tc):
         task=tc.task,
         stimuli=tc.stimuli,
         response_distributions={
-            k: DistributionConfig(distribution="ex_gaussian", params=v.value)
+            k: DistributionConfig(distribution=v.distribution, params={
+                pk: pv for pk, pv in v.value.items() if pk != "distribution"
+            })
             for k, v in tc.response_distributions.items()
         },
         performance=tc.performance,

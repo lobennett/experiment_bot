@@ -24,6 +24,7 @@ from experiment_bot.taskcard.types import ParameterValue, ReasoningStep, Produce
 def test_parameter_value_round_trip():
     data = {
         "value": {"mu": 480, "sigma": 60, "tau": 80},
+        "distribution": "ex_gaussian",
         "literature_range": {"mu": [430, 530], "sigma": [40, 80], "tau": [50, 110]},
         "between_subject_sd": {"mu": 50, "sigma": 10, "tau": 20},
         "citations": [],
@@ -111,3 +112,81 @@ def test_task_metadata_paradigm_classes_default_empty():
     from experiment_bot.core.config import TaskMetadata
     tm = TaskMetadata.from_dict({"name": "x", "constructs": [], "reference_literature": []})
     assert tm.paradigm_classes == []
+
+
+# --- Task 1: RT distribution family wiring ---
+
+def test_parameter_value_distribution_round_trip():
+    """distribution field survives from_dict → to_dict."""
+    data = {
+        "value": {"mu": 0.5, "sigma": 0.4},
+        "distribution": "lognormal",
+        "citations": [],
+        "rationale": "",
+        "sensitivity": "unknown",
+        "literature_range": None,
+        "between_subject_sd": None,
+    }
+    pv = ParameterValue.from_dict(data)
+    assert pv.distribution == "lognormal"
+    assert pv.to_dict()["distribution"] == "lognormal"
+
+
+def test_parameter_value_distribution_default_ex_gaussian():
+    """A dict with no distribution key defaults to ex_gaussian (backward-compat)."""
+    data = {
+        "value": {"mu": 480, "sigma": 60, "tau": 80},
+        "citations": [],
+        "rationale": "",
+        "sensitivity": "unknown",
+        "literature_range": None,
+        "between_subject_sd": None,
+    }
+    pv = ParameterValue.from_dict(data)
+    assert pv.distribution == "ex_gaussian"
+
+
+def test_parameter_value_round_trip_preserves_distribution():
+    """Existing round-trip test still holds and distribution is included."""
+    data = {
+        "value": {"mu": 480, "sigma": 60, "tau": 80},
+        "literature_range": {"mu": [430, 530], "sigma": [40, 80], "tau": [50, 110]},
+        "between_subject_sd": {"mu": 50, "sigma": 10, "tau": 20},
+        "citations": [],
+        "rationale": "Whelan 2008 norms",
+        "sensitivity": "high",
+        "distribution": "ex_gaussian",
+    }
+    pv = ParameterValue.from_dict(data)
+    rt = pv.to_dict()
+    assert rt == data
+
+
+def test_shifted_wald_taskcard_drives_sampler():
+    """A TaskCard with shifted_wald distribution instantiates ShiftedWaldSampler
+    through _taskcard_to_config → ResponseSampler without KeyError."""
+    import copy
+    from experiment_bot.core.executor import _taskcard_to_config
+    from experiment_bot.core.distributions import ResponseSampler, ShiftedWaldSampler
+
+    tc_dict = _minimal_taskcard_dict()
+    tc_dict["response_distributions"] = {
+        "go": {
+            "value": {"drift_rate": 1.2, "boundary": 0.8, "shift_ms": 150.0},
+            "distribution": "shifted_wald",
+            "citations": [],
+            "rationale": "",
+            "sensitivity": "unknown",
+            "literature_range": None,
+            "between_subject_sd": None,
+        }
+    }
+    tc = TaskCard.from_dict(tc_dict)
+    cfg = _taskcard_to_config(tc)
+    # ResponseSampler must instantiate without KeyError
+    sampler = ResponseSampler(cfg.response_distributions, seed=42)
+    # Verify the underlying sampler is ShiftedWaldSampler
+    assert isinstance(sampler._samplers["go"], ShiftedWaldSampler)
+    # And sampling produces a positive value
+    rt = sampler.sample_rt("go")
+    assert rt > 0

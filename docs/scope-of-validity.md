@@ -219,11 +219,15 @@ non-claim; reviewers should weigh them as such.
   yet be declared from a TaskCard. Adding a new universal mechanism
   requires both a handler function (Python code) and a registry entry.
 
-- **L4. Distribution dispatch is fixed to ex_gaussian / lognormal /
-  shifted_wald.** Adding a new distribution family requires a new
-  sampler class plus a dispatch entry. Most published speeded-decision
-  literature uses ex-Gaussian or shifted-Wald, but the dispatch is not
-  open-ended.
+- **L4. Distribution dispatch supports ex_gaussian / lognormal /
+  shifted_wald, all three selectable and honored end-to-end.** The
+  Reasoner picks the family per condition based on what the literature
+  reports; `ParameterValue.distribution` carries the choice into
+  `_taskcard_to_config` → `DistributionConfig` → `_build_sampler`
+  (core/distributions.py). Stage 2 validation checks that the param
+  keys match the declared family and fails loudly on mismatch.
+  Adding a new family requires a new sampler class plus a dispatch
+  entry in `_build_sampler`.
 
 - **L5. Validation is point-estimate-within-range, not distributional
   similarity.** A bot session whose mu falls within the published range

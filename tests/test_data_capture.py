@@ -65,8 +65,9 @@ async def test_config_driven_js_expression_capture():
     page.evaluate = AsyncMock(return_value="col1,col2\n1,2\n3,4")
 
     capturer = ConfigDrivenCapture(config)
-    data = await capturer.capture(page)
-    assert data == "col1,col2\n1,2\n3,4"
+    result = await capturer.capture(page)
+    assert result.data == "col1,col2\n1,2\n3,4"
+    assert result.failed is False
 
 
 @pytest.mark.asyncio
@@ -85,14 +86,51 @@ async def test_config_driven_button_click_capture():
     page.eval_on_selector = AsyncMock(return_value="<table><tr><td>a</td><td>b</td></tr></table>")
 
     capturer = ConfigDrivenCapture(config)
-    data = await capturer.capture(page)
-    assert data is not None
-    assert "a\tb" in data
+    result = await capturer.capture(page)
+    assert result.data is not None
+    assert "a\tb" in result.data
+    assert result.failed is False
 
 
 @pytest.mark.asyncio
 async def test_config_driven_no_capture_method():
     config = DataCaptureConfig()  # method=""
     capturer = ConfigDrivenCapture(config)
-    data = await capturer.capture(AsyncMock())
-    assert data is None
+    result = await capturer.capture(AsyncMock())
+    # no-method case: data is None, failed is False (not an error — nothing configured)
+    assert result.data is None
+    assert result.failed is False
+
+
+@pytest.mark.asyncio
+async def test_config_driven_capture_exception_sets_failed():
+    """A swallowed exception must set failed=True (distinguishable from no-method)."""
+    config = DataCaptureConfig(
+        method="js_expression",
+        expression="jsPsych.data.get().csv()",
+        format="csv",
+    )
+    page = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=RuntimeError("synthetic failure"))
+
+    capturer = ConfigDrivenCapture(config)
+    result = await capturer.capture(page)
+    assert result.data is None
+    assert result.failed is True
+
+
+@pytest.mark.asyncio
+async def test_config_driven_capture_success_returns_data_not_failed():
+    """Successful capture returns (data, failed=False)."""
+    config = DataCaptureConfig(
+        method="js_expression",
+        expression="jsPsych.data.get().csv()",
+        format="csv",
+    )
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="col1,col2\n1,2")
+
+    capturer = ConfigDrivenCapture(config)
+    result = await capturer.capture(page)
+    assert result.data == "col1,col2\n1,2"
+    assert result.failed is False

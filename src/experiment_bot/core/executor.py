@@ -178,6 +178,13 @@ class TaskExecutor:
         # so bot_log matches the key actually pressed.
         self._error_injection_unrealizable: int = 0
 
+        # Task 6 (platform-004): data-capture visibility — populated by
+        # _wait_for_completion so the run() finally block can write them into
+        # run_metadata without needing a return value from the method.
+        self._data_capture_written: bool = False
+        self._data_capture_method: str = ""
+        self._data_capture_failed: bool = False
+
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
         """Resolve key mappings from config.task_specific.key_map."""
@@ -679,6 +686,15 @@ class TaskExecutor:
                 # single-real-key paradigms are visible in run_metadata.
                 metadata["error_injection"] = {
                     "unrealizable_count": self._error_injection_unrealizable,
+                }
+                # Task 6 (platform-004): data-capture status so a silent export
+                # failure is visible to the reviewer. failed=True means the method
+                # was configured but raised an exception (vs. no-method-configured
+                # which is written=False, failed=False and is expected).
+                metadata["data_capture"] = {
+                    "written": self._data_capture_written,
+                    "method": self._data_capture_method,
+                    "failed": self._data_capture_failed,
                 }
                 # record_trace("save") must run BEFORE finalize() so the
                 # entry lands in run_trace.json on disk. The "save"
@@ -1409,12 +1425,21 @@ class TaskExecutor:
         )
 
         capturer = ConfigDrivenCapture(self._config.runtime.data_capture)
-        data = await capturer.capture(page)
-        if data:
+        capture_result = await capturer.capture(page)
+        # Record capture status for run_metadata (populated in run() finally block).
+        self._data_capture_written = bool(capture_result.data)
+        self._data_capture_method = self._config.runtime.data_capture.method or ""
+        self._data_capture_failed = capture_result.failed
+        if capture_result.data:
             ext = self._config.runtime.data_capture.format or "csv"
-            self._writer.save_task_data(data, f"experiment_data.{ext}")
+            self._writer.save_task_data(capture_result.data, f"experiment_data.{ext}")
             logger.info("Experiment data saved")
         else:
+            if capture_result.failed:
+                logger.warning(
+                    "Data capture failed — experiment_data export may be missing; "
+                    "check run_metadata.data_capture.failed for details"
+                )
             wait_s = self._config.runtime.timing.completion_wait_ms / 1000.0
             logger.info(f"No data captured, waiting {wait_s:.1f}s for platform data save")
             await asyncio.sleep(wait_s)

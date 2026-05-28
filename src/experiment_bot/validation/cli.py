@@ -76,7 +76,18 @@ def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, st
 @click.option("--taskcards-dir", default="taskcards", help="Where TaskCard JSONs live")
 @click.option("--reports-dir", default="validation", help="Where to write JSON reports")
 @click.option("-v", "--verbose", is_flag=True, default=False)
-def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_dir, verbose):
+@click.option(
+    "--allow-bot-log",
+    is_flag=True,
+    default=False,
+    help=(
+        "Allow scoring against bot_log.json when no platform-data adapter is registered. "
+        "CAUTION: the bot is grading its own homework — results are self-referential. "
+        "The bypass is recorded in the report as data_source=bot_log_self_graded."
+    ),
+)
+def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_dir, verbose,
+         allow_bot_log):
     """Score bot sessions against published canonical norms; write a report."""
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -99,15 +110,31 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
     contrast_labels = _load_lag1_contrast_labels(Path(taskcards_dir), label)
     trial_loader = adapter_for_label(label)
     if trial_loader is None:
+        if not allow_bot_log:
+            raise click.ClickException(
+                f"No platform-data adapter is registered for label '{label}'. "
+                f"Scoring against bot_log.json is REFUSED by default because the "
+                f"bot would be grading its own homework — the same log used to drive "
+                f"behavior is used to assess it, closing the anti-circularity loop (G4). "
+                f"To fix: add an adapter in validation/platform_adapters.py that reads "
+                f"the platform's experiment_data.{{csv,json}} export, or add a "
+                f"data_capture config in the TaskCard so the executor writes it. "
+                f"To bypass (self-graded, recorded in report): re-run with --allow-bot-log."
+            )
+        # Explicit bypass: bot_log fallback requested; stamp report so the bypass
+        # is committed in the artifact, not just a transient stderr line.
         click.echo(
-            f"WARNING: no platform-data adapter registered for label "
-            f"'{label}'. Falling back to bot_log.json (may over-/under-"
-            f"count platform trials). Add an adapter in "
-            f"validation/platform_adapters.py to fix.",
+            f"WARNING: --allow-bot-log set for '{label}' (no platform-data adapter). "
+            f"Scoring against bot_log.json — bot grades its own homework. "
+            f"data_source will be recorded as bot_log_self_graded in the report.",
             err=True,
         )
+        trial_source = "bot_log"
+        report_data_source_override = "bot_log_self_graded"
     else:
         click.echo(f"Using platform-data adapter for label '{label}'.")
+        trial_source = "platform_adapter"
+        report_data_source_override = None
 
     report = validate_session_set(
         paradigm_class=paradigm_class,
@@ -115,6 +142,7 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         norms=norms,
         contrast_labels=contrast_labels,
         trial_loader=trial_loader,
+        trial_source=trial_source,
     )
 
     Path(reports_dir).mkdir(parents=True, exist_ok=True)
@@ -127,7 +155,9 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         "n_supplied": report.n_supplied,
         "n_used": report.n_used,
         "excluded_sessions": report.excluded_sessions,
-        "data_source": report.data_source,
+        # When --allow-bot-log was used, stamp "bot_log_self_graded" so the bypass
+        # is recorded in the committed artifact (not just a transient stderr line).
+        "data_source": report_data_source_override if report_data_source_override else report.data_source,
         "pillar_results": {
             name: {
                 "pass": pillar.pass_,

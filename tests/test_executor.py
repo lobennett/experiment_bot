@@ -1114,14 +1114,16 @@ def test_is_withhold_sentinel_does_not_overmatch_real_keys(real_key):
     "no_response", "no_key", "nokey", "suppress",
 ])
 def test_pick_wrong_key_filters_sentinels(sentinel):
-    """_pick_wrong_key must not return a sentinel value as a 'wrong key'."""
+    """_pick_wrong_key must return None (not the sentinel) when the only wrong-key
+    candidate is a sentinel value.  (robust-003: single-real-key paradigm honesty.)"""
     config = TaskConfig.from_dict(_minimal_config_dict())
     executor = TaskExecutor(config)
     executor._key_map = {"go": "z", "stop": sentinel}
     executor._seen_response_keys = set()
     # correct_key = "z"; the only other candidate is sentinel; must not return sentinel
     result = executor._pick_wrong_key("z")
-    assert not TaskExecutor._is_withhold_sentinel(result), f"Got sentinel {result!r}"
+    # After robust-003 fix: unrealizable injection signals None, not the sentinel itself
+    assert result is None, f"Expected None (unrealizable), got {result!r}"
 
 
 @pytest.mark.asyncio

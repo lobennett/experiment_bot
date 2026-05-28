@@ -172,6 +172,12 @@ class TaskExecutor:
         # Keys: "response_key_js", "response_window_js"
         self._js_eval_errors: dict[str, int] = {}
 
+        # Task 4 (robust-003): count trials where error injection was requested but
+        # unrealizable because no genuinely-wrong key exists (single-real-key paradigms).
+        # When unrealizable, the call site presses the correct key and logs is_error=False
+        # so bot_log matches the key actually pressed.
+        self._error_injection_unrealizable: int = 0
+
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
         """Resolve key mappings from config.task_specific.key_map."""
@@ -444,8 +450,13 @@ class TaskExecutor:
     def _should_omit(self, condition: str = "") -> bool:
         return self._py_rng.random() < self._config.performance.get_omission_rate(condition)
 
-    def _pick_wrong_key(self, correct_key: str) -> str:
-        """Return a random incorrect key from known response keys."""
+    def _pick_wrong_key(self, correct_key: str) -> str | None:
+        """Return a random incorrect key from known response keys, or None if unrealizable.
+
+        Returns None when no genuinely-wrong key exists (single-real-key paradigm).
+        The call site must treat None as "cannot inject error; press correct key honestly"
+        and set is_error=False so bot_log matches what was actually pressed.
+        """
         # Use static key_map when all values are real keys; exclude sentinel values
         static_keys = {
             v for v in self._key_map.values()
@@ -455,7 +466,7 @@ class TaskExecutor:
         all_keys = list(static_keys or self._seen_response_keys)
         wrong_keys = [k for k in all_keys if k != correct_key and not self._is_withhold_sentinel(k)]
         if not wrong_keys:
-            return correct_key  # Only one real key available; can't press wrong one
+            return None  # Unrealizable: no genuinely-wrong key available
         return self._py_rng.choice(wrong_keys)
 
     def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
@@ -664,6 +675,11 @@ class TaskExecutor:
                 # Task 3: surface JS-eval errors so a malformed Reasoner-emitted JS
                 # expression is visible to the reviewer instead of silently degrading.
                 metadata["js_eval_errors_by_source"] = dict(self._js_eval_errors)
+                # Task 4 (robust-003): surface unrealizable error-injection count so
+                # single-real-key paradigms are visible in run_metadata.
+                metadata["error_injection"] = {
+                    "unrealizable_count": self._error_injection_unrealizable,
+                }
                 # record_trace("save") must run BEFORE finalize() so the
                 # entry lands in run_trace.json on disk. The "save"
                 # stage's duration_s is left None because the work it
@@ -1235,7 +1251,15 @@ class TaskExecutor:
             return
 
         if is_error:
-            resolved_key = self._pick_wrong_key(resolved_key)
+            wrong = self._pick_wrong_key(resolved_key)
+            if wrong is None:
+                # Cannot inject a wrong key (single-real-key paradigm); press
+                # the correct key honestly and record is_error=False so bot_log
+                # matches the key actually pressed (robust-003).
+                is_error = False
+                self._error_injection_unrealizable += 1
+            else:
+                resolved_key = wrong
         delivery_meta = await self._fire_response_key(page, resolved_key)
 
         self._writer.log_trial({

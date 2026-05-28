@@ -50,8 +50,12 @@ class PillarResult:
 class ValidationReport:
     paradigm_class: str
     pillar_results: dict[str, PillarResult]
-    overall_pass: bool
+    overall_pass: bool | None
     summary: str
+    excluded_sessions: list = field(default_factory=list)
+    n_supplied: int = 0
+    n_used: int = 0
+    data_source: str = "platform_adapter"
 
 
 def _in_range(value, range_) -> bool | None:
@@ -314,6 +318,7 @@ def validate_session_set(
     norms: dict,
     contrast_labels: tuple[str, str] | None = None,
     trial_loader=None,
+    trial_source: str = "platform_adapter",
 ) -> ValidationReport:
     """Score bot sessions against published canonical norms.
 
@@ -336,7 +341,49 @@ def validate_session_set(
     metrics are computed against the experiment's own data export rather
     than `bot_log.json` (which can over-/under-count platform trials).
     Defaults to `_default_bot_log_loader` for back-compat.
+
+    `trial_source`, when set to `"bot_log"`, marks any correctness-dependent
+    metric (post_error_slowing) as pass_=None so the bot's self-graded
+    `correct` field cannot gate overall_pass.
     """
+    # --- completeness exclusion ---
+    n_supplied = len(session_dirs)
+    excluded_sessions: list[dict] = []
+    active_dirs: list[Path] = []
+    for sd in session_dirs:
+        meta_path = Path(sd) / "run_metadata.json"
+        if meta_path.exists():
+            try:
+                meta = json.loads(meta_path.read_text())
+            except (OSError, json.JSONDecodeError):
+                meta = {}
+        else:
+            meta = {}
+        if meta.get("incomplete", False):
+            excluded_sessions.append({
+                "session": Path(sd).name,
+                "reason": meta.get("loop_exit_reason", "unknown"),
+            })
+        else:
+            active_dirs.append(Path(sd))
+
+    n_used = len(active_dirs)
+    # If all sessions are incomplete, hard-fail immediately
+    if n_supplied > 0 and n_used == 0:
+        return ValidationReport(
+            paradigm_class=paradigm_class,
+            pillar_results={},
+            overall_pass=False,
+            summary=f"paradigm_class={paradigm_class} pass=False (all sessions incomplete)",
+            excluded_sessions=excluded_sessions,
+            n_supplied=n_supplied,
+            n_used=0,
+            data_source=trial_source,
+        )
+
+    # Set of metrics that read `correct` — must be None when using bot_log source
+    _CORRECTNESS_DEPENDENT = {"post_error_slowing"}
+
     metrics_def: dict[str, dict] = norms.get("metrics", {})
     pillars: dict[str, PillarResult] = {}
     if trial_loader is None:
@@ -364,18 +411,21 @@ def validate_session_set(
             continue
 
         pillar = _pillar(spec.pillar)
-        value = spec.compute(session_dirs, ctx)
+        value = spec.compute(active_dirs, ctx)
         citations = metric_def.get("citations", [])
+        # bot_log correctness guard: zero out pass_ for correctness-dependent metrics
+        bot_log_muted = trial_source == "bot_log" and metric_name in _CORRECTNESS_DEPENDENT
 
         if spec.sub_keys is None:
             # Single-value metric
             rng = metric_def.get(spec.range_key)
             float_value = value if not (isinstance(value, float) and math.isnan(value)) else None
+            computed_pass = None if bot_log_muted else _in_range(value, rng)
             _add(pillar, MetricResult(
                 name=metric_name,
                 bot_value=float_value,
                 published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-                pass_=_in_range(value, rng),
+                pass_=computed_pass,
                 citations=citations,
             ))
         else:
@@ -385,29 +435,47 @@ def validate_session_set(
                 rng = metric_def.get(rng_field)
                 sub_value = value.get(key, float("nan")) if isinstance(value, dict) else float("nan")
                 bot_v = sub_value if not (isinstance(sub_value, float) and math.isnan(sub_value)) else None
+                computed_pass = None if bot_log_muted else _in_range(sub_value, rng)
                 _add(pillar, MetricResult(
                     name=spec.result_name_fmt.format(key=key),
                     bot_value=bot_v,
                     published_range=tuple(rng) if rng and all(v is not None for v in rng) else None,
-                    pass_=_in_range(sub_value, rng),
+                    pass_=computed_pass,
                     citations=citations,
                 ))
 
     # Overall pass: AND of all gating metric passes (None = ignored).
-    overall = True
+    # Tri-state logic:
+    #   False  — at least one gate failed, OR no metric produced any bot_value (zero-data)
+    #   True   — all gates passed (≥1 gate exists)
+    #   None   — no gates exist (all-descriptive class) but data is present
+    overall: bool | None = True
     has_any_gate = False
+    has_any_value = False
     for p in pillars.values():
         for m in p.metrics.values():
             if m.pass_ is False:
                 overall = False
             if m.pass_ is not None:
                 has_any_gate = True
+            if m.bot_value is not None:
+                has_any_value = True
     if not has_any_gate:
-        overall = False  # no concrete gates means we can't assert pass
+        # No gating metric: None if data exists (descriptive-only), False if no data
+        overall = None if has_any_value else False
+
+    if overall is None:
+        summary_pass = "unscored (no gating metric — descriptive-only class)"
+    else:
+        summary_pass = str(overall)
 
     return ValidationReport(
         paradigm_class=paradigm_class,
         pillar_results=pillars,
         overall_pass=overall,
-        summary=f"paradigm_class={paradigm_class} pass={overall}",
+        summary=f"paradigm_class={paradigm_class} pass={summary_pass}",
+        excluded_sessions=excluded_sessions,
+        n_supplied=n_supplied,
+        n_used=n_used,
+        data_source=trial_source,
     )

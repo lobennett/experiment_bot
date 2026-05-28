@@ -124,6 +124,10 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         "paradigm_class": report.paradigm_class,
         "overall_pass": report.overall_pass,
         "summary": report.summary,
+        "n_supplied": report.n_supplied,
+        "n_used": report.n_used,
+        "excluded_sessions": report.excluded_sessions,
+        "data_source": report.data_source,
         "pillar_results": {
             name: {
                 "pass": pillar.pass_,
@@ -139,7 +143,10 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
     }, indent=2))
 
     click.echo(f"Validation report: {out}")
-    click.echo(f"Overall pass: {report.overall_pass}")
+    if report.overall_pass is None:
+        click.echo("Overall pass: unscored (no gating metric — descriptive-only class)")
+    else:
+        click.echo(f"Overall pass: {report.overall_pass}")
     for name, pillar in report.pillar_results.items():
         marker = "✅" if pillar.pass_ else "❌"
         click.echo(f"  {marker} {name}")

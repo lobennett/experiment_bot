@@ -346,3 +346,180 @@ def test_oracle_ssrt_returns_nan_without_ssd_or_stop_trials(tmp_path):
         trial_loader=go_only_loader,
     )
     assert report.pillar_results["signature_metric"].metrics["ssrt"].bot_value is None
+
+
+# ---------------------------------------------------------------------------
+# Task 5: completeness exclusion, tri-state overall_pass, bot_log guard
+# ---------------------------------------------------------------------------
+
+def _fake_session_with_metadata(
+    tmp_path: Path, mu: float, sigma: float, tau: float, n_trials: int, seed: int,
+    incomplete: bool = False, loop_exit_reason: str = "complete",
+) -> Path:
+    """Like _fake_session_dir but also writes run_metadata.json."""
+    import numpy as np
+    rng = np.random.default_rng(seed)
+    session_dir = tmp_path / f"session_meta_{seed}"
+    session_dir.mkdir(parents=True, exist_ok=True)
+    log = []
+    for i in range(n_trials):
+        rt = rng.normal(mu, sigma) + rng.exponential(tau)
+        log.append({
+            "trial": i, "stimulus_id": "x",
+            "condition": "congruent" if i % 2 == 0 else "incongruent",
+            "response_key": "z", "actual_rt_ms": float(rt),
+            "intended_error": False, "omission": False,
+        })
+    (session_dir / "bot_log.json").write_text(json.dumps(log))
+    metadata = {
+        "incomplete": incomplete,
+        "loop_exit_reason": loop_exit_reason,
+    }
+    (session_dir / "run_metadata.json").write_text(json.dumps(metadata))
+    return session_dir
+
+
+def test_oracle_excludes_incomplete_sessions(tmp_path, fake_norms_conflict):
+    """Session with run_metadata.incomplete==True must be excluded from
+    metric aggregation; ValidationReport.excluded_sessions records it;
+    n_used < n_supplied."""
+    complete_session = _fake_session_with_metadata(
+        tmp_path, 500, 60, 80, n_trials=200, seed=0, incomplete=False,
+    )
+    incomplete_session = _fake_session_with_metadata(
+        tmp_path, 500, 60, 80, n_trials=50, seed=1, incomplete=True,
+        loop_exit_reason="max_misses",
+    )
+    report = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=[complete_session, incomplete_session],
+        norms=fake_norms_conflict,
+    )
+    assert report.n_supplied == 2
+    assert report.n_used == 1
+    assert len(report.excluded_sessions) == 1
+    excluded = report.excluded_sessions[0]
+    assert excluded["session"] == incomplete_session.name
+    assert excluded["reason"] == "max_misses"
+
+
+def test_oracle_all_incomplete_gives_false(tmp_path, fake_norms_conflict):
+    """When ALL sessions are incomplete, overall_pass must be False."""
+    sessions = [
+        _fake_session_with_metadata(
+            tmp_path, 500, 60, 80, n_trials=30, seed=i, incomplete=True,
+            loop_exit_reason="window_closed",
+        )
+        for i in range(3)
+    ]
+    report = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=fake_norms_conflict,
+    )
+    assert report.overall_pass is False
+    assert report.n_used == 0
+    assert report.n_supplied == 3
+
+
+def test_oracle_tri_state_none_for_all_descriptive_with_data(tmp_path):
+    """All-null-range norms + data present → overall_pass is None (not False).
+    Preserves G4: zero-data must still return False."""
+    norms_descriptive = {
+        "paradigm_class": "working_memory",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {
+            "rt_distribution": {
+                "mu_range": None, "sigma_range": None, "tau_range": None,
+                "citations": [],
+            },
+            "lag1_autocorr": {"range": None, "citations": []},
+        },
+    }
+    # Data present: should be None (unscored), NOT False
+    sessions = [_fake_session_dir(tmp_path, 500, 60, 80, n_trials=200, seed=0)]
+    report = validate_session_set(
+        paradigm_class="working_memory",
+        session_dirs=sessions,
+        norms=norms_descriptive,
+    )
+    assert report.overall_pass is None, (
+        f"Expected None for all-descriptive with data, got {report.overall_pass!r}"
+    )
+
+
+def test_oracle_tri_state_false_for_zero_data(tmp_path):
+    """Zero-trial sessions → overall_pass is False (G4 broken-state signal).
+    NOT None — None is only for 'gates don't exist but data does'."""
+    norms_descriptive = {
+        "paradigm_class": "working_memory",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {
+            "rt_distribution": {
+                "mu_range": None, "sigma_range": None, "tau_range": None,
+                "citations": [],
+            },
+        },
+    }
+    empty_session = tmp_path / "empty"
+    empty_session.mkdir()
+    (empty_session / "bot_log.json").write_text("[]")
+    report = validate_session_set(
+        paradigm_class="working_memory",
+        session_dirs=[empty_session],
+        norms=norms_descriptive,
+    )
+    assert report.overall_pass is False, (
+        f"Expected False for zero-data (broken state), got {report.overall_pass!r}"
+    )
+
+
+def test_oracle_bot_log_guard_pes_none_other_metrics_gate(tmp_path):
+    """With trial_source='bot_log', post_error_slowing pass_ must be None;
+    correctness-free metrics (rt_distribution, lag1_autocorr) still gate normally."""
+    norms = {
+        "paradigm_class": "conflict",
+        "produced_by": {"model": "x", "extraction_prompt_sha256": "x", "timestamp": "x"},
+        "metrics": {
+            "rt_distribution": {
+                "mu_range": [430, 580], "sigma_range": [40, 90],
+                "tau_range": [50, 130], "citations": [],
+            },
+            "lag1_autocorr": {"range": [-0.1, 0.3], "citations": []},
+            "post_error_slowing": {"range_ms": [10, 60], "citations": []},
+        },
+    }
+    sessions = [_fake_session_dir(tmp_path, 500, 60, 80, n_trials=200, seed=s) for s in range(3)]
+    report = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=norms,
+        trial_source="bot_log",
+    )
+    # post_error_slowing must be None (correctness-dependent)
+    pes = report.pillar_results["sequential"].metrics["post_error_slowing"]
+    assert pes.pass_ is None, f"Expected pass_=None for PES on bot_log, got {pes.pass_!r}"
+
+    # rt_distribution should still gate (pass_ is bool)
+    rt_pillar = report.pillar_results["rt_distribution"]
+    for sub in ["mu", "sigma", "tau"]:
+        m = rt_pillar.metrics[sub]
+        assert m.pass_ is not None, f"Expected rt_distribution.{sub} to gate; got None"
+
+    # lag1_autocorr should still gate
+    lag = report.pillar_results["sequential"].metrics["lag1_autocorr"]
+    assert lag.pass_ is not None, f"Expected lag1_autocorr to gate; got None"
+
+    # data_source should be recorded
+    assert report.data_source == "bot_log"
+
+
+def test_oracle_report_has_data_source_field(tmp_path, fake_norms_conflict):
+    """ValidationReport.data_source defaults to 'platform_adapter'."""
+    sessions = [_fake_session_dir(tmp_path, 500, 60, 80, n_trials=200, seed=0)]
+    report = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=fake_norms_conflict,
+    )
+    assert report.data_source == "platform_adapter"

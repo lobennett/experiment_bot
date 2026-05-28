@@ -158,6 +158,13 @@ class TaskExecutor:
         self._runtime_nav_phases: list[dict] = []
         self._session_start: float = 0.0  # set at run() entry for session_t offsets
 
+        # Task 2: trial-loop exit reason enum.
+        # Set at each break in _trial_loop so run_metadata can distinguish a
+        # naturally-complete session from one that terminated early (partial).
+        # Values: "complete", "window_closed", "max_misses", "budget",
+        #         "context_destroyed"
+        self._loop_exit_reason: str = "complete"
+
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
         """Resolve key mappings from config.task_specific.key_map."""
@@ -550,7 +557,10 @@ class TaskExecutor:
                 await self._trial_loop(session, page)
                 self._narrate("trial_loop", f"trials={self._trial_count}")
                 self._writer.record_trace(
-                    "trial_loop", {"trials": self._trial_count},
+                    "trial_loop", {
+                        "trials": self._trial_count,
+                        "loop_exit_reason": self._loop_exit_reason,
+                    },
                     duration_s=time.monotonic() - _t0,
                 )
 
@@ -622,6 +632,19 @@ class TaskExecutor:
                     }
                 # SP16: adaptive nav summary — aggregated counts for analysis scripts
                 metadata["adaptive_nav"] = self._compute_adaptive_nav_summary()
+                # Task 2: completeness signals — a nonzero partial session is no
+                # longer indistinguishable from a whole one.  The ==0 hard-fail
+                # above remains unchanged; these fields are ADDITIONAL signals so
+                # downstream analysis (oracle, reviewer) can filter/flag partial
+                # sessions without aborting.  Do NOT raise on early break —
+                # held-out paradigms legitimately end early.
+                metadata["loop_exit_reason"] = self._loop_exit_reason
+                metadata["incomplete"] = self._loop_exit_reason != "complete"
+                # robust-008: flag sessions where adaptive nav ran but the loop
+                # didn't complete naturally — adaptive nav may have navigated
+                # past trials, inflating/deflating the trial count.
+                if self._adaptive_nav_uses > 0 and self._loop_exit_reason != "complete":
+                    metadata["suspect_adaptive_nav"] = True
                 # record_trace("save") must run BEFORE finalize() so the
                 # entry lands in run_trace.json on disk. The "save"
                 # stage's duration_s is left None because the work it
@@ -652,6 +675,10 @@ class TaskExecutor:
 
     async def _trial_loop(self, session, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""
+        # Task 2: reset exit reason to the expected normal value so each run
+        # starts clean even if run() is called multiple times on the same object.
+        self._loop_exit_reason = "complete"
+
         timing = self._config.runtime.timing
         stuck_detector = StuckDetector(timeout_seconds=timing.stuck_timeout_s)
         max_no_stimulus_polls = timing.max_no_stimulus_polls
@@ -660,6 +687,7 @@ class TaskExecutor:
         instructions_stuck_fp = ""
         instructions_stuck_count = 0
         while True:
+            from experiment_bot.core import phase_detection as _pd
             phase = await detect_phase(page, self._config.runtime.phase_detection)
             if phase == TaskPhase.COMPLETE:
                 # Capture the page state that triggered completion so post-hoc
@@ -676,6 +704,11 @@ class TaskExecutor:
                     "Task complete detected at trial=%d. Body text: %r",
                     self._trial_count, body_snippet,
                 )
+                # Distinguish genuine COMPLETE from context-destroyed exception.
+                if _pd.context_destroyed:
+                    self._loop_exit_reason = "context_destroyed"
+                else:
+                    self._loop_exit_reason = "complete"
                 break
 
             if phase == TaskPhase.ATTENTION_CHECK:
@@ -756,6 +789,7 @@ class TaskExecutor:
                                 await page.keyboard.press(key)
                         if consecutive_misses > max_no_stimulus_polls:
                             logger.warning("Response window closed too long, stopping trial loop")
+                            self._loop_exit_reason = "window_closed"
                             break
                         await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                         continue
@@ -773,6 +807,7 @@ class TaskExecutor:
                 consecutive_misses += 1
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
+                    self._loop_exit_reason = "max_misses"
                     break
                 # Try pressing advance keys periodically to advance between-block screens
                 ab = self._config.runtime.advance_behavior

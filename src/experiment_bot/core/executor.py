@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from experiment_bot.llm.protocol import LLMClient
 
 import numpy as np
+from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from experiment_bot.core.config import TaskConfig, TaskPhase
@@ -164,6 +165,12 @@ class TaskExecutor:
         # Values: "complete", "window_closed", "max_misses", "budget",
         #         "context_destroyed"
         self._loop_exit_reason: str = "complete"
+
+        # Task 3: count non-Playwright JS eval exceptions by source so a malformed
+        # Reasoner-emitted JS expression is visible in run_metadata rather than
+        # silently degrading to None / chance keys.
+        # Keys: "response_key_js", "response_window_js"
+        self._js_eval_errors: dict[str, int] = {}
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -380,9 +387,14 @@ class TaskExecutor:
                     key = str(key)
                     self._seen_response_keys.add(key)
                     return key
-                except Exception as e:
-                    # Page context may be torn down by navigation
+                except PlaywrightError as e:
+                    # Benign: page context torn down by navigation — return None
                     logger.warning(f"response_key_js failed for {match.stimulus_id}: {e}")
+                except Exception as e:
+                    # Non-Playwright: likely a malformed Reasoner-emitted JS expression.
+                    # Log with a stable greppable tag and count for run_metadata visibility.
+                    logger.warning(f"[js_eval_error:response_key_js] {match.stimulus_id}: {e}")
+                    self._js_eval_errors["response_key_js"] = self._js_eval_errors.get("response_key_js", 0) + 1
 
             # Global response_key_js from task_specific
             global_js = self._config.task_specific.get("response_key_js", "")
@@ -394,9 +406,13 @@ class TaskExecutor:
                     key = str(key)
                     self._seen_response_keys.add(key)
                     return key
-                except Exception as e:
-                    # Page context may be torn down by navigation
+                except PlaywrightError as e:
+                    # Benign: page context torn down by navigation — return None
                     logger.warning(f"task_specific.response_key_js failed: {e}")
+                except Exception as e:
+                    # Non-Playwright: likely a malformed Reasoner-emitted JS expression.
+                    logger.warning(f"[js_eval_error:response_key_js] task_specific: {e}")
+                    self._js_eval_errors["response_key_js"] = self._js_eval_errors.get("response_key_js", 0) + 1
 
         # Static key_map fallback (skip "dynamic" sentinel values and withhold sentinels)
         mapped = self._key_map.get(match.condition)
@@ -645,6 +661,9 @@ class TaskExecutor:
                 # past trials, inflating/deflating the trial count.
                 if self._adaptive_nav_uses > 0 and self._loop_exit_reason != "complete":
                     metadata["suspect_adaptive_nav"] = True
+                # Task 3: surface JS-eval errors so a malformed Reasoner-emitted JS
+                # expression is visible to the reviewer instead of silently degrading.
+                metadata["js_eval_errors_by_source"] = dict(self._js_eval_errors)
                 # record_trace("save") must run BEFORE finalize() so the
                 # entry lands in run_trace.json on disk. The "save"
                 # stage's duration_s is left None because the work it
@@ -795,9 +814,14 @@ class TaskExecutor:
                         continue
                     self._response_window_confirmed = True
                     consecutive_misses = 0
-                except Exception:
-                    # Page context may be torn down by navigation
+                except PlaywrightError:
+                    # Benign: page context torn down by navigation — treat as window open
                     pass
+                except Exception as e:
+                    # Non-Playwright: likely a malformed Reasoner-emitted JS expression.
+                    # Log with a stable greppable tag, count for run_metadata, treat as open.
+                    logger.warning(f"[js_eval_error:response_window_js] {e}")
+                    self._js_eval_errors["response_window_js"] = self._js_eval_errors.get("response_window_js", 0) + 1
 
             if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
                 match = probe

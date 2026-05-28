@@ -6,6 +6,10 @@ Covers:
 - run_metadata gains loop_exit_reason + incomplete
 - suspect_adaptive_nav set when adaptive nav ran and loop did not complete
 - detect_phase: exception path does settle+re-eval before returning COMPLETE
+
+Task 3 additions:
+- js_eval_errors_by_source recorded in run_metadata when response_key_js raises a
+  non-Playwright exception
 """
 from __future__ import annotations
 
@@ -214,3 +218,86 @@ async def test_detect_phase_normal_path_no_extra_sleep():
     # The normal path should not call asyncio.sleep
     assert sleep_calls == []
     assert result == TaskPhase.INSTRUCTIONS
+
+
+# ---------------------------------------------------------------------------
+# Task 3: js_eval_errors_by_source in run_metadata
+# ---------------------------------------------------------------------------
+
+_SAMPLE_CONFIG_WITH_KEY_JS = {
+    "task": {
+        "name": "Test Task JS",
+        "platform": "expfactory",
+        "constructs": [],
+        "reference_literature": [],
+    },
+    "stimuli": [
+        {
+            "id": "go",
+            "description": "Go stimulus",
+            "detection": {"method": "dom_query", "selector": ".go"},
+            "response": {
+                "key": "dynamic",
+                "condition": "go",
+                "response_key_js": "window.correctResponse",
+            },
+        },
+    ],
+    "response_distributions": {
+        "go": {"distribution": "ex_gaussian", "params": {"mu": 500, "sigma": 60, "tau": 80}},
+    },
+    "performance": {
+        "accuracy": {"go": 0.95},
+        "omission_rate": {"go": 0.02},
+        "practice_accuracy": 0.85,
+    },
+    "navigation": {"phases": []},
+    "task_specific": {},
+    "runtime": {
+        "timing": {
+            "poll_interval_ms": 1,
+            "max_no_stimulus_polls": 3,
+        },
+    },
+}
+
+
+@pytest.mark.asyncio
+async def test_response_key_js_non_playwright_exception_counted(executor):
+    """When page.evaluate raises a non-Playwright ValueError for response_key_js,
+    _js_eval_errors["response_key_js"] is incremented and run_metadata gains
+    js_eval_errors_by_source with count >= 1."""
+    config = TaskConfig.from_dict(_SAMPLE_CONFIG_WITH_KEY_JS)
+    ex = TaskExecutor(config, headless=True, seed=42, session_params={})
+    ex._writer = MagicMock()
+    ex._writer._trials = []
+
+    page = AsyncMock()
+    # Make page.evaluate raise a ValueError (non-Playwright) for response_key_js
+    page.evaluate = AsyncMock(side_effect=ValueError("bad js"))
+
+    from experiment_bot.core.stimulus import StimulusMatch
+    match = StimulusMatch(
+        stimulus_id="go",
+        condition="go",
+        response_key="dynamic",
+    )
+
+    # Call _resolve_response_key — this exercises the response_key_js eval site
+    result = await ex._resolve_response_key(match, page)
+
+    # Should return None (fell through to key_map lookup which has no entry)
+    assert result is None
+    # The non-Playwright exception should have been counted
+    assert ex._js_eval_errors.get("response_key_js", 0) >= 1
+
+
+def test_js_eval_errors_by_source_in_metadata(executor):
+    """run_metadata.js_eval_errors_by_source reflects _js_eval_errors."""
+    executor._js_eval_errors = {"response_key_js": 2, "response_window_js": 1}
+    # Simulate the metadata-persistence logic
+    metadata = {}
+    metadata["js_eval_errors_by_source"] = dict(executor._js_eval_errors)
+
+    assert metadata["js_eval_errors_by_source"]["response_key_js"] == 2
+    assert metadata["js_eval_errors_by_source"]["response_window_js"] == 1

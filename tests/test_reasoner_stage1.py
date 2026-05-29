@@ -1,3 +1,4 @@
+import importlib
 import pytest
 from unittest.mock import AsyncMock
 from experiment_bot.reasoner.stage1_structural import run_stage1
@@ -190,3 +191,32 @@ async def test_stage1_normalize_aliases_dont_trigger_retry():
     # The normalized partial has `selector` populated (from `value`)
     assert partial["stimuli"][0]["detection"]["selector"] == ".congruent"
     assert "value" not in partial["stimuli"][0]["detection"]
+
+
+# ---------------------------------------------------------------------------
+# C4: platform_defaults module removed (Task 5)
+# ---------------------------------------------------------------------------
+
+def test_platform_defaults_module_removed():
+    """After C4 deletion, the platform_defaults module must not be importable."""
+    with pytest.raises(ModuleNotFoundError):
+        importlib.import_module("experiment_bot.reasoner.platform_defaults")
+
+
+@pytest.mark.asyncio
+async def test_stage1_passes_llm_nav_through_verbatim():
+    """Stage 1 no longer backfills nav phases: the LLM's nav passes through unchanged
+    (even when phases is empty for an expfactory URL)."""
+    fake = AsyncMock()
+    fake.complete = AsyncMock(return_value=LLMResponse(text=COMPLETE_STROOP_RESPONSE))
+    bundle = SourceBundle(
+        url="https://deploy.expfactory.org/preview/80/",
+        source_files={"experiment.js": "// stub"},
+        description_text="<html></html>",
+    )
+    partial, step = await run_stage1(client=fake, bundle=bundle)
+    # LLM emitted empty phases — no backfill should occur
+    assert partial["navigation"]["phases"] == []
+    # Inference text must NOT mention platform defaults or backfill
+    assert "platform" not in step.inference.lower() or "expfactory" not in step.inference.lower()
+    assert "backfill" not in step.inference.lower()

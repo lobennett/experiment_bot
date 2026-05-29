@@ -212,13 +212,18 @@ spatial mapping), Sternberg (working_memory subclass), random-dot motion
 These are the architectural boundaries of the v1 framework. Each is a
 non-claim; reviewers should weigh them as such.
 
-- **L1. Navigation identification is static-source-only.** The Reasoner
-  reads JS source files but does not verify the resulting TaskCard
-  against the live page DOM. When the entry flow involves browser-API
-  gestures (fullscreen prompts) or buttons whose presence depends on
-  runtime state, the Reasoner may emit empty `navigation.phases`. The
-  hard-fail-on-zero-trials guard catches the symptom; the fix
-  (Reasoner-side pilot validation) is deferred to a later sub-project.
+- **L1. Navigation is discovered by the Stage-6 walker and executor adaptive nav,
+  not by a memorized per-platform fast-path.** Stage 1 emits the LLM's inferred
+  `navigation.phases` verbatim (no backfill). Stage 6's persistent-session walker
+  classifies each proposed phase as a genuine nav advance vs a demo-trial response
+  (spec C2) and appends only advances to the TaskCard. A fresh-browser replay gate
+  at the end of Stage 6 (spec C3) fails the pilot unless the finalized nav reaches
+  trial rendering, proving executor-replayability before a TaskCard is accepted.
+  At runtime, the executor's adaptive nav handles INSTRUCTIONS screens whose
+  presence depends on runtime state. The `platform_defaults` registry (SP15) has
+  been deleted; its memorized per-paradigm phase counts were paradigm-specific
+  (not platform invariants) and the clobber rule it applied overwrote correct
+  shorter LLM nav.
 
 - **L2. Multi-trial decay defaults to 1-trial.** The
   `PostErrorSlowingConfig.decay_weights` field supports multi-trial

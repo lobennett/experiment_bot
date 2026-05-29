@@ -11,8 +11,6 @@ from experiment_bot.reasoner.validate import (
     Stage1ValidationError,
     validate_stage1_output,
 )
-from experiment_bot.reasoner.platform_defaults import apply_platform_defaults, _match_platform
-
 logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent.parent / "prompts"
@@ -136,23 +134,12 @@ async def run_stage1(
             continue
         break
 
-    # SP15 Part A: backfill platform-canonical nav phases when LLM under-emits.
-    pre_backfill_phase_count = len(normalized.get("navigation", {}).get("phases", []))
-    normalized = apply_platform_defaults(normalized, bundle.url)
-    post_backfill_phase_count = len(normalized.get("navigation", {}).get("phases", []))
-    platform = _match_platform(bundle.url)
-
     n_stimuli = len(normalized.get("stimuli", []))
     task_name = normalized.get("task", {}).get("name", "?")
     inference = (
         f"Identified paradigm '{task_name}' with {n_stimuli} stimuli. "
         f"Source files: {', '.join(bundle.source_files.keys())[:200]}."
     )
-    if platform is not None and post_backfill_phase_count > pre_backfill_phase_count:
-        inference += (
-            f" Applied {platform.name} platform-default nav phases "
-            f"({pre_backfill_phase_count} → {post_backfill_phase_count})."
-        )
     if errors:
         inference += f" Validator-retry resolved {len(errors)} prior failure(s)."
     step = ReasoningStep(

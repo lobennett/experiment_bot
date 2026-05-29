@@ -165,6 +165,25 @@ async def test_stage3_propose_failure_falls_back_to_search(monkeypatch):
     assert cong["citations"][0]["doi"] == "10.1037/real"     # no crash; search-only pool used
 
 
+@pytest.mark.asyncio
+async def test_stage3_dedups_repeated_doi_within_parameter(monkeypatch):
+    monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
+    # mu, sigma, tau share one ParameterValue dict and each cites the SAME pool work
+    # → the work appears ONCE in the tgt's citations, not three times.
+    ground = {
+        "response_distributions/congruent/mu": {
+            "citations": [{"pool_idx": 0, "rationale": "a", "confidence": "high"}]},
+        "response_distributions/congruent/sigma": {
+            "citations": [{"pool_idx": 0, "rationale": "b", "confidence": "high"}]},
+        "response_distributions/congruent/tau": {
+            "citations": [{"pool_idx": 0, "rationale": "c", "confidence": "high"}]},
+    }
+    with _patches(ground=ground):
+        out, _ = await run_stage3(AsyncMock(), _partial())
+    dois = [c["doi"] for c in out["response_distributions"]["congruent"]["citations"]]
+    assert dois == ["10.1037/real"]                          # deduped, not 3 copies
+
+
 def test_stage3_ground_prompt_invariants():
     from pathlib import Path
     p = Path("src/experiment_bot/reasoner/prompts/stage3_ground.md").read_text()

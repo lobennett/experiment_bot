@@ -186,15 +186,19 @@ async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
                    "confidence": c.get("confidence", "low"),
                    "abstract_snippet": w.abstract[:500]}
             kept.append(cit)
-            to_verify.append(cit)
         if kept:
-            # Accumulate citations (multiple params share the same tgt dict)
-            existing = tgt.get("citations")
-            if isinstance(existing, list):
-                tgt["citations"] = existing + kept
-            else:
-                tgt["citations"] = kept
+            # Accumulate citations, deduped by DOI (mu/sigma/tau share one tgt dict
+            # and often cite the same pool work — keep one copy, verify it once).
+            existing = tgt.get("citations") if isinstance(tgt.get("citations"), list) else []
+            if not existing:
                 n_cited += 1
+            seen_dois = {c.get("doi") for c in existing}
+            for cit in kept:
+                if cit["doi"] not in seen_dois:
+                    existing.append(cit)
+                    seen_dois.add(cit["doi"])
+                    to_verify.append(cit)
+            tgt["citations"] = existing
             lr = body.get("literature_range")
             if isinstance(lr, dict):
                 tgt.setdefault("literature_range", {}).update(lr)

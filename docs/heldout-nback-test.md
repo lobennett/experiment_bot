@@ -26,11 +26,13 @@ fail surfaces the specific architectural gap.
 
 2. **H2 — Norms extraction generalized.** `experiment-bot-extract-norms
    --paradigm-class working_memory` produced `norms/working_memory.json`
-   with two metrics that have concrete published ranges
-   (`n_back_accuracy_2back: [0.7, 0.9]`, `capacity_k: [3, 5]`) plus
-   seven metrics correctly marked as null with reasons (no meta-analytic
-   ranges available — the LLM refused to extrapolate from primary
-   studies, which is the right behavior).
+   with seven metrics correctly marked as null with reasons (no
+   meta-analytic ranges available — the LLM refused to extrapolate from
+   primary studies, which is the right behavior). The initial extraction
+   emitted ranges for `n_back_accuracy_2back` and `capacity_k`, but
+   those were subsequently trimmed to null in commit ecf07ea pending a
+   working compute path from the platform adapter; `working_memory` is
+   currently an all-descriptive class (no gating metrics).
 
 3. **H4 — Validator-gated retry.** Stage 1 produced a TaskCard that
    passed the validator on the first attempt (no retries needed),

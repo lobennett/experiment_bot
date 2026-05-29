@@ -3,13 +3,18 @@ from __future__ import annotations
 import base64
 from typing import Literal
 
+from experiment_bot.llm.models import DEFAULT_MODEL
 from experiment_bot.llm.protocol import LLMResponse
 
 
 class ClaudeAPIClient:
-    def __init__(self, client, model: str = "claude-opus-4-7"):
+    def __init__(self, client, model: str = DEFAULT_MODEL):
         self._client = client
         self._model = model
+
+    @property
+    def model(self) -> str:
+        return self._model
 
     async def complete(
         self,

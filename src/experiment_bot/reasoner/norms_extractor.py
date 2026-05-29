@@ -99,7 +99,7 @@ async def extract_norms(paradigm_class: str, llm_client: LLMClient) -> dict:
         llm_client, system=system_prompt, user=user, stage_name="norms_extractor",
     )
     payload.setdefault("produced_by", {
-        "model": getattr(llm_client, "_model", "claude-opus-4-7"),
+        "model": llm_client.model,
         "extraction_prompt_sha256": hashlib.sha256(system_prompt.encode()).hexdigest(),
         "timestamp": datetime.now(timezone.utc).isoformat(),
     })

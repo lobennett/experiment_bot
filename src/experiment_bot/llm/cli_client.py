@@ -3,6 +3,7 @@ import asyncio
 import json
 import logging
 from typing import Literal
+from experiment_bot.llm.models import DEFAULT_MODEL
 from experiment_bot.llm.protocol import LLMResponse
 
 logger = logging.getLogger(__name__)
@@ -18,12 +19,16 @@ class ClaudeCLIClient:
     def __init__(
         self,
         claude_binary: str = "claude",
-        model: str = "claude-opus-4-7",
+        model: str = DEFAULT_MODEL,
         timeout_s: float = 1200.0,
     ):
         self._binary = claude_binary
         self._model = model
         self._timeout_s = timeout_s
+
+    @property
+    def model(self) -> str:
+        return self._model
 
     async def complete(
         self,

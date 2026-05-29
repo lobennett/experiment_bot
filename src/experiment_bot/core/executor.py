@@ -99,10 +99,13 @@ class TaskExecutor:
         self._headless = headless
         self._keep_open = keep_open
         # Persisted to run_metadata.json so a session is exactly reproducible
-        # (same seed + same TaskCard hash = same output) and the per-session
-        # sampled values are auditable post-hoc. Without these fields, the
-        # only way to reason about session-to-session variability is by
-        # inferring from the trial log, which is lossy.
+        # (same seed + same TaskCard hash = same output) for runs WITHOUT
+        # adaptive nav (--no-llm-client). Sessions that invoke SP16 adaptive
+        # nav are NOT bit-reproducible from the seed alone — the navigation
+        # path is a nondeterministic session-time LLM decision; only RT/accuracy
+        # sampling is seeded. The realized nav path is recorded per-session in
+        # bot_log.json (type:'adaptive_nav') for audit. Per-session sampled
+        # values are auditable post-hoc.
         self._session_seed = seed
         self._session_params = session_params or {}
         self._rng = np.random.default_rng(seed)

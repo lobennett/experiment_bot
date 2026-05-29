@@ -76,7 +76,7 @@ Return the complete corrected config JSON."""
 class Analyzer:
     """Sends task source code to Claude Opus and returns a TaskConfig."""
 
-    def __init__(self, client, model: str = "claude-opus-4-7", max_retries: int = 3):
+    def __init__(self, client, model: str = "claude-opus-4-8", max_retries: int = 3):
         self._client = client
         self._model = model
         self._max_retries = max_retries

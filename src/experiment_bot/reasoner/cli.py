@@ -1,16 +1,20 @@
 from __future__ import annotations
 import asyncio
+import hashlib
 import logging
 from datetime import datetime, timezone
 from pathlib import Path
 
 import click
 
+from experiment_bot.core.config import SourceBundle
 from experiment_bot.core.scraper import scrape_experiment_source
 from experiment_bot.llm.factory import build_default_client
 from experiment_bot.reasoner.pipeline import ReasonerPipeline
 from experiment_bot.taskcard.loader import save_taskcard
 from experiment_bot.taskcard.types import TaskCard
+
+_SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "system.md"
 
 
 @click.command()
@@ -64,7 +68,7 @@ async def _run(url, label, hint, taskcards_dir, work_dir, resume,
     )
     final = await pipeline.run(bundle, label=label, resume=resume)
     if "schema_version" not in final:
-        final = _wrap_for_taskcard(final, url)
+        final = _wrap_for_taskcard(final, url, bundle=bundle, llm_client=client)
     final = normalize_partial(final)
     # Promote internal _reasoning_chain to the public reasoning_chain field
     if "_reasoning_chain" in final:
@@ -74,17 +78,56 @@ async def _run(url, label, hint, taskcards_dir, work_dir, resume,
     click.echo(f"TaskCard written: {out}")
 
 
-def _wrap_for_taskcard(partial: dict, url: str) -> dict:
-    """Add the schema_version, produced_by, and reasoning_chain envelope."""
+def _wrap_for_taskcard(
+    partial: dict,
+    url: str,
+    *,
+    bundle: SourceBundle | None = None,
+    llm_client=None,
+) -> dict:
+    """Add the schema_version, produced_by, and reasoning_chain envelope.
+
+    prompt_sha256: sha256 of the system prompt (prompts/system.md).
+    source_sha256: sha256 of the concatenated source_files content from the
+        SourceBundle (sorted by filename for determinism). Falls back to
+        empty string only when no bundle is provided.
+    model: taken from the live client's .model property (never a hardcoded literal).
+    """
     partial.setdefault("schema_version", "2.0")
-    partial.setdefault("produced_by", {
-        "model": "claude-opus-4-7",
-        "prompt_sha256": "",
-        "scraper_version": "1.0.0",
-        "source_sha256": "",
-        "timestamp": datetime.now(timezone.utc).isoformat(),
-        "taskcard_sha256": "",
-    })
+    if "produced_by" not in partial:
+        # Compute prompt_sha256 from the system prompt file
+        try:
+            prompt_text = _SYSTEM_PROMPT_PATH.read_text(encoding="utf-8")
+            prompt_sha256 = hashlib.sha256(prompt_text.encode("utf-8")).hexdigest()
+        except OSError:
+            prompt_sha256 = ""
+
+        # Compute source_sha256 from the SourceBundle's concatenated source files
+        if bundle is not None and bundle.source_files:
+            source_concat = "".join(
+                content for _, content in sorted(bundle.source_files.items())
+            ).encode("utf-8")
+            source_sha256 = hashlib.sha256(source_concat).hexdigest()
+        else:
+            source_sha256 = ""
+
+        # Resolve model from live client
+        if llm_client is not None and hasattr(llm_client, "model"):
+            model_id = llm_client.model
+        elif llm_client is not None and hasattr(llm_client, "_model"):
+            model_id = llm_client._model  # noqa: SLF001  # fallback for legacy objects
+        else:
+            from experiment_bot.llm.models import DEFAULT_MODEL
+            model_id = DEFAULT_MODEL
+
+        partial["produced_by"] = {
+            "model": model_id,
+            "prompt_sha256": prompt_sha256,
+            "scraper_version": "1.0.0",
+            "source_sha256": source_sha256,
+            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "taskcard_sha256": "",
+        }
     partial.setdefault("reasoning_chain", [])
     partial.setdefault("pilot_validation", {})
     return partial

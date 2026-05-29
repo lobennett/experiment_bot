@@ -67,8 +67,9 @@ def test_build_default_client_accepts_model_override():
 
 
 def test_build_default_client_defaults_to_client_default_model():
-    """No model override → client uses its own default."""
+    """No model override → client uses DEFAULT_MODEL."""
     with patch("shutil.which", return_value="/path/to/claude"):
         client = build_default_client()
-    # ClaudeCLIClient default is claude-opus-4-7
-    assert client._model == "claude-opus-4-7"
+    # ClaudeCLIClient default is DEFAULT_MODEL (claude-opus-4-8)
+    from experiment_bot.llm.models import DEFAULT_MODEL
+    assert client._model == DEFAULT_MODEL

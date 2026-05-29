@@ -11,6 +11,10 @@ class LLMResponse:
 
 
 class LLMClient(Protocol):
+    @property
+    def model(self) -> str:
+        ...
+
     async def complete(
         self,
         system: str,

@@ -142,11 +142,24 @@ For the paradigm classes currently extracted:
 - **interrupt** (`norms/interrupt.json`): rt_distribution (mu/sigma/tau),
   post_error_slowing, ssrt. Between-subject SD and lag1_autocorr are
   descriptive-only.
-- **working_memory** (`norms/working_memory.json`): n_back_accuracy_2back,
-  capacity_k. RT shape, between-subject SD, sequential effects, and
-  paradigm-signature metrics (set-size slope, d′, proactive interference)
-  are descriptive-only — meta-analytic literature for working-memory
-  RT/effects is dominated by primary studies, no consensus review aggregates.
+- **working_memory** (`norms/working_memory.json`): **all metrics are
+  descriptive-only** (no gating ranges). The norms file contains null ranges
+  with `no_canonical_range_reason` for all entries — the meta-analytic
+  literature for working-memory RT and effects is dominated by primary
+  studies; no consensus review aggregates a gating range. The metrics
+  `n_back_accuracy_2back` and `capacity_k` were trimmed from gating in
+  commit ecf07ea pending a compute path from the platform adapter; they
+  are not in the current norms file as gates. A working_memory session
+  with descriptive data present will report `overall_pass=None` (unscored),
+  not pass or fail.
+
+  **Circularity note.** When no platform adapter is registered for a
+  paradigm (the default for held-out tasks), the validation CLI falls
+  back to `bot_log.json`. This fallback (a) requires `--allow-bot-log`
+  to proceed (Task 6 anti-circularity gate), and (b) marks
+  correctness-dependent metrics (`post_error_slowing`) as `pass_=None`
+  so the bot cannot grade its own accuracy. Bot-log fallback results are
+  labeled `trial_source: bot_log_self_graded` in the written report.
 
 The decision rule is stated in §2: point-estimate-within-range, non-null
 ranges gate, null ranges are descriptive. This is a coarse gate. Stronger
@@ -491,6 +504,31 @@ non-claim; reviewers should weigh them as such.
   pairing under the SP10-era index-based audit, so the
   generalization captures the SP11 input-layer fidelity claim
   cleanly.
+
+- **L19. (SP16 — adaptive-nav sessions are not seed-reproducible.)**
+  Sessions that invoke SP16 adaptive nav contain a nondeterministic,
+  seedless LLM call in the trial-capture path
+  (`_adaptive_nav_step` → `_propose_next_phase`). The session seed
+  governs ONLY RT/accuracy sampling (`sample_session_params`); it
+  does not cover the navigation path. Therefore, re-running with the
+  same recorded seed + TaskCard hash can produce a different navigation
+  sequence, capture a different trial set, and yield different
+  behavioral metrics. This breaks the "same seed + same TaskCard =
+  same output" claim for adaptive-nav sessions.
+
+  The realized navigation path is recorded per-session in
+  `bot_log.json` (entries with `type: "adaptive_nav"`, full proposed
+  phases) for forensic audit. For a seed-deterministic run with no
+  adaptive nav, pass `--no-llm-client` to the executor CLI.
+
+  The held-out `stop_signal_with_integrated_memory` dataset (SP16,
+  the framework's first held-out behavioral result) used 10
+  adaptive-nav steps and is therefore **not** deterministically
+  reproducible from its recorded provenance alone. This is an honest
+  limitation; the behavioral metrics and the oracle gate remain
+  valid (the oracle reads platform-native data, not the nav path),
+  but a reviewer cannot re-derive the identical session from
+  metadata alone.
 
 ## 8. Operational rules
 

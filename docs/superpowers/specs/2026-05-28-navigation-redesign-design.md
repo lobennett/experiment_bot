@@ -54,12 +54,17 @@ The replay reuses the executor's entry-nav code path (extracted into a shared fu
 
 **Interface:** `replay_navigation(url, navigation, lookup, headless) -> bool` (reached trials?), called at the end of `run_stage6` before returning success.
 
-### C4 — Demote `platform_defaults` to infrastructure-only
+### C4 — Delete `platform_defaults` entirely (owner-chosen; aggressive simplification)
 
-- **Reduce the defaults** to genuinely platform-invariant *infrastructure* phases only: the expfactory fullscreen-button click and the `#jspsych-instructions-next` selector existence — NOT the memorized advance counts. **Drop `_COGNITION_RUN_PHASES`' 5× keypress count** (paradigm-specific; let the walker/adaptive nav discover the count).
-- **Change the clobber rule** (apply_platform_defaults): backfill ONLY when the LLM nav is empty/near-empty (`len < 2`); otherwise **append missing canonical tail phases**, never replace a non-empty LLM nav.
-- **Kill the drift:** delete the frozen verbatim constants and instead derive infrastructure phases from a small explicit allow-list of platform-invariant phases (hand-written, documented as infrastructure, not card-copied), OR keep minimal constants + add a test asserting they match their cited source card. Prefer the explicit infrastructure list (no card coupling).
-- Fix the docstring claim that phase *count* is a platform property.
+Remove the memorized-script backfill completely and lean on the walker + adaptive nav to discover ALL navigation, including infrastructure phases (fullscreen button, instructions-next).
+
+- **Delete** `src/experiment_bot/reasoner/platform_defaults.py` and `tests/test_platform_defaults.py`.
+- **Remove** the `apply_platform_defaults(...)` call + import from `reasoner/stage1_structural.py` (added in the SP15 work). Stage 1 now emits whatever nav it infers from source (possibly empty); that is honest — the framework no longer recall-assists known platforms.
+- **Update** `docs/scope-of-validity.md` to drop any platform-default fast-path claim and state navigation is discovered by the Stage-6 walker (validated by the C3 replay gate) + executor adaptive nav, not memorized per platform.
+
+**Why this is safe under C1–C3:** the SP15 reason platform_defaults existed was that Stage 1 emitted empty nav for the held-out paradigm and the walker's output wasn't trustworthy. C2 makes the walker's output executor-replayable by construction and C3 makes a Stage-6 PASS *prove* replayability, so the walker discovering fullscreen/instructions phases from scratch (which SP13–16 showed it can do via `_propose_next_phase`) is now reliable without a memorized fast-path. The cost is more walker iterations per paradigm at TaskCard-generation time (offline, one-time), not at session time.
+
+**Regression watch (folded into the regression task):** regenerate the dev-4 TaskCards with platform_defaults gone; confirm each still produces an executor-replayable nav (passes C3) and completes a session. If a dev paradigm's Stage 1 now emits unusably-empty nav AND the walker cannot recover it within budget, that is a loud Stage-6 failure (not a silent regression) and a signal to reconsider — surfaced honestly rather than masked by the memorized script.
 
 ## Data flow
 
@@ -106,5 +111,5 @@ Executor: load TaskCard → entry nav via **unified engine** (C1) → calibratio
 2. C1b: route executor entry-nav + in-trial re-run through the unified engine; delete/thin `InstructionNavigator` (+ tests).
 3. C2: `classify_phase_outcome` helper + wire into the walker append (+ tests).
 4. C3: `replay_navigation` gate at end of `run_stage6` (+ tests).
-5. C4: demote `platform_defaults` (infra-only, append-tail, drift fix) (+ tests).
-6. Regression: regenerate dev-4 + held-out cards; verify replay + completion; commit cards + results doc.
+5. C4: delete `platform_defaults` entirely + remove the Stage-1 call + scope-doc update.
+6. Regression: regenerate dev-4 + held-out cards (platform_defaults gone); verify each passes the C3 replay gate + completes a session; commit cards + results doc.

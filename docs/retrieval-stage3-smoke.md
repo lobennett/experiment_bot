@@ -30,3 +30,43 @@ The retrieval-grounded Stage 3 achieves its core objective: **no fabrication is 
 - **Better recall of canonical sources:** add an LLM query-writer (richer queries, +1 call, less reproducible) and/or rank retrieval by citation-count / review-type / older-seminal rather than recency; optionally seed known canonical papers per paradigm class.
 - **Value grounding needs full text:** abstracts rarely report specific ex-Gaussian numbers; revising values toward literature would require full-text/table extraction (paywalls), or accepting that values stay model-prior with topical citations (the current honest state).
 - **Regenerate the 15 committed cards** under the grounded Stage 3 (separate run): replaces the fabricated corpus with real-but-topical citations + honest `model_prior` labels. Will shrink/relabel the corpus — the truthful outcome.
+
+---
+
+## Canonical-recall update (propose→verify + citation-ranked search)
+
+_Re-run after the canonical-recall enhancement (spec `docs/superpowers/specs/2026-05-29-canonical-recall-stage3-design.md`). Same paradigm (`expfactory_stroop`, deploy.expfactory.org/preview/10 → stroop_rdoc), retrieval ON, `--skip-pilot`, real OpenAlex, CLI LLM client. 2026-05-29. Throwaway card `69a59c7a.json` (label `canonical_recall_smoke`), deleted after recording._
+
+Stage 3 inference line: **`proposed=8, title-verified=7, search_hits=115, pool=30; 5 parameters cited, 5 abstained, 0 values revised within grounded ranges.`**
+
+### 1. Citation authority — strongly improved (success criterion #2: MET)
+
+Prior topical-only smoke surfaced **2 distinct DOIs, both 2023**, neither canonical. The propose→verify phase surfaced **7 distinct DOIs, all `doi_verified=True`** (title + year + author matched against OpenAlex), including the seminal sources a relevance-only search missed:
+
+| Year | DOI | Work |
+|---|---|---|
+| 1966 | 10.1037/h0022853 | Rabbitt — Errors and error correction in choice-response tasks |
+| 1991 | 10.1037/0033-2909.109.2.163 | MacLeod — Half a century of research on the Stroop effect (the canonical review) |
+| 1992 | 10.1037//0096-3445.121.4.480 | Cohen et al. — Optimizing the use of information: strategic control of activation |
+| 2001 | 10.1037/0033-295x.108.3.624 | Botvinick et al. — Conflict monitoring and cognitive control |
+| 2011 | 10.3758/s13414-011-0243-2 | Dutilh et al. — Testing theories of post-error slowing |
+| 2023 | 10.1177/10870547231214966 | ADHD adults ex-Gaussian RT (from the search arm) |
+| 2023 | 10.1101/2023.05.29.542684 | Ex-Gaussian RT signature similarity (from the search arm) |
+
+Attribution is sensible and respects the generic-mechanism contract (G2): the canonical conflict/error papers land on the **generic** mechanisms, not paradigm-named ones — `post_event_slowing` ← Rabbitt 1966 + Dutilh 2011 (the two foundational post-error papers); `lag1_pair_modulation` ← Cohen 1992, Botvinick 2001, Rabbitt 1966, Dutilh 2011; the RT-distribution conditions ← MacLeod 1991 + Cohen 1992 + the 2023 ex-Gaussian papers. The six disabled temporal mechanisms (autocorrelation, practice_effect, fatigue_drift, pink_noise, condition_repetition, vigilance_decrement) carry **zero** citations — uncited as they should be (G3).
+
+### 2. Anti-fabrication invariant — intact (success criterion #1: MET)
+
+`proposed=8, title-verified=7`: one model-proposed paper failed title verification and was **dropped** — the hallucination guard firing exactly as designed. Every surviving DOI came from a Python API lookup (propose→verify or citation-ranked search); none from the model. Pool capped at 30 (`search_hits=115` trimmed by `cited_by_count`, verified-canonical works kept first).
+
+### 3. Revisions — still 0; honest no-range outcome (success criterion #3: MET, honest branch)
+
+Zero values were revised. This is the truthful result, **not a failure to force**: even the canonical review abstracts do not state concrete numeric ranges. The MacLeod 1991 abstract retrieved is qualitative — _"a set of 18 reliable empirical findings is isolated…"_ — with no mu/sigma/tau numbers, so the evidence-bounded revision guard correctly applied nothing. All values remain `value_source=model_prior`, honestly labeled. As the prior smoke's "Future work" notes, moving values toward the literature would require full-text/table extraction (paywalls); abstract-level grounding cannot pin specific parameter values, and we did not loosen the guard to manufacture revisions.
+
+### 4. Minor cosmetic follow-up (not a defect)
+
+Within a parameter block, the same DOI can repeat (e.g. the 2023 preprint appears multiple times under `congruent`): when `mu`/`sigma`/`tau` share one `ParameterValue` dict and the ground call cites the same `pool_idx` for several of them, citations accumulate without dedup. All entries are real and verified — this is noise, not fabrication. A per-`tgt` citation dedup is a small future tidy-up; it does not affect the invariant or the authority finding.
+
+### Verdict
+
+The canonical-recall enhancement delivered its core objective: **citations are now authoritative** (MacLeod 1991, Botvinick 2001, Cohen 1992, Rabbitt 1966, Dutilh 2011 — verified, abstract-grounded, on the right generic mechanisms) **with the anti-fabrication invariant fully intact** (1/8 hallucinated proposal dropped; no model-supplied DOIs). It did **not** turn the values into literature-derived numbers — that ceiling is unchanged and honest: abstracts state no ranges, so the values remain model-prior estimates carrying real canonical citations.

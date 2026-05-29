@@ -13,6 +13,7 @@ from experiment_bot.core.pilot_session import PilotSession
 FIXTURE_HTML = """<!DOCTYPE html>
 <html><body>
 <button id="advance" onclick="document.body.dataset.state='advanced'">Advance</button>
+<button id="one-shot-btn" onclick="this.remove()">x</button>
 <div id="stim-target" style="display:none">stimulus</div>
 <script>
 document.body.dataset.state = 'initial';
@@ -120,3 +121,37 @@ async def test_pilot_session_exposes_context(fixture_url):
         cdp = await ctx.new_cdp_session(session.page)
         assert cdp is not None
         await cdp.detach()
+
+
+@pytest.mark.asyncio
+async def test_try_phase_repeat_runs_steps_until_substep_fails(fixture_url):
+    """`repeat` runs its steps repeatedly, stopping when a sub-step fails
+    (mirrors InstructionNavigator semantics, max 20 iterations)."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        # fixture has a button that exists once; a repeat of click+wait should
+        # click it then fail on the second iteration (button gone) and stop.
+        phase = NavigationPhase.from_dict({
+            "action": "repeat", "phase": "advance_all", "target": "", "key": "",
+            "duration_ms": 0,
+            "steps": [
+                {"action": "click", "target": "#one-shot-btn", "key": "", "duration_ms": 0, "steps": []},
+                {"action": "wait", "target": "", "key": "", "duration_ms": 10, "steps": []},
+            ],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True  # repeat itself never raises; it stops on sub-fail
+
+
+@pytest.mark.asyncio
+async def test_try_phase_unknown_action_records_to_run_trace(fixture_url):
+    """An unsupported action is a loud WARNING + recorded, not a silent info log."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "action": "teleport", "phase": "x", "target": "", "key": "",
+            "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is False
+        assert "unknown action" in (result.error or "").lower()

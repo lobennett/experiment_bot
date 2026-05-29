@@ -120,6 +120,11 @@ class PilotSession:
                 await loc.click()
             elif phase.action in ("press", "keypress"):
                 await self._inject_reading_delay()
+                if getattr(phase, "pre_js", ""):
+                    try:
+                        await self.page.evaluate(phase.pre_js)
+                    except PlaywrightError:
+                        pass  # page context may be torn down by prior nav
                 await self.page.keyboard.press(phase.key)
             elif phase.action == "wait":
                 await asyncio.sleep(phase.duration_ms / 1000.0)
@@ -133,8 +138,25 @@ class PilotSession:
                             dom_after=await self.dom_snapshot(),
                             error=f"sequence step failed: {sub_result.error}",
                         )
+            elif phase.action == "repeat":
+                max_iterations = 20
+                for _ in range(max_iterations):
+                    stop = False
+                    for step in phase.steps:
+                        sub = NavigationPhase.from_dict(step)
+                        sub_result = await self.try_phase(sub)
+                        if not sub_result.success:
+                            stop = True  # a sub-step failed → stop repeating
+                            break
+                    if stop:
+                        break
             else:
-                logger.info(f"Skipping unknown action: {phase.action}")
+                logger.warning("Unsupported navigation action %r (recorded)", phase.action)
+                return PhaseAttempt(
+                    success=False,
+                    dom_after=await self.dom_snapshot(),
+                    error=f"unknown action: {phase.action}",
+                )
         except Exception as e:
             return PhaseAttempt(
                 success=False,

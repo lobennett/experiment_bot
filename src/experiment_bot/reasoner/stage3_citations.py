@@ -1,10 +1,13 @@
 from __future__ import annotations
 import copy
 import json
+import logging
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.parse_retry import parse_with_retry
 from experiment_bot.taskcard.types import ReasoningStep
+
+logger = logging.getLogger(__name__)
 
 PROMPTS_DIR = Path(__file__).parent / "prompts"
 
@@ -44,14 +47,32 @@ async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
 
     result = copy.deepcopy(partial)
     for path, body in citations_map.items():
-        section, key, _param = path.split("/", 2)
+        # Citation-map keys are "<section>/<key>/<param>" for
+        # response_distributions and temporal_effects, but
+        # between_subject_jitter is keyed by section alone. Parse leniently:
+        # the LLM sometimes emits a short or malformed path; skip those with a
+        # warning rather than crashing the whole pipeline on one bad citation
+        # (mirrors the Stage 4 defensive philosophy).
+        parts = path.split("/")
+        section = parts[0]
+        key = parts[1] if len(parts) > 1 else None
         if section == "response_distributions":
+            if key is None or key not in result.get("response_distributions", {}):
+                logger.warning("stage3: skipping citation path %r (no matching response_distributions key)", path)
+                continue
             target = result["response_distributions"][key]
         elif section == "temporal_effects":
+            if key is None or key not in result.get("temporal_effects", {}):
+                logger.warning("stage3: skipping citation path %r (no matching temporal_effects key)", path)
+                continue
             target = result["temporal_effects"][key]
         elif section == "between_subject_jitter":
-            target = result["between_subject_jitter"]
+            target = result.get("between_subject_jitter")
+            if not isinstance(target, dict):
+                logger.warning("stage3: skipping citation path %r (between_subject_jitter not a dict)", path)
+                continue
         else:
+            logger.warning("stage3: skipping citation path %r (unknown section %r)", path, section)
             continue
         # Merge — accumulate citations across params for the same key, but
         # de-duplicate by (DOI, quote) so that different quotes from the same

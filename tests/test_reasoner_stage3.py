@@ -24,6 +24,58 @@ STAGE3_RESPONSE = """
 """
 
 
+MALFORMED_PATHS_RESPONSE = """
+{
+  "between_subject_jitter": {
+    "citations": [{"doi": "10.0000/bsj", "authors": "Lee, K.", "year": 2019,
+                   "title": "y", "table_or_figure": "T2", "page": 3,
+                   "quote": "jitter", "confidence": "medium"}]
+  },
+  "response_distributions/congruent/mu": {
+    "citations": [{"doi": "10.0000/ok", "authors": "Smith, J.", "year": 2020,
+                   "title": "x", "table_or_figure": "T1", "page": 1,
+                   "quote": "mu=580 ms", "confidence": "high"}],
+    "literature_range": {"mu": [560, 620]}
+  },
+  "response_distributions/nonexistent_condition/mu": {
+    "citations": [{"doi": "10.0000/bad", "authors": "X", "year": 2000,
+                   "title": "z", "table_or_figure": "T9", "page": 9,
+                   "quote": "ignore me", "confidence": "low"}]
+  },
+  "garbage_section_no_slash": {
+    "citations": [{"doi": "10.0000/junk", "authors": "Y", "year": 2001,
+                   "title": "w", "table_or_figure": "T8", "page": 8,
+                   "quote": "also ignore", "confidence": "low"}]
+  }
+}
+"""
+
+
+@pytest.mark.asyncio
+async def test_stage3_skips_malformed_or_unmatched_citation_paths():
+    """REGRESSION (held-out): a 1-part path (between_subject_jitter), a path to a
+    nonexistent key, and an unknown section must be handled — between_subject_jitter
+    attaches, the valid response_distributions path attaches, and the bad ones are
+    skipped — instead of crashing on `section, key, _param = path.split('/', 2)`."""
+    fake = AsyncMock()
+    fake.complete = AsyncMock(return_value=LLMResponse(text=MALFORMED_PATHS_RESPONSE))
+    partial = {
+        "response_distributions": {
+            "congruent": {"distribution": "ex_gaussian",
+                          "value": {"mu": 580, "sigma": 80, "tau": 100}, "rationale": "x"}
+        },
+        "temporal_effects": {},
+        "between_subject_jitter": {},
+    }
+    out, step = await run_stage3(client=fake, partial=partial)  # must not raise
+    # 1-part between_subject_jitter path attached
+    assert out["between_subject_jitter"].get("citations"), "between_subject_jitter citation attached"
+    # valid response_distributions path attached
+    assert any(c["quote"] == "mu=580 ms" for c in out["response_distributions"]["congruent"]["citations"])
+    # the nonexistent-key + no-slash-garbage paths were skipped (no crash, not attached)
+    assert "nonexistent_condition" not in out["response_distributions"]
+
+
 @pytest.mark.asyncio
 async def test_stage3_attaches_citations_and_ranges():
     fake = AsyncMock()

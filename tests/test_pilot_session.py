@@ -155,3 +155,42 @@ async def test_try_phase_unknown_action_records_to_run_trace(fixture_url):
         result = await s.try_phase(phase)
         assert result.success is False
         assert "unknown action" in (result.error or "").lower()
+
+
+@pytest.mark.asyncio
+async def test_poll_stimuli_breaks_early_when_instructions_never_advance(monkeypatch):
+    """REGRESSION (held-out 300s spin): when the poll loop is stuck on an
+    INSTRUCTIONS screen and re-running nav never changes the DOM, it must break
+    in a few iterations (with a 'did not advance' anomaly), NOT spin the full
+    _TIMEOUT_S. The INSTRUCTIONS branch never increments consecutive_misses, so
+    the 100-miss early-stop cannot bound it — the no-advance guard must."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    import experiment_bot.core.pilot_session as ps_mod
+    from experiment_bot.core.config import TaskPhase
+    from experiment_bot.core.pilot_session import PhaseAttempt
+
+    async def _always_instructions(page, pd):
+        return TaskPhase.INSTRUCTIONS
+    monkeypatch.setattr(ps_mod, "detect_phase", _always_instructions)
+
+    pd = SimpleNamespace(complete="", loading="", instructions="x", attention_check="",
+                         feedback="", practice="", test="")
+    ab = SimpleNamespace(advance_keys=[" "], advance_interval_polls=10)
+    runtime = SimpleNamespace(phase_detection=pd, advance_behavior=ab)
+    pilot = SimpleNamespace(target_conditions=[], stimulus_container_selector="body", min_trials=5)
+    nav = SimpleNamespace(phases=[NavigationPhase.from_dict(
+        {"action": "click", "target": "#x", "key": "", "duration_ms": 0, "steps": []})])
+    config = SimpleNamespace(pilot=pilot, stimuli=[], runtime=runtime, navigation=nav)
+    lookup = SimpleNamespace(config=config, identify=AsyncMock(return_value=None))
+
+    session = PilotSession(headless=True)
+    session._page = MagicMock()
+    session.dom_snapshot = AsyncMock(return_value="<div>stuck instructions</div>")
+    session.try_phase = AsyncMock(return_value=PhaseAttempt(success=True, dom_after="", error=None))
+
+    result = await session.poll_stimuli(lookup, max_polls=100)
+    assert any("did not advance" in a for a in result["anomalies"]), result["anomalies"]
+    assert not any("Hard timeout" in a for a in result["anomalies"]), "must break early, not at 300s"
+    # try_phase called only a few times (3 stuck iterations × 1 nav phase), not hundreds
+    assert session.try_phase.await_count <= 5, session.try_phase.await_count

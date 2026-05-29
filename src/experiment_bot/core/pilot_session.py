@@ -28,6 +28,13 @@ logger = logging.getLogger(__name__)
 _PILOT_POLL_MS = 50
 _NO_MATCH_EARLY_STOP = 100
 _TIMEOUT_S = 300
+# When the poll loop is stuck on an INSTRUCTIONS screen, it re-runs the configured
+# nav each iteration. If that re-run does not change the DOM for this many
+# consecutive iterations, the configured nav genuinely cannot advance the screen —
+# break the attempt early (in ~seconds) so the Stage-6 walker can propose a NEW
+# phase, instead of spinning the full _TIMEOUT_S (the INSTRUCTIONS branch never
+# increments consecutive_misses, so the _NO_MATCH_EARLY_STOP guard cannot fire here).
+_INSTRUCTIONS_STUCK_LIMIT = 3
 
 
 @dataclass
@@ -208,6 +215,7 @@ class PilotSession:
         trials_completed = 0
         trials_with_match = 0
         consecutive_misses = 0
+        instructions_no_advance = 0
         first_match_snapped = False
 
         start_time = time.monotonic()
@@ -240,6 +248,7 @@ class PilotSession:
                 continue
 
             if phase == TaskPhase.INSTRUCTIONS:
+                _dom_before = await self.dom_snapshot(container_sel)
                 for _nav_phase in config.navigation.phases:
                     _attempt = await self.try_phase(_nav_phase)
                     if not _attempt.success:
@@ -247,6 +256,22 @@ class PilotSession:
                             "Pilot nav re-run phase %r skipped: %s",
                             _nav_phase.phase or "<unnamed>", _attempt.error,
                         )
+                _dom_after = await self.dom_snapshot(container_sel)
+                if _dom_after == _dom_before:
+                    # Configured nav did not move this instruction screen.
+                    instructions_no_advance += 1
+                    if instructions_no_advance >= _INSTRUCTIONS_STUCK_LIMIT:
+                        anomalies.append(
+                            f"INSTRUCTIONS screen did not advance after "
+                            f"{instructions_no_advance} nav re-runs; configured "
+                            f"navigation cannot get past this screen"
+                        )
+                        dom_snapshots.append(
+                            {"trigger": "instructions_stuck", "html": _dom_after}
+                        )
+                        break
+                else:
+                    instructions_no_advance = 0  # progress made; reset
                 continue
 
             # Poll all stimulus selectors individually

@@ -572,6 +572,30 @@ not enforcement.
 
 ## 9. Verifiability
 
+> **CRITICAL CAVEAT (2026-05) — citation trail is not yet trustworthy.** A
+> CrossRef-verified investigation (`docs/stage3-citation-integrity-2026-05.md`)
+> found the Reasoner's Stage 3 fabricated citations in two modes: invented DOIs,
+> and real DOIs paired with verbatim quotes / page numbers / table references the
+> cited papers do not contain (e.g. a narrative review quoted as reporting
+> ex-Gaussian parameter tables; a DOI that is really an AIC-weights note cited as
+> a 1/f-noise paper). Root cause: Stage 2 chooses the numeric values first and
+> Stage 3 retro-attaches citations, with a prompt that demanded verbatim quotes an
+> LLM cannot truthfully produce. The same un-tooled extractor + schema partially
+> leaked into `norms/*.json` (a simulation paper cited as a meta-analysis).
+>
+> **Implications:** the `quote`/`page` fields in already-committed TaskCards are
+> unreliable; `doi_verified=True` (old) certified only year+surname, not the
+> quote or that the DOI is the claimed paper; and the committed norms ranges are
+> LLM-asserted, not transcribed from a verified meta-analysis. Items 1–2 below
+> therefore do NOT currently produce a clean audit. **Remediation in progress:**
+> Stage 3 now asks only for verifiable DOIs + a prose rationale (no fabricated
+> quotes/pages) and abstains honestly with `no_citation_reason`; DOI verification
+> now includes a title-match check; the norms extractor enforces review/meta-
+> analysis-only with honest abstention. Until cards/norms are regenerated under
+> the new policy, treat behavioral parameters as **model-prior estimates** and
+> rest defensibility on the oracle's numeric gating (which reads ranges, not
+> quote strings), not on the citation quotes.
+
 A reviewer can audit the framework's claims by:
 
 1. Reading `norms/<class>.json` files. Each metric carries citations

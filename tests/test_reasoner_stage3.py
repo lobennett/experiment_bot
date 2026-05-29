@@ -94,10 +94,11 @@ async def test_stage3_attaches_citations_and_ranges():
     out, step = await run_stage3(client=fake, partial=partial)
     cong = out["response_distributions"]["congruent"]
     assert cong["citations"]
-    # Citations from BOTH mu and sigma paths get merged
-    assert any(c["quote"] == "mu=580 ms" for c in cong["citations"])
-    assert any(c["quote"] == "sigma=80 ms" for c in cong["citations"])
-    # Literature ranges merged across params
+    # Citations now de-duplicate by DOI (one citation per real paper per
+    # condition) — both mu/sigma paths cite the same DOI, so it appears once.
+    dois = [c["doi"] for c in cong["citations"]]
+    assert dois.count("10.0000/test") == 1, dois
+    # Literature ranges still merge across params (mu and sigma both present)
     assert "mu" in cong["literature_range"]
     assert "sigma" in cong["literature_range"]
     assert cong["literature_range"]["mu"] == [560, 620]

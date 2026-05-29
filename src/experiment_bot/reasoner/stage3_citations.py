@@ -74,17 +74,19 @@ async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
         else:
             logger.warning("stage3: skipping citation path %r (unknown section %r)", path, section)
             continue
-        # Merge — accumulate citations across params for the same key, but
-        # de-duplicate by (DOI, quote) so that different quotes from the same
-        # paper (e.g. supporting different sub-parameters) are both preserved.
-        existing_keys = {
-            (c.get("doi"), c.get("quote")) for c in target.get("citations", [])
-        }
+        # Merge — accumulate citations across params for the same key,
+        # de-duplicating by DOI (one citation per real paper per parameter; the
+        # legacy `quote` field is no longer requested — see honest-citation
+        # policy in prompts/stage3_citations.md).
+        existing_dois = {c.get("doi") for c in target.get("citations", [])}
         for new_cit in body.get("citations", []):
-            key_pair = (new_cit.get("doi"), new_cit.get("quote"))
-            if key_pair not in existing_keys:
+            if new_cit.get("doi") not in existing_dois:
                 target.setdefault("citations", []).append(new_cit)
-                existing_keys.add(key_pair)
+                existing_dois.add(new_cit.get("doi"))
+        # Carry an honest abstention through to the parameter so a reviewer sees
+        # the value is an uncited model-prior estimate, not silently uncited.
+        if body.get("no_citation_reason") and not target.get("citations"):
+            target["no_citation_reason"] = body["no_citation_reason"]
         if body.get("literature_range") is not None:
             target.setdefault("literature_range", {}).update(body["literature_range"])
         if body.get("between_subject_sd") is not None:

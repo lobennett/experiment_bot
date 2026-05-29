@@ -66,9 +66,23 @@ The framework must withstand reviewer scrutiny on:
   These are different evidence tiers.
 - **Pre-registration**: norms files committed *before* sessions
   reference them. Validation thresholds don't move based on results.
-- **Verifiability**: every TaskCard parameter has a citation +
-  rationale + reasoning chain. Pilot validation against live DOM is
-  recorded in `pilot.md` alongside the TaskCard.
+- **Verifiability**: every TaskCard parameter has a real, DOI-verified
+  citation (existence + year + author + TITLE checked against OpenAlex)
+  OR an explicit `no_citation_reason` marking it a model-prior estimate,
+  plus a rationale and reasoning chain. **Honesty caveat (2026-05):** an
+  investigation (`docs/stage3-citation-integrity-2026-05.md`) found that
+  the prior Stage 3 fabricated citations — invented DOIs and real DOIs
+  paired with quotes/page-numbers the papers do not contain — because the
+  prompt demanded verbatim quotes an LLM cannot truthfully produce. Stage 3
+  has been changed to ask only for verifiable DOIs + a prose rationale
+  (no fabricated quotes/pages) and to abstain honestly; DOI verification now
+  includes a title check. **Citation quotes/pages in already-committed
+  TaskCards (and the LLM-asserted ranges in `norms/*.json`) are NOT
+  trustworthy and must be re-generated/re-extracted before the citation
+  trail can be presented as a defensibility surface.** Until then,
+  behavioral parameters should be regarded as model-prior estimates, and
+  defensibility rests on the oracle's gating arithmetic, not the quotes.
+  Pilot validation against live DOM is recorded in `pilot.md`.
 - **Authoritative data sources**: the oracle reads the platform's own
   data export (`experiment_data.{csv,json}`), not the bot's polling
   log (`bot_log.json`). Adapters per paradigm in

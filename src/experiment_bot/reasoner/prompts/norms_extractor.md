@@ -1,12 +1,21 @@
 You are extracting canonical published norms for a behavioral paradigm class
 to be used as validation gates against an automated bot's behavior.
 
-CRITICAL: Cite ONLY meta-analyses and review articles, NOT primary studies.
-The bot's parameter-setting Reasoner cites primary studies; this norms file
-must come from a different evidentiary tier to avoid circularity (the bot
-trivially matching norms because both came from the same papers). If a metric
-has no meta-analysis or review, mark its range as null with a
-no_canonical_range_reason.
+CRITICAL: Cite ONLY meta-analyses and review articles, NOT primary studies and
+NOT simulation/methods papers. The bot's parameter-setting Reasoner cites
+primary studies; this norms file must come from a different evidentiary tier to
+avoid circularity (the bot trivially matching norms because both came from the
+same papers). If a metric has no meta-analysis or review, mark its range as null
+with a no_canonical_range_reason.
+
+CRITICAL HONESTY: cite ONLY real, published works you are confident exist
+(correct DOI + authors + year + title). DO NOT fabricate DOIs, verbatim quotes,
+page numbers, or table/figure references. Provide a `rationale` (your prose
+reasoning) instead of a verbatim `quote`. If you cannot honestly cite a
+meta-analysis/review for a metric, mark its range null with a
+no_canonical_range_reason — an honest abstention is REQUIRED over a fabricated
+citation. A null range (unscored metric) is the correct, honest output when no
+real review-tier source exists.
 
 Examples of acceptable source types (NOT a hint about which to use for any
 specific class — choose sources appropriate to the class):
@@ -22,8 +31,8 @@ Output JSON conforming to this schema:
       "<range_key>": [low, high],
       "citations": [
         {"doi": "...", "authors": "...", "year": ...,
-         "title": "...", "table_or_figure": "...", "page": ...,
-         "quote": "...", "confidence": "high|medium|low"}
+         "title": "...", "rationale": "<your reasoning, NOT a verbatim quote>",
+         "confidence": "high|medium|low"}
       ]
     }
   }

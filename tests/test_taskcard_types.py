@@ -7,15 +7,32 @@ def test_citation_round_trip():
         "authors": "Whelan, R.",
         "year": 2008,
         "title": "Effective analysis of reaction time data",
+        "confidence": "high",
+        "rationale": "Whelan reviews ex-Gaussian RT analysis relevant to go-trial mu.",
         "table_or_figure": "Table 2",
         "page": 481,
         "quote": "Healthy adults on go trials: mu=460 ms",
-        "confidence": "high",
         "doi_verified": False,
         "doi_verified_at": None,
     }
     c = Citation.from_dict(data)
     assert c.to_dict() == data
+
+
+def test_citation_honest_minimal_round_trips_and_defaults():
+    """Honest-citation policy: a citation with only DOI/authors/year/title +
+    rationale (no fabricated quote/page) is valid; legacy fields default empty."""
+    minimal = {
+        "doi": "10.1037/0033-295X.91.3.295",
+        "authors": "Logan, G. D., Cowan, W. B.",
+        "year": 1984,
+        "title": "On the ability to inhibit thought and action: A theory of an act of control",
+        "rationale": "Foundational race-model account bounding SSRT.",
+        "confidence": "high",
+    }
+    c = Citation.from_dict(minimal)
+    assert c.quote == "" and c.page is None and c.table_or_figure == ""
+    assert c.rationale.startswith("Foundational")
 
 
 from experiment_bot.taskcard.types import ParameterValue, ReasoningStep, ProducedBy

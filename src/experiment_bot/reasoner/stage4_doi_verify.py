@@ -49,6 +49,7 @@ async def run_stage4(partial: dict) -> tuple[dict, ReasoningStep]:
             doi=doi,
             expected_authors=authors,
             expected_year=year_int,
+            expected_title=cit.get("title"),
         )
         cit["doi_verified"] = bool(ok)
         cit["doi_verified_at"] = datetime.now(timezone.utc).isoformat()
@@ -63,11 +64,25 @@ async def run_stage4(partial: dict) -> tuple[dict, ReasoningStep]:
         1 for c in citations
         if not c.get("doi") or c.get("authors") is None or c.get("year") is None
     )
+    rate = (n_verified / n_total) if n_total else 1.0
+    # Surface a low verification rate loudly: under the honest-citation policy a
+    # low rate signals fabricated/wrong-paper DOIs (title-checked) — a reviewer-
+    # facing integrity signal, not a benign stat. Verification is still
+    # non-blocking (the rate is recorded, not a hard gate) per the documented
+    # remediation; ship the signal so it can never recur silently.
+    if n_total and rate < 0.8:
+        logger.warning(
+            "stage4: LOW citation verification rate %.0f%% (%d/%d verified). "
+            "Unverified DOIs failed OpenAlex existence / year / author / TITLE "
+            "match — treat these citations as unsupported.",
+            rate * 100, n_verified, n_total,
+        )
     step = ReasoningStep(
         step="stage4_doi_verify",
         inference=(
             f"Submitted {n_total} citations to OpenAlex; "
-            f"{n_verified} verified, {n_skipped} skipped (malformed)."
+            f"{n_verified} verified ({rate*100:.0f}%), {n_skipped} skipped (malformed). "
+            f"Verification now includes a title-match check."
         ),
         evidence_lines=[],
         confidence="high",

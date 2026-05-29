@@ -5,14 +5,26 @@ from typing import Literal
 
 @dataclass
 class Citation:
+    """A reference for a behavioral parameter.
+
+    Honest-citation policy (post citation-integrity finding, 2026-05): the
+    Reasoner is asked for a REAL, verifiable DOI + authors/year/title and a
+    `rationale` (its own prose reasoning for why this source is relevant) — NOT
+    a fabricated verbatim `quote` or page/table reference, which an LLM cannot
+    produce truthfully from weights and which were confirmed fabricated in the
+    prior corpus. `quote`/`page`/`table_or_figure` are retained as optional
+    legacy fields for backward-compat with already-committed cards; new
+    citations should leave them empty and use `rationale`.
+    """
     doi: str
     authors: str
     year: int
     title: str
-    table_or_figure: str
-    page: int
-    quote: str
-    confidence: Literal["high", "medium", "low"]
+    confidence: Literal["high", "medium", "low"] = "medium"
+    rationale: str = ""
+    table_or_figure: str = ""
+    page: int | None = None
+    quote: str = ""
     doi_verified: bool = False
     doi_verified_at: str | None = None
 

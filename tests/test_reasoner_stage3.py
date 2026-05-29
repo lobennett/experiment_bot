@@ -111,6 +111,18 @@ async def test_stage3_attaches_citations_and_ranges():
     assert step.step == "stage3_citations"
 
 
+def test_stage3_ground_prompt_invariants():
+    from pathlib import Path
+    p = Path("src/experiment_bot/reasoner/prompts/stage3_ground.md").read_text()
+    assert "pool_idx" in p                       # cite by pool index
+    assert "no_citation_reason" in p             # abstain path
+    assert "revised_value" in p and "literature_range" in p
+    # must forbid citing anything not in the pool
+    assert "only" in p.lower() and "pool" in p.lower()
+    # must forbid fabricated verbatim quotes
+    assert "do not" in p.lower() and ("quote" in p.lower() or "fabricat" in p.lower())
+
+
 def test_enumerate_parameters_lists_all_paths():
     partial = {
         "response_distributions": {

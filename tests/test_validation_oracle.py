@@ -374,40 +374,70 @@ def _fake_session_with_metadata(
     metadata = {
         "incomplete": incomplete,
         "loop_exit_reason": loop_exit_reason,
+        "total_trials": n_trials,
     }
     (session_dir / "run_metadata.json").write_text(json.dumps(metadata))
     return session_dir
 
 
-def test_oracle_excludes_incomplete_sessions(tmp_path, fake_norms_conflict):
-    """Session with run_metadata.incomplete==True must be excluded from
-    metric aggregation; ValidationReport.excluded_sessions records it;
-    n_used < n_supplied."""
-    complete_session = _fake_session_with_metadata(
-        tmp_path, 500, 60, 80, n_trials=200, seed=0, incomplete=False,
-    )
-    incomplete_session = _fake_session_with_metadata(
-        tmp_path, 500, 60, 80, n_trials=50, seed=1, incomplete=True,
+def test_oracle_excludes_gross_undercount_outlier(tmp_path, fake_norms_conflict):
+    """A session whose trial count is a gross outlier below the cohort median is
+    excluded from aggregation and recorded; n_used < n_supplied. (This is the
+    real bug the audit cited: a 50-vs-200 partial session.)"""
+    full = [
+        _fake_session_with_metadata(tmp_path, 500, 60, 80, n_trials=200, seed=s)
+        for s in range(3)
+    ]
+    partial = _fake_session_with_metadata(
+        tmp_path, 500, 60, 80, n_trials=50, seed=9, incomplete=True,
         loop_exit_reason="max_misses",
     )
     report = validate_session_set(
         paradigm_class="conflict",
-        session_dirs=[complete_session, incomplete_session],
+        session_dirs=full + [partial],
         norms=fake_norms_conflict,
     )
-    assert report.n_supplied == 2
-    assert report.n_used == 1
+    assert report.n_supplied == 4
+    assert report.n_used == 3
     assert len(report.excluded_sessions) == 1
     excluded = report.excluded_sessions[0]
-    assert excluded["session"] == incomplete_session.name
-    assert excluded["reason"] == "max_misses"
+    assert excluded["session"] == partial.name
+    assert excluded["trials"] == 50
+    assert "gross_undercount" in excluded["reason"]
 
 
-def test_oracle_all_incomplete_gives_false(tmp_path, fake_norms_conflict):
-    """When ALL sessions are incomplete, overall_pass must be False."""
+def test_oracle_does_not_exclude_complete_session_that_exited_via_max_misses(
+    tmp_path, fake_norms_conflict
+):
+    """REGRESSION (smoke-found): a whole session that exits via max_misses
+    because the COMPLETE predicate never fired (incomplete=True) but captured a
+    cohort-typical trial count must NOT be excluded. Exit reason is diagnostic,
+    not the exclusion trigger."""
     sessions = [
         _fake_session_with_metadata(
-            tmp_path, 500, 60, 80, n_trials=30, seed=i, incomplete=True,
+            tmp_path, 500, 60, 80, n_trials=125, seed=s,
+            incomplete=True, loop_exit_reason="max_misses",
+        )
+        for s in range(3)
+    ]
+    report = validate_session_set(
+        paradigm_class="conflict",
+        session_dirs=sessions,
+        norms=fake_norms_conflict,
+    )
+    # None excluded — all at the cohort median despite max_misses exits.
+    assert report.n_used == 3
+    assert report.n_supplied == 3
+    assert report.excluded_sessions == []
+    # But the uniform-incomplete diagnostic is surfaced for manual review.
+    assert report.all_sessions_incomplete is True
+
+
+def test_oracle_all_zero_trials_gives_false(tmp_path, fake_norms_conflict):
+    """A cohort with no usable (nonzero-trial) sessions hard-fails."""
+    sessions = [
+        _fake_session_with_metadata(
+            tmp_path, 500, 60, 80, n_trials=0, seed=i, incomplete=True,
             loop_exit_reason="window_closed",
         )
         for i in range(3)

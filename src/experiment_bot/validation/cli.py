@@ -155,6 +155,7 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         "n_supplied": report.n_supplied,
         "n_used": report.n_used,
         "excluded_sessions": report.excluded_sessions,
+        "all_sessions_incomplete": report.all_sessions_incomplete,
         # When --allow-bot-log was used, stamp "bot_log_self_graded" so the bypass
         # is recorded in the committed artifact (not just a transient stderr line).
         "data_source": report_data_source_override if report_data_source_override else report.data_source,
@@ -173,6 +174,19 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
     }, indent=2))
 
     click.echo(f"Validation report: {out}")
+    if report.n_used != report.n_supplied:
+        click.echo(
+            f"Sessions used: {report.n_used}/{report.n_supplied} "
+            f"({len(report.excluded_sessions)} excluded — see report excluded_sessions)"
+        )
+    if report.all_sessions_incomplete:
+        click.echo(
+            "WARNING: every session exited the trial loop abnormally "
+            "(loop_exit_reason != complete). Cohort-relative undercount cannot "
+            "detect uniform truncation — review per-session loop_exit_reason "
+            "before trusting these metrics.",
+            err=True,
+        )
     if report.overall_pass is None:
         click.echo("Overall pass: unscored (no gating metric — descriptive-only class)")
     else:

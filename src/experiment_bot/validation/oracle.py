@@ -29,6 +29,12 @@ from experiment_bot.effects.validation_metrics import (
 
 logger = logging.getLogger(__name__)
 
+# A session is excluded from aggregation only when its captured trial count is
+# below this fraction of the cohort median — a gross outlier vs its peers. This
+# (not loop_exit_reason) is the completeness exclusion trigger; see the rationale
+# in validate_session_set.
+GROSS_UNDERCOUNT_FRACTION = 0.6
+
 
 @dataclass
 class MetricResult:
@@ -56,6 +62,12 @@ class ValidationReport:
     n_supplied: int = 0
     n_used: int = 0
     data_source: str = "platform_adapter"
+    # Diagnostic: every supplied session exited the trial loop abnormally
+    # (loop_exit_reason != "complete"). NOT an auto-fail — a legitimately whole
+    # session can exit via max_misses when the experiment's COMPLETE predicate
+    # never fires at the end (observed on expfactory_stroop). Surfaced so a
+    # reviewer can inspect per-session loop_exit_reason when this is True.
+    all_sessions_incomplete: bool = False
 
 
 def _in_range(value, range_) -> bool | None:
@@ -347,47 +359,92 @@ def validate_session_set(
     `correct` field cannot gate overall_pass.
     """
     # --- completeness exclusion ---
+    if trial_loader is None:
+        trial_loader = _default_bot_log_loader
     n_supplied = len(session_dirs)
     excluded_sessions: list[dict] = []
-    active_dirs: list[Path] = []
+
+    # Completeness handling. loop_exit_reason / incomplete are DIAGNOSTIC only;
+    # the exclusion trigger is a cohort-relative gross-undercount, NOT the exit
+    # reason. A legitimately-whole session can exit via max_misses when the
+    # experiment's COMPLETE predicate never fires at the end (empirically true
+    # on expfactory_stroop: 125/125 trials, loop_exit_reason=max_misses).
+    # Excluding on the flag alone would drop whole-but-misdetected sessions and
+    # under-count the cohort. Instead we drop only sessions whose trial count is
+    # a gross outlier below the cohort median (catches the real bug: the 61-vs-
+    # 125 stroop partial). Uniform truncation (all sessions equally short) has no
+    # outlier to detect without a fragile absolute expected-count, so it is
+    # surfaced via all_sessions_incomplete for manual review rather than auto-
+    # failed.
+    metas: list[tuple[Path, dict, int]] = []
     for sd in session_dirs:
         meta_path = Path(sd) / "run_metadata.json"
-        if meta_path.exists():
-            try:
-                meta = json.loads(meta_path.read_text())
-            except (OSError, json.JSONDecodeError):
-                meta = {}
-        else:
+        try:
+            meta = json.loads(meta_path.read_text()) if meta_path.exists() else {}
+        except (OSError, json.JSONDecodeError):
             meta = {}
-        if meta.get("incomplete", False):
+        # Prefer the executor-recorded total_trials; fall back to the actual
+        # loaded trial count when metadata lacks it (older sessions / fixtures),
+        # so a missing metadata file is never misread as zero trials.
+        if "total_trials" in meta:
+            count = int(meta.get("total_trials") or 0)
+        else:
+            try:
+                count = len(trial_loader(Path(sd)))
+            except Exception:
+                count = 0
+        metas.append((Path(sd), meta, count))
+
+    nonzero = sorted(c for _, _, c in metas if c > 0)
+    median = nonzero[len(nonzero) // 2] if nonzero else 0
+    threshold = GROSS_UNDERCOUNT_FRACTION * median
+    all_sessions_incomplete = bool(metas) and all(
+        m.get("incomplete", False) for _, m, _ in metas
+    )
+
+    active_dirs: list[Path] = []
+    for sd, meta, count in metas:
+        if count == 0:
+            # Zero-trial dir reaching the oracle (the executor should have
+            # hard-failed; guard the aggregate).
             excluded_sessions.append({
-                "session": Path(sd).name,
-                "reason": meta.get("loop_exit_reason", "unknown"),
+                "session": sd.name, "trials": 0,
+                "cohort_median": median, "reason": "zero_trials",
+            })
+        elif len(nonzero) >= 2 and median > 0 and count < threshold:
+            # Cohort outlier: grossly fewer trials than its peers.
+            excluded_sessions.append({
+                "session": sd.name, "trials": count, "cohort_median": median,
+                "reason": (
+                    f"gross_undercount: {count} < {threshold:.0f} "
+                    f"(={GROSS_UNDERCOUNT_FRACTION:g}*median {median}); "
+                    f"exit={meta.get('loop_exit_reason', 'unknown')}"
+                ),
             })
         else:
-            active_dirs.append(Path(sd))
+            active_dirs.append(sd)
 
     n_used = len(active_dirs)
-    # If all sessions are incomplete, hard-fail immediately
+    # Hard-fail only when NO usable session remains (genuinely empty cohort).
     if n_supplied > 0 and n_used == 0:
         return ValidationReport(
             paradigm_class=paradigm_class,
             pillar_results={},
             overall_pass=False,
-            summary=f"paradigm_class={paradigm_class} pass=False (all sessions incomplete)",
+            summary=f"paradigm_class={paradigm_class} pass=False (no usable sessions)",
             excluded_sessions=excluded_sessions,
             n_supplied=n_supplied,
             n_used=0,
             data_source=trial_source,
+            all_sessions_incomplete=all_sessions_incomplete,
         )
 
     # Set of metrics that read `correct` — must be None when using bot_log source
     _CORRECTNESS_DEPENDENT = {"post_error_slowing"}
 
     metrics_def: dict[str, dict] = norms.get("metrics", {})
+    # trial_loader was resolved at the top of the function (completeness block).
     pillars: dict[str, PillarResult] = {}
-    if trial_loader is None:
-        trial_loader = _default_bot_log_loader
     ctx = {"contrast_labels": contrast_labels, "trial_loader": trial_loader}
 
     def _pillar(name: str) -> PillarResult:
@@ -478,4 +535,5 @@ def validate_session_set(
         n_supplied=n_supplied,
         n_used=n_used,
         data_source=trial_source,
+        all_sessions_incomplete=all_sessions_incomplete,
     )

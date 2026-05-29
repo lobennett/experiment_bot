@@ -1,8 +1,8 @@
 import pytest
+from contextlib import ExitStack
 from unittest.mock import AsyncMock, patch
 from experiment_bot.reasoner.stage3_citations import run_stage3, _enumerate_parameters
 from experiment_bot.reasoner.retrieval import RetrievedWork
-from experiment_bot.llm.protocol import LLMResponse
 
 
 def _partial():
@@ -17,29 +17,48 @@ def _partial():
 def _pool():
     return [RetrievedWork(doi="10.1037/real", authors="Heathcote, J.", year=2009,
             title="Ex-Gaussian Stroop RT", abstract="congruent mu ranged 480-520 ms",
-            source="openalex")]
+            source="openalex", cited_by_count=120)]
+
+
+def _router(*, ground, propose=None, propose_exc=None):
+    """Dispatch parse_with_retry by stage_name: propose vs ground."""
+    async def _p(client, *, system, user, stage_name):
+        if stage_name == "stage3_propose":
+            if propose_exc is not None:
+                raise propose_exc
+            return propose if propose is not None else {"candidates": []}
+        return ground
+    return _p
+
+
+def _patches(*, ground, propose=None, propose_exc=None, search=None, verify_title=None):
+    """Patch the four Stage-3 boundaries: propose/ground LLM (router), search,
+    verify_by_title, and verify_doi (mocked True so tests stay offline)."""
+    es = ExitStack()
+    es.enter_context(patch("experiment_bot.reasoner.stage3_citations.parse_with_retry",
+                           new=_router(ground=ground, propose=propose, propose_exc=propose_exc)))
+    es.enter_context(patch("experiment_bot.reasoner.stage3_citations.search_works",
+                           new=AsyncMock(return_value=_pool() if search is None else search)))
+    es.enter_context(patch("experiment_bot.reasoner.stage3_citations.verify_by_title",
+                           new=AsyncMock(return_value=verify_title)))
+    es.enter_context(patch("experiment_bot.reasoner.stage3_citations.verify_doi",
+                           new=AsyncMock(return_value=(True, {}))))
+    return es
 
 
 @pytest.mark.asyncio
 async def test_stage3_grounds_and_revises_within_evidence(monkeypatch):
     monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
-    fake = AsyncMock()
-    fake.complete = AsyncMock(return_value=LLMResponse(text='''{
-      "response_distributions/congruent/mu": {
+    ground = {"response_distributions/congruent/mu": {
         "citations": [{"pool_idx": 0, "rationale": "abstract reports congruent mu 480-520", "confidence": "high"}],
         "literature_range": {"mu": [480, 520]},
-        "revised_value": {"mu": 500}, "revision_reason": "pool_idx 0 reports 480-520"
-      }
-    }'''))
-    with patch("experiment_bot.reasoner.stage3_citations.search_works",
-               new=AsyncMock(return_value=_pool())):
-        out, step = await run_stage3(fake, _partial())
+        "revised_value": {"mu": 500}, "revision_reason": "pool_idx 0 reports 480-520"}}
+    with _patches(ground=ground):
+        out, step = await run_stage3(AsyncMock(), _partial())
     cong = out["response_distributions"]["congruent"]
-    # citation carries the REAL pool DOI + abstract snippet
-    assert cong["citations"][0]["doi"] == "10.1037/real"
+    assert cong["citations"][0]["doi"] == "10.1037/real"     # REAL pool DOI
     assert "480-520" in cong["citations"][0]["abstract_snippet"]
-    # value revised within the grounded range, recorded
-    assert cong["value"]["mu"] == 500
+    assert cong["value"]["mu"] == 500                        # revised within range
     assert cong["value_source"] == "literature_revised"
     assert cong["original_value"]["mu"] == 530
 
@@ -47,62 +66,103 @@ async def test_stage3_grounds_and_revises_within_evidence(monkeypatch):
 @pytest.mark.asyncio
 async def test_stage3_drops_off_pool_citation(monkeypatch):
     monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
-    fake = AsyncMock()
-    fake.complete = AsyncMock(return_value=LLMResponse(text='''{
-      "response_distributions/congruent/mu": {
-        "citations": [{"pool_idx": 99, "rationale": "made up", "confidence": "high"}]
-      }
-    }'''))
-    with patch("experiment_bot.reasoner.stage3_citations.search_works",
-               new=AsyncMock(return_value=_pool())):
-        out, _ = await run_stage3(fake, _partial())
-    # off-pool idx dropped -> no citations -> value unchanged, model_prior
+    ground = {"response_distributions/congruent/mu": {
+        "citations": [{"pool_idx": 99, "rationale": "made up", "confidence": "high"}]}}
+    with _patches(ground=ground):
+        out, _ = await run_stage3(AsyncMock(), _partial())
     cong = out["response_distributions"]["congruent"]
-    assert cong["citations"] == []
+    assert cong["citations"] == []                           # off-pool dropped
     assert cong["value"]["mu"] == 530 and cong["value_source"] == "model_prior"
 
 
 @pytest.mark.asyncio
 async def test_stage3_rejects_out_of_range_revision(monkeypatch):
     monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
-    fake = AsyncMock()
-    fake.complete = AsyncMock(return_value=LLMResponse(text='''{
-      "response_distributions/congruent/mu": {
+    ground = {"response_distributions/congruent/mu": {
         "citations": [{"pool_idx": 0, "rationale": "ok", "confidence": "medium"}],
         "literature_range": {"mu": [480, 520]},
-        "revised_value": {"mu": 700}, "revision_reason": "out of its own range"
-      }
-    }'''))
-    with patch("experiment_bot.reasoner.stage3_citations.search_works",
-               new=AsyncMock(return_value=_pool())):
-        out, _ = await run_stage3(fake, _partial())
+        "revised_value": {"mu": 700}, "revision_reason": "out of its own range"}}
+    with _patches(ground=ground):
+        out, _ = await run_stage3(AsyncMock(), _partial())
     cong = out["response_distributions"]["congruent"]
-    assert cong["value"]["mu"] == 530           # revision rejected
+    assert cong["value"]["mu"] == 530                        # revision rejected
     assert cong["value_source"] == "model_prior"
 
 
 @pytest.mark.asyncio
-async def test_stage3_empty_pool_abstains_without_llm(monkeypatch):
+async def test_stage3_empty_pool_abstains_without_ground_call(monkeypatch):
     monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
-    fake = AsyncMock(); fake.complete = AsyncMock()
-    with patch("experiment_bot.reasoner.stage3_citations.search_works",
-               new=AsyncMock(return_value=[])):
-        out, step = await run_stage3(fake, _partial())
+    ground_calls = {"n": 0}
+    async def _router_count(client, *, system, user, stage_name):
+        if stage_name == "stage3_propose":
+            return {"candidates": []}
+        ground_calls["n"] += 1
+        return {}
+    with patch("experiment_bot.reasoner.stage3_citations.parse_with_retry", new=_router_count), \
+         patch("experiment_bot.reasoner.stage3_citations.search_works", new=AsyncMock(return_value=[])), \
+         patch("experiment_bot.reasoner.stage3_citations.verify_by_title", new=AsyncMock(return_value=None)):
+        out, step = await run_stage3(AsyncMock(), _partial())
     cong = out["response_distributions"]["congruent"]
     assert cong["citations"] == [] and cong.get("no_citation_reason")
-    fake.complete.assert_not_awaited()          # no ground call on empty pool
+    assert ground_calls["n"] == 0                            # propose ran; NO ground call on empty pool
 
 
 @pytest.mark.asyncio
 async def test_stage3_retrieval_off_abstains(monkeypatch):
     monkeypatch.setenv("EXPERIMENT_BOT_RETRIEVAL", "off")
-    fake = AsyncMock(); fake.complete = AsyncMock()
-    sw = AsyncMock(return_value=_pool())
-    with patch("experiment_bot.reasoner.stage3_citations.search_works", new=sw):
-        out, _ = await run_stage3(fake, _partial())
-    sw.assert_not_awaited()                      # no retrieval when off
-    fake.complete.assert_not_awaited()
+    pr = AsyncMock(); sw = AsyncMock(return_value=_pool()); vt = AsyncMock(return_value=None)
+    with patch("experiment_bot.reasoner.stage3_citations.parse_with_retry", new=pr), \
+         patch("experiment_bot.reasoner.stage3_citations.search_works", new=sw), \
+         patch("experiment_bot.reasoner.stage3_citations.verify_by_title", new=vt):
+        out, _ = await run_stage3(AsyncMock(), _partial())
+    pr.assert_not_awaited()                                  # no propose, no ground
+    sw.assert_not_awaited()
+    vt.assert_not_awaited()
     assert out["response_distributions"]["congruent"]["value_source"] == "model_prior"
+
+
+@pytest.mark.asyncio
+async def test_stage3_verified_canonical_enters_pool_and_cited(monkeypatch):
+    monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
+    canonical = RetrievedWork(doi="10.1037/canonical", authors="MacLeod, C. M.", year=1991,
+        title="Half a century of research on the Stroop effect",
+        abstract="Review of Stroop interference; congruent mu around 500 ms.",
+        source="openalex", cited_by_count=9000)
+    propose = {"candidates": [{"authors": "MacLeod", "year": 1991,
+        "title": "Half a century of research on the Stroop effect"}]}
+    ground = {"response_distributions/congruent/mu": {
+        "citations": [{"pool_idx": 0, "rationale": "MacLeod review", "confidence": "high"}]}}
+    # canonical added FIRST → pool_idx 0; search empty so it is the only pooled work
+    with _patches(ground=ground, propose=propose, search=[], verify_title=canonical):
+        out, _ = await run_stage3(AsyncMock(), _partial())
+    cong = out["response_distributions"]["congruent"]
+    assert cong["citations"][0]["doi"] == "10.1037/canonical"
+    assert "MacLeod" in cong["citations"][0]["authors"]
+
+
+@pytest.mark.asyncio
+async def test_stage3_unverifiable_candidate_excluded(monkeypatch):
+    monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
+    propose = {"candidates": [{"authors": "Ghost", "year": 3000, "title": "Imaginary paper"}]}
+    ground = {"response_distributions/congruent/mu": {
+        "citations": [{"pool_idx": 0, "rationale": "uses search hit", "confidence": "low"}]}}
+    # verify_title=None → the imaginary paper is dropped; pool = the search hit only
+    with _patches(ground=ground, propose=propose, search=_pool(), verify_title=None):
+        out, _ = await run_stage3(AsyncMock(), _partial())
+    cong = out["response_distributions"]["congruent"]
+    assert cong["citations"][0]["doi"] == "10.1037/real"     # only the verified search hit pooled
+
+
+@pytest.mark.asyncio
+async def test_stage3_propose_failure_falls_back_to_search(monkeypatch):
+    monkeypatch.delenv("EXPERIMENT_BOT_RETRIEVAL", raising=False)
+    ground = {"response_distributions/congruent/mu": {
+        "citations": [{"pool_idx": 0, "rationale": "search hit", "confidence": "low"}]}}
+    with _patches(ground=ground, propose_exc=RuntimeError("propose boom"),
+                  search=_pool(), verify_title=None):
+        out, _ = await run_stage3(AsyncMock(), _partial())
+    cong = out["response_distributions"]["congruent"]
+    assert cong["citations"][0]["doi"] == "10.1037/real"     # no crash; search-only pool used
 
 
 def test_stage3_ground_prompt_invariants():

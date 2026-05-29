@@ -38,7 +38,10 @@ async def test_stage3_recovers_from_empty_first_response():
             "literature_range": {"mu": [400, 600]},
         }
     }
-    client = _StubClient(["", json.dumps(valid_grounded)])
+    # Stage 3 now makes a propose call before the ground call. Script a clean
+    # (empty-candidates) propose response first, so the [empty, valid] retry
+    # scenario still exercises the GROUND call as the test intends.
+    client = _StubClient([json.dumps({"candidates": []}), "", json.dumps(valid_grounded)])
 
     pool = [RetrievedWork(doi="10.x/test", authors="Smith, J.", year=2020,
                           title="Test RT paper", abstract="mu near 500 ms",
@@ -63,9 +66,9 @@ async def test_stage3_recovers_from_empty_first_response():
     # Citations should be merged into the response_distributions entry.
     assert "citations" in result["response_distributions"]["go"]
     assert result["response_distributions"]["go"]["citations"][0]["doi"] == "10.x/test"
-    # Two LLM calls made (first failed, second succeeded).
-    assert len(client.prompts_received) == 2
-    assert "Parse error from previous attempt" in client.prompts_received[1]
+    # Three LLM calls: propose, then ground attempt 1 (failed) + ground retry (succeeded).
+    assert len(client.prompts_received) == 3
+    assert "Parse error from previous attempt" in client.prompts_received[2]
 
 
 @pytest.mark.asyncio

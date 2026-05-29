@@ -6,12 +6,13 @@ import os
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.parse_retry import parse_with_retry
-from experiment_bot.reasoner.retrieval import search_works
+from experiment_bot.reasoner.retrieval import search_works, verify_by_title
 from experiment_bot.reasoner.openalex import verify_doi
 from experiment_bot.taskcard.types import ReasoningStep
 
 logger = logging.getLogger(__name__)
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+_POOL_CAP = 30
 
 # param-name -> search phrase (deterministic queries; reproducible, no LLM call)
 _PARAM_PHRASE = {
@@ -94,19 +95,56 @@ async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
     if os.environ.get("EXPERIMENT_BOT_RETRIEVAL", "").lower() in ("off", "0", "false"):
         return _abstain_all("retrieval disabled (EXPERIMENT_BOT_RETRIEVAL=off)")
 
-    # Retrieve a deduped pool (cache queries within the run)
-    pool: list = []
-    seen_doi: set = set()
+    # --- Propose phase: model names canonical papers (NO DOI); Python verifies each ---
+    propose_system = (PROMPTS_DIR / "stage3_propose.md").read_text()
+    propose_user = "## Task\n" + json.dumps(
+        {"name": result.get("task", {}).get("name", ""),
+         "paradigm_classes": pclasses, "parameters": paths}, indent=2)
+    candidates: list = []
+    try:
+        proposed = await parse_with_retry(client, system=propose_system,
+                                          user=propose_user, stage_name="stage3_propose")
+        if isinstance(proposed, dict) and isinstance(proposed.get("candidates"), list):
+            candidates = proposed["candidates"]
+    except Exception as e:
+        logger.warning("stage3 propose call failed (%s); using search-only pool", e)
+        candidates = []
+
+    canonical: list = []
+    for cand in candidates:
+        if not isinstance(cand, dict):
+            continue
+        w = await verify_by_title(cand.get("authors", ""), cand.get("year"),
+                                  cand.get("title", ""))
+        if w is not None:
+            canonical.append(w)
+
+    # --- Deterministic citation-ranked search (OpenAlex sorted by cited_by_count) ---
+    search_hits: list = []
     qcache: dict[str, list] = {}
     for path in paths:
         q = _query_for(path, pclasses)
         if q not in qcache:
             qcache[q] = await search_works(q, per_page=5)
-        for w in qcache[q]:
-            k = w.doi or (w.title, w.year)
-            if k not in seen_doi:
-                seen_doi.add(k)
-                pool.append(w)
+        search_hits.extend(qcache[q])
+
+    # --- Union: verified-canonical first (always kept), then highest-cited search hits ---
+    pool: list = []
+    seen: set = set()
+
+    def _add(w) -> None:
+        k = w.doi or (w.title, w.year)
+        if k in seen:
+            return
+        seen.add(k)
+        pool.append(w)
+
+    for w in canonical:
+        _add(w)
+    for w in sorted(search_hits, key=lambda x: x.cited_by_count, reverse=True):
+        if len(pool) >= _POOL_CAP:
+            break
+        _add(w)
 
     if not pool:
         return _abstain_all("retrieval unavailable or no candidates found")
@@ -197,7 +235,9 @@ async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
 
     step = ReasoningStep(
         step="stage3_citations",
-        inference=(f"Retrieval-grounded: pool={len(pool)} works; {n_cited} parameters cited, "
-                   f"{n_abstain} abstained, {n_revised} values revised within grounded ranges."),
+        inference=(f"Canonical-recall: proposed={len(candidates)}, "
+                   f"title-verified={len(canonical)}, search_hits={len(search_hits)}, "
+                   f"pool={len(pool)}; {n_cited} parameters cited, {n_abstain} abstained, "
+                   f"{n_revised} values revised within grounded ranges."),
         evidence_lines=[], confidence="high")
     return result, step

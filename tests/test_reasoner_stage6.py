@@ -101,14 +101,23 @@ def _failing_diagnostic() -> PilotDiagnostics:
 
 
 def _make_session_mock(poll_side_effect=None, dom_snapshot_html="<div>test</div>"):
-    """Build a session mock suitable for PilotSession.__aenter__ return value."""
+    """Build a session mock suitable for PilotSession.__aenter__ return value.
+
+    probe_stimulus returns a non-None match by default so the C3 replay gate
+    passes without a real browser. Tests that need a no-match probe (e.g. the
+    trial-response classifier test) override it explicitly.
+    """
     session = AsyncMock()
     session.goto = AsyncMock(return_value=dom_snapshot_html)
     session.dom_snapshot = AsyncMock(return_value=dom_snapshot_html)
     session.try_phase = AsyncMock(return_value=PhaseAttempt(
         success=True, dom_after=dom_snapshot_html, error=None
     ))
-    session.probe_stimulus = AsyncMock(return_value=StimulusProbe(match=None, dom_at_probe=""))
+    # Non-None match so replay_navigation returns True (C3 gate passes).
+    _sentinel_match = object()
+    session.probe_stimulus = AsyncMock(
+        return_value=StimulusProbe(match=_sentinel_match, dom_at_probe=dom_snapshot_html)
+    )
     if poll_side_effect is not None:
         session.poll_stimuli = AsyncMock(side_effect=poll_side_effect)
     else:
@@ -543,9 +552,16 @@ async def test_walker_does_not_append_trial_response_phase(tmp_path):
     session_mock.try_phase = AsyncMock(return_value=PhaseAttempt(
         success=True, dom_after="<div>iti</div>", error=None,
     ))
-    # probe returns trial-match before, then no-match after the keypress
-    session_mock.probe_stimulus = AsyncMock(side_effect=[probe_with_match, probe_no_match,
-                                                         StimulusProbe(match=None, dom_at_probe="")])
+    # probe returns trial-match before, then no-match after the keypress; the 3rd
+    # call comes from the C3 replay gate (probe_stimulus in the replay loop) and
+    # must return a match so the gate passes (we're testing the classify logic, not
+    # the replay gate, here).
+    replay_sentinel = object()
+    session_mock.probe_stimulus = AsyncMock(side_effect=[
+        probe_with_match,                                         # before keypress (walker)
+        probe_no_match,                                           # after keypress (walker)
+        StimulusProbe(match=replay_sentinel, dom_at_probe=""),    # replay gate probe
+    ])
 
     with _patch_pilot_session(session_mock):
         out, step = await run_stage6(
@@ -560,3 +576,50 @@ async def test_walker_does_not_append_trial_response_phase(tmp_path):
     assert not response_key_phases, (
         f"trial-response keypress must not be in navigation.phases; got phases={phases}"
     )
+
+
+@pytest.mark.asyncio
+async def test_stage6_fails_when_replay_cannot_reach_trials(tmp_path, monkeypatch):
+    """C3 replay gate: if replay_navigation returns False, run_stage6 raises
+    PilotValidationError with 'replay' in the message."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    async def _replay_fail(*a, **k):
+        return False
+
+    monkeypatch.setattr(s6, "replay_navigation", _replay_fail)
+
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="replay"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_stage6_passes_when_replay_succeeds(tmp_path, monkeypatch):
+    """C3 replay gate: if replay_navigation returns True, run_stage6 returns
+    normally (the existing pass criteria are met)."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    async def _replay_pass(*a, **k):
+        return True
+
+    monkeypatch.setattr(s6, "replay_navigation", _replay_pass)
+
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert step.step == "stage6_pilot"
+    assert "passed" in step.inference.lower()

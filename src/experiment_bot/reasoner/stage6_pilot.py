@@ -252,6 +252,24 @@ Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
 """
 
 
+async def replay_navigation(url, navigation, lookup, *, headless=True, viewport=None,
+                            max_polls=_NO_MATCH_EARLY_STOP) -> bool:
+    """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
+    serially via the unified PilotSession engine (exactly as the executor's entry
+    nav does), then poll for a trial stimulus. Returns True iff a trial stimulus
+    was reached. This makes a Stage-6 PASS imply an executor-replayable card.
+    """
+    async with PilotSession(headless=headless, viewport=viewport) as session:
+        await session.goto(url)
+        for phase in navigation.phases:
+            await session.try_phase(phase)  # skip-on-fail, like the executor
+        for _ in range(max_polls):
+            probe = await session.probe_stimulus(lookup)
+            if probe.match is not None:
+                return True
+        return False
+
+
 def _partial_to_pilot_config(partial: dict) -> TaskConfig:
     """Build a TaskConfig from a Reasoner partial that's runnable for pilot.
 
@@ -593,6 +611,19 @@ async def run_stage6(
                         f"refinement(s), {stim_refinement_count} selector update(s): "
                         f"{diagnostics.trials_with_stimulus_match} trials, "
                         f"conditions {conditions_observed}."
+                    )
+                # C3: prove the finalized nav is executor-replayable (fresh browser).
+                replay_config = _partial_to_pilot_config(partial)
+                from experiment_bot.core.stimulus import StimulusLookup as _StimulusLookup
+                reached = await replay_navigation(
+                    bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
+                    headless=headless, viewport=replay_config.runtime.timing.viewport,
+                )
+                if not reached:
+                    raise PilotValidationError(
+                        "Stage-6 replay gate: finalized navigation.phases did not reach "
+                        "trial rendering in a fresh-browser executor-shaped replay. The "
+                        "walker's nav is not executor-replayable. See pilot.md."
                     )
                 return partial, ReasoningStep(
                     step="stage6_pilot",

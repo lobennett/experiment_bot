@@ -12,6 +12,7 @@ def test_citation_round_trip():
         "table_or_figure": "Table 2",
         "page": 481,
         "quote": "Healthy adults on go trials: mu=460 ms",
+        "abstract_snippet": "",
         "doi_verified": False,
         "doi_verified_at": None,
     }
@@ -47,6 +48,9 @@ def test_parameter_value_round_trip():
         "citations": [],
         "rationale": "Whelan 2008 norms",
         "sensitivity": "high",
+        "value_source": "model_prior",
+        "original_value": None,
+        "revision_reason": "",
     }
     pv = ParameterValue.from_dict(data)
     rt = pv.to_dict()
@@ -173,6 +177,9 @@ def test_parameter_value_round_trip_preserves_distribution():
         "rationale": "Whelan 2008 norms",
         "sensitivity": "high",
         "distribution": "ex_gaussian",
+        "value_source": "model_prior",
+        "original_value": None,
+        "revision_reason": "",
     }
     pv = ParameterValue.from_dict(data)
     rt = pv.to_dict()
@@ -207,3 +214,37 @@ def test_shifted_wald_taskcard_drives_sampler():
     # And sampling produces a positive value
     rt = sampler.sample_rt("go")
     assert rt > 0
+
+
+def test_parameter_value_audit_fields_round_trip():
+    from experiment_bot.taskcard.types import ParameterValue
+    d = {
+        "value": {"mu": 510},
+        "distribution": "ex_gaussian",
+        "value_source": "literature_revised",
+        "original_value": {"mu": 530},
+        "revision_reason": "retrieved review reports mu 480-520; moved 530->510",
+    }
+    pv = ParameterValue.from_dict(d)
+    assert pv.value_source == "literature_revised"
+    assert pv.original_value == {"mu": 530}
+    assert pv.to_dict()["value_source"] == "literature_revised"
+    assert pv.to_dict()["original_value"] == {"mu": 530}
+
+
+def test_parameter_value_audit_fields_default_model_prior():
+    from experiment_bot.taskcard.types import ParameterValue
+    pv = ParameterValue.from_dict({"value": {"mu": 530}})
+    assert pv.value_source == "model_prior"
+    assert pv.original_value is None and pv.revision_reason == ""
+
+
+def test_citation_abstract_snippet_round_trips():
+    from experiment_bot.taskcard.types import Citation
+    c = Citation.from_dict({
+        "doi": "10.1037/x", "authors": "Heathcote, J.", "year": 2009,
+        "title": "Ex-Gaussian Stroop", "rationale": "supports mu",
+        "abstract_snippet": "mu near 500 ms in young adults",
+    })
+    assert c.abstract_snippet == "mu near 500 ms in young adults"
+    assert c.to_dict()["abstract_snippet"] == "mu near 500 ms in young adults"

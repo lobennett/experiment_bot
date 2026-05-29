@@ -25,6 +25,7 @@ class Citation:
     table_or_figure: str = ""
     page: int | None = None
     quote: str = ""
+    abstract_snippet: str = ""   # retrieved abstract text grounding this citation
     doi_verified: bool = False
     doi_verified_at: str | None = None
 
@@ -59,6 +60,9 @@ class ParameterValue:
     rationale: str = ""
     sensitivity: Literal["high", "medium", "low", "unknown"] | dict = "unknown"
     distribution: str = "ex_gaussian"
+    value_source: Literal["model_prior", "literature_revised"] = "model_prior"
+    original_value: dict | None = None
+    revision_reason: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> "ParameterValue":
@@ -71,6 +75,9 @@ class ParameterValue:
             rationale=d.get("rationale", ""),
             sensitivity=d.get("sensitivity", "unknown"),
             distribution=d.get("distribution", "ex_gaussian"),
+            value_source=d.get("value_source", "model_prior"),
+            original_value=d.get("original_value"),
+            revision_reason=d.get("revision_reason", ""),
         )
 
     def to_dict(self) -> dict:
@@ -82,6 +89,9 @@ class ParameterValue:
             "citations": [c.to_dict() for c in self.citations],
             "rationale": self.rationale,
             "sensitivity": self.sensitivity,
+            "value_source": self.value_source,
+            "original_value": self.original_value,
+            "revision_reason": self.revision_reason,
         }
 
 

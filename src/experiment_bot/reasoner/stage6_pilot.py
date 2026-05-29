@@ -667,15 +667,32 @@ async def run_stage6(
                     new_phase_dict.setdefault('target', '')
                     new_phase_dict.setdefault('duration_ms', 0)
                     new_phase_dict.setdefault('phase', '')
+                    # Probe the live trial stimulus before/after so we can tell a
+                    # genuine nav advance from a demo-trial RESPONSE (which must NOT
+                    # be baked into navigation.phases — that produces executor-
+                    # unreplayable cards). Spec C2 / audit genbottle-001.
+                    before_probe = await session.probe_stimulus(lookup)
                     new_phase = _NavPhase.from_dict(new_phase_dict)
                     attempt_result = await session.try_phase(new_phase)
-                    if attempt_result.success:
+                    after_probe = await session.probe_stimulus(lookup)
+                    response_keys = set((partial.get("task_specific", {}).get("key_map", {}) or {}).values())
+                    from experiment_bot.reasoner.nav_classify import classify_phase_outcome
+                    outcome = classify_phase_outcome(
+                        before_match=before_probe.match, after_match=after_probe.match,
+                        phase=new_phase_dict, response_keys=response_keys,
+                    )
+                    if attempt_result.success and outcome == "nav_advance":
                         accumulated_phases.append(new_phase_dict)
                         partial.setdefault('navigation', {})['phases'] = accumulated_phases
                         nav_refinement_count += 1
                         prior_diffs.append(f"Nav phase {nav_refinement_count}: {new_phase_dict}")
                         if save_partial is not None:
                             save_partial(partial)
+                    elif attempt_result.success and outcome == "trial_response":
+                        # Executed a demo-trial response, not a nav advance: do NOT
+                        # append to navigation.phases. The action still advanced the
+                        # pilot through a practice trial; the loop continues.
+                        prior_diffs.append(f"(trial-response, not nav) {new_phase_dict}")
                     else:
                         prior_diffs.append(
                             f"(failed) Nav phase: {new_phase_dict}; error={attempt_result.error}"
@@ -687,6 +704,7 @@ async def run_stage6(
                     _diff_path = _diff_dir / f"pilot_refinement_{attempt + 1}.diff"
                     _diff_path.write_text(
                         f"# Attempt {attempt + 1} navigation refinement\n"
+                        f"# outcome={outcome}\n"
                         f"# success={attempt_result.success}\n"
                         f"# error={attempt_result.error}\n\n"
                         + json.dumps(new_phase_dict, indent=2)

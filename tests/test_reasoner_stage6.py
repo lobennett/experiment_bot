@@ -14,7 +14,7 @@ import pytest
 
 from experiment_bot.core.config import SourceBundle
 from experiment_bot.core.pilot import PilotDiagnostics
-from experiment_bot.core.pilot_session import PhaseAttempt
+from experiment_bot.core.pilot_session import PhaseAttempt, StimulusProbe
 from experiment_bot.llm.protocol import LLMResponse
 from experiment_bot.reasoner.stage6_pilot import (
     PilotValidationError, run_stage6,
@@ -108,7 +108,7 @@ def _make_session_mock(poll_side_effect=None, dom_snapshot_html="<div>test</div>
     session.try_phase = AsyncMock(return_value=PhaseAttempt(
         success=True, dom_after=dom_snapshot_html, error=None
     ))
-    session.probe_stimulus = AsyncMock(return_value=None)
+    session.probe_stimulus = AsyncMock(return_value=StimulusProbe(match=None, dom_at_probe=""))
     if poll_side_effect is not None:
         session.poll_stimuli = AsyncMock(side_effect=poll_side_effect)
     else:
@@ -512,3 +512,51 @@ async def test_walker_stimulus_refinement_updates_lookup(tmp_path):
     stim = out["stimuli"][0]
     assert stim["detection"]["selector"] == "#new-go-selector", \
         f"expected updated selector in partial, got {stim['detection']['selector']}"
+
+
+@pytest.mark.asyncio
+async def test_walker_does_not_append_trial_response_phase(tmp_path):
+    """Walker: when probe_stimulus returns a trial stimulus match BEFORE the
+    proposed phase and the phase is a response-key keypress, the classify helper
+    returns 'trial_response' and the phase must NOT be appended to
+    navigation.phases. Spec C2 / audit genbottle-001."""
+    fake_client = AsyncMock()
+    # LLM proposes a response-key keypress (key="f" matches task_specific.key_map)
+    response_key_phase_json = (
+        '{"phase": "trial_key", "action": "keypress", "key": "f", '
+        '"target": "", "duration_ms": 0, "steps": []}'
+    )
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text=response_key_phase_json))
+
+    partial = _stage5_partial()
+    # partial already has task_specific.key_map = {"go": "f"}, so response_keys = {"f"}
+
+    # probe_stimulus: first call (before) returns a trial match; second call (after)
+    # returns no match (stimulus consumed by the keypress).
+    sentinel_match = object()  # non-None → "trial stimulus present"
+    probe_with_match = StimulusProbe(match=sentinel_match, dom_at_probe="<div>trial</div>")
+    probe_no_match = StimulusProbe(match=None, dom_at_probe="<div>iti</div>")
+
+    session_mock = _make_session_mock(
+        poll_side_effect=[_failing_dict("<div>trial-screen</div>"), _passing_dict()],
+    )
+    session_mock.try_phase = AsyncMock(return_value=PhaseAttempt(
+        success=True, dom_after="<div>iti</div>", error=None,
+    ))
+    # probe returns trial-match before, then no-match after the keypress
+    session_mock.probe_stimulus = AsyncMock(side_effect=[probe_with_match, probe_no_match,
+                                                         StimulusProbe(match=None, dom_at_probe="")])
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=2,
+        )
+
+    # The keypress was classified as trial_response → must NOT appear in navigation.phases
+    phases = out["navigation"]["phases"]
+    response_key_phases = [p for p in phases if p.get("action") == "keypress" and p.get("key") == "f"]
+    assert not response_key_phases, (
+        f"trial-response keypress must not be in navigation.phases; got phases={phases}"
+    )

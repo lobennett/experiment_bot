@@ -13,20 +13,26 @@ def classify_phase_outcome(before_match, after_match, phase: dict, response_keys
     A configured (trial) stimulus is identified by `before_match`/`after_match`
     being non-None (the walker's StimulusLookup matched a configured stimulus).
 
-    Rules (require a positive trial signal to call something a trial response;
-    bias to nav_advance when ambiguous — the Stage-6 replay gate is the backstop):
-      - Trial stimulus present before AND the action is a keypress whose key is a
-        known response key  -> trial_response.
-      - Trial stimulus present before AND gone/changed after a keypress
-        -> trial_response.
-      - Otherwise -> nav_advance.
+    Rules:
+      - A keypress whose key is a configured RESPONSE key is a trial response by
+        definition — the executor's trial loop emits responses, so a response
+        key never belongs in navigation.phases. This holds REGARDLESS of whether
+        a stimulus was detected at the probe instant, because stimulus detection
+        is timing-flaky (a response can land in an ITI/fixation gap where the
+        probe misses the stimulus). This is the load-bearing rule: gating it on
+        `before_match` let demo-trial responses (e.g. "." for circle) leak into
+        nav, which the C3 replay gate then rejected.
+      - A keypress that consumed a trial (stimulus present before, gone after) is
+        a trial response even with a non-standard key.
+      - Otherwise -> nav_advance (bias to nav_advance when ambiguous; the C3
+        replay gate is the backstop against a wrongly-kept phase).
     """
     action = phase.get("action", "")
     key = phase.get("key", "")
     is_keypress = action in ("press", "keypress")
     stim_before = before_match is not None
 
-    if stim_before and is_keypress and key in response_keys:
+    if is_keypress and key in response_keys:
         return "trial_response"
     if stim_before and is_keypress and after_match is None:
         return "trial_response"

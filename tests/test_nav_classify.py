@@ -22,11 +22,27 @@ def test_trial_response_when_keypress_matches_response_key_during_stimulus():
     ) == "trial_response"
 
 
-def test_nav_advance_when_no_stimulus_before():
-    # No trial stimulus before the action → it advanced an interstitial → nav advance.
+def test_trial_response_when_response_key_pressed_even_if_no_stimulus_detected():
+    # REGRESSION (held-out C3 fail): a response-key keypress (e.g. "." for circle)
+    # is a trial response even when the stimulus probe missed it (ITI/fixation gap,
+    # flaky detection). Gating this on before_match let "." leak into nav, which the
+    # C3 replay gate rejected. Response keys are NEVER navigation.
+    assert classify_phase_outcome(
+        before_match=None, after_match=None,
+        phase=_phase("keypress", key="."), response_keys={".", ","},
+    ) == "trial_response"
+
+
+def test_nav_advance_when_no_stimulus_before_and_not_response_key():
+    # No trial stimulus before the action AND not a response key → interstitial
+    # advance → nav advance. (A click on an instructions-next, or Enter/Space.)
     assert classify_phase_outcome(
         before_match=None, after_match=None,
         phase=_phase("click"), response_keys={"f", "j"},
+    ) == "nav_advance"
+    assert classify_phase_outcome(
+        before_match=None, after_match=None,
+        phase=_phase("keypress", key="Enter"), response_keys={"f", "j"},
     ) == "nav_advance"
 
 

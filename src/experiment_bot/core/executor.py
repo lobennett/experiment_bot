@@ -17,7 +17,6 @@ from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.distributions import ResponseSampler
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
-from experiment_bot.navigation.navigator import InstructionNavigator
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
 from experiment_bot.core.phase_detection import detect_phase
@@ -119,7 +118,6 @@ class TaskExecutor:
             seed=seed,
             paradigm_classes=getattr(config.task, "paradigm_classes", None) or [],
         )
-        self._navigator = InstructionNavigator()
         self._writer = OutputWriter()
         self._trial_count = 0
         # Rolling window of recent error flags (most recent first / appendleft).
@@ -776,19 +774,17 @@ class TaskExecutor:
                     if phase == TaskPhase.FEEDBACK:
                         await self._handle_feedback(page)
                     else:
-                        # The TaskCard's fixed nav re-run can RAISE mid-sequence
-                        # (e.g. clicking an already-dismissed #jspsych-fullscreen-btn
-                        # times out). Catch it so the bot falls through to
-                        # stuck-detection + adaptive nav instead of crashing the
-                        # whole session. Dev paradigms whose nav re-run succeeds
-                        # are unaffected (no exception to catch).
-                        try:
-                            await self._navigator.execute_all(page, self._config.navigation)
-                        except Exception as _nav_err:
-                            logger.info(
-                                "Nav re-run raised mid-sequence (continuing to "
-                                "stuck-detection/adaptive nav): %s", _nav_err,
-                            )
+                        # In-trial nav re-run via the unified engine (skip-on-fail,
+                        # same semantics as entry nav). Each phase is attempted
+                        # independently so one already-dismissed button can't crash
+                        # the whole re-run.
+                        for _nav_phase in self._config.navigation.phases:
+                            _attempt = await session.try_phase(_nav_phase)
+                            if not _attempt.success:
+                                logger.info(
+                                    "In-trial nav re-run phase %r skipped: %s",
+                                    _nav_phase.phase or "<unnamed>", _attempt.error,
+                                )
                         # SP16: if the standard nav re-run left us on the SAME
                         # instruction DOM across consecutive detections, the
                         # TaskCard's fixed nav can't advance this screen — fire

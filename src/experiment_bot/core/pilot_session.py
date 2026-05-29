@@ -240,9 +240,13 @@ class PilotSession:
                 continue
 
             if phase == TaskPhase.INSTRUCTIONS:
-                from experiment_bot.navigation.navigator import InstructionNavigator
-                navigator = InstructionNavigator(reading_delay_range=(1.0, 2.0))
-                await navigator.execute_all(self._page, config.navigation)
+                for _nav_phase in config.navigation.phases:
+                    _attempt = await self.try_phase(_nav_phase)
+                    if not _attempt.success:
+                        logger.info(
+                            "Pilot nav re-run phase %r skipped: %s",
+                            _nav_phase.phase or "<unnamed>", _attempt.error,
+                        )
                 continue
 
             # Poll all stimulus selectors individually

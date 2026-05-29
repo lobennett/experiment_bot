@@ -372,3 +372,19 @@ def test_pick_wrong_key_still_returns_key_when_alternatives_exist(executor):
     assert result == "j", (
         f"Expected 'j' as the wrong key, got {result!r}"
     )
+
+
+# ---------------------------------------------------------------------------
+# Task 2 (nav unification): no InstructionNavigator in executor
+# ---------------------------------------------------------------------------
+
+
+def test_executor_has_no_instruction_navigator():
+    """After unification, the executor does not construct InstructionNavigator;
+    nav runs through the PilotSession engine only."""
+    from experiment_bot.core import executor as ex_mod
+    assert not hasattr(ex_mod, "InstructionNavigator"), \
+        "InstructionNavigator import should be gone from executor"
+    config = TaskConfig.from_dict(_SAMPLE_CONFIG)
+    e = TaskExecutor(config, headless=True, seed=1, session_params={})
+    assert not hasattr(e, "_navigator"), "executor should not hold an InstructionNavigator"

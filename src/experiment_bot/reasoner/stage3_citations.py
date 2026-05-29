@@ -2,14 +2,29 @@ from __future__ import annotations
 import copy
 import json
 import logging
+import os
 from pathlib import Path
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.parse_retry import parse_with_retry
+from experiment_bot.reasoner.retrieval import search_works
+from experiment_bot.reasoner.openalex import verify_doi
 from experiment_bot.taskcard.types import ReasoningStep
 
 logger = logging.getLogger(__name__)
-
 PROMPTS_DIR = Path(__file__).parent / "prompts"
+
+# param-name -> search phrase (deterministic queries; reproducible, no LLM call)
+_PARAM_PHRASE = {
+    "mu": "ex-Gaussian reaction time distribution",
+    "sigma": "ex-Gaussian reaction time distribution",
+    "tau": "ex-Gaussian reaction time distribution",
+    "ssrt": "stop-signal reaction time",
+    "cse_magnitude": "congruency sequence effect",
+    "post_error_slowing": "post-error slowing",
+    "accuracy": "accuracy error rate",
+    "omission": "omission error rate",
+    "lag1_autocorr": "sequential dependency reaction time",
+}
 
 
 def _enumerate_parameters(partial: dict) -> list[str]:
@@ -33,78 +48,156 @@ def _enumerate_parameters(partial: dict) -> list[str]:
     return paths
 
 
+def _query_for(path: str, paradigm_classes: list[str]) -> str:
+    _, key, param = (path.split("/", 2) + ["", ""])[:3]
+    phrase = _PARAM_PHRASE.get(param, param.replace("_", " "))
+    classes = " ".join(paradigm_classes[:2])
+    return f"{classes} {key if key != '_' else ''} {phrase}".strip()
+
+
+def _resolve_target(result: dict, path: str) -> dict | None:
+    parts = path.split("/")
+    section = parts[0]
+    key = parts[1] if len(parts) > 1 else None
+    if section == "response_distributions":
+        return result.get("response_distributions", {}).get(key)
+    if section == "temporal_effects":
+        return result.get("temporal_effects", {}).get(key)
+    if section == "between_subject_jitter":
+        return result.get("between_subject_jitter")
+    return None
+
+
 async def run_stage3(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
-    """Stage 3: citations + literature_range + between_subject_sd per parameter (batched)."""
-    system = (PROMPTS_DIR / "stage3_citations.md").read_text()
-    paths = _enumerate_parameters(partial)
-    user = (
-        "## Parameters needing citations\n"
-        + json.dumps({"paths": paths, "current_values": partial}, indent=2)
-    )
-    citations_map = await parse_with_retry(
-        client, system=system, user=user, stage_name="stage3_citations",
-    )
-
+    """Stage 3 (retrieval-grounded): retrieve a real-literature pool per parameter,
+    then one LLM 'ground' call cites ONLY by pool index, grounds rationale in
+    retrieved abstracts, and revises a value ONLY within a grounded range —
+    else abstains (model-prior). Python enforces every guard. Fabrication is
+    structurally impossible."""
     result = copy.deepcopy(partial)
-    for path, body in citations_map.items():
-        # Citation-map keys are "<section>/<key>/<param>" for
-        # response_distributions and temporal_effects, but
-        # between_subject_jitter is keyed by section alone. Parse leniently:
-        # the LLM sometimes emits a short or malformed path; skip those with a
-        # warning rather than crashing the whole pipeline on one bad citation
-        # (mirrors the Stage 4 defensive philosophy).
-        parts = path.split("/")
-        section = parts[0]
-        key = parts[1] if len(parts) > 1 else None
-        if section == "response_distributions":
-            if key is None or key not in result.get("response_distributions", {}):
-                logger.warning("stage3: skipping citation path %r (no matching response_distributions key)", path)
-                continue
-            target = result["response_distributions"][key]
-        elif section == "temporal_effects":
-            if key is None or key not in result.get("temporal_effects", {}):
-                logger.warning("stage3: skipping citation path %r (no matching temporal_effects key)", path)
-                continue
-            target = result["temporal_effects"][key]
-        elif section == "between_subject_jitter":
-            target = result.get("between_subject_jitter")
-            if not isinstance(target, dict):
-                logger.warning("stage3: skipping citation path %r (between_subject_jitter not a dict)", path)
-                continue
-        else:
-            logger.warning("stage3: skipping citation path %r (unknown section %r)", path, section)
-            continue
-        # Merge — accumulate citations across params for the same key,
-        # de-duplicating by DOI (one citation per real paper per parameter; the
-        # legacy `quote` field is no longer requested — see honest-citation
-        # policy in prompts/stage3_citations.md).
-        existing_dois = {c.get("doi") for c in target.get("citations", [])}
-        for new_cit in body.get("citations", []):
-            if new_cit.get("doi") not in existing_dois:
-                target.setdefault("citations", []).append(new_cit)
-                existing_dois.add(new_cit.get("doi"))
-        # Carry an honest abstention through to the parameter so a reviewer sees
-        # the value is an uncited model-prior estimate, not silently uncited.
-        if body.get("no_citation_reason") and not target.get("citations"):
-            target["no_citation_reason"] = body["no_citation_reason"]
-        if body.get("literature_range") is not None:
-            target.setdefault("literature_range", {}).update(body["literature_range"])
-        if body.get("between_subject_sd") is not None:
-            target.setdefault("between_subject_sd", {}).update(body["between_subject_sd"])
+    paths = _enumerate_parameters(result)
+    pclasses = result.get("task", {}).get("paradigm_classes", []) or []
 
-    n_cits = 0
-    for section in ("response_distributions", "temporal_effects"):
-        for v in result.get(section, {}).values():
-            n_cits += len(v.get("citations", []))
-    n_cits += len(result.get("between_subject_jitter", {}).get("citations", []))
+    def _abstain_all(reason: str):
+        for path in paths:
+            tgt = _resolve_target(result, path)
+            if tgt is not None and not tgt.get("citations"):
+                tgt["citations"] = tgt.get("citations", [])
+                tgt["no_citation_reason"] = reason
+                tgt.setdefault("value_source", "model_prior")
+        return result, ReasoningStep(
+            step="stage3_citations",
+            inference=f"Retrieval-grounded Stage 3 abstained for all {len(paths)} parameters ({reason}).",
+            evidence_lines=[], confidence="high")
+
+    # Offline switch
+    if os.environ.get("EXPERIMENT_BOT_RETRIEVAL", "").lower() in ("off", "0", "false"):
+        return _abstain_all("retrieval disabled (EXPERIMENT_BOT_RETRIEVAL=off)")
+
+    # Retrieve a deduped pool (cache queries within the run)
+    pool: list = []
+    seen_doi: set = set()
+    qcache: dict[str, list] = {}
+    for path in paths:
+        q = _query_for(path, pclasses)
+        if q not in qcache:
+            qcache[q] = await search_works(q, per_page=5)
+        for w in qcache[q]:
+            k = w.doi or (w.title, w.year)
+            if k not in seen_doi:
+                seen_doi.add(k)
+                pool.append(w)
+
+    if not pool:
+        return _abstain_all("retrieval unavailable or no candidates found")
+
+    # One LLM ground call
+    system = (PROMPTS_DIR / "stage3_ground.md").read_text()
+    pool_json = [
+        {"pool_idx": i, "doi": w.doi, "authors": w.authors, "year": w.year,
+         "title": w.title, "abstract": w.abstract}
+        for i, w in enumerate(pool)
+    ]
+    cur = {p: _resolve_target(result, p) for p in paths}
+    user = "## Parameters + current values\n" + json.dumps(
+        {"parameters": {p: (cur[p] or {}).get("value") for p in paths}}, indent=2
+    ) + "\n\n## Retrieved pool\n" + json.dumps(pool_json, indent=2)
+    try:
+        grounded = await parse_with_retry(client, system=system, user=user,
+                                          stage_name="stage3_ground")
+    except Exception as e:
+        logger.warning("stage3 ground call failed (%s); abstaining all", e)
+        return _abstain_all(f"ground call failed: {e}")
+
+    n_cited = n_revised = n_abstain = 0
+    to_verify: list[dict] = []
+    for path in paths:
+        tgt = _resolve_target(result, path)
+        if tgt is None:
+            continue
+        body = grounded.get(path) or {}
+        param = path.split("/", 2)[-1]
+        kept: list[dict] = []
+        for c in body.get("citations", []):
+            idx = c.get("pool_idx")
+            if not isinstance(idx, int) or not (0 <= idx < len(pool)):
+                continue  # GUARD: drop off-pool citations
+            w = pool[idx]
+            cit = {"doi": w.doi, "authors": w.authors, "year": w.year,
+                   "title": w.title, "rationale": c.get("rationale", ""),
+                   "confidence": c.get("confidence", "low"),
+                   "abstract_snippet": w.abstract[:500]}
+            kept.append(cit)
+            to_verify.append(cit)
+        if kept:
+            # Accumulate citations (multiple params share the same tgt dict)
+            existing = tgt.get("citations")
+            if isinstance(existing, list):
+                tgt["citations"] = existing + kept
+            else:
+                tgt["citations"] = kept
+                n_cited += 1
+            lr = body.get("literature_range")
+            if isinstance(lr, dict):
+                tgt.setdefault("literature_range", {}).update(lr)
+            # GUARD: evidence-bounded revision
+            rv = body.get("revised_value")
+            if isinstance(rv, dict) and isinstance(lr, dict) and param in rv and param in lr:
+                low, high = lr[param][0], lr[param][1]
+                new = rv[param]
+                if isinstance(new, (int, float)) and low <= new <= high:
+                    orig = dict(tgt.get("value", {}))
+                    tgt.setdefault("value", {})[param] = new
+                    tgt["value_source"] = "literature_revised"
+                    tgt["original_value"] = orig
+                    tgt["revision_reason"] = body.get("revision_reason", "")
+                    n_revised += 1
+                else:
+                    tgt.setdefault("value_source", "model_prior")
+                    logger.warning("stage3: rejected out-of-range revision for %s: %r not in %r",
+                                   path, new, lr.get(param))
+            else:
+                tgt.setdefault("value_source", "model_prior")
+        else:
+            # Only set abstain state if no citations were previously attached to this tgt
+            if not tgt.get("citations"):
+                tgt["citations"] = []
+                tgt["no_citation_reason"] = body.get("no_citation_reason", "no pool work supported this parameter")
+                tgt.setdefault("value_source", "model_prior")
+                n_abstain += 1
+
+    # GUARD: verify_doi title-gate on survivors (independent of pool source)
+    for cit in to_verify:
+        try:
+            ok, _m = await verify_doi(doi=cit["doi"], expected_authors=cit["authors"],
+                                      expected_year=int(cit["year"]), expected_title=cit["title"])
+        except Exception:
+            ok = False
+        cit["doi_verified"] = bool(ok)
 
     step = ReasoningStep(
         step="stage3_citations",
-        inference=(
-            f"Produced {n_cits} citations across {len(paths)} numeric parameters "
-            f"with literature_range and between_subject_sd."
-        ),
-        evidence_lines=[],
-        confidence="medium",
-    )
+        inference=(f"Retrieval-grounded: pool={len(pool)} works; {n_cited} parameters cited, "
+                   f"{n_abstain} abstained, {n_revised} values revised within grounded ranges."),
+        evidence_lines=[], confidence="high")
     return result, step

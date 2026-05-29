@@ -24,21 +24,28 @@ class _StubClient:
 
 @pytest.mark.asyncio
 async def test_stage3_recovers_from_empty_first_response():
-    """Mirrors the SP4a-observed Flanker failure: first Stage 3
-    response is empty; second is valid citations JSON; the merged
-    TaskCard has citations applied."""
+    """Mirrors the SP4a-observed Flanker failure: first Stage 3 ground-call
+    response is empty; second is valid pool-indexed JSON; the merged
+    TaskCard has citations applied from the pool."""
+    from unittest.mock import patch, AsyncMock
     from experiment_bot.reasoner.stage3_citations import run_stage3
+    from experiment_bot.reasoner.retrieval import RetrievedWork
 
-    valid_citations = {
+    # Pool-indexed response (new contract): cite by pool_idx, not raw doi
+    valid_grounded = {
         "response_distributions/go/mu": {
-            "citations": [{"doi": "10.x/test", "quote": "test quote"}],
-            "literature_range": {"min": 400, "max": 600},
-            "between_subject_sd": {"value": 50},
+            "citations": [{"pool_idx": 0, "rationale": "supports mu", "confidence": "high"}],
+            "literature_range": {"mu": [400, 600]},
         }
     }
-    client = _StubClient(["", json.dumps(valid_citations)])
+    client = _StubClient(["", json.dumps(valid_grounded)])
+
+    pool = [RetrievedWork(doi="10.x/test", authors="Smith, J.", year=2020,
+                          title="Test RT paper", abstract="mu near 500 ms",
+                          source="openalex")]
 
     partial = {
+        "task": {"name": "Test", "paradigm_classes": ["speeded_choice"]},
         "response_distributions": {
             "go": {
                 "distribution": "ex_gaussian",
@@ -49,7 +56,9 @@ async def test_stage3_recovers_from_empty_first_response():
         "temporal_effects": {},
         "between_subject_jitter": {"value": {}},
     }
-    result, step = await run_stage3(client, partial)
+    with patch("experiment_bot.reasoner.stage3_citations.search_works",
+               new=AsyncMock(return_value=pool)):
+        result, step = await run_stage3(client, partial)
 
     # Citations should be merged into the response_distributions entry.
     assert "citations" in result["response_distributions"]["go"]

@@ -136,3 +136,18 @@ def test_enumerate_parameters_lists_all_paths():
     # 'enabled' is excluded — it's not a numeric parameter
     assert "temporal_effects/post_error_slowing/enabled" not in paths
     assert "between_subject_jitter/_/rt_mean_sd_ms" in paths
+
+
+def test_stage3_propose_prompt_invariants():
+    from pathlib import Path
+    p = Path("src/experiment_bot/reasoner/prompts/stage3_propose.md").read_text()
+    low = p.lower()
+    # asks for candidates with authors/year/title
+    assert "candidates" in low
+    assert "authors" in low and "year" in low and "title" in low
+    # explicitly must NOT ask the model for a DOI
+    assert "do not provide a doi" in low or "not provide a doi" in low or "no doi" in low
+    # must forbid invented papers
+    assert "invent" in low
+    # must permit returning few or none
+    assert "none" in low

@@ -623,3 +623,44 @@ async def test_stage6_passes_when_replay_succeeds(tmp_path, monkeypatch):
         )
     assert step.step == "stage6_pilot"
     assert "passed" in step.inference.lower()
+
+
+@pytest.mark.asyncio
+async def test_replay_navigation_presses_advance_keys_to_reach_trials():
+    """REGRESSION (held-out C3 false-negative): nav phases leave the bot on a
+    'press enter to begin practice' interstitial; the trial only renders after an
+    advance-key press. replay_navigation must press advance_keys periodically
+    (mirroring the executor's trial loop), not just bare-probe, or it rejects
+    cards the executor can actually run."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    pressed = []
+    state = {"advanced": False}
+
+    session = AsyncMock()
+    session.goto = AsyncMock(return_value="<div>begin practice</div>")
+    session.try_phase = AsyncMock(return_value=PhaseAttempt(success=True, dom_after="", error=None))
+
+    async def _press(k):
+        pressed.append(k)
+        state["advanced"] = True  # pressing Enter starts practice -> trial renders
+    session.press = AsyncMock(side_effect=_press)
+
+    async def _probe(_lookup):
+        return StimulusProbe(match=(object() if state["advanced"] else None), dom_at_probe="")
+    session.probe_stimulus = AsyncMock(side_effect=_probe)
+
+    class _AB:
+        advance_keys = ["Enter"]
+        advance_interval_polls = 5
+
+    class _Nav:
+        phases = []
+
+    with _patch_pilot_session(session):
+        reached = await s6.replay_navigation(
+            "http://x", _Nav(), object(), advance_behavior=_AB(),
+            headless=True, max_polls=50,
+        )
+    assert reached is True
+    assert "Enter" in pressed, "replay must press advance_keys to clear the interstitial"

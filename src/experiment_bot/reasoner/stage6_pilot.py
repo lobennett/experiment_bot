@@ -12,6 +12,7 @@ target the same fields Stage 1 produced.
 """
 from __future__ import annotations
 
+import asyncio
 import copy
 import json
 import logging
@@ -252,21 +253,39 @@ Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
 """
 
 
-async def replay_navigation(url, navigation, lookup, *, headless=True, viewport=None,
+async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
+                            headless=True, viewport=None,
                             max_polls=_NO_MATCH_EARLY_STOP) -> bool:
     """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
     serially via the unified PilotSession engine (exactly as the executor's entry
-    nav does), then poll for a trial stimulus. Returns True iff a trial stimulus
-    was reached. This makes a Stage-6 PASS imply an executor-replayable card.
+    nav does), then poll for a trial stimulus WHILE pressing advance_keys
+    periodically — mirroring the executor's trial loop, which presses advance keys
+    when no stimulus matches (e.g. to dismiss a "press enter to begin practice"
+    interstitial that nav legitimately leaves the bot on). Returns True iff a
+    trial stimulus is reached.
+
+    The advance-key behavior is load-bearing: nav phases get the bot to the brink
+    of the trial block, but the final transition into trials is driven by the
+    executor's trial-loop advance behavior, NOT by a baked-in nav phase (response
+    and block-start keys are dynamic). Without modeling it here the replay would
+    be STRICTER than the executor and reject cards the executor can actually run.
     """
+    advance_keys = list(getattr(advance_behavior, "advance_keys", []) or [])
+    interval = getattr(advance_behavior, "advance_interval_polls", 10) or 10
     async with PilotSession(headless=headless, viewport=viewport) as session:
         await session.goto(url)
         for phase in navigation.phases:
             await session.try_phase(phase)  # skip-on-fail, like the executor
+        misses = 0
         for _ in range(max_polls):
             probe = await session.probe_stimulus(lookup)
             if probe.match is not None:
                 return True
+            misses += 1
+            if advance_keys and misses % interval == 0:
+                for k in advance_keys:
+                    await session.press(k)
+            await asyncio.sleep(0.05)  # 50ms between polls, let DOM transition settle
         return False
 
 
@@ -617,6 +636,7 @@ async def run_stage6(
                 from experiment_bot.core.stimulus import StimulusLookup as _StimulusLookup
                 reached = await replay_navigation(
                     bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
+                    advance_behavior=replay_config.runtime.advance_behavior,
                     headless=headless, viewport=replay_config.runtime.timing.viewport,
                 )
                 if not reached:

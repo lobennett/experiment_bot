@@ -62,7 +62,9 @@ Spend ~15–30 minutes on orientation. Don't skip this; it prevents misinterpret
 - `docs/scope-of-validity.md` — what the framework does and does not claim (reviewer-facing spec).
 
 ### Sub-project trajectory
-Read the SP-results docs in `docs/` in numerical order. Each documents what the framework could and could not do at that point and what failure modes it introduced or resolved. The latest SP-results doc is the framework's current self-assessment.
+- `docs/validation-results.md` — the framework's current self-assessment (latest results and failure modes). Read this in place of the per-SP results docs.
+- `docs/scope-of-validity.md` — the claims and limits (L1–L20 list). Already in the project documents list above; re-read the limits section specifically here.
+- `CLAUDE.md` § "Sub-project history" — chronological record of what each SP shipped, failed, and deferred. Use this to understand the trajectory without reading individual SP docs.
 
 ### Code orientation
 - `src/experiment_bot/reasoner/` — the offline pipeline that produces TaskCards.
@@ -71,7 +73,7 @@ Read the SP-results docs in `docs/` in numerical order. Each documents what the 
 - `src/experiment_bot/effects/handlers.py` — generic behavioral mechanisms.
 
 ### What to skim, not read
-SP-results docs older than the last three SPs are mostly historical context — skim for the failure modes that were not closed, not for the resolutions.
+The CLAUDE.md "Sub-project history" section covers the full trajectory. Individual SP-results docs have been consolidated into `docs/validation-results.md`; you do not need to locate per-SP files.
 
 ---
 
@@ -80,10 +82,10 @@ SP-results docs older than the last three SPs are mostly historical context — 
 Target **4–8 hours of reviewer effort**. If you find a fatal gap in the first hour, write it up and stop. Don't keep digging for more.
 
 **Minimum viable review (≈3 hours):**
-1. Read the abstract, CLAUDE.md, scope-of-validity, and the two most recent SP-results docs (45 min).
+1. Read the abstract, CLAUDE.md, scope-of-validity, and `docs/validation-results.md` (45 min).
 2. State your prior: which of C1–C5 do you expect to hold, which to fail, before running anything. One paragraph. (15 min.)
 3. Pick **one** held-out paradigm the project documentation has never mentioned. Regenerate the TaskCard and run 5 sessions. (60–90 min wall time, mostly waiting.)
-4. Run the validator and the keypress audit on the output. (15 min.)
+4. Run the validator and the alignment audit (`scripts/audit_alignment.py`) on the output. (15 min.)
 5. Run **Probes A, C, and G** from §7. (30 min.)
 6. Write findings per §8. (30 min.)
 
@@ -128,9 +130,9 @@ For each paradigm you test:
    ```
    If no norms file exists for your paradigm class, the validator returns descriptive-only metrics. **Note this explicitly in your findings** — the claim that the bot is humanlike on that paradigm is unfalsifiable without norms.
 
-6. **Run the keypress audit:**
+6. **Run the per-trial alignment audit:**
    ```bash
-   uv run python scripts/keypress_audit.py --label <output-label> --output-dir output
+   uv run python scripts/audit_alignment.py --label <output-label> --output-dir output
    ```
 
 7. **Read `bot_log.json` directly** for a handful of trials. Compare to the platform's `experiment_data.csv` row-by-row.
@@ -182,7 +184,7 @@ Probe of behavioral fidelity at the per-trial level. For 50 trials of the held-o
 - Did `intended_error=True` trials correspond to `correct_trial=0`?
 - When the bot intended a specific key, did the platform record that key?
 
-Discrepancies at each layer point to different failure modes (the SP7 doc taxonomy distinguishes them; refer to that doc rather than re-deriving the taxonomy).
+Discrepancies at each layer point to different failure modes (the taxonomy of bot→page→platform→expected layers is documented in `docs/validation-results.md`; refer to that rather than re-deriving it).
 
 ### Probe D — Off-axis behavioral signatures (deep-dive)
 The validator computes a fixed set of metrics. The adversarial version of "is the bot humanlike" looks at signatures the validator *doesn't* check, which are exactly the signatures the bot has had no incentive to match. Suggested off-axis diagnostics:
@@ -218,7 +220,7 @@ Check:
 Cost: 30–60 min if you know what to look for. Output: a list of forensic tells with severity ratings. **If the bot fails Probe G badly, escalate this to a top-line finding** — the threat model claim has a forensic floor that the behavioral claim sits on top of.
 
 ### Probe H — Failure-mode reverse-engineering (conditional)
-Only run this if you've read the SP3 → SP_latest results docs carefully. For each failure mode those docs claim was resolved, verify the resolution holds on your held-out paradigm. For each residual the docs documented, check whether it has grown or stayed bounded.
+Only run this if you've read `docs/validation-results.md` carefully. For each failure mode that doc claims was resolved, verify the resolution holds on your held-out paradigm. For each residual documented there, check whether it has grown or stayed bounded.
 
 ### Probe I — Code-design audit (probes C4 and C5)
 Walk the codebase looking for violations of the task-agnosticism and minimal-prior-knowledge claims.
@@ -275,7 +277,9 @@ Update this charter when:
 
 ## 10. Latest framework state (auto-updated)
 
-**Last reviewed at:** sp12-complete (SP12: codebase simplification + antagonistic audit + runtime visibility + post-cleanup N=5 re-measurement; src/experiment_bot/ shrank by 1,068 LOC across 21 commits from the SP12 baseline)
+**Last reviewed at:** sp16-complete
+
+**Maintenance log:** 2026-05-30 — docs consolidated (SP12–SP16); per-SP results docs replaced by `docs/validation-results.md`; broken pointers in reading list, Probe C, and Probe H updated; deleted keypress_audit script replaced by `scripts/audit_alignment.py`.
 
 **Validator pillars currently implemented:** rt_distribution, individual_differences, sequential.
 

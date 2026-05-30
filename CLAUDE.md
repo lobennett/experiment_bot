@@ -411,12 +411,6 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 
 - `docs/scope-of-validity.md` — what the framework claims and does not
   claim. The reviewer-facing spec.
-- `docs/generalization-audit.md` — original audit, all 13 findings
-  resolved.
-- `docs/effect-library-audit.md` — the audit that motivated the
-  generic-mechanism refactor.
-- `docs/cse-sign-flip-diagnostic.md` — diagnostic that surfaced the
-  dead-code-CSE issue.
 - `docs/clean-run-2026-05-06.md` — provenance for the current
   shareable dataset.
 - `docs/heldout-nback-test.md` — held-out generalization test result.

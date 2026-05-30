@@ -14,6 +14,20 @@ def _tc_dict_with_dist(value, lit_range, sd):
     }
 
 
+def test_sample_ignores_non_numeric_value_keys():
+    """A stray non-numeric key inside `value` (e.g. a prose rationale the Reasoner
+    sometimes nests there) is skipped, not float()'d into a crash."""
+    tc = _tc_dict_with_dist(
+        value={"mu": 480, "sigma": 45, "tau": 130,
+               "rationale": "Manual 3-choice Stroop congruent RTs near 600 ms..."},
+        lit_range=None,
+        sd=None,
+    )
+    out = sample_session_params(tc, seed=1)
+    assert set(out["go"].keys()) == {"mu", "sigma", "tau"}
+    assert out["go"]["mu"] == 480.0
+
+
 def test_sample_returns_value_when_sd_zero():
     tc = _tc_dict_with_dist(
         value={"mu": 480, "sigma": 60, "tau": 80},

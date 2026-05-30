@@ -19,6 +19,11 @@ def sample_session_params(taskcard: dict, seed: int) -> dict:
         sd = dist.get("between_subject_sd") or {}
         sampled[cond] = {}
         for param, mean in v.items():
+            # `value` carries only numeric sub-parameters (mu/sigma/tau/...). The
+            # Reasoner occasionally nests a stray non-numeric key (e.g. a prose
+            # `rationale`) inside it; skip anything non-numeric rather than crash.
+            if isinstance(mean, bool) or not isinstance(mean, (int, float)):
+                continue
             spread = float(sd.get(param, 0))
             draw = rng.normal(float(mean), spread) if spread > 0 else float(mean)
             if param in r:

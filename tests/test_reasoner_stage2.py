@@ -1,7 +1,28 @@
 import pytest
 from unittest.mock import AsyncMock
-from experiment_bot.reasoner.stage2_behavioral import run_stage2
+from experiment_bot.reasoner.stage2_behavioral import run_stage2, _sanitize_distribution_values
 from experiment_bot.llm.protocol import LLMResponse
+
+
+def test_sanitize_distribution_values_strips_rationale_in_value():
+    """A prose `rationale` nested inside `value` is removed (value stays numeric-only)
+    and folded into the distribution-level rationale when that is empty."""
+    rd = {
+        "congruent": {
+            "value": {"mu": 480, "sigma": 45, "tau": 130,
+                      "rationale": "congruent RTs near 600 ms..."},
+            "rationale": "",
+        },
+        "incongruent": {  # already clean + has a rationale -> untouched
+            "value": {"mu": 520, "sigma": 50, "tau": 140},
+            "rationale": "interference shifts the mean up",
+        },
+    }
+    _sanitize_distribution_values(rd)
+    assert rd["congruent"]["value"] == {"mu": 480, "sigma": 45, "tau": 130}
+    assert rd["congruent"]["rationale"] == "congruent RTs near 600 ms..."  # folded in
+    assert rd["incongruent"]["value"] == {"mu": 520, "sigma": 50, "tau": 140}
+    assert rd["incongruent"]["rationale"] == "interference shifts the mean up"
 
 
 STAGE2_RESPONSE = """

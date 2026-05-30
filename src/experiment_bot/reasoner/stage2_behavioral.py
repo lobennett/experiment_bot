@@ -138,6 +138,30 @@ def _strip_failing_slots(partial: dict, failing_slots: list[str]) -> dict:
     return out
 
 
+def _sanitize_distribution_values(response_distributions: dict) -> None:
+    """Drop non-numeric keys the LLM sometimes nests inside a distribution's
+    `value` dict (e.g. a prose `rationale`), which otherwise crash float() in
+    sample_session_params. `value` must hold only numeric sub-parameters
+    (mu/sigma/tau/...). validate.py does not yet schema-check response_distributions
+    (it is prospective), so this is the guard that keeps persisted cards clean. A
+    stray `rationale` is folded into the distribution-level rationale if empty.
+    Mutates in place.
+    """
+    if not isinstance(response_distributions, dict):
+        return
+    for cond in response_distributions.values():
+        if not isinstance(cond, dict) or not isinstance(cond.get("value"), dict):
+            continue
+        val = cond["value"]
+        stray = val.get("rationale")
+        cond["value"] = {
+            k: v for k, v in val.items()
+            if isinstance(v, (int, float)) and not isinstance(v, bool)
+        }
+        if isinstance(stray, str) and stray and not cond.get("rationale"):
+            cond["rationale"] = stray
+
+
 async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningStep]:
     """Stage 2: behavioral parameters as point estimates with rationale.
 
@@ -284,6 +308,7 @@ async def run_stage2(client: LLMClient, partial: dict) -> tuple[dict, ReasoningS
             continue
 
     result = candidate
+    _sanitize_distribution_values(result.get("response_distributions", {}))
     n_conditions = len(candidate.get("response_distributions", {}))
     n_effects_enabled = sum(
         1 for e in candidate.get("temporal_effects", {}).values()

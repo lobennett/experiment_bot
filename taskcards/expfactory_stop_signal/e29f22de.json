@@ -1,0 +1,487 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "bf7afa145dc2e9a2178cf5ef0805dd053e43472006489b312eb7c9e2131a78c4",
+    "scraper_version": "1.0.0",
+    "source_sha256": "ab8924a463e49ec06c08b1cb04fd3a7275910aa61162ab99ee1aa7e442b40a25",
+    "timestamp": "2026-05-30T00:49:17.892140+00:00",
+    "taskcard_sha256": "e29f22debfff7cf9836f85769f6507715f3d5abbfe8d5fe74dad5d4794e99cbd"
+  },
+  "task": {
+    "name": "stop_signal_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "expfactory",
+    "paradigm_classes": [
+      "speeded_choice",
+      "response_inhibition"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "stop",
+      "description": "Stop trial: a stop signal (star image) is rendered around the shape, instructing the participant to withhold the response.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-stop-signal-SS')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "go",
+      "description": "Go trial: a shape (circle or square) is shown without a stop signal; respond with the key mapped to that shape (counterbalanced by group_index).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-stop-signal-stimulus img')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "go",
+        "response_key_js": "(() => { if (typeof window.correct_response !== 'undefined' && window.correct_response !== null) return window.correct_response; const img = document.querySelector('#jspsych-stop-signal-stimulus img'); if (!img) return null; const src = img.src || ''; const isCircle = src.includes('circle'); const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const isLowGroup = (g >= 0 && g <= 4); return isCircle ? (isLowGroup ? ',' : '.') : (isLowGroup ? '.' : ','); })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || (!!document.body && (document.body.innerText || '').includes('Experiment Complete'))",
+      "test": "!!document.querySelector('#jspsych-stop-signal-stimulus')",
+      "loading": "document.readyState !== 'complete' || !document.querySelector('#jspsych-content')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "(() => { const c = document.querySelector('#jspsych-content'); return !!document.querySelector('#jspsych-stop-signal-stimulus') && !!c && /comma key|period key|star appears/i.test(c.innerText || ''); })()",
+      "feedback": "(() => { const c = document.querySelector('#jspsych-content'); if (!c) return false; const t = c.innerText || ''; if (document.querySelector('#jspsych-stop-signal-stimulus') || document.querySelector('#jspsych-instructions-next')) return false; return /press\\s+.?enter.?\\s+to\\s+(begin|continue)/i.test(t) || t.includes('read your feedback') || /You have completed/i.test(t) || /Correct!|Incorrect|Respond Faster|There was a star/.test(t); })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 400,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-stop-signal-stimulus')",
+      "trial_context_js": "(() => { const img = document.querySelector('#jspsych-stop-signal-stimulus img'); const ss = document.querySelector('#jspsych-stop-signal-SS'); const shape = img ? (img.src.includes('circle') ? 'circle' : (img.src.includes('square') ? 'square' : '?')) : '?'; return (ss ? 'stop' : 'go') + ':' + shape; })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 2000,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 50.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "stop",
+      "failure_rt_key": "go",
+      "failure_rt_cap_fraction": 0.5,
+      "inhibit_wait_ms": 1250
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); const t = (el ? el.innerText : '').toLowerCase(); let m = t.match(/press the ([a-z]) key/); if (m) return m[1]; if (t.includes('second to last')) return 'y'; if (t.includes('third to last')) return 'x'; if (t.includes('last letter')) return 'z'; if (t.includes('first letter')) return 'a'; if (t.includes('second letter')) return 'b'; if (t.includes('third letter')) return 'c'; return null; })()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "go": "dynamic",
+      "stop": "withhold"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "go": 0.96,
+      "stop": 0.5
+    },
+    "omission_rate": {
+      "go": 0.02,
+      "stop": 0.0
+    }
+  },
+  "response_distributions": {
+    "go": {
+      "value": {
+        "mu": 425,
+        "sigma": 55,
+        "tau": 95
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1111/psyp.14260",
+          "authors": "Yang, Xiao, Spangler, Derek P., Jennings, J. Richard, Friedman, Bruce H.",
+          "year": 2023,
+          "title": "Cardiac timing and threatening stimuli influence response inhibition and <scp>ex\u2010Gaussian</scp> parameters of reaction time in a Go/No\u2010go task",
+          "confidence": "medium",
+          "rationale": "Yang et al. (2023) fit the ex-Gaussian model to Go-trial RTs in a Go/No-go task and state that mu indexes response speed, supporting mu as the central-tendency component of the go RT distribution. The abstract reports no numeric mu value, so 425 ms remains a model-prior estimate.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "AbstractSensorimotor responses vary as a function of the cardiac cycle phase. These effects, known as cardiac cycle time effects, have been explained by the inhibition of cardiac afferent signals on information processing. However, the validity of cardiac cycle time effects is challenged by mixed findings. Factors such as current information processing and affective context may modulate cardiac cycle time effects and account for inconsistencies in the literature. The current study examines the i",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.129049+00:00"
+        },
+        {
+          "doi": "10.20982/tqmp.04.1.p035",
+          "authors": "Yves Lacouture, Denis Cousineau",
+          "year": 2008,
+          "title": "How to use MATLAB to fit the ex-Gaussian and other probability functions to a distribution of response times",
+          "confidence": "medium",
+          "rationale": "Lacouture & Cousineau (2008) establish maximum-likelihood fitting of the ex-Gaussian and validate mu/sigma/tau as the standard decomposition of RT distributions; methodological support for parameterizing go RTs with a mu term. No value asserted in the abstract.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "This article discusses how to characterize response time (RT) frequency distributions in terms of probability functions and how to implement the necessary analysis tools using MATLAB. The first part of the paper discusses the general principles of maximum likelihood estimation. A detailed implementation that allows fitting the popular ex-Gaussian function is then presented followed by the results of a Monte Carlo study that shows the validity of the proposed approach. Although the main focus is ",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.115016+00:00"
+        },
+        {
+          "doi": "10.1101/2023.05.29.542684",
+          "authors": "Manjarrez, Elias, DeLuna-Castruita, Angel, Lizarraga-Cortes, Victoria, Flores, Amira",
+          "year": 2023,
+          "title": "Similarity index of ex-Gaussian reaction time signatures",
+          "confidence": "low",
+          "rationale": "Manjarrez et al. (2023) describe mu, sigma, and tau as the canonical ex-Gaussian RT parameters used to characterize cognitive RT series, supporting mu as a legitimate parameter of the go distribution. No magnitude given.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "Abstract\n                In psychology and cognitive neuroscience, reaction time (RT) series and their ex-Gaussian distributions are commonly used to explore the time course of cognitive processes. This study investigated the hypothesis that successive triads of ex-Gaussian mu, sigma, and tau parameters of reaction-time variability across time can be used to construct a geometrical object we termed ex-Gaussian RT-signature, which could help characterize interindividual differences between congru",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.133709+00:00"
+        }
+      ],
+      "rationale": "Go-trial RTs in stop-signal tasks are well fit by the ex-Gaussian and run slower than simple choice RT (mean ~500-540 ms) because participants strategically slow responding to balance the go/stop tradeoff. mu=425, sigma=55, tau=95 give a mean of ~520 ms with the characteristic right-skewed tail (tau) of speeded choice responses.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      },
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "stop": {
+      "value": {
+        "mu": 360,
+        "sigma": 50,
+        "tau": 70
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.20982/tqmp.04.1.p035",
+          "authors": "Yves Lacouture, Denis Cousineau",
+          "year": 2008,
+          "title": "How to use MATLAB to fit the ex-Gaussian and other probability functions to a distribution of response times",
+          "confidence": "low",
+          "rationale": "Lacouture & Cousineau (2008) establish the ex-Gaussian mu as the standard central-tendency parameter for any RT distribution, supporting use of mu for the stop-condition distribution. The abstract gives no stop-process-specific value, so 360 ms is a model prior.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "This article discusses how to characterize response time (RT) frequency distributions in terms of probability functions and how to implement the necessary analysis tools using MATLAB. The first part of the paper discusses the general principles of maximum likelihood estimation. A detailed implementation that allows fitting the popular ex-Gaussian function is then presented followed by the results of a Monte Carlo study that shows the validity of the proposed approach. Although the main focus is ",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.098298+00:00"
+        },
+        {
+          "doi": "10.7554/elife.46323",
+          "authors": "Frederick Verbruggen, Adam R. Aron, Guido P. H. Band, Christian Beste, Patrick G. Bissett, Adam T. Brockett, Joshua W. Brown, Samuel R. Chamberlain, Chris Chambers, Hans Colonius, Lorenza S. Colzato, Brian D. Corneil, James P. Coxon, Annie Dupuis, Dawn M. Eagle, Hugh Garavan, Ian Greenhouse, Andrew Heathcote, Ren\u00e9 J. Huster, Sara Jahfari, J. Leon Kenemans, Inge Leunissen, Chiang\u2010Shan R. Li, Gordon D. Logan, D\u00f3ra Matzke, Sharon Morein\u2010Zamir, Aditya Murthy, Martin Par\u00e9, Russell A. Poldrack, K. Richard Ridderinkhof, Trevor W. Robbins, Matthew R. Roesch, Katya Rubia, Russell Schachar, Jeffrey D. Schall, Ann\u2010Kathrin Stock, Nicole C. Swann, Katharine N. Thakkar, Maurits W. van der Molen, Luc Vermeylen, Matthijs Vink, Jan R. Wessel, Robert Whelan, Bram B. Zandbelt, C. Nico Boehler",
+          "year": 2019,
+          "title": "A consensus guide to capturing the ability to inhibit actions and impulsive behaviors in the stop-signal task",
+          "confidence": "low",
+          "rationale": "Verbruggen et al. (2019) consensus guide situates the stop condition within the stop-signal task and discusses proper data analysis, supporting that a separate stop process/distribution is the object of measurement. It provides no RT-distribution parameter values, so the numeric estimate is not grounded.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "Response inhibition is essential for navigating everyday life. Its derailment is considered integral to numerous neurological and psychiatric disorders, and more generally, to a wide range of behavioral and health problems. Response-inhibition efficiency furthermore correlates with treatment outcome in some of these conditions. The stop-signal task is an essential tool to determine how quickly response inhibition is implemented. Despite its apparent simplicity, there are many features (ranging f",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.203036+00:00"
+        }
+      ],
+      "rationale": "On failed-inhibition (signal-respond) stop trials the race model predicts RTs faster than the go distribution, since the response wins the race against the stop process before the stop signal can suppress it. mu/sigma/tau are scaled down from the go distribution (mean ~430 ms) to reflect this faster signal-respond population. At runtime these commission RTs are additionally drawn/capped via the trial_interrupt mechanism (failure_rt_cap_fraction=0.5); this distribution supplies the underlying faster shape.",
+      "sensitivity": {
+        "mu": "medium",
+        "sigma": "low",
+        "tau": "low"
+      },
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    }
+  },
+  "temporal_effects": {
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": [
+          {
+            "event": "error",
+            "slowing_ms_min": 20,
+            "slowing_ms_max": 50
+          },
+          {
+            "event": "interrupt",
+            "slowing_ms_min": 30,
+            "slowing_ms_max": 70,
+            "exclusive_with_prior_triggers": true
+          }
+        ]
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.3758/s13414-011-0243-2",
+          "authors": "Gilles Dutilh, Joachim Vandekerckhove, Birte U. Forstmann, Emmanuel Keuleers, Marc Brysbaert, Eric\u2010Jan Wagenmakers",
+          "year": 2011,
+          "title": "Testing theories of post-error slowing",
+          "confidence": "medium",
+          "rationale": "Dutilh et al. (2011) show that people slow down after an error and that this post-error slowing reflects an increase in response caution (response-monitoring account), directly supporting an 'error' trigger that produces transient slowing on the subsequent trial. The abstract gives no magnitude in ms, so the 20-50 ms slowing window is a model-prior estimate; the 'interrupt' trigger is not specifically addressed by this abstract.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "People tend to slow down after they make an error. This phenomenon, generally referred to as post-error slowing, has been hypothesized to reflect perceptual distraction, time wasted on irrelevant processes, an a priori bias against the response made in error, increased variability in a priori bias, or an increase in response caution. Although the response caution interpretation has dominated the empirical literature, little research has attempted to test this interpretation in the context of a f",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:48:31.126846+00:00"
+        }
+      ],
+      "rationale": "Two forms of post-event slowing are documented in the stop-signal literature. (1) Post-error slowing after commission errors (responding when one should have stopped) \u2014 a general adaptive control adjustment, magnitude ~20-50 ms. (2) Post-stop-signal slowing: RTs on the trial following ANY stop trial are slowed (proactive caution after the stop signal interrupts), typically somewhat larger (~30-70 ms). The 'interrupt' trigger maps to the stop trial (trial_interrupt.detection_condition='stop'); exclusive_with_prior_triggers=true prevents double-counting on a trial that is both a failed stop (error) and a stop trial, applying the larger interrupt adjustment only.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "lag1_pair_modulation": {
+      "value": {
+        "enabled": false,
+        "modulation_table": []
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Deliberately disabled. lag1_pair_modulation captures sequential modulation along a congruency dimension (conflict-sequence effects). This paradigm has no congruency manipulation \u2014 conditions are go vs. stop, not congruent vs. incongruent \u2014 so there is no documented lag-1 congruency-transition effect to configure. Enabling it would impose an effect the literature does not support for response-inhibition tasks (G3).",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 45,
+      "rt_condition_sd_ms": 15,
+      "sigma_tau_range": [
+        0.85,
+        1.2
+      ],
+      "accuracy_sd": 0.03,
+      "omission_sd": 0.015,
+      "accuracy_clip_range": [
+        0.85,
+        1.0
+      ],
+      "omission_clip_range": [
+        0.0,
+        0.08
+      ]
+    },
+    "rationale": "Between-subject variability for a healthy adult sample on a standard speeded-choice/inhibition task. rt_mean_sd_ms=45 reflects individual differences in baseline go-RT (mean ~520 ms); rt_condition_sd_ms=15 allows modest per-condition shift. sigma_tau_range jitters the ex-Gaussian spread/tail parameters by \u00b115-20%. accuracy_sd=0.03 around the high go accuracy (~0.96), clipped to [0.85, 1.0] since go accuracy is near ceiling. omission_sd=0.015 with omission clipped to [0.0, 0.08]. Default (non-atypical) clip ranges are appropriate: go performance is near ceiling and stop inhibition is staircased to ~50% by the SSD algorithm rather than by individual ability, so no perceptual-threshold or slow-paced clip override is needed.",
+    "citations": [
+      {
+        "doi": "10.1037/0033-2909.86.3.446",
+        "authors": "Roger Ratcliff",
+        "year": 1979,
+        "title": "Group reaction time distributions and an analysis of distribution statistics.",
+        "rationale": "Ratcliff (1979) develops methods for constructing group RT distributions from individual subjects precisely because RT distributions differ across subjects, supporting the existence of between-subject variability in mean RT that this jitter parameter models. The abstract reports no SD magnitude, so 45 ms is a model-prior estimate.",
+        "confidence": "low",
+        "abstract_snippet": "A method of obtaining an average reaction time distribution for a group of subjects is described. The method is particularly useful for cases in which data from many subjects are available but there are only 10-20 reaction time observations per subject cell. Essentially, reaction times for each subject are organized in ascending order, and quantiles are calculated. The quantiles are then averaged over subjects to give group quantiles (cf. Vincent learning curves). From the group quantiles, a gro",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-30T00:48:31.110380+00:00"
+      }
+    ],
+    "value_source": "model_prior",
+    "sensitivity": {
+      "rt_mean_sd_ms": "medium",
+      "rt_condition_sd_ms": "low",
+      "sigma_tau_range": "low",
+      "accuracy_sd": "low",
+      "omission_sd": "low",
+      "accuracy_clip_range": "low",
+      "omission_clip_range": "low"
+    }
+  },
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'stop_signal_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage2_behavioral",
+      "input_hash": "",
+      "inference": "Produced ex-Gaussian (mu/sigma/tau) parameters for 2 conditions; enabled 1 temporal effects. Self-corrected after 1 schema-validation refinement(s).",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage3_citations",
+      "input_hash": "",
+      "inference": "Canonical-recall: proposed=10, title-verified=8, search_hits=75, pool=30; 4 parameters cited, 1 abstained, 0 values revised within grounded ranges.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage4_doi_verify",
+      "input_hash": "",
+      "inference": "Submitted 7 citations to OpenAlex; 7 verified (100%), 0 skipped (malformed). Verification now includes a title-match check.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage5_sensitivity",
+      "input_hash": "",
+      "inference": "Tagged sensitivity on 13 parameters; 2 are high-sensitivity.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    }
+  ],
+  "pilot_validation": {}
+}

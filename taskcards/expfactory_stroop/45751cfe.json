@@ -1,0 +1,700 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "bf7afa145dc2e9a2178cf5ef0805dd053e43472006489b312eb7c9e2131a78c4",
+    "scraper_version": "1.0.0",
+    "source_sha256": "9cd292b75353a167e49fa1253ee37976402b7befb2c620e2b46fa057936be60f",
+    "timestamp": "2026-05-30T00:38:35.729517+00:00",
+    "taskcard_sha256": "45751cfea3e94629c6073d6125b5e805f7e6297a382cecf9dc404729362a37a0"
+  },
+  "task": {
+    "name": "stroop_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded_choice",
+      "conflict"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "congruent",
+      "description": "Color word printed in ink that matches the word (e.g. 'red' in red ink).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; if (window.currStim && window.currStim.data && window.currStim.data.condition) return window.currStim.data.condition === 'congruent'; const w=(el.textContent||'').trim().toLowerCase(); const c=(el.style&&el.style.color)||getComputedStyle(el).color||''; let ink=''; if(c.indexOf('255, 112, 112')!==-1||c.toLowerCase().indexOf('#ff7070')!==-1)ink='red'; else if(c.indexOf('112, 112, 255')!==-1||c.toLowerCase().indexOf('#7070ff')!==-1)ink='blue'; else if(c.indexOf('112, 255, 112')!==-1||c.toLowerCase().indexOf('#70ff70')!==-1)ink='green'; return ink!=='' && w===ink; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "congruent",
+        "response_key_js": "(() => { if (window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') return window.currStim.data.correct_response; const el = document.querySelector('.stroop-stim'); if (!el) return null; const c=(el.style&&el.style.color)||getComputedStyle(el).color||''; let ink=''; if(c.indexOf('255, 112, 112')!==-1||c.toLowerCase().indexOf('#ff7070')!==-1)ink='red'; else if(c.indexOf('112, 112, 255')!==-1||c.toLowerCase().indexOf('#7070ff')!==-1)ink='blue'; else if(c.indexOf('112, 255, 112')!==-1||c.toLowerCase().indexOf('#70ff70')!==-1)ink='green'; if(!ink) return null; const g=(window.efVars && typeof window.efVars.group_index==='number')?window.efVars.group_index:1; let m; if(g>=0&&g<=2)m={red:',',blue:'.',green:'/'}; else if(g>=3&&g<=5)m={red:',',blue:'/',green:'.'}; else if(g>=6&&g<=8)m={red:'/',blue:',',green:'.'}; else if(g>=9&&g<=11)m={red:'/',blue:'.',green:','}; else m={red:'.',blue:'/',green:','}; return m[ink]; })()"
+      }
+    },
+    {
+      "id": "incongruent",
+      "description": "Color word printed in ink that does NOT match the word (e.g. 'red' in green ink).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('.stroop-stim'); if (!el) return false; if (window.currStim && window.currStim.data && window.currStim.data.condition) return window.currStim.data.condition === 'incongruent'; const w=(el.textContent||'').trim().toLowerCase(); const c=(el.style&&el.style.color)||getComputedStyle(el).color||''; let ink=''; if(c.indexOf('255, 112, 112')!==-1||c.toLowerCase().indexOf('#ff7070')!==-1)ink='red'; else if(c.indexOf('112, 112, 255')!==-1||c.toLowerCase().indexOf('#7070ff')!==-1)ink='blue'; else if(c.indexOf('112, 255, 112')!==-1||c.toLowerCase().indexOf('#70ff70')!==-1)ink='green'; return ink!=='' && w!==ink; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "incongruent",
+        "response_key_js": "(() => { if (window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') return window.currStim.data.correct_response; const el = document.querySelector('.stroop-stim'); if (!el) return null; const c=(el.style&&el.style.color)||getComputedStyle(el).color||''; let ink=''; if(c.indexOf('255, 112, 112')!==-1||c.toLowerCase().indexOf('#ff7070')!==-1)ink='red'; else if(c.indexOf('112, 112, 255')!==-1||c.toLowerCase().indexOf('#7070ff')!==-1)ink='blue'; else if(c.indexOf('112, 255, 112')!==-1||c.toLowerCase().indexOf('#70ff70')!==-1)ink='green'; if(!ink) return null; const g=(window.efVars && typeof window.efVars.group_index==='number')?window.efVars.group_index:1; let m; if(g>=0&&g<=2)m={red:',',blue:'.',green:'/'}; else if(g>=3&&g<=5)m={red:',',blue:'/',green:'.'}; else if(g>=6&&g<=8)m={red:'/',blue:',',green:'.'}; else if(g>=9&&g<=11)m={red:'/',blue:'.',green:','}; else m={red:'.',blue:'/',green:','}; return m[ink]; })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "(/Experiment Complete/i.test((document.body&&document.body.innerText)||'') || !!document.getElementById('finished_message') || /Thanks for completing this task/i.test((document.body&&document.body.innerText)||''))",
+      "test": "(window.expStage === 'test')",
+      "loading": "!document.querySelector('#jspsych-content')",
+      "instructions": "(!!document.querySelector('.jspsych-instructions-nav') || !!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('#jspsych-fullscreen-btn'))",
+      "practice": "(window.expStage === 'practice')",
+      "feedback": "(/Correct!|Incorrect|Respond Faster!|blocks of trials|begin practice|read your feedback|begin the test portion/i.test((document.body&&document.body.innerText)||''))",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 300,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 3000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('.stroop-stim')",
+      "trial_context_js": "(window.expStage || '')",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 7.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const t = (el.textContent || '').toLowerCase(); const m = t.match(/press the\\s+([a-z])\\s+key/); if (m) return m[1]; if (t.indexOf('third to last letter') !== -1) return 'x'; if (t.indexOf('second to last letter') !== -1) return 'y'; if (t.indexOf('last letter') !== -1) return 'z'; if (t.indexOf('first letter') !== -1) return 'a'; if (t.indexOf('second letter') !== -1) return 'b'; if (t.indexOf('third letter') !== -1) return 'c'; return null; })()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "congruent": 0.98,
+      "incongruent": 0.94
+    },
+    "omission_rate": {
+      "congruent": 0.008,
+      "incongruent": 0.015
+    }
+  },
+  "response_distributions": {
+    "congruent": {
+      "value": {
+        "mu": 460,
+        "sigma": 40,
+        "tau": 140
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1037/0033-2909.109.2.163",
+          "authors": "Colin M. MacLeod",
+          "year": 1991,
+          "title": "Half a century of research on the Stroop effect: An integrative review.",
+          "confidence": "medium",
+          "rationale": "MacLeod's integrative review establishes the Stroop effect as a robust, well-replicated phenomenon in which congruent color-word trials are responded to faster than incongruent ones; this anchors the congruent condition as the lower-RT baseline whose central tendency mu represents.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "The literature on interference in the Stroop Color-Word Task, covering over 50 years and some 400 studies, is organized and reviewed. In so doing, a set of 18 reliable empirical findings is isolated that must be captured by any successful theory of the Stroop effect. Existing theoretical positions are summarized and evaluated in view of this critical evidence and the 2 major candidate theories\u2014rel-ative speed of processing and automaticity of reading\u2014are found to be wanting. It is concluded that",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.827719+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.86.3.446",
+          "authors": "Roger Ratcliff",
+          "year": 1979,
+          "title": "Group reaction time distributions and an analysis of distribution statistics.",
+          "confidence": "low",
+          "rationale": "Ratcliff treats the ex-Gaussian as an explicit distribution function fit to RT data and argues for describing RT by distribution functions rather than moments; this supports modeling the congruent RT location with an ex-Gaussian mu parameter, though the abstract gives no numeric value.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "A method of obtaining an average reaction time distribution for a group of subjects is described. The method is particularly useful for cases in which data from many subjects are available but there are only 10-20 reaction time observations per subject cell. Essentially, reaction times for each subject are organized in ascending order, and quantiles are calculated. The quantiles are then averaged over subjects to give group quantiles (cf. Vincent learning curves). From the group quantiles, a gro",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.819988+00:00"
+        },
+        {
+          "doi": "10.1101/2023.05.29.542684",
+          "authors": "Manjarrez, Elias, DeLuna-Castruita, Angel, Lizarraga-Cortes, Victoria, Flores, Amira",
+          "year": 2023,
+          "title": "Similarity index of ex-Gaussian reaction time signatures",
+          "confidence": "low",
+          "rationale": "Manjarrez et al. characterize RT variability via ex-Gaussian triads of mu, sigma, and tau across congruent and incongruent stimuli, confirming tau as a meaningful per-condition parameter for congruent trials; no numeric tau is reported in the abstract.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "Abstract\n                In psychology and cognitive neuroscience, reaction time (RT) series and their ex-Gaussian distributions are commonly used to explore the time course of cognitive processes. This study investigated the hypothesis that successive triads of ex-Gaussian mu, sigma, and tau parameters of reaction-time variability across time can be used to construct a geometrical object we termed ex-Gaussian RT-signature, which could help characterize interindividual differences between congru",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.802431+00:00"
+        }
+      ],
+      "rationale": "Manual-response color-word Stroop RTs are reliably fit by an ex-Gaussian (Heathcote, Popiel & Mewhort, 1991). Congruent mean \u2248 mu+tau \u2248 600 ms is typical for a 3-alternative keypress color-identification task in healthy adults. mu (460) captures the leading edge of the Gaussian component; sigma (40) the modest Gaussian spread; tau (140) the right-skewed exponential tail characteristic of choice-RT distributions.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      },
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "incongruent": {
+      "value": {
+        "mu": 480,
+        "sigma": 45,
+        "tau": 190
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1037/0033-2909.109.2.163",
+          "authors": "Colin M. MacLeod",
+          "year": 1991,
+          "title": "Half a century of research on the Stroop effect: An integrative review.",
+          "confidence": "medium",
+          "rationale": "MacLeod documents Stroop interference as a core reliable finding: incongruent trials are slowed relative to congruent, supporting incongruent mu being elevated above the congruent mu. The abstract gives no numeric magnitude.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "The literature on interference in the Stroop Color-Word Task, covering over 50 years and some 400 studies, is organized and reviewed. In so doing, a set of 18 reliable empirical findings is isolated that must be captured by any successful theory of the Stroop effect. Existing theoretical positions are summarized and evaluated in view of this critical evidence and the 2 major candidate theories\u2014rel-ative speed of processing and automaticity of reading\u2014are found to be wanting. It is concluded that",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.814425+00:00"
+        },
+        {
+          "doi": "10.1101/2023.05.29.542684",
+          "authors": "Manjarrez, Elias, DeLuna-Castruita, Angel, Lizarraga-Cortes, Victoria, Flores, Amira",
+          "year": 2023,
+          "title": "Similarity index of ex-Gaussian reaction time signatures",
+          "confidence": "low",
+          "rationale": "Manjarrez et al. analyze ex-Gaussian mu/sigma/tau separately for incongruent stimuli, supporting incongruent mu as a distinct location parameter; no numeric value stated.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "Abstract\n                In psychology and cognitive neuroscience, reaction time (RT) series and their ex-Gaussian distributions are commonly used to explore the time course of cognitive processes. This study investigated the hypothesis that successive triads of ex-Gaussian mu, sigma, and tau parameters of reaction-time variability across time can be used to construct a geometrical object we termed ex-Gaussian RT-signature, which could help characterize interindividual differences between congru",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.828314+00:00"
+        },
+        {
+          "doi": "10.1037/0033-2909.86.3.446",
+          "authors": "Roger Ratcliff",
+          "year": 1979,
+          "title": "Group reaction time distributions and an analysis of distribution statistics.",
+          "confidence": "low",
+          "rationale": "Ratcliff supports describing RT shape via explicit distribution functions including a Gaussian-width term; applies to the incongruent condition's sigma but provides no numeric value.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "A method of obtaining an average reaction time distribution for a group of subjects is described. The method is particularly useful for cases in which data from many subjects are available but there are only 10-20 reaction time observations per subject cell. Essentially, reaction times for each subject are organized in ascending order, and quantiles are calculated. The quantiles are then averaged over subjects to give group quantiles (cf. Vincent learning curves). From the group quantiles, a gro",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.842340+00:00"
+        }
+      ],
+      "rationale": "Incongruent mean \u2248 670 ms yields a Stroop interference effect of ~70 ms, within the canonical 60\u2013100 ms range for manual color-word Stroop. Consistent with ex-Gaussian decompositions showing interference loads predominantly onto tau (190 vs 140, the exponential tail reflecting occasional slow conflict-resolution trials) with a smaller shift in mu (480 vs 460); sigma is left near-constant.",
+      "sensitivity": {
+        "mu": "high",
+        "sigma": "medium",
+        "tau": "high"
+      },
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    }
+  },
+  "temporal_effects": {
+    "lag1_pair_modulation": {
+      "value": {
+        "enabled": true,
+        "skip_after_error": true,
+        "modulation_table": [
+          {
+            "prev": "incongruent",
+            "curr": "incongruent",
+            "delta_ms": -22
+          },
+          {
+            "prev": "congruent",
+            "curr": "incongruent",
+            "delta_ms": 18
+          },
+          {
+            "prev": "incongruent",
+            "curr": "congruent",
+            "delta_ms": 14
+          },
+          {
+            "prev": "congruent",
+            "curr": "congruent",
+            "delta_ms": -10
+          }
+        ]
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1037//0096-3445.121.4.480",
+          "authors": "Gabriele Gratton, Michael Coles, Emanuel Donchin",
+          "year": 1992,
+          "title": "Optimizing the use of information: Strategic control of activation of responses.",
+          "confidence": "medium",
+          "rationale": "Gratton, Coles & Donchin show that the interference effect is modulated by trial-to-trial context and expectancy (the canonical sequential/Gratton modulation), supporting a lag-1 dependency where the previous trial's congruency shifts the current trial's RT. The abstract gives no per-cell delta-ms magnitudes.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "Recent studies indicate that subjects may respond to visual information during either an early parallel phase or a later focused phase and that the selection of the relevant phase is data driven. Using the noise-compatibility paradigm, we tested the hypothesis that this selection may also be strategic and context driven. At least part of the interference effect observed in this paradigm is due to response activation during the parallel-processing phase. We manipulated subjects' expectancies for ",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.837031+00:00"
+        },
+        {
+          "doi": "10.1037/0033-295x.108.3.624",
+          "authors": "Matthew Botvinick, Todd S. Braver, Deanna M. Barch, Cameron S. Carter, Jonathan D. Cohen",
+          "year": 2001,
+          "title": "Conflict monitoring and cognitive control.",
+          "confidence": "medium",
+          "rationale": "Botvinick et al.'s conflict-monitoring model implements a feedback loop linking detected conflict to subsequent control, simulating sequential behavioral adjustments across consecutive trials; this supports the existence and direction of prev-by-current congruency modulation but provides no numeric deltas.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "A neglected question regarding cognitive control is how control processes might detect situations calling for their involvement. The authors propose here that the demand for control may be evaluated in part by monitoring for conflicts in information processing. This hypothesis is supported by data concerning the anterior cingulate cortex, a brain area involved in cognitive control, which also appears to respond to the occurrence of conflict. The present article reports two computational modeling",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.809195+00:00"
+        },
+        {
+          "doi": "10.3758/cabn.7.4.380",
+          "authors": "Tobias Egner",
+          "year": 2007,
+          "title": "Congruency sequence effects and cognitive control",
+          "confidence": "low",
+          "rationale": "Egner's paper is explicitly on congruency sequence effects and cognitive control, directly on-topic for lag-1 pair modulation; no abstract text is available to ground specific magnitudes.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.744996+00:00"
+        }
+      ],
+      "rationale": "Color-word Stroop reliably shows a sequential congruency modulation: interference is reduced when the previous trial was incongruent and inflated after a congruent trial (Gratton, Coles & Donchin, 1992; Egner, 2007; Kerns et al., 2004). Deltas are deviations layered on top of each condition's baseline distribution: iI faster than average incongruent (-22 ms) and cI slower (+18 ms) shrink interference after conflict; iC slower (+14 ms) and cC faster (-10 ms) reflect carried-over control. Magnitudes (~30\u201340 ms swing) are in the documented range. skip_after_error=true because sequential analyses conventionally exclude post-error trials to avoid confounding with post-error slowing.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "post_event_slowing": {
+      "value": {
+        "enabled": true,
+        "triggers": [
+          {
+            "event": "error",
+            "slowing_ms_min": 20,
+            "slowing_ms_max": 50
+          }
+        ]
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1037/h0022853",
+          "authors": "Patrick Rabbitt",
+          "year": 1966,
+          "title": "Errors and error correction in choice-response tasks.",
+          "confidence": "high",
+          "rationale": "Rabbitt directly observes that the first correct response following an error correction is slower than equivalent correct responses, which is the post-error slowing phenomenon the error trigger encodes. The abstract reports error-response speeding (100-150 ms faster) but does not state the magnitude of the subsequent slowing, so it grounds direction but not the 20-50 ms range.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "The latencies of responses preceding errors, of errors, of responses made to correct errors, and of responses following error correction were examined in a 4-choice and in 2 10-choice continuous-performance choice-response tasks. Latencies of responses preceding errors were not different from the mean latency for all correct responses. Errors and responses correcting errors were 100-150 msec. faster than equivalent correct responses (p &lt;.01). The 1st correct response following error correctio",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.818523+00:00"
+        },
+        {
+          "doi": "10.3758/s13414-011-0243-2",
+          "authors": "Gilles Dutilh, Joachim Vandekerckhove, Birte U. Forstmann, Emmanuel Keuleers, Marc Brysbaert, Eric\u2010Jan Wagenmakers",
+          "year": 2011,
+          "title": "Testing theories of post-error slowing",
+          "confidence": "high",
+          "rationale": "Dutilh et al. confirm people slow down after errors and attribute it via the drift-diffusion model to increased response caution, supporting an error-triggered slowing mechanism; no numeric slowing magnitude is given.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "People tend to slow down after they make an error. This phenomenon, generally referred to as post-error slowing, has been hypothesized to reflect perceptual distraction, time wasted on irrelevant processes, an a priori bias against the response made in error, increased variability in a priori bias, or an increase in response caution. Although the response caution interpretation has dominated the empirical literature, little research has attempted to test this interpretation in the context of a f",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.798234+00:00"
+        },
+        {
+          "doi": "10.3389/fpsyg.2011.00233",
+          "authors": "Claudia Danielmeier, Markus Ullsperger",
+          "year": 2011,
+          "title": "Post-Error Adjustments",
+          "confidence": "high",
+          "rationale": "Danielmeier & Ullsperger review post-error slowing as a robust, within-subject-reliable adjustment (and note it depends on the response-stimulus interval), supporting error as the trigger event; the abstract states no millisecond magnitude.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "When our brain detects an error, this process changes how we react on ensuing trials. People show post-error adaptations, potentially to improve their performance in the near future. At least three types of behavioral post-error adjustments have been observed. These are post-error slowing (PES), post-error reduction of interference, and post-error improvement in accuracy (PIA). Apart from these behavioral changes, post-error adaptations have also been observed on a neuronal level with functional",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.836290+00:00"
+        }
+      ],
+      "rationale": "Post-error slowing is robustly documented in Stroop and conflict tasks (Gratton et al., 1992; Danielmeier & Ullsperger, 2011), with the RT on the trial following an error elevated by roughly 20\u201350 ms in speeded choice paradigms. A single error trigger with a 20\u201350 ms uniform range captures this without overstating the effect.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "autocorrelation": {
+      "value": {
+        "enabled": true,
+        "phi": 0.15
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [
+        {
+          "doi": "10.1126/science.7892611",
+          "authors": "D. L. Gilden, Thomas L. Thornton, M. W. Mallon",
+          "year": 1995,
+          "title": "1/ <i>f</i> Noise in Human Cognition",
+          "confidence": "medium",
+          "rationale": "Gilden, Thornton & Mallon show that sequences of human response errors fluctuate as 1/f noise, evidencing long-range temporal dependence (positive autocorrelation) in repeated cognitive responses; this supports including an autoregressive phi term, but the abstract gives no lag-1 coefficient value.",
+          "table_or_figure": "",
+          "page": null,
+          "quote": "",
+          "abstract_snippet": "When a person attempts to produce from memory a given spatial or temporal interval, there is inevitably some error associated with the estimate. The time course of this error was measured in a series of experiments where subjects repeatedly attempted to replicate given target intervals. Sequences of the errors in both spatial and temporal replications were found to fluctuate as 1/f noises. 1/f noise is encountered in a wide variety of physical systems and is theorized to be a characteristic sign",
+          "doi_verified": true,
+          "doi_verified_at": "2026-05-30T00:37:50.848859+00:00"
+        }
+      ],
+      "rationale": "Trial-by-trial RT series in speeded choice tasks carry a small positive lag-1 dependency / long-range structure (Gilden, 2001; Wagenmakers et al., 2004), with autoregressive phi typically ~0.1\u20130.2. A modest phi=0.15 reproduces this slow drift in arousal/readiness without imposing a paradigm-specific pattern.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "fatigue_drift": {
+      "value": {
+        "enabled": false
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Developmental/RDoC Stroop runs are short (single practice block + brief test). The literature does not document a reliable monotonic within-session RT increase for tasks of this length, so this mechanism is left disabled to avoid an unsupported effect.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "condition_repetition": {
+      "value": {
+        "enabled": false
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Repetition facilitation/cost in Stroop is already captured by the lag1_pair_modulation congruency-sequence table; enabling a separate generic condition_repetition mechanism would double-count the same sequential dependency.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "practice_effect": {
+      "value": {
+        "enabled": false
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Practice/warm-up speeding is real but is concentrated in the practice block, which is excluded from the analyzed test trials. With no documented continued learning curve across the short test block, this is left disabled rather than asserting an unsupported within-test trend.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "pink_noise": {
+      "value": {
+        "enabled": false
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "1/f structure is partially absorbed by the autocorrelation term; adding an independent pink_noise generator is not separately required by the Stroop literature for a session of this length.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    },
+    "vigilance_decrement": {
+      "value": {
+        "enabled": false
+      },
+      "distribution": "ex_gaussian",
+      "literature_range": null,
+      "between_subject_sd": null,
+      "citations": [],
+      "rationale": "Vigilance decrements require sustained, low-event-rate monitoring over long blocks; a brief, fast-paced color Stroop does not meet those conditions, so this mechanism is disabled.",
+      "sensitivity": "unknown",
+      "value_source": "model_prior",
+      "original_value": null,
+      "revision_reason": ""
+    }
+  },
+  "between_subject_jitter": {
+    "value": {
+      "rt_mean_sd_ms": 70,
+      "rt_condition_sd_ms": 25,
+      "sigma_tau_range": [
+        0.85,
+        1.15
+      ],
+      "accuracy_sd": 0.03,
+      "omission_sd": 0.01,
+      "accuracy_clip_range": [
+        0.85,
+        0.999
+      ],
+      "omission_clip_range": [
+        0.0,
+        0.1
+      ]
+    },
+    "rationale": "Between-subject variability for healthy-adult manual Stroop: mean-RT SD ~70 ms reflects typical individual differences in overall speed; rt_condition_sd_ms ~25 ms captures variability in the per-subject interference magnitude (a meaningful fraction of the ~70 ms mean effect). sigma_tau_range \u00b115% scales the distribution-shape parameters per subject. accuracy_sd 0.03 and omission_sd 0.01 reflect tight, near-ceiling performance. Clip ranges are left at standard speeded-choice defaults (accuracy 0.85\u20130.999, omission 0.0\u20130.1) because Stroop is neither a perceptual-threshold nor a slow-paced paradigm and does not warrant atypical bounds.",
+    "citations": [
+      {
+        "doi": "10.1177/10870547231214966",
+        "authors": "DeLuna-Castruita, Angel, Lizarraga-Cortes, Victoria, Flores, Amira, Manjarrez, Elias",
+        "year": 2023,
+        "title": "ADHD Adults Show Lower Interindividual Similarity in Ex-Gaussian Reaction Time Vectors for Congruent Stimuli Compared to Control Peers",
+        "rationale": "DeLuna-Castruita et al. demonstrate measurable interindividual differences in ex-Gaussian RT vectors during a Stroop task (reduced similarity in one group), confirming that between-subject variation in RT parameters is real; the abstract provides no SD in milliseconds.",
+        "confidence": "low",
+        "abstract_snippet": "Objective:\n                    Interindividual similarity refers to how similarly individuals respond when receiving the same stimulus or intervention. In this study, we aimed to examine interindividual similarity in adults with ADHD.\n                  \n                  \n                    Method:\n                    We used the cosine similarity index of ex-Gaussian reaction time (RT) vectors of mu, sigma, and tau parameters during a Stroop task.\n                  \n                  \n        ",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-30T00:37:50.818252+00:00"
+      },
+      {
+        "doi": "10.1101/2023.05.29.542684",
+        "authors": "Manjarrez, Elias, DeLuna-Castruita, Angel, Lizarraga-Cortes, Victoria, Flores, Amira",
+        "year": 2023,
+        "title": "Similarity index of ex-Gaussian reaction time signatures",
+        "rationale": "Manjarrez et al. report that each participant displays a distinct ex-Gaussian RT signature ('psychophysical fingerprint'), supporting nonzero between-subject jitter in mean RT; no numeric SD is given.",
+        "confidence": "low",
+        "abstract_snippet": "Abstract\n                In psychology and cognitive neuroscience, reaction time (RT) series and their ex-Gaussian distributions are commonly used to explore the time course of cognitive processes. This study investigated the hypothesis that successive triads of ex-Gaussian mu, sigma, and tau parameters of reaction-time variability across time can be used to construct a geometrical object we termed ex-Gaussian RT-signature, which could help characterize interindividual differences between congru",
+        "doi_verified": true,
+        "doi_verified_at": "2026-05-30T00:37:50.817868+00:00"
+      }
+    ],
+    "value_source": "model_prior",
+    "sensitivity": {
+      "rt_mean_sd_ms": "medium",
+      "rt_condition_sd_ms": "medium",
+      "sigma_tau_range": "medium",
+      "accuracy_sd": "low",
+      "omission_sd": "low",
+      "accuracy_clip_range": "low",
+      "omission_clip_range": "low"
+    }
+  },
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'stroop_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-fullscreen.js, plugin-survey-text.js, plugin-attention-check.js, experiment.j.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage2_behavioral",
+      "input_hash": "",
+      "inference": "Produced ex-Gaussian (mu/sigma/tau) parameters for 2 conditions; enabled 3 temporal effects.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    },
+    {
+      "step": "stage3_citations",
+      "input_hash": "",
+      "inference": "Canonical-recall: proposed=12, title-verified=10, search_hits=85, pool=30; 6 parameters cited, 1 abstained, 0 values revised within grounded ranges.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage4_doi_verify",
+      "input_hash": "",
+      "inference": "Submitted 15 citations to OpenAlex; 15 verified (100%), 0 skipped (malformed). Verification now includes a title-match check.",
+      "evidence_lines": [],
+      "confidence": "high"
+    },
+    {
+      "step": "stage5_sensitivity",
+      "input_hash": "",
+      "inference": "Tagged sensitivity on 13 parameters; 4 are high-sensitivity.",
+      "evidence_lines": [],
+      "confidence": "medium"
+    }
+  ],
+  "pilot_validation": {}
+}

@@ -185,21 +185,31 @@ touches. The first held-out paradigm is:
 - expfactory_n_back at https://deploy.expfactory.org/preview/5/
   (working_memory)
 
-The held-out test is documented in `docs/heldout-nback-test.md`.
-Result: 5 of 6 generalization checks passed (paradigm-class taxonomy,
-norms extraction, validator-retry, stimulus selector emission, runtime
-infrastructure). One failed: navigation-phase identification — the
-Reasoner emitted no navigation phases for the n-back URL, the bot
-could not click past a fullscreen-prompt screen, and 0 trials were
-captured. The hard-fail-on-zero-trials guard
-(`src/experiment_bot/core/executor.py`) raised loudly rather than
-producing silent empty output.
+**Anti-overfitting why-trail (n-back navigation gap — surfaced then
+RESOLVED).** The n-back held-out test surfaced a navigation gap on
+2026-05-06: the Reasoner emitted no navigation phases, the bot could
+not click past the jsPsych fullscreen-prompt screen (the Fullscreen API
+requires a user-gesture click and `#jspsych-fullscreen-btn` was absent
+from `feedback_selectors`), and **0 trials were captured**. The
+responses to that gap were deliberately GENERIC: a zero-trial
+hard-fail guard in the executor (broken configurations fail loudly
+instead of emitting silent empty output) and a no-stimulus
+click-fallback in the trial loop (the bot clicks any LLM-identified
+`feedback_selectors` in addition to pressing `advance_keys`).
+Paradigm-specific fullscreen/jsPsych shims — adding jsPsych-specific
+Stage 1 prompt guidance or a "navigation must be non-empty" validator
+gate — were explicitly **refused** as overfitting (per R4). The gap
+was subsequently closed by the SP13–16 Stage-6 walker plus the
+executor's runtime adaptive nav (see L1), which discover navigation
+against the live page rather than from static source alone:
+`taskcards/expfactory_n_back/085f4f0a.json` now captures ~68 trials
+(see its `pilot.md`).
 
-The generalization claim is therefore qualified: the framework's
-**scientific machinery** generalizes to novel paradigm classes; the
-**Reasoner's static-source-only navigation identification** does not
-yet reliably generalize to all entry-screen patterns. This is a known
-limitation (§7).
+The generalization claim is therefore: the framework's **scientific
+machinery** generalizes to novel paradigm classes, and live-page
+navigation discovery (L1) now also generalizes to entry-screen
+patterns that static-source inference alone did not reach.
+See `docs/validation-results.md` for current per-paradigm baselines.
 
 Adding additional held-out paradigms is recommended future work. Each
 should be a paradigm class with:
@@ -268,16 +278,10 @@ non-claim; reviewers should weigh them as such.
   alongside `pilot.md`. The Stage 6 reasoning step in the TaskCard
   records `attempt_<N>` evidence for each pilot run.
 
-  Empirical result on the four dev paradigms (current TaskCards):
-  - expfactory_stop_signal (`7efedfd1.json`): pilot passed first
-    attempt — 99 trials, both conditions (go, stop) observed.
-  - expfactory_stroop (`6829e941.json`): pilot passed first attempt —
-    46 trials, both conditions observed.
-  - stopit_stop_signal (`9de8a663.json`): pilot passed first attempt —
-    16 trials, all three conditions (go_left, go_right, stop_signal)
-    observed (stop_signal first appeared at trial 16).
-  - cognitionrun_stroop (`39b7fb4e.json`): pilot passed first attempt —
-    8 trials, both conditions observed.
+  Empirical result: pilot passes for all four dev paradigms and for
+  the held-out n-back paradigm with both/all target conditions observed
+  per paradigm — see `docs/validation-results.md` for current baselines
+  (per-paradigm TaskCard hashes, trial counts, and conditions observed).
 
   Two pilot-side gaps surfaced during integration and were closed:
   pilot's `max_blocks` is now advisory rather than a hard stop (it
@@ -286,11 +290,6 @@ non-claim; reviewers should weigh them as such.
   withhold-response sentinels the executor already filtered (it was
   crashing trying to press `"withhold"` literally on stop-signal
   trials).
-
-  The held-out n-back paradigm has not been re-piloted under these
-  fixes; the held-out result remains as documented in
-  `docs/heldout-nback-test.md` and is the next empirical generalization
-  test once additional held-out paradigms are added (§6).
 
 - **L7. The dev paradigm sample is small and not stratified.** The
   four dev paradigms cover two paradigm classes (conflict, interrupt).
@@ -309,7 +308,8 @@ non-claim; reviewers should weigh them as such.
   with a warning. Long-term, adapter config should move from Python
   code into the TaskCard's `runtime.data_capture` block so the
   Reasoner can declare the field-mapping per task — that's deferred
-  follow-up work.
+  follow-up work. See `docs/validation-results.md` for current
+  per-paradigm baselines read through these adapters.
 
 - **L9. (SP11 Phase 3 — calibration variance ceiling.)** Each session
   starts with a calibration pass: the bot fires a known sequence of
@@ -394,7 +394,7 @@ non-claim; reviewers should weigh them as such.
   via `bot_log.session.method == 'sp11_input_layer'`; legacy sp10
   driver runs use RT-based pairing via the same audit script
   (`bot_log.session.method == 'sp10_driver'`). See
-  `docs/sp11-complete.md` (Phase 6 summary).
+  `docs/validation-results.md` for the SP11 phase results.
 
 - **L13. (SP11 Phase 5a — executor delivery + paradigm-configurable
   dwell.)** The executor's response-press path routes through a
@@ -426,8 +426,7 @@ non-claim; reviewers should weigh them as such.
 - **L15. (SP11 Phase 5b — drop-from-scope policy.)** Paradigms that
   fail the pilot-time alignment check after 3 total attempts (1
   initial + 2 retries) during Phase 5b regeneration are marked
-  `task_specific.sp11_supported = False` in the TaskCard and listed
-  in `docs/sp11-unsupported.md`. The CLI guard at
+  `task_specific.sp11_supported = False` in the TaskCard. The CLI guard at
   `experiment_bot.cli._run_task` refuses to launch sessions for
   unsupported paradigms; the Phase 7 measurement sweep skips them.
   These paradigms drop out of the SP11 cross-deployment claim — the
@@ -458,8 +457,8 @@ non-claim; reviewers should weigh them as such.
   a Calibration × Paradigm interaction is the metric of interest.
   Phase 5b/5c characterized pipeline-output variance via a Stroop
   variance study (3 additional regens), establishing 15–37% intrinsic
-  pipeline variance on ex-Gaussian parameters; see `docs/sp11-complete.md`
-  (Phase 5b/5c summary) for the empirical anchor reading SP8 → SP11
+  pipeline variance on ex-Gaussian parameters; see
+  `docs/validation-results.md` for the empirical anchor reading SP8 → SP11
   parameter changes as variance vs. systematic drift.
 
 - **L17. (SP11 Phase 5c — §6.2 targets reinterpreted as |z| against
@@ -595,11 +594,11 @@ not enforcement.
   extraction or an explicit, documented disagreement with the
   meta-analytic source — not a quiet edit.
 - **R4.** Held-out paradigms are not iterated against. If a held-out
-  paradigm fails, the failure is documented (per
-  `docs/heldout-nback-test.md`); the path forward is either a
-  framework-level fix (architectural change with no paradigm-specific
-  prompts or selectors) or formal acknowledgment of the limitation in
-  this document. Iteration on the held-out paradigm's prompts or
+  paradigm fails, the failure is documented (see the n-back
+  navigation-gap why-trail in §6 for a worked example); the path
+  forward is either a framework-level fix (architectural change with no
+  paradigm-specific prompts or selectors) or formal acknowledgment of
+  the limitation in this document. Iteration on the held-out paradigm's prompts or
   TaskCard converts it into a dev paradigm; this conversion must be
   documented.
 - **R5.** Effect handlers may not encode paradigm-specific magnitudes

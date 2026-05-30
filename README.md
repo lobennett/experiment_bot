@@ -6,9 +6,9 @@ A zero-shot bot that completes web-based cognitive experiments with humanlike be
 
 Online cognitive experiments are vulnerable to automated participants producing fake data. This bot demonstrates that a general-purpose agent can produce behavioral data that is difficult to distinguish from real human performance on standard cognitive tasks (Stroop, stop signal, etc.), motivating platform-level countermeasures.
 
-The bot contains **no hardcoded domain knowledge**. All behavioral parameters — response time distributions, accuracy targets, temporal effects, error patterns — are inferred by Claude at config generation time based on the cognitive psychology literature. The Python code provides execution mechanics only.
+The bot contains **no hardcoded domain knowledge**. All behavioral parameters — response time distributions, accuracy targets, temporal effects, error patterns — are inferred by the Reasoner (from the cognitive-psychology literature) into a TaskCard. The Python code provides execution mechanics only.
 
-For a detailed technical description, see [`docs/how-it-works.md`](docs/how-it-works.md).
+For the full start-to-finish walkthrough, see [How It Works](#how-it-works) below.
 
 ## Quick Start
 
@@ -50,27 +50,118 @@ Run `experiment-bot-reason` once per experiment to generate the TaskCard, then u
 
 ## How It Works
 
-The bot follows a two-phase pipeline:
+The system is three layers run in order: the **Reasoner** thinks (offline,
+once per experiment), the **Executor** acts (per session), and the **Oracle**
+scores (after sessions). The Reasoner makes every behavioral decision; the
+Executor applies them mechanically; the Oracle judges them against published
+norms.
 
-**Phase 1 — Reason** (`experiment-bot-reason`, run once per experiment):
 ```
-URL → Scrape HTML/JS → 5-stage Reasoner → TaskCard JSON → taskcards/{label}/
+URL ──[experiment-bot-reason]──► TaskCard ──[experiment-bot]──► output/  ──[experiment-bot-validate]──► report
+       (Reasoner: Stages 1–6)     (JSON)      (Executor: Playwright)        (Oracle: norms scoring)
 ```
-1. **Scrape**: Fetches the experiment page and its linked JavaScript/CSS resources.
-2. **Reason**: The 5-stage Reasoner runs structural inference, behavioral parameter estimation, literature citation, DOI verification, and sensitivity tagging — producing a peer-reviewable TaskCard.
-3. **Store**: The TaskCard is written to `taskcards/{label}/{hash}.json` (content-addressed, immutable).
 
-**Phase 2 — Execute** (`experiment-bot`, run per session):
-```
-TaskCard → Sample session params → Playwright session → Save Data
-```
-4. **Load**: The executor loads the latest TaskCard for the label.
-5. **Jitter**: Per-session distributional parameters are sampled (deterministic given `--seed`).
-6. **Execute**: Playwright drives the browser — navigating instructions, detecting stimuli, sampling response times, pressing keys, and capturing output data.
+### 1. Reasoner — `experiment-bot-reason` (offline, once per experiment)
 
-All behavioral decisions (how fast to respond, how accurate to be, which temporal effects to include) are determined by the Reasoner in Phase 1. The executor applies them mechanically.
+The Reasoner scrapes the experiment's HTML and linked JS/CSS, then runs a
+six-stage pipeline that infers every behavioral parameter from the
+cognitive-psychology literature and emits a TaskCard. It has never seen the
+experiment before and contains no hardcoded knowledge of any task, paradigm,
+or platform.
 
-For the full technical description including the config schema, response time modeling, and trial execution loop, see **[`docs/how-it-works.md`](docs/how-it-works.md)**.
+| Stage | Role |
+|---|---|
+| 1. structural | Parse page source → stimuli (with detection rules), navigation steps, runtime knobs |
+| 2. behavioral | Add `response_distributions` (ex-Gaussian mu/sigma/tau per condition), per-condition accuracy/omission targets, and which generic temporal-effect mechanisms to enable |
+| 3. citations | Attach literature citations + rationale to numeric parameters |
+| 4. DOI-verify | Check each citation's DOI against OpenAlex (existence, year, author, title) |
+| 5. sensitivity | Tag each parameter's sensitivity |
+| 6. pilot | Optional live-DOM pilot against the real URL; a sequential walker advances one screen at a time and refines navigation/selectors until the run reaches trials |
+
+Each numeric parameter records its provenance (literature range, citation,
+rationale) so the TaskCard is peer-reviewable. The TaskCard is written to
+`taskcards/{label}/{sha}.json` — content-addressed and immutable.
+
+### 2. TaskCard — the versioned JSON contract
+
+The TaskCard is the only artifact passed from reasoning to execution. It is a
+dataclass tree (`core/config.py`, `taskcard/types.py`) with these sections:
+
+| Section | Contents |
+|---|---|
+| `stimuli` | Per-stimulus detection rule (`dom_query`, `js_eval`), response key, condition label |
+| `navigation` | Ordered steps from page load to the first trial (`click`, `keypress`, `wait`, `sequence`, `repeat`) |
+| `response_distributions` | Per-condition RT distribution parameters (ex-Gaussian mu/sigma/tau) plus a between-subject SD |
+| `temporal_effects` | Generic mechanism configs — the Reasoner enables only those documented for the paradigm; all default to off |
+| citations | Each numeric parameter carries its DOI-verified citation (or an explicit no-citation rationale) and reasoning chain |
+
+The Executor loads the **newest-by-mtime** card from `taskcards/{label}/` via
+`taskcard.loader.load_latest`. No reasoning happens after this point.
+
+### 3. Executor — `experiment-bot` (per session)
+
+`experiment-bot <url> --label <label>` loads the latest TaskCard, samples one
+session's distributional parameters via `sample_session_params(seed=...)`
+(drawn from `N(mean, between_subject_sd²)`, clipped to the literature range —
+deterministic given `--seed`), then drives the live URL through a single
+Playwright session (`PilotSession`):
+
+1. **Navigate** the TaskCard's instruction phases to reach the first trial.
+   If a between-block instruction screen the fixed nav can't advance survives
+   two re-runs, **adaptive nav** asks the LLM to propose one more nav phase
+   (budgeted; disabled with `--no-llm-client`).
+2. **Trial loop** — each cycle: detect the current stimulus (first matching
+   detection rule wins; stop-signal stimuli are ordered before go stimuli),
+   sample a response time, decide whether to omit and whether to be correct,
+   and fire the keypress (via Chrome DevTools Protocol, falling back to
+   Playwright's keyboard).
+3. **Finalize** — capture the platform's own data export, then write the
+   session directory.
+
+**RT modeling.** Response times are drawn from the per-condition distribution
+in the TaskCard (ex-Gaussian: `Normal(mu, sigma) + Exponential(tau)`, the
+standard model for human RT), floored at a physiological minimum. After
+sampling, the executor applies whichever generic temporal-effect mechanisms
+the Reasoner enabled — autocorrelation, fatigue/linear drift, lag-1 pair
+modulation, post-event slowing, practice effect, vigilance decrement, pink
+(1/f) noise. These are named in **mechanism** vocabulary, not paradigm
+vocabulary (per G2 below): a conflict task's congruency-sequence effect is
+configured as `lag1_pair_modulation`, not "CSE". When a stimulus carries an
+interrupt condition (stop-signal), the executor runs the independent race
+model — polling for the interrupt during the go-RT wait and either inhibiting
+or firing from the faster failure-RT distribution.
+
+Each run writes `output/{task_name}/{timestamp}/`:
+
+| File | Contents |
+|---|---|
+| `experiment_data.{csv,json}` | The platform's own recorded data (the authoritative source for validation) |
+| `bot_log.json` | Per-trial decision log (stimulus, condition, sampled RT, key pressed, accuracy) + delivery metadata |
+| `run_metadata.json` | Session metadata (seed, sampled params, delivery-channel counts, adaptive-nav summary) |
+| `config.json` | The TaskCard's effective config for this run |
+
+### 4. Oracle — `experiment-bot-validate` (after sessions)
+
+`experiment-bot-validate --label <label> --paradigm-class <class>` reads the
+platform export through a per-paradigm adapter (`validation/platform_adapters.py`),
+computes per-metric values (mean RT, accuracy, effect sizes, SSRT, etc.), and
+gates each against the published ranges in `norms/<class>.json` (e.g.
+`conflict`, `interrupt`, `working_memory`), writing a pass/fail report. It
+reads the platform's export — never the bot's own log.
+
+### Design principles
+
+- **G1 — Generalizability.** The library bakes in no paradigm-specific
+  knowledge. Pointing the bot at a novel paradigm's URL (n-back, Flanker,
+  etc.) should work without code changes; held-out paradigms verify this
+  empirically.
+- **G2 — Generic mechanisms.** The bot's library is a small set of generic
+  mechanisms; the Reasoner translates the literature into mechanism
+  *configurations*. The bot's code never names a paradigm-specific phenomenon.
+- **G4 — Anti-circularity.** The Reasoner cites primary studies; the Oracle
+  gates on independent meta-analytic norms committed *before* the sessions
+  that reference them — two different evidence tiers, so validation can't be
+  tuned to its own answer.
 
 ## CLI Options
 
@@ -108,37 +199,10 @@ Each run saves to `output/{task_name}/{timestamp}/`:
 |------|----------|
 | `bot_log.json` | Per-trial decision log (stimulus, condition, RT, accuracy, etc.) |
 | `experiment_data.{csv,tsv,json}` | Raw experiment data captured from the platform |
-| `config.json` | The TaskConfig used for this run |
+| `config.json` | The TaskCard's effective config used for this run |
 | `run_metadata.json` | Run metadata (task name, URL, trial count, headless flag) |
 
 For detailed descriptions of each file and what generated it, see **[`examples/README.md`](examples/README.md)**. The `examples/` directory contains representative output from one run of each validated task.
-
-## Workflow: two-step (reason then execute)
-
-experiment-bot is split into two commands:
-
-1. `experiment-bot-reason <url> --label <label>` — reads the experiment source,
-   runs the 5-stage Reasoner (structural inference → behavioral parameters →
-   literature citations → DOI verification → sensitivity tagging), and writes
-   a peer-reviewable TaskCard to `taskcards/{label}/{hash}.json`. Uses your
-   Claude Max subscription via the `claude` CLI by default; falls back to the
-   Anthropic API with `ANTHROPIC_API_KEY` if `claude` is not on PATH. Run once
-   per experiment; the TaskCard is content-addressed and immutable.
-
-2. `experiment-bot <url> --label <label> --headless` — loads the latest
-   TaskCard for the given label, samples per-session distributional parameters
-   (deterministic given a `--seed`), and runs a Playwright session.
-
-```bash
-# Step 1: generate TaskCard (once per experiment)
-uv run experiment-bot-reason "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal
-
-# Step 2: run sessions (no API key required)
-uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless
-```
-
-See `docs/superpowers/specs/2026-04-23-taskcard-reasoner-design.md` for the
-TaskCard schema and reasoning pipeline.
 
 ## Analyzing Data
 
@@ -201,21 +265,25 @@ ls taskcards/*/
 ```
 experiment-bot/
 ├── src/experiment_bot/
-│   ├── cli.py                  # experiment-bot entry point
-│   ├── reasoner_cli.py         # experiment-bot-reason entry point
+│   ├── cli.py                  # experiment-bot entry point (Executor)
 │   ├── core/
-│   │   ├── config.py           # TaskConfig data model (all dataclasses)
-│   │   ├── distributions.py    # Ex-Gaussian RT sampling, temporal effects
+│   │   ├── config.py           # TaskCard config dataclass tree
+│   │   ├── distributions.py    # Ex-Gaussian RT sampling + temporal-effects application
 │   │   ├── executor.py         # Playwright task execution engine
+│   │   ├── pilot_session.py    # Single-session Playwright wrapper (PilotSession)
 │   │   ├── stimulus.py         # Stimulus detection rules
-│   │   └── phase_detection.py  # Experiment phase detection
-│   ├── taskcard/               # TaskCard schema and I/O
-│   ├── reasoner/               # 5-stage reasoning pipeline
-│   ├── llm/                    # Claude CLI + API client shim
-│   ├── navigation/             # Instruction screen navigation
-│   ├── output/                 # Data capture and output writing
-│   └── scraper.py              # Experiment source scraping
+│   │   ├── phase_detection.py  # Experiment phase detection
+│   │   └── scraper.py          # Experiment source scraping
+│   ├── reasoner/               # 6-stage reasoning pipeline + experiment-bot-reason CLI
+│   ├── taskcard/               # TaskCard schema, loader, session sampling
+│   ├── effects/                # Generic temporal-effect mechanisms + validation metrics
+│   ├── calibration/            # Optional platform-recording offset calibration
+│   ├── validation/             # Oracle: experiment-bot-validate + per-paradigm adapters
+│   ├── llm/                    # Claude CLI + API client shim (Reasoner consumer)
+│   ├── navigation/             # Instruction-screen navigation
+│   └── output/                 # Data capture and output writing
 ├── taskcards/                  # Content-addressed TaskCards per experiment
+├── norms/                      # Pre-committed meta-analytic norms per paradigm class
 ├── data/human/                 # Human reference data (RDoC)
 ├── examples/                   # Sample output from one run per task (see examples/README.md)
 ├── scripts/
@@ -223,8 +291,7 @@ experiment-bot/
 │   ├── launch.sh               # Parallel batch launcher
 │   └── batch_run.sh            # Sequential batch launcher
 ├── tests/                      # pytest test suite
-├── docs/
-│   └── how-it-works.md         # Full technical documentation
+├── docs/                       # Scope, validation results, reviewer charter, citation history
 └── output/                     # Bot run outputs (gitignored)
 ```
 
@@ -247,4 +314,7 @@ uv run python -m pytest tests/ -v
 
 ## Further Reading
 
-- **[`docs/how-it-works.md`](docs/how-it-works.md)** — Full technical documentation: information flow, config schema, response time modeling, trial execution, and validation approach.
+- **[`docs/scope-of-validity.md`](docs/scope-of-validity.md)** — what the framework claims and does not claim.
+- **[`docs/validation-results.md`](docs/validation-results.md)** — current validation results.
+- **[`docs/reviewer-1-charter.md`](docs/reviewer-1-charter.md)** — adversarial review instructions.
+- **[`docs/stage3-citation-history.md`](docs/stage3-citation-history.md)** — citation provenance and integrity history.

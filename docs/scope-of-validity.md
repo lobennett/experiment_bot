@@ -616,7 +616,7 @@ not enforcement.
 ## 9. Verifiability
 
 > **CRITICAL CAVEAT (2026-05) — citation trail is not yet trustworthy.** A
-> CrossRef-verified investigation (`docs/stage3-citation-integrity-2026-05.md`)
+> CrossRef-verified investigation (`docs/stage3-citation-history.md`)
 > found the Reasoner's Stage 3 fabricated citations in two modes: invented DOIs,
 > and real DOIs paired with verbatim quotes / page numbers / table references the
 > cited papers do not contain (e.g. a narrative review quoted as reporting

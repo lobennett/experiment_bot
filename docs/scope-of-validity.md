@@ -46,9 +46,13 @@ session output should:
 - **C3.** Produce between-subject variability across N independent sessions
   whose population SDs fall within published ranges, when those ranges
   exist.
-- **C4.** Produce paradigm-specific signature metrics (e.g. SSRT for
-  interrupt paradigms, n-back accuracy for working-memory paradigms,
-  CSE magnitude for conflict paradigms) within published ranges.
+- **C4.** Produce paradigm-specific signature metrics (e.g. n-back accuracy
+  for working-memory paradigms, CSE magnitude for conflict paradigms) within
+  published ranges. **Exception:** SSRT for interrupt paradigms is currently
+  NOT a controlled output — the bot's stop inhibition is a fixed-probability
+  withhold rather than a race against a literature-derived SSRT, so measured
+  SSRT is an emergent artifact of the platform's SSD staircase and is treated
+  as descriptive-only. See **L20**.
 
 The decision rule for each metric is *point-estimate-within-range*: a
 metric whose published range exists and whose bot value falls inside it
@@ -534,6 +538,45 @@ non-claim; reviewers should weigh them as such.
   valid (the oracle reads platform-native data, not the nav path),
   but a reviewer cannot re-derive the identical session from
   metadata alone.
+
+- **L20. SSRT is NOT a framework-controlled metric; it is an emergent
+  artifact of the platform's SSD staircase.** On a stop trial the executor
+  polls the live DOM for the stop signal during the sampled go-RT window and,
+  on detection, decides inhibition by a **fixed-probability Bernoulli draw**
+  against the configured stop-condition accuracy
+  (`_should_respond_correctly(detection_condition)` → `random() < accuracy[stop]`,
+  `executor.py:1188`→`:454`; both dev stop cards configure `accuracy.stop = 0.50`).
+  There is **no race**: the sampled go-RT only bounds the polling window and is
+  never compared against `SSD + SSRT`. `TrialInterruptConfig` carries no SSRT or
+  SSD parameter, and **no literature-derived SSRT exists anywhere** in the
+  Reasoner, TaskCard, or norms. SSRT is reconstructed *post-hoc* by the oracle via
+  the Verbruggen integration method, `quantile(go_RT, p_respond) − mean_SSD`
+  (`oracle.py:237`), where `mean_SSD` is read from the **platform's own** data
+  export — i.e. set by each platform's SSD staircase, not by the bot.
+
+  Consequence: because go-RT (~565 ms) and `p_respond` (~0.50, by the configured
+  accuracy + staircase) are held essentially constant across platforms, measured
+  SSRT is driven almost entirely by the platform-determined `mean_SSD`. On the
+  N=5 batch, `expfactory_stop_signal` (platform SSD staircase bounds ≈[150,500],
+  mean SSD ≈300) yields SSRT ≈241 and **passes**, while `stopit_stop_signal`
+  (kywch, bounds ≈[50,350], mean SSD ≈215) yields SSRT ≈356 and **fails** — same
+  bot, same configured stop accuracy, near-identical go-RT. The expfactory
+  "pass" is therefore **not** evidence of SSRT fidelity, and the kywch "fail" is
+  **not** a bot defect; both are artifacts of the platform staircase bounds the
+  bot neither sets nor controls. SSRT should be read as **descriptive-only** for
+  the v1 framework and must not be claimed as a fidelity success or failure.
+
+  What the framework *does* control on stop-signal tasks — and reproduces
+  faithfully — is the **inhibition rate** (~50%, the staircase convergence target),
+  the **go-RT distribution**, and **post-error slowing**. The principled fix
+  (future sub-project): have the Reasoner derive an SSRT distribution from the
+  stop-signal literature (Logan–Cowan race model) as a TaskCard parameter and
+  replace the Bernoulli withhold with a genuine race
+  (`inhibit iff detection_time + sampled_SSRT < sampled_go_RT`); the staircase
+  would then converge to the bot's actual critical SSD and measured SSRT would
+  track the literature input consistently across platforms. This limitation was
+  root-caused and adversarially verified (3-agent verification workflow,
+  2026-05-30; the refutation agent could not refute, high confidence).
 
 ## 8. Operational rules
 

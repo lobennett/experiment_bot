@@ -70,7 +70,7 @@ The framework must withstand reviewer scrutiny on:
   citation (existence + year + author + TITLE checked against OpenAlex)
   OR an explicit `no_citation_reason` marking it a model-prior estimate,
   plus a rationale and reasoning chain. **Honesty caveat (2026-05):** an
-  investigation (`docs/stage3-citation-integrity-2026-05.md`) found that
+  investigation (`docs/stage3-citation-history.md`) found that
   the prior Stage 3 fabricated citations — invented DOIs and real DOIs
   paired with quotes/page-numbers the papers do not contain — because the
   prompt demanded verbatim quotes an LLM cannot truthfully produce. Stage 3
@@ -162,8 +162,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   pilot-refinement persistence, executor lag-1 PES contract, and
   format-agnostic platform adapters. ✓ Complete; bot-behavior gaps
   surfaced in SP2-E3 (sampler RT inflation, accuracy underperformance,
-  decay_weights aspirational, sparse run_metadata) tracked in
-  `docs/sp2-validation-followups.md` for SP3 work.
+  decay_weights aspirational, sparse run_metadata) tracked for SP3 work.
 - **SP2.5**: Post-SP2 hardening — navigator click-timeout fast-fail
   (took bot go-trial accuracy from 77.5% to 95% on dev paradigms),
   run-metadata instrumentation (session_seed, session_params,
@@ -171,9 +170,8 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 - **SP3**: Held-out generalization test (Flanker + n-back). Both
   held-out paradigms failed at Stage 2 schema validation; no TaskCards
   produced, no sessions run. Generalizability claim (G1) empirically
-  falsified for both paradigms tested. Failure modes documented in
-  `docs/sp3-heldout-results.md`; SP4 backlog with prioritized
-  generalizable improvements in `docs/sp4-stage2-robustness.md`. Tag
+  falsified for both paradigms tested. Failure modes documented at the
+  time; SP4 backlog captured prioritized generalizable improvements. Tag
   `sp3-complete` on the report-landing commit. ✓ Complete (the
   deliverable is the report and SP4 backlog, not a passing test).
 - **SP4a**: Stage 2 robustness Tier 1 — refinement-loop slot
@@ -183,7 +181,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   +24 new tests, suite at 492). External evidence: held-out re-run
   closed all four Tier 1 failure modes in both Flanker and n-back at
   Stage 2; new failure modes surfaced downstream (Stage 3 in Flanker,
-  Stage 6 pilot in n-back) per `docs/sp4a-results.md`. Tag
+  Stage 6 pilot in n-back). Tag
   `sp4a-complete`. ✓ Complete.
 - **SP4b**: parse-retry class fix — single shared `parse_with_retry`
   helper applied to Stages 1, 3, 5, 6 (pilot refinement) and the
@@ -193,9 +191,8 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   re-run produces a TaskCard for the first time under any framework
   version (parse_with_retry did not fire — SP4a's Stage 3 failure was
   likely transient LLM noise). Tag `sp4b-complete`. ✓ Complete.
-- **SP4** (continuing backlog): residual gaps in
-  `docs/sp4b-results.md`. Tier 2/3 items at
-  `docs/sp4-stage2-robustness.md` (canonicalization layer, two-pass
+- **SP4** (continuing backlog): residual gaps remained after SP4b.
+  Tier 2/3 items (canonicalization layer, two-pass
   Stage 2 split, schema-as-canonical autogeneration) and the
   `_extract_json` ownership cleanup. Each its own brainstorm/spec/
   plan cycle when prioritized.
@@ -225,15 +222,15 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 - **SP7**: Keypress diagnostic (investigation-only). Added
   paradigm-agnostic page-level keydown listener (capture phase) at
   session start, per-trial drain, and two new bot_log fields
-  (`resolved_key_pre_error`, `page_received_keys`). Generic
-  `scripts/keypress_audit.py` uses `PLATFORM_ADAPTERS` dispatch.
+  (`resolved_key_pre_error`, `page_received_keys`). Generic alignment
+  audit (now `scripts/audit_alignment.py`) uses `PLATFORM_ADAPTERS` dispatch.
   Internal: 524 passed (was 517); +7 tests. External: 4-way audit
   across 5 Flanker sessions (600 trials) named two compounding
   layers — (a) bot's `response_key_js` extraction ~50% match to
   platform_expected (essentially random in 2-key paradigm); (d)
   page_received vs platform_recorded only 44% (platform reads from a
   non-keydown source). Aggregate accuracy still ~93% by coincidence
-  of 2-key choice + valid-key filter. See `docs/sp7-results.md`. Tag
+  of 2-key choice + valid-key filter. Tag
   `sp7-complete`. ✓ Complete.
 - **SP8**: Stage 1 multi-source `response_key_js` prompt. Per the
   user's redirection during SP8 brainstorm (the original SP7 Option B
@@ -250,8 +247,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   alignment: **n-back 49.8% → 72.1%** (clear win, page exposes
   window.correctResponse); stroop/stop_signal_expfactory/stop-it
   stayed at chance (DOM-derived fallback still unreliable for
-  paradigms without window.correctResponse). See
-  `docs/sp8-results.md`. Tag `sp8-complete`. ✓ Complete.
+  paradigms without window.correctResponse). Tag `sp8-complete`. ✓ Complete.
 - **SP9a**: Session-time runtime LLM for key-mapping resolution. New
   `src/experiment_bot/agent/` package — `SessionAgent.resolve_key_mapping`
   runs once per session after navigation completes, probes the live page
@@ -270,7 +266,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   stop_signal x1 59.4% (SessionAgent's directive used stimulus IDs vs
   executor's condition labels; runtime branch silently never fired).
   Infrastructure is reusable for future SP candidates; the negative
-  empirical result honestly informs scope. See `docs/sp9a-results.md`.
+  empirical result honestly informs scope.
   Tag `sp9a-complete`. ✓ Complete.
 - **SP9b**: Stage 4 `openalex.verify_doi` defensive fix. 1-line
   normalization: `expected_authors` may be `str` or `list`; list →
@@ -301,11 +297,11 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   keyboard_deliverer/focus calibration modules, eisenberg validation
   module, v1-legacy TaskCard wrappers. Net src/experiment_bot/ shrink:
   -1,068 LOC across 21 commits (from SP12 baseline `2436289`; 26
-  commits from the design-spec commit `19b809b`). Added:
-  docs/pipeline-flow.md (13-section walkthrough), [sp12] stdout
+  commits from the design-spec commit `19b809b`). Added: a pipeline-flow
+  walkthrough (since absorbed into README's pipeline section), [sp12] stdout
   narration (5 lines/session), run_trace.json (structured per-stage
-  trace), and docs/sp12-hardcoded-findings.md (paradigm-specific
-  assumptions surfaced during the walk). Post-cleanup re-measurement
+  trace), and a hardcoded-findings audit of paradigm-specific
+  assumptions surfaced during the walk. Post-cleanup re-measurement
   on 4 SP11 paradigms × 5 sessions shows 3/4 paradigms behaviorally
   stable vs Phase 7 N=5 baseline; one notable shift on
   expfactory_stop_signal SSRT (178→353 ms, within baseline's wide SD)
@@ -328,8 +324,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   — surfaces "REFINEMENT_PROMPT lacks navigation-phase schema knowledge" as
   the next gap, motivating SP14). Dev-4 paradigms pass Stage 6 with the
   same refinement counts as pre-SP13 (3 on attempt 1, stopit_stop_signal
-  needed 1 refinement same as before — backward-compatible). See
-  `docs/sp13-spec.md` and `docs/sp13-results.md`. Tag `sp13-complete`.
+  needed 1 refinement same as before — backward-compatible). Tag `sp13-complete`.
   ✓ Complete.
 - **SP14**: Refinement-prompt schema knowledge. Two surgical additions to
   `REFINEMENT_PROMPT`: (a) explicit "Navigation phase JSON schema" section
@@ -369,7 +364,7 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   apply them. This is an architectural limit of the executor, not an SP15
   defect; it's the precisely-articulated next gap that motivates SP16.
   Behavioral session data on the held-out paradigm is therefore deferred
-  to SP16. See `docs/sp15-spec.md` and `docs/sp15-results.md`. Tag
+  to SP16. Tag
   `sp15-complete`. ✓ Complete.
 - **SP16**: TaskExecutor refactor with adaptive nav. `TaskExecutor.run`
   browser lifecycle migrated to `PilotSession` (one tab/session; CDP on
@@ -398,8 +393,9 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   Race-model ordering holds (stop-fail 505ms < go 826ms), inhibition rate
   0.516; SSRT 458ms ABOVE the 180-280ms norm (dual-task memory load + the
   bot's systemic SSRT-high pattern from SP12). ×5 statistical run
-  deferred. See `docs/sp16-spec.md`, `docs/sp16-results.md`,
-  `docs/sp16-heldout-behavior.md`. Tag `sp16-complete`. ✓ Complete.
+  deferred; the held-out behavioral result now lives in
+  `docs/scope-of-validity.md` §6 + `docs/validation-results.md`. Tag
+  `sp16-complete`. ✓ Complete.
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every
@@ -411,9 +407,12 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 
 - `docs/scope-of-validity.md` — what the framework claims and does not
   claim. The reviewer-facing spec.
-- `docs/clean-run-2026-05-06.md` — provenance for the current
-  shareable dataset.
-- `docs/heldout-nback-test.md` — held-out generalization test result.
+- `docs/validation-results.md` — current results, baselines, and
+  provenance for the current shareable dataset.
+- `README.md` — start-to-finish pipeline + onboarding.
+- `docs/reviewer-1-charter.md` — adversarial review instructions.
+- `docs/stage3-citation-history.md` — citation provenance and the
+  Stage-3 fabrication history.
 
 ## Operational rules
 
@@ -429,6 +428,20 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
 - Validation against published ranges is point-estimate-within-range.
   Don't introduce alternative gating without an explicit scope-of-
   validity update.
+
+### Doc-workflow rules
+
+- **R-1 One results file:** new measurement batches UPDATE
+  `docs/validation-results.md` (overwrite the Current-baselines row,
+  prepend one Run-log entry, drop superseded). Never create
+  `docs/clean-run-DATE.md` / `docs/spNN-results.md` /
+  `docs/<paradigm>-test.md`.
+- **R-2 Numbers in one place:** a measured value lives in
+  `docs/validation-results.md` (prose) or `docs/results-data/` (raw
+  JSON), not in scope-of-validity, CLAUDE.md, or README — those cite it.
+- **R-3 History note, not history file:** when a gap is later closed,
+  edit ONE line in scope §6 + the relevant L-item ("surfaced DATE,
+  closed by SPxx, see Lk") and delete the standalone trip-report.
 
 ## Style preferences
 

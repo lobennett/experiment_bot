@@ -296,3 +296,44 @@ def test_deliver_sequence_emits_skipped_event_with_no_platform_record():
     assert events[0].metadata["skipped"] is True
     assert events[1].platform_recorded_key == "."
     assert events[1].metadata["skipped"] is False
+
+
+# -----------------------------------------------------------------
+# Calibration feasibility gate (early-abort on non-advancing trials)
+# -----------------------------------------------------------------
+
+
+def test_deliver_sequence_aborts_when_trials_never_advance():
+    """Feasibility gate: MAX_CONSECUTIVE_NO_ADVANCE fires in a row that don't
+    advance the trial marker (the platform isn't pairing the calibration
+    keypresses — wrong advance key / non-trial screen) abort the sequence
+    instead of paying the per-fire timeout on every key. Without this, 30
+    Space-fires x the per-fire timeout stalled cognition.run ~15 min for a
+    calibration that was then discarded as too_few_events."""
+    cdp = _FakeCDP()
+    page = _FakePage(marker_sequence=[5] * 500)  # marker never changes -> no advance
+    deliverer = CDPDeliverer(
+        page, cdp, default_dwell_ms=1.0, trial_advance_timeout_s=0.05,
+    )
+    events = _run(deliverer.deliver_sequence(["Space"] * 10, [1.0] * 10))
+    assert len(events) == CDPDeliverer.MAX_CONSECUTIVE_NO_ADVANCE  # aborted, not all 10
+    fired = sum(
+        1 for (m, p) in cdp.calls
+        if m == "Input.dispatchKeyEvent" and p["type"] == "rawKeyDown"
+    )
+    assert fired == CDPDeliverer.MAX_CONSECUTIVE_NO_ADVANCE
+
+
+def test_deliver_sequence_does_not_abort_when_trials_advance():
+    """The gate must NOT trip when fires do advance the marker — a working
+    platform runs the full sequence."""
+    cdp = _FakeCDP()
+    seq = []
+    for n in (10, 11, 12, 13, 14):
+        seq += [n, n, n + 1]  # per fire: start=n, after_dwell=n, advance=n+1
+    page = _FakePage(marker_sequence=seq)
+    deliverer = CDPDeliverer(
+        page, cdp, default_dwell_ms=1.0, trial_advance_timeout_s=0.05,
+    )
+    events = _run(deliverer.deliver_sequence(["Space"] * 5, [1.0] * 5))
+    assert len(events) == 5  # all fired, no early abort

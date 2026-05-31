@@ -28,11 +28,14 @@ bot's ``trial_marker_at_fire``.
 from __future__ import annotations
 
 import asyncio
+import logging
 import time
 from dataclasses import dataclass, field
 from typing import Any
 
 from .deliverer import KeypressDeliverer, KeypressEvent
+
+logger = logging.getLogger(__name__)
 
 
 # CDP keyboard fields per key. Each entry is the kwargs dict for both
@@ -131,6 +134,10 @@ class _FireRecord:
     skip_reason: str | None
     fired_at_monotonic: float | None
     cdp_fields: dict[str, Any]
+    # Whether the trial marker advanced as a result of this fire (or during
+    # dwell). Drives deliver_sequence's feasibility gate. Defaults False so
+    # existing _FireRecord(...) constructions stay valid.
+    advanced: bool = False
 
 
 class CDPDeliverer(KeypressDeliverer):
@@ -163,7 +170,16 @@ class CDPDeliverer(KeypressDeliverer):
     """
 
     DEFAULT_DWELL_MS: float = 200.0
-    DEFAULT_TRIAL_ADVANCE_TIMEOUT_S: float = 30.0
+    # Per-fire upper bound on waiting for the trial to advance after a keypress.
+    # A real jsPsych trial-advance after a response is sub-second; 8s is a
+    # generous margin. (Lowered from 30s: combined with the feasibility gate
+    # below, it bounds calibration on a non-pairing platform to seconds.)
+    DEFAULT_TRIAL_ADVANCE_TIMEOUT_S: float = 8.0
+    # Feasibility gate: abort the calibration sequence after this many
+    # consecutive fires that fail to advance the trial marker (the platform is
+    # not pairing the calibration keypresses — wrong advance key, non-trial
+    # screen). Prevents the ~15-min stall observed on cognition.run.
+    MAX_CONSECUTIVE_NO_ADVANCE: int = 3
     DELIVERY_CHANNEL: str = "cdp_dispatchKeyEvent"
 
     def __init__(
@@ -271,6 +287,7 @@ class CDPDeliverer(KeypressDeliverer):
                 skip_reason="trial_advanced_during_dwell",
                 fired_at_monotonic=None,
                 cdp_fields=cdp_fields_for(key),
+                advanced=True,  # the trial DID advance (just faster than dwell)
             )
 
         # Step 4: Fire
@@ -280,9 +297,11 @@ class CDPDeliverer(KeypressDeliverer):
         # Step 5: Wait for trial advance
         poll_interval_s = 0.05
         waited_s = 0.0
+        advanced = False
         while waited_s < self._trial_advance_timeout_s:
             cur = await self._read_trial_marker()
             if cur is not None and cur != start_marker:
+                advanced = True
                 break
             await asyncio.sleep(poll_interval_s)
             waited_s += poll_interval_s
@@ -295,6 +314,7 @@ class CDPDeliverer(KeypressDeliverer):
             skip_reason=None,
             fired_at_monotonic=fired_at,
             cdp_fields=fields,
+            advanced=advanced,
         )
 
     async def deliver_sequence(
@@ -309,9 +329,25 @@ class CDPDeliverer(KeypressDeliverer):
             )
 
         fire_records: list[_FireRecord] = []
+        consecutive_no_advance = 0
         for k, dwell_ms in zip(keys, target_intervals_ms):
             rec = await self.deliver_at_trial_start(k, dwell_ms=dwell_ms)
             fire_records.append(rec)
+            # Feasibility gate: if the trial marker keeps not advancing, the
+            # platform isn't pairing the calibration keypresses — abort rather
+            # than pay the per-fire timeout on every remaining key.
+            if rec.advanced:
+                consecutive_no_advance = 0
+            else:
+                consecutive_no_advance += 1
+            if consecutive_no_advance >= self.MAX_CONSECUTIVE_NO_ADVANCE:
+                logger.info(
+                    "Calibration feasibility gate: %d consecutive fires did not "
+                    "advance the trial marker; aborting after %d/%d keys "
+                    "(platform not pairing keypresses).",
+                    consecutive_no_advance, len(fire_records), len(keys),
+                )
+                break
 
         # Read back platform records once at the end
         platform_records = await self._read_records()

@@ -577,6 +577,29 @@ non-claim; reviewers should weigh them as such.
   root-caused and adversarially verified (3-agent verification workflow,
   2026-05-30; the refutation agent could not refute, high confidence).
 
+- **L21. The shared dataset is UNCALIBRATED; reported RTs are raw
+  literature-derived sampler output.** The framework has a calibration pass
+  (`src/experiment_bot/calibration/`, SP11 Phase-5a) intended to correct for
+  keypress *delivery latency* by pairing the bot's intended RT against the
+  platform's recorded RT. On all four dev paradigms it reports `too_few_events`
+  (0–2 of 30 correctly-recorded pairings) — a direct consequence of the SP7
+  layer-d platform-recording gap (jsPsych does not record the bot's raw
+  keydowns reliably). When the model is `too_few_events`/`escalate`,
+  `ResponseSampler._apply_calibration_adjustment` returns the RT **unchanged**
+  (`core/distributions.py`), so **no calibration adjustment is applied** to any
+  dev-paradigm session. The RTs reported in `docs/validation-results.md` are
+  therefore the raw sampler output (literature-derived ex-Gaussian draws,
+  delivered via CDP) and validate within published ranges **without** any
+  post-hoc adjustment — which is the cleaner anti-circularity position: the bot
+  is not nudged toward the platform's own recordings. **Cost-control fix
+  (2026-05-30):** calibration now feasibility-gates — it aborts after
+  `MAX_CONSECUTIVE_NO_ADVANCE` (3) consecutive fires that fail to advance the
+  trial marker, so a non-pairing platform no longer stalls (cognition.run
+  dropped from ~15 min of timed-out fires to seconds); the full calibration
+  sequence engages only where keypress-pairing actually works. Whether
+  calibration earns its keep at all is gated on resolving the layer-d
+  recording gap (its own future sub-project).
+
 ## 8. Operational rules
 
 These rules govern day-to-day work on the framework. They are process,

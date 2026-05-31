@@ -8,27 +8,39 @@ so ~3 entries are kept (git history retains superseded entries).
 
 ## Current baselines
 
-_Last updated: 2026-05-30, N=5 per paradigm (canonical-recall regenerated TaskCards)._
+_Last updated: 2026-05-31, N=5 per paradigm (canonical-recall TaskCards; calibration feasibility-gate in place)._
 
 | paradigm | platform | latest N | rt\_distribution | sequential (PES) | signature (SSRT) | overall | as-run command |
 |---|---|---|---|---|---|---|---|
-| stroop\_rdoc | expfactory | 5 | mu 492.1 ✅[400,550], sigma 57.3 ✅[25,60], tau 164.7 ❌[70,160] | PES 66.8 ms ❌[10,50]; CSE not computable | N/A | ❌ FAIL | `uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless` |
-| stop\_signal\_rdoc | expfactory | 5 | rt-dist ✅ (descriptive, no norm range) | PES 30.5 ms ✅[10,50] | SSRT 241.3 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless` |
-| stroop\_online\_(cognition.run) | cognition.run | 5 | mu 505.8 ✅, sigma 34.1 ✅, tau 139.4 ✅ | PES/CSE not computable (15-trial task) | N/A | ✅ PASS | `uv run experiment-bot "https://strooptest.cognition.run/" --label cognitionrun_stroop --headless` |
-| stop\_signal\_kywch\_jspsych | kywch/STOP-IT | 5 | rt-dist ✅ (descriptive, no norm range) | PES 8.7 ms ❌[10,50] | SSRT 355.5 ms ❌[180,280] | ❌ FAIL | `uv run experiment-bot "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html" --label stopit_stop_signal --headless` |
+| stroop\_rdoc | expfactory | 5 | mu 494.4 ✅[400,550], sigma 51.0 ✅[25,60], tau 146.0 ✅[70,160] | PES 38.2 ms ✅[10,50]; CSE not computable | N/A | ✅ PASS | `uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless` |
+| stop\_signal\_rdoc | expfactory | 5 | rt-dist ✅ (descriptive, no norm range) | PES 29.6 ms ✅[10,50] | SSRT 239.5 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless` |
+| stroop\_online\_(cognition.run) | cognition.run | 5 | mu 481.8 ✅, sigma 22.1 ❌[25,60], tau 166.6 ❌[70,160] | PES/CSE not computable (15-trial task) | N/A | ❌ FAIL | `uv run experiment-bot "https://strooptest.cognition.run/" --label cognitionrun_stroop --headless` |
+| stop\_signal\_kywch\_jspsych | kywch/STOP-IT | 5 | rt-dist ✅ (descriptive, no norm range) | PES 10.8 ms ✅[10,50] | SSRT 192.1 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html" --label stopit_stop_signal --headless` |
 
-**Batch verdict: 2/4 pass.**
+**Batch verdict: 3/4 pass.**
 
 Notes:
 - "not computable" entries (cognitionrun PES/CSE; stroop CSE) are non-blocking, not failures.
-- expfactory-Stroop RT tail (tau, PES) runs slightly wide — pre-existing known margin.
-- kywch SSRT high: per `docs/scope-of-validity.md` **L20**, SSRT is NOT framework-controlled — it is an emergent artifact of the platform's SSD staircase. Same bot, ~50% inhibition rate on both stop-signal platforms; kywch staircase converges to a lower mean SSD → higher measured SSRT. The kywch SSRT "fail" is not a bot defect.
+- **cognitionrun FAIL is N=15-trial fit instability, not a behavior change.** Its ex-Gaussian params bounce between batches on a 75-trial-total sample (last batch sigma 34.1/tau 139.4 → this batch 22.1/166.6); mu stays in range. Calibration applies **no** adjustment (`too_few_events`; see scope-of-validity **L21**), so the calibration feasibility-gate changed timing only, not RTs. mu/sigma fell rather than rose, so parallel-run CPU contention did not inflate RTs either.
+- **SSRT (kywch) varies batch-to-batch (355.5 → 192.1).** Per scope-of-validity **L20**, SSRT is NOT framework-controlled — it is an emergent artifact of the platform's SSD staircase. This batch's "pass" is as much staircase luck as the prior batch's "fail"; neither is a bot property.
 
 TaskCards: `taskcards/expfactory_stroop/45751cfe.json`, `taskcards/expfactory_stop_signal/e29f22de.json`, `taskcards/cognitionrun_stroop/b16c7891.json`, `taskcards/stopit_stop_signal/6fc729c3.json`.
 
 ---
 
 ## Run log
+
+### 2026-05-31 — N=5 post calibration-feasibility-gate
+
+- **What:** 5 sessions × 4 paradigms in parallel (`/tmp/run5_all.sh` pattern), first run with the calibration feasibility-gate (`13450d9`).
+- **Command:** `uv run experiment-bot <URL> --label <label> --headless` × 5 each.
+- **Trials/session:** stroop\_rdoc 124–128; stop\_signal\_rdoc 189–191; stroop\_online 15; stop\_signal\_kywch 285–286.
+- **TaskCard hashes:** 45751cfe / e29f22de / b16c7891 / 6fc729c3 (unchanged).
+- **Data location:** `output/<task_name>/<ts>/`.
+- **Verdict:** 3/4 pass (stroop\_rdoc and stop\_signal\_kywch passed this batch; cognitionrun failed on sigma/tau — N=15 fit instability, not behavior). The gate cut cognitionrun from ~17 min/session to ~78 s and is behaviorally inert (calibration `too_few_events` before and after — no RT adjustment).
+- Raw per-paradigm reports: `validation/latest_batch_v2/` (ephemeral, not committed).
+
+---
 
 ### 2026-05-30 — N=5 canonical-recall regenerated TaskCards
 
@@ -53,12 +65,4 @@ Raw data: [`docs/results-data/sp12-remeasure-results.json`](results-data/sp12-re
 
 ---
 
-### 2026-05-19 — SP11 Phase-7 URL/HTML baseline capture
-
-Landing-page HTML snapshot for all 4 paradigm URLs (SHA256 + load time), captured as the SP11 Phase-7 pre-measurement baseline. Contains URL-capture metadata only (no behavioral sessions); confirms all 4 platforms were reachable and stable at this date.
-
-Raw data: [`docs/results-data/phase7-baselines/`](results-data/phase7-baselines/).
-
----
-
-_Superseded entries beyond ~3 are dropped here; see git history for older runs._
+_Superseded entries beyond ~3 are dropped here; see git history for older runs. Older raw artifacts (incl. the 2026-05-19 SP11 Phase-7 URL/HTML baseline capture) remain under [`docs/results-data/`](results-data/)._

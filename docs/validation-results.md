@@ -8,28 +8,39 @@ so ~3 entries are kept (git history retains superseded entries).
 
 ## Current baselines
 
-_Last updated: 2026-06-02, N=10 per paradigm (canonical-recall TaskCards; calibration feasibility-gate; safe 4-way-parallel run)._
+_Last updated: 2026-06-05, N=15 cumulative per paradigm (canonical-recall TaskCards; calibration feasibility-gate; safe 4-way-parallel)._
 
 | paradigm | platform | latest N | rt\_distribution | sequential (PES) | signature (SSRT) | overall | as-run command |
 |---|---|---|---|---|---|---|---|
-| stroop\_rdoc | expfactory | 10 | mu 485.4 ✅[400,550], sigma 48.8 ✅[25,60], tau 163.0 ❌[70,160] | PES 91.7 ms ❌[10,50] (noise — see notes); CSE not computable | N/A | ❌ FAIL | `uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless` |
-| stop\_signal\_rdoc | expfactory | 10 | rt-dist ✅ (descriptive, no norm range) | PES 35.4 ms ✅[10,50] | SSRT 227.3 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless` |
-| stroop\_online\_(cognition.run) | cognition.run | 10 | mu 509.7 ✅[400,550], sigma 53.4 ✅[25,60], tau 134.5 ✅[70,160] | PES/CSE not computable (15-trial task) | N/A | ✅ PASS | `uv run experiment-bot "https://strooptest.cognition.run/" --label cognitionrun_stroop --headless` |
-| stop\_signal\_kywch\_jspsych | kywch/STOP-IT | 10 | rt-dist ✅ (descriptive, no norm range) | PES 16.9 ms ✅[10,50] | SSRT 253.9 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html" --label stopit_stop_signal --headless` |
+| stroop\_rdoc | expfactory | 15 | mu 490.1 ✅[400,550], sigma 51.0 ✅[25,60], tau 162.9 ❌[70,160] | PES 67.7 ms ❌[10,50] (noise — see notes); CSE not computable | N/A | ❌ FAIL | `uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless` |
+| stop\_signal\_rdoc | expfactory | 15 | rt-dist ✅ (descriptive, no norm range) | PES 29.1 ms ✅[10,50] | SSRT 248.4 ms ✅[180,280] | ✅ PASS | `uv run experiment-bot "https://deploy.expfactory.org/preview/9/" --label expfactory_stop_signal --headless` |
+| stroop\_online\_(cognition.run) | cognition.run | 15 | mu 500.2 ✅[400,550], sigma 44.0 ✅[25,60], tau 137.8 ✅[70,160] | PES/CSE not computable (15-trial task) | N/A | ✅ PASS | `uv run experiment-bot "https://strooptest.cognition.run/" --label cognitionrun_stroop --headless` |
+| stop\_signal\_kywch\_jspsych | kywch/STOP-IT | 15 | rt-dist ✅ (descriptive, no norm range) | PES −23.3 ms ❌[10,50] (noise — see notes) | SSRT 272.3 ms ✅[180,280] | ❌ FAIL | `uv run experiment-bot "https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html" --label stopit_stop_signal --headless` |
 
-**Batch verdict: 3/4 pass.**
+**Batch verdict: 2/4 pass.** (Both fails are on PES — see the measurement-power note; the stable, gateable metrics pass.)
 
 Notes:
 - "not computable" entries (cognitionrun PES/CSE; stroop CSE) are non-blocking, not failures.
-- **cognitionrun now PASSES at N=10** (mu 509.7 / sigma 53.4 / tau 134.5). The N=5 FAILs (sigma/tau bouncing 34/139 → 22/167) were ex-Gaussian fit instability on 15-trial sessions; pooling 10 sessions washed it out — confirming the earlier FAIL was sampling noise, not behavior.
-- **stroop\_rdoc PES (91.7) is a measurement-power artifact, NOT a fidelity defect.** The TaskCard configures post-error slowing at the correct 20–50 ms (`temporal_effects.post_event_slowing`), but Stroop's ~96% accuracy yields only 1–8 errors/session, so the per-session PES estimate is noise-dominated: across the 10 sessions PES ranged [−95, +243] ms, SD ≈ 115 ms on a 20–50 ms signal. PES is effectively **descriptive-only** for high-accuracy paradigms at ~120 trials/session (too few errors to estimate). tau (163) is the usual marginal tail-width miss.
-- **SSRT (kywch) varies batch-to-batch (355.5 → 192.1 → 253.9).** Per scope-of-validity **L20**, SSRT is NOT framework-controlled — an emergent artifact of the platform's SSD staircase. Any single batch's pass/fail is staircase luck, not a bot property.
+- **cognitionrun is stable and PASSES at N≥10** (N=15: mu 500.2 / sigma 44.0 / tau 137.8). The earlier N=5 FAILs were ex-Gaussian fit instability on 15-trial sessions; with adequate N it's solidly in range — the instability was sampling noise, not behavior.
+- **PES is a noise-dominated, few-error estimate across the dev paradigms — not a fidelity defect, and effectively descriptive-only at these trial counts.** Both fails this batch are PES. The TaskCards configure post-error slowing in-range (e.g. Stroop 20–50 ms), but the estimate rests on very few errors: Stroop ~96% accuracy → ~1–8 errors/session (per-session PES SD ≈ 115 ms on a 20–50 ms signal), and even pooled it swings batch-to-batch — **stroop PES 38 → 67 → 92 → 68 ms; kywch PES 8.7 → 10.8 → 16.9 → −23.3 ms** (the last is post-error *speeding*, a sign-flip that only noise produces). tau (stroop 163) is the usual marginal tail-width miss.
+- **SSRT (kywch) varies batch-to-batch (355.5 → 192.1 → 253.9 → 272.3).** Per scope-of-validity **L20**, SSRT is NOT framework-controlled — an emergent artifact of the platform's SSD staircase. Any single batch's pass/fail is staircase luck, not a bot property.
 
 TaskCards: `taskcards/expfactory_stroop/45751cfe.json`, `taskcards/expfactory_stop_signal/e29f22de.json`, `taskcards/cognitionrun_stroop/b16c7891.json`, `taskcards/stopit_stop_signal/6fc729c3.json`.
 
 ---
 
 ## Run log
+
+### 2026-06-05 — +5/paradigm → cumulative N=15
+
+- **What:** 5 more sessions × 4 paradigms in parallel (`/tmp/run5_all.sh`), validated **cumulatively at N=15** (these 5 + the prior N=10). (First launch no-op'd on a wiped `/tmp` script; relaunched. Session data is in `output/`, which persists regardless.)
+- **Command:** `uv run experiment-bot <URL> --label <label> --headless` × 5 each.
+- **Trials/session (the +5):** stroop\_rdoc 124–128; stop\_signal\_rdoc 190–192; stroop\_online 15–16; stop\_signal\_kywch 284–287.
+- **TaskCard hashes:** 45751cfe / e29f22de / b16c7891 / 6fc729c3 (unchanged).
+- **Verdict (N=15 cumulative):** 2/4 pass — stop\_signal\_rdoc + cognitionrun pass; stroop\_rdoc + kywch fail on PES (noise-dominated few-error estimate; kywch PES even went negative) + stroop tau marginal. The stable gateable metrics (RT distribution, SSRT-in-range) hold; the PES gate is the unstable one. See Current-baselines notes.
+- Raw per-paradigm reports: `validation/latest_batch_n15/` (ephemeral, not committed).
+
+---
 
 ### 2026-06-02 — N=10 (safe 4-way parallel)
 
@@ -55,17 +66,4 @@ TaskCards: `taskcards/expfactory_stroop/45751cfe.json`, `taskcards/expfactory_st
 
 ---
 
-### 2026-05-30 — N=5 canonical-recall regenerated TaskCards
-
-- **What:** 5 sessions × 4 paradigms run in parallel via `/tmp/run5_all.sh` pattern.
-- **Command:** `uv run experiment-bot <URL> --label <label> --headless` × 5 each.
-- **Trials/session:** stroop\_rdoc 122–125; stop\_signal\_rdoc 188–191; stroop\_online 15; stop\_signal\_kywch 284–288.
-- **TaskCard hashes:** 45751cfe / e29f22de / b16c7891 / 6fc729c3.
-- **Data location:** `output/<task_name>/<ts>/`.
-- **Verdict:** 2/4 pass. expfactory-Stroop tau/PES slightly wide (pre-existing); kywch SSRT high (platform staircase artifact, scope-of-validity L20).
-- Raw per-paradigm reports: `validation/latest_batch/` (ephemeral, not committed).
-- Baseline data: `docs/results-data/`.
-
----
-
-_Superseded entries beyond ~3 are dropped here; see git history for older runs. Older raw artifacts (the 2026-05-22 SP12 re-measurement and the 2026-05-19 SP11 Phase-7 baseline capture) remain under [`docs/results-data/`](results-data/)._
+_Superseded entries beyond ~3 are dropped here; see git history for older runs. Dropped from the log: the 2026-05-30 N=5 batch, the 2026-05-22 SP12 re-measurement, and the 2026-05-19 SP11 Phase-7 baseline capture — raw artifacts remain under [`docs/results-data/`](results-data/) and session data in git history._

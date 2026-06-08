@@ -51,6 +51,37 @@ def test_post_error_slowing_returns_nan_with_no_errors():
     assert math.isnan(post_error_slowing_magnitude(trials))
 
 
+def test_post_error_slowing_excludes_implausible_rts():
+    """A single timer-glitch RT (>5s) must not poison the post-error mean.
+
+    Mirrors fit_ex_gaussian's [150, 5000]ms plausibility window. Without the
+    filter, the 1,000,000ms post-error trial dominates the mean and produces
+    a nonsensical PES (regression for the kywch cumulative-N artifact).
+    """
+    trials = [
+        {"rt": 500, "correct": True},
+        {"rt": 600, "correct": False},     # error
+        {"rt": 1_000_000, "correct": True},  # post-error timer glitch -> dropped
+        {"rt": 510, "correct": True},
+        {"rt": 590, "correct": False},     # error
+        {"rt": 560, "correct": True},      # post-error: the real post-error RT
+        {"rt": 520, "correct": True},
+        {"rt": 530, "correct": True},
+    ]
+    pes = post_error_slowing_magnitude(trials)
+    # post_error mean uses only the plausible 560; post_correct = (510+520+530)/3 = 520
+    assert abs(pes - 40) < 5
+
+
+def test_ssrt_integration_drops_implausible_go_rts():
+    """A timer-glitch go-RT must not inflate the SSRT quantile."""
+    clean = list(range(300, 700, 4))
+    contaminated = clean + [1_000_000] * 5  # 5 timer glitches appended
+    assert abs(
+        ssrt_integration(contaminated, 0.5, 250) - ssrt_integration(clean, 0.5, 250)
+    ) < 1.0
+
+
 def test_population_sd_per_param():
     sessions = [
         {"mu": 500, "sigma": 50, "tau": 80},

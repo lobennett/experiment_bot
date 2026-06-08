@@ -10,6 +10,21 @@ from statistics import mean
 import numpy as np
 from scipy import optimize, stats
 
+# Physiologically plausible response-time window (ms). Sub-150ms responses
+# are anticipation/early-press artifacts (faster than the fastest documented
+# choice-RT floor); >5000ms responses are timeout/timer-glitch bookkeeping
+# artifacts, not behavioral responses. Every metric that takes a mean or
+# quantile over raw RTs must apply this window — a single 1000-second timer
+# glitch otherwise poisons error-conditioned means and go-RT quantiles. The
+# ex-Gaussian fitter has applied it since inception; PES and SSRT now share it.
+RT_PLAUSIBLE_MIN_MS = 150.0
+RT_PLAUSIBLE_MAX_MS = 5000.0
+
+
+def _rt_plausible(rt: float) -> bool:
+    """True when an RT lies in the physiologically plausible window."""
+    return RT_PLAUSIBLE_MIN_MS <= rt <= RT_PLAUSIBLE_MAX_MS
+
 
 def lag1_pair_contrast(
     trials: list[dict],
@@ -81,7 +96,7 @@ def fit_ex_gaussian(rt_samples: list[float]) -> dict:
     # bookkeeping artifacts. The ex-Gaussian fitter assumes a single
     # latent process; outliers from anticipations or timer glitches
     # corrupt the fit (Nelder-Mead and L-BFGS-B both walk to bounds).
-    samples = samples[(samples >= 150.0) & (samples <= 5000.0)]
+    samples = samples[(samples >= RT_PLAUSIBLE_MIN_MS) & (samples <= RT_PLAUSIBLE_MAX_MS)]
     if len(samples) < 5:
         return {"mu": float("nan"), "sigma": float("nan"), "tau": float("nan")}
 
@@ -142,11 +157,17 @@ def post_error_slowing_magnitude(trials: list[dict]) -> float:
             continue
         if trial.get("rt") is None:
             continue
+        rt = float(trial["rt"])
+        # Same physiological-plausibility window the ex-Gaussian fitter uses:
+        # a timeout/timer-glitch RT (e.g. a 1000s "response") would otherwise
+        # poison the post-error or post-correct mean.
+        if not _rt_plausible(rt):
+            continue
         prev = trials[i - 1]
         if prev.get("correct") is False:
-            post_error.append(float(trial["rt"]))
+            post_error.append(rt)
         elif prev.get("correct") is True:
-            post_correct.append(float(trial["rt"]))
+            post_correct.append(rt)
     if not post_error or not post_correct:
         return float("nan")
     return float(np.mean(post_error) - np.mean(post_correct))
@@ -174,6 +195,9 @@ def ssrt_integration(go_rts: list[float], p_respond_given_stop: float, mean_ssd:
     """
     arr = np.asarray(go_rts, dtype=float)
     arr = arr[np.isfinite(arr)]
+    # Drop implausible go-RTs before taking the quantile: a timeout/timer-glitch
+    # RT inflates the high quantile and thus SSRT (shares fit_ex_gaussian's window).
+    arr = arr[(arr >= RT_PLAUSIBLE_MIN_MS) & (arr <= RT_PLAUSIBLE_MAX_MS)]
     if len(arr) == 0:
         return float("nan")
     if not (0.0 <= p_respond_given_stop <= 1.0):

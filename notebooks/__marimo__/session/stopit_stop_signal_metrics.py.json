@@ -1,0 +1,282 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.9",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "bc618e995f775fc811c564cdb19443c0",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "# Stop-signal (STOP-IT / kywch jsPsych) \u2014 metric walkthrough\n\n**Label:** `stop_signal_kywch_jspsych` (URL alias `stopit_stop_signal`)\n\u00b7  **Platform:** kywch.github.io STOP-IT (jsPsych port)  \u00b7  **Paradigm class:** `interrupt`\n\u00b7  **Norms file:** `norms/interrupt.json`\n\nSame interrupt-class metrics as the expfactory stop-signal (SSRT + PES gate;\nrt_distribution descriptive). This task is also the **worked example of the RT-hygiene\nfix**: its raw export contains a handful of **timer-glitch trials with multi-second\n\u201cRTs\u201d** (up to ~1,077 s). \u00a75 shows how the pooled PES is `225.7 ms` (nonsense) **without**\nthe `[150, 5000] ms` window and `18.5 ms` (in range) **with** it \u2014 the inconsistency the\noracle fix closed by sharing the ex-Gaussian's window with PES and SSRT.\n\n> **Note on the data directory:** sessions live under\n> `output/stop-it_stop-signal_task_(jspsych)/`, which is the executor's\n> `task.name`-derived folder; the *adapter label* is `stop_signal_kywch_jspsych`. Both\n> map to `read_stopit_stop_signal`."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "a7ce26cbc5e90934e0c3aa94733868b5",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "5446621ba9a9af956cfe55ddb71fd6a3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 1. The data on disk\n\nThe scored export is `experiment_data.csv`. `read_stopit_stop_signal` keeps rows where\n`block_i` is one of `\"1\",\"2\",\"3\",\"4\"` (block 0 is practice).\n\n### Raw columns used by the adapter\n\n| raw column | type | how it's used |\n|---|---|---|\n| `block_i` | \"0\"..\"4\" | **Filter**: keep test blocks `1\u20134`. |\n| `signal` | \"yes\"/\"no\" | Canonical `condition`: `\"yes\"`\u2192`\"stop\"`, `\"no\"`\u2192`\"go\"`. |\n| `rt` | float\u00b7ms or \"NaN\" | RT; `\"NaN\"`/empty \u2192 `None` \u2192 `omission=True`. |\n| `correct` | truthy str | Canonical `correct` via `_is_truthy_str` (`true`/`1`). |\n| `SSD` | float\u00b7ms | Stop-signal delay (SSRT only). |"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "e4fb01bd1bb758d2d1d66598b409b09e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;42 session directories under /Users/lobennett/grants/r01_rdoc/projects/experiment_bot/.worktrees/sp11/output/stop-it_stop-signal_task_(jspsych)&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "b23a6871ef2361e37e50452e65a671f9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"block_i\": \"1\", \"signal\": \"yes\", \"rt\": \"NaN\", \"correct\": \"true\", \"SSD\": \"100\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "4af81604473722419ff2ad929a59509d",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 2. Adapter: raw rows \u2192 canonical trials\n\n| canonical field | derivation |\n|---|---|\n| `condition` | `signal == \"yes\"` \u2192 `\"stop\"`, `signal == \"no\"` \u2192 `\"go\"`. |\n| `rt` | `float(row[\"rt\"])`; `\"NaN\"`/empty \u2192 `None`. |\n| `correct` | `_is_truthy_str(row[\"correct\"])`. |\n| `omission` | `rt is None` (stop trial \u2192 inhibited; go trial \u2192 miss). |\n| `ssd` | `float(row[\"SSD\"])`. |\n\nFirst five canonical trials:"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "5838afcdbae15928a7e8fdc64ca89c9b",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[{\"condition\": \"go\", \"rt\": \"text/plain+float:524.0\", \"correct\": true, \"omission\": false, \"ssd\": \"text/plain+float:100.0\"}, {\"condition\": \"stop\", \"rt\": null, \"correct\": true, \"omission\": true, \"ssd\": \"text/plain+float:100.0\"}, {\"condition\": \"go\", \"rt\": \"text/plain+float:626.0\", \"correct\": true, \"omission\": false, \"ssd\": \"text/plain+float:150.0\"}, {\"condition\": \"go\", \"rt\": \"text/plain+float:666.0\", \"correct\": true, \"omission\": false, \"ssd\": \"text/plain+float:150.0\"}, {\"condition\": \"stop\", \"rt\": \"text/plain+float:468.0\", \"correct\": false, \"omission\": false, \"ssd\": \"text/plain+float:150.0\"}]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "6adb31e9e264cd0e82cd92b5eb25e765",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 3. Cohort completeness filter + pooling\n\nSame `count == 0` or `count < 0.6 * median` rule. The one session whose live URL never\nproduced a CSV (a 0-trial run) is excluded as `zero_trials`."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "f94d848f89cfeb4e3b85b73d21550fc9",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"n_supplied\": 42, \"n_used\": 41, \"median_trials\": 286, \"undercount_threshold\": \"text/plain+float:171.6\", \"n_excluded\": 1}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "9b631bfa2d3c69a814a949ee5a1b54ae",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"pooled_trials\": 10496, \"go\": 7872, \"stop\": 2624}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "9302ddff40459132c1e0fbc2c900d5af",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 4. The timer-glitch trials (why RT hygiene matters)\n\nA small number of trials carry physiologically impossible \"RTs\" \u2014 `omission == False`\nresponses recorded at tens or hundreds of **seconds**. These are timeout / stuck-trial\nbookkeeping artifacts, not behavior. The cell quantifies them; \u00a75 shows their effect on\nPES with and without the plausibility window."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "dd0d8b42c342190061df27a8c98b26fb",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"n_responses\": 9047, \"max_rt_ms\": \"text/plain+float:1077247.0\", \"max_rt_seconds\": \"text/plain+float:1077.2\", \"n_rt_over_5000ms\": 39}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "a45bec9e01c2ce7cf63afbc75b40ba69",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 5. PES \u2014 with vs without the plausibility window\n\n`hand_pes_windowed` is the shipped computation (`[150, 5000] ms` window).\n`hand_pes_raw` is the *old* behavior (no window). The raw version is dominated by a\nsingle multi-second post-error trial \u2192 a nonsense ~225 ms PES; the windowed version is\n~18.5 ms (in the published `[10, 50] ms` range). Both are checked: the windowed value\nequals the library/oracle."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "37bba3486695de305d09ad7eabc81418",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"pes_raw_no_window_ms\": \"text/plain+float:225.7\", \"pes_windowed_hand_ms\": \"text/plain+float:18.548\", \"pes_windowed_lib_ms\": \"text/plain+float:18.548\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "50373acf4380dde9ad30de8e16866cdd",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 6. Metric \u2014 SSRT (integration method)\n\nIdentical to the expfactory stop-signal notebook:\n`SSRT = quantile(go_RT, p_respond) - mean_SSD`, with go-RTs clamped to `[150, 5000] ms`\ninside `ssrt_integration`. Inputs come from the platform's own `signal`, `rt`, `SSD`."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "3373c652a48d7a8835803289c7787cbf",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"p_respond_given_stop\": \"text/plain+float:0.5038\", \"mean_ssd_ms\": \"text/plain+float:279.44\", \"ssrt_hand_ms\": \"text/plain+float:281.56\", \"ssrt_lib_ms\": \"text/plain+float:281.56\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "504cb449cb721dd748459bedb1f5be97",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 7. Cross-check against the oracle + norms ranges"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "3196ba1bf5c7a73aea1914715e76b063",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"overall_pass\": false, \"n_used\": 41, \"metrics\": {\"mu\": {\"bot_value\": \"text/plain+float:465.90790121307316\", \"range\": null, \"pass\": null}, \"sigma\": {\"bot_value\": \"text/plain+float:54.48456148298028\", \"range\": null, \"pass\": null}, \"tau\": {\"bot_value\": \"text/plain+float:97.80618885061678\", \"range\": null, \"pass\": null}, \"mu_sd\": {\"bot_value\": \"text/plain+float:8.764155939842595\", \"range\": null, \"pass\": null}, \"sigma_sd\": {\"bot_value\": \"text/plain+float:6.86871097878643\", \"range\": null, \"pass\": null}, \"tau_sd\": {\"bot_value\": \"text/plain+float:10.129707300521199\", \"range\": null, \"pass\": null}, \"lag1_autocorr\": {\"bot_value\": \"text/plain+float:0.03054257714460358\", \"range\": null, \"pass\": null}, \"post_error_slowing\": {\"bot_value\": \"text/plain+float:18.54794293452153\", \"range\": [10, 50], \"pass\": true}, \"ssrt\": {\"bot_value\": \"text/plain+float:281.5602134146341\", \"range\": [180, 280], \"pass\": false}}}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Vxnm",
+      "code_hash": "04d7fb37190c27c8a36721a9fd124f02",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"ssrt hand==lib\": true, \"ssrt hand==oracle\": true, \"pes(windowed) hand==lib\": true, \"pes(windowed) hand==oracle\": true}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "DnEU",
+      "code_hash": "3d57ab67d5baf74f7d496aa18a757d13",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 8. Code-review verdict\n\nAssertions pass: the **windowed** hand-rolled PES and SSRT equal the library and oracle.\nReviewer notes:\n\n- **The RT-hygiene fix is correct and load-bearing here.** \u00a75 makes the failure mode\n  concrete: without `[150, 5000] ms`, one multi-second post-error trial drove PES to\n  ~225 ms; the window restores it to ~18.5 ms (in range). The same window now guards the\n  ex-Gaussian fit, PES, and the SSRT go-RT quantile \u2014 one consistent rule.\n- **SSRT remains the not-framework-controlled metric (L20)**; its marginal miss (~1\u20132 ms\n  over the 280 ceiling) is staircase-driven, and the window barely moved it \u2014 confirming\n  the SSRT miss is *not* RT contamination.\n- **All inputs are from `experiment_data.csv`** (the platform export), preserving G4\n  anti-circularity."
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

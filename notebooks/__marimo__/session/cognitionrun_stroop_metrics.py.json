@@ -1,0 +1,256 @@
+{
+  "version": "1",
+  "metadata": {
+    "marimo_version": "0.23.9",
+    "script_metadata_hash": null
+  },
+  "cells": [
+    {
+      "id": "Hbol",
+      "code_hash": "1d0db38904205bec4d6f6f6a1f6cec3e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "MJUe",
+      "code_hash": "a642152f15d129bfe281afcd6fad5548",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "# Stroop (cognition.run) \u2014 metric walkthrough\n\n**Label:** `stroop_online_(cognition.run)` (URL alias `cognitionrun_stroop`)\n\u00b7  **Platform:** cognition.run  \u00b7  **Paradigm class:** `conflict`\n\u00b7  **Norms file:** `norms/conflict.json`\n\nSame conflict-class metrics as the expfactory Stroop, but a **different platform export**\nand two important wrinkles:\n\n1. **Correctness is not recoverable offline.** cognition.run's `condition` column is a\n   numeric code, and the key\u2192colour map lives only in the live page. The adapter\n   therefore derives congruency from `text == colour` and marks every *responded* trial\n   `correct = True`. Consequence: there are ~no \"errors\", so **post-error slowing is\n   `NaN` (not computable)** for this task \u2014 by design, not a bug.\n2. **Short sessions (15 trials)** + occasional **timer-glitch RTs** (multi-second/\u201cstuck\u201d\n   trials). These make the `[150, 5000] ms` plausibility window load-bearing: it's why\n   the ex-Gaussian `tau` is sane despite raw RTs up to ~900 s in the pool.\n\nGating metric here: **rt_distribution** (mu/sigma/tau)."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "vblA",
+      "code_hash": "0b5f1fe6cfc919f1b11a1c3ad10492f3",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/plain": ""
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "bkHC",
+      "code_hash": "137a2cd693a360e5b103c85bbef1c406",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 1. The data on disk\n\n`output/stroop_online_(cognition.run)/<timestamp>/experiment_data.csv` is the scored\nexport. `read_cognitionrun_stroop` keeps rows where `trial_type == \"html-keyboard-response\"`\nwith a non-null `rt` and non-empty `text`/`colour`.\n\n### Raw columns used by the adapter\n\n| raw column | type | how it's used |\n|---|---|---|\n| `trial_type` | str | **Filter**: keep `\"html-keyboard-response\"`. |\n| `rt` | float\u00b7ms | Response time. Rows with empty/NaN `rt` are dropped entirely. |\n| `text` | str | The word shown. Lower-cased. |\n| `colour` | str | The ink colour. Lower-cased. |\n| `response` | str | Key pressed. Non-empty \u21d2 `correct=True` (see note above). |\n| `condition` | numeric | **Ignored** \u2014 not a usable Stroop label on this platform. |\n\nCanonical `condition` = `\"congruent\"` if `text == colour` else `\"incongruent\"`."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "lEQa",
+      "code_hash": "e4fb01bd1bb758d2d1d66598b409b09e",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;43 session directories under /Users/lobennett/grants/r01_rdoc/projects/experiment_bot/.worktrees/sp11/output/stroop_online_(cognition.run)&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "PKri",
+      "code_hash": "039dbb4e13155791a6188d74a3f3966f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"trial_type\": \"html-keyboard-response\", \"rt\": \"null\", \"text\": \"\", \"colour\": \"\", \"response\": \"null\", \"condition\": \"1\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Xref",
+      "code_hash": "4db1de7e4156e0c719d44e8ffe6876f7",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 2. Adapter: raw rows \u2192 canonical trials\n\n| canonical field | derivation |\n|---|---|\n| `condition` | `\"congruent\"` if `text.lower() == colour.lower()` else `\"incongruent\"`. |\n| `rt` | `float(row[\"rt\"])` (rows with no rt are already dropped). |\n| `correct` | `True` if `response` is non-empty (a key was pressed). *Cannot* reflect true accuracy offline. |\n| `omission` | `not responded`. |\n\nFirst five canonical trials from a session:"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "SFPL",
+      "code_hash": "79f704ff922bd18612ca5f6e50df9634",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "[{\"condition\": \"congruent\", \"rt\": \"text/plain+float:982824.0\", \"correct\": true, \"omission\": false}, {\"condition\": \"congruent\", \"rt\": \"text/plain+float:481.0\", \"correct\": true, \"omission\": false}, {\"condition\": \"incongruent\", \"rt\": \"text/plain+float:578.0\", \"correct\": true, \"omission\": false}, {\"condition\": \"incongruent\", \"rt\": \"text/plain+float:407.0\", \"correct\": true, \"omission\": false}, {\"condition\": \"congruent\", \"rt\": \"text/plain+float:805.0\", \"correct\": true, \"omission\": false}]"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "BYtC",
+      "code_hash": "1da1b20bc319754456f663e110d3aef1",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 3. Cohort completeness filter\n\nIdentical rule to the other paradigms: drop `count == 0` or\n`count < 0.6 * median` (cohort-relative gross undercount). Trial counts come from\n`run_metadata.json[\"total_trials\"]` (fallback `len(adapter(dir))`). With 15-trial\nsessions the median is ~15 and the threshold ~9."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "RGSE",
+      "code_hash": "448a5385855bcde7bca2e83ed7f19056",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"n_supplied\": 43, \"n_used\": 43, \"median_trials\": 15, \"undercount_threshold\": \"text/plain+float:9.0\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Kclp",
+      "code_hash": "811eef494fb4ccd0b343a3f823a18485",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/html": "<pre class='text-xs'>&#x27;645 pooled canonical trials across 43 sessions&#x27;</pre>"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "emfo",
+      "code_hash": "6298f1ec493c6f8609b74202c229b5af",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 4. Metric \u2014 RT distribution (ex-Gaussian) + the plausibility window\n\nSame computation as the expfactory Stroop: gather RTs (skip omissions), fit ex-Gaussian\nby L-BFGS-B MLE. The cell first shows how many pooled RTs fall **outside** the\n`[150, 5000] ms` window \u2014 these timer-glitch / stuck-trial RTs are dropped by\n`fit_ex_gaussian` before fitting, which is why `tau` stays in the tens-to-low-hundreds\nof ms even though the raw max RT is multiple seconds."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "Hstk",
+      "code_hash": "5a85b77300c5390fdacbc79e49df8c1c",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"n_rts_gathered\": 645, \"max_raw_rt_ms\": \"text/plain+float:982824.0\", \"n_dropped_by_window\": 46, \"mu\": \"text/plain+float:498.95\", \"sigma\": \"text/plain+float:42.77\", \"tau\": \"text/plain+float:137.55\"}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "nWHF",
+      "code_hash": "13f3739f8d3a6886902cc7f4afa1177f",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 5. Metric \u2014 post-error slowing (NaN here, and why)\n\n`_compute_pes` runs exactly as in the expfactory notebook (drop `rt=None`, require\ncurrent `correct is True` and RT in window, bucket by previous trial). But because the\nadapter marks **every responded trial `correct=True`** (true accuracy isn't recoverable\noffline), there are no `prev.correct is False` trials \u2192 the post-error bucket is empty \u2192\nthe result is `NaN`. The oracle reports it as a non-gating \"not computable\" entry."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "iLit",
+      "code_hash": "af42c4e0e0db2d4603a8412c2d949928",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"n_error_trials_in_pool\": 0, \"pes_is_nan\": true}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ZHCJ",
+      "code_hash": "c8d14ac6db8db7d181f4e1dd7edb8d93",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 6. Cross-check against the oracle + norms ranges\n\nRun `validate_session_set` and confirm the ex-Gaussian values match, and PES is reported\nas `None` (NaN \u2192 no bot_value, non-gating)."
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "ROlb",
+      "code_hash": "799bcbb1e9f7669c903ef7688e64cc84",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"overall_pass\": true, \"n_used\": 43, \"metrics\": {\"mu\": {\"bot_value\": \"text/plain+float:498.95445766511864\", \"range\": [400, 550], \"pass\": true}, \"sigma\": {\"bot_value\": \"text/plain+float:42.77149736642568\", \"range\": [25, 60], \"pass\": true}, \"tau\": {\"bot_value\": \"text/plain+float:137.55035641085885\", \"range\": [70, 160], \"pass\": true}, \"mu_sd\": {\"bot_value\": \"text/plain+float:1572.1674904694019\", \"range\": null, \"pass\": null}, \"sigma_sd\": {\"bot_value\": \"text/plain+float:339.7708331273858\", \"range\": null, \"pass\": null}, \"tau_sd\": {\"bot_value\": \"text/plain+float:75.35770766019303\", \"range\": null, \"pass\": null}, \"lag1_autocorr\": {\"bot_value\": \"text/plain+float:-0.013856592131427667\", \"range\": null, \"pass\": null}, \"post_error_slowing\": {\"bot_value\": null, \"range\": [10, 50], \"pass\": null}, \"cse_magnitude\": {\"bot_value\": null, \"range\": [-45, -10], \"pass\": null}}}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "qnkX",
+      "code_hash": "5a4a3ef6efb51dec1a5cf7f2e38cef75",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "application/json": "{\"mu hand==oracle\": true, \"sigma hand==oracle\": true, \"tau hand==oracle\": true, \"pes not computable (None)\": true}"
+          }
+        }
+      ],
+      "console": []
+    },
+    {
+      "id": "TqIu",
+      "code_hash": "2c1ec4e61148b8ff2b85f8416f9bb57a",
+      "outputs": [
+        {
+          "type": "data",
+          "data": {
+            "text/markdown": "## 7. Code-review verdict\n\nAssertions pass: the ex-Gaussian values match the oracle, and PES is correctly reported\nas not computable. Reviewer notes specific to this task:\n\n- **PES is structurally `NaN`**, not a fidelity failure \u2014 the offline adapter can't\n  recover true accuracy on this platform, so it has no errors to condition on. Reported\n  as a non-gating \"not computable\" entry. The expfactory Stroop *can* measure PES.\n- **The plausibility window earns its keep here**: the cell above shows several raw RTs\n  far outside `[150, 5000] ms` that would otherwise wreck the fit. This is the exact\n  inconsistency the recent oracle fix closed for PES/SSRT.\n- **Stability at N\u226510**: with 15-trial sessions, a single session's ex-Gaussian is\n  unstable; the gating uses the *pooled* cohort, which is why this task passes at\n  cumulative N but produced fit-noise FAILs at N=5."
+          }
+        }
+      ],
+      "console": []
+    }
+  ]
+}

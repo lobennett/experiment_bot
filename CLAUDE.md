@@ -396,6 +396,29 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   deferred; the held-out behavioral result now lives in
   `docs/scope-of-validity.md` §6 + `docs/validation-results.md`. Tag
   `sp16-complete`. ✓ Complete.
+- **SP17**: Adversarial-review hardening. A multi-agent research review
+  (`docs/research-review.md`) scrutinized the codebase (generalizability,
+  analysis-code correctness, scientific software design) against the
+  "complete the task from only a URL" thesis and external literature
+  (104 findings → 16 verified, 15 survived 3-vote verification). Addressed
+  the in-scope findings: (1) **SSRT validity abstention** —
+  `oracle.py::_compute_ssrt` returns NaN (non-gating) + logs a warning
+  outside the Verbruggen-2019 integration-method bounds
+  (`SSRT_MIN_STOP_TRIALS=50`, `SSRT_PRESPOND_RANGE=(0.25,0.75)`); applied
+  at the pooled-cohort level (caveat in scope L23), so dev verdicts are
+  unchanged (stop_signal_rdoc SSRT still 257.9). (2) **Hermetic replay** —
+  new `taskcard.loader.load_by_hash` (recomputed canonical-content-hash
+  match, full or unambiguous prefix) wired into the run CLI as
+  `--taskcard-sha256` to reproduce the exact card a past session recorded
+  in `run_metadata`; default load stays newest-by-mtime. (3) **Reviewer-doc
+  reframe** — scope-of-validity L22–L26 (gate is a descriptive screen with
+  no multiplicity control; thesis precision + non-URL scaffolding; SSRT
+  abstention + pooled-vs-per-subject caveat; pooled ex-Gaussian power;
+  opt-in hermetic replay). Internal CI: 808 passing (was 797); +11 tests.
+  Dev-4 re-validation unchanged (2/4; SSRT 257.9 / 281.6 held). Deferred
+  (with reasons): norms re-extraction (operational rule — own cycle),
+  covariance/structure gating (new feature), held-out N=5 (live
+  measurement run). ✓ Complete (merged to main; tag deferred).
 - **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
   documents adversarial review instructions for a fresh Claude session
   to interrogate the abstract's central claim. Update on every

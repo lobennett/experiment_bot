@@ -277,9 +277,11 @@ Update this charter when:
 
 ## 10. Latest framework state (auto-updated)
 
-**Last reviewed at:** sp16-complete
+**Last reviewed at:** sp17 (review-hardening)
 
-**Maintenance log:** 2026-05-30 — docs consolidated (SP12–SP16); per-SP results docs replaced by `docs/validation-results.md`; broken pointers in reading list, Probe C, and Probe H updated; deleted keypress_audit script replaced by `scripts/audit_alignment.py`.
+**Maintenance log:**
+- 2026-06-08 (SP17) — validator behavior changed: `_compute_ssrt` now ABSTAINS (returns NaN, non-gating) when stop trials < 50 or p(respond|signal) ∉ [0.25, 0.75], so a reviewer running the validator on a low-stop-trial or skewed-staircase paradigm will see no SSRT value rather than a number. A hermetic-replay loader was added (`experiment-bot --taskcard-sha256 <hash>`). Scope-of-validity gained L22–L26. (Per this charter's rule, specific findings are NOT enumerated here; derive them from the validator + the SP-results docs you read independently.)
+- 2026-05-30 — docs consolidated (SP12–SP16); per-SP results docs replaced by `docs/validation-results.md`; broken pointers in reading list, Probe C, and Probe H updated; deleted keypress_audit script replaced by `scripts/audit_alignment.py`.
 
 **Validator pillars currently implemented:** rt_distribution, individual_differences, sequential.
 

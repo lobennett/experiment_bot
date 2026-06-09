@@ -16,8 +16,10 @@ dist/
 archive/
 .playwright-mcp/
 scripts/*.log
-data/human/stop_signal.csv
-data/human/stroop.csv
+# Trial-level Eisenberg reference data: too large for git (142 MB / 16 MB).
+# Fetch per data/human/README.md; integrity via the sha256 sums recorded there.
+data/human/stop_signal_eisenberg.csv
+data/human/stroop_eisenberg.csv
 .reasoner_work/
 .reasoner-logs/
 # Per-run validation artifacts. Production validation reports (under

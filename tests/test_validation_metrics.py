@@ -31,6 +31,18 @@ def test_lag1_autocorrelation_returns_nan_with_too_few_samples():
     assert math.isnan(lag1_autocorrelation([500, 510]))
 
 
+def test_fit_ex_gaussian_low_skew_data_stays_interior():
+    """Regression: log(cdf+eps) saturated for very negative z, so on
+    low-skew (near-Gaussian) data the optimizer walked mu to the 5000 bound
+    (surfaced by the pipeline-contract test). With logcdf the optimum stays
+    near the data."""
+    rng = np.random.default_rng(7)
+    samples = list(np.clip(rng.normal(480.0, 50.0, size=300), 200, None))
+    fit = fit_ex_gaussian(samples)
+    assert abs(fit["mu"] - 480.0) < 100, fit
+    assert fit["mu"] < 1000, fit
+
+
 def test_post_error_slowing_magnitude_positive_when_slowed():
     trials = [
         {"rt": 500, "correct": True},

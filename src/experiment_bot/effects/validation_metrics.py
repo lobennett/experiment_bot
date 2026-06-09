@@ -105,11 +105,18 @@ def fit_ex_gaussian(rt_samples: list[float]) -> dict:
         if sigma <= 1.0 or tau <= 1.0:
             return 1e10
         z = (samples - mu) / sigma - sigma / tau
+        # stats.norm.logcdf, NOT log(cdf + eps): the eps form saturates at
+        # log(eps) for very negative z while the -(x-mu)/tau term keeps
+        # growing linearly in mu, so on low-skew data the "likelihood"
+        # increases without bound and the optimizer walks mu to the upper
+        # box bound (surfaced by the pipeline-contract test: symmetric
+        # synthetic RTs fit as mu=5000). logcdf decays like -z^2/2 and keeps
+        # the optimum interior.
         log_pdf = (
             np.log(1.0 / tau)
             + (sigma * sigma / (2 * tau * tau))
             - ((samples - mu) / tau)
-            + np.log(stats.norm.cdf(z) + 1e-30)
+            + stats.norm.logcdf(z)
         )
         return -np.sum(log_pdf)
 

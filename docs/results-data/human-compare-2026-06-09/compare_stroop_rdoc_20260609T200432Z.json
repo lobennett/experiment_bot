@@ -1,0 +1,78 @@
+{
+  "label": "stroop_rdoc",
+  "human_csv": "data/human/stroop_rdoc.csv",
+  "human_n_after_exclusions": 2478,
+  "map": "data/human/comparison_maps/stroop_rdoc.json",
+  "results": {
+    "congruent_rt": {
+      "bot_mean": 635.9952942936064,
+      "bot_sd": 34.282829196493346,
+      "bot_n": 46,
+      "human_mean": 575.1424221953188,
+      "human_sd": 66.88440516142798,
+      "human_n": 2478,
+      "z": 0.9098215339049067,
+      "within_1sd": true
+    },
+    "incongruent_rt": {
+      "bot_mean": 682.6077423297602,
+      "bot_sd": 30.89793791244422,
+      "bot_n": 46,
+      "human_mean": 642.3771430185634,
+      "human_sd": 80.53841315029837,
+      "human_n": 2478,
+      "z": 0.4995206354031293,
+      "within_1sd": true
+    },
+    "stroop_effect": {
+      "bot_mean": 46.61244803615367,
+      "bot_sd": 21.576769621026774,
+      "bot_n": 46,
+      "human_mean": 67.23472082324454,
+      "human_sd": 41.32773550634743,
+      "human_n": 2478,
+      "z": -0.49899353386840045,
+      "within_1sd": true
+    },
+    "congruent_accuracy": {
+      "bot_mean": 0.9809294051521454,
+      "bot_sd": 0.01657604331713459,
+      "bot_n": 46,
+      "human_mean": 0.9612280985062576,
+      "human_sd": 0.046453496664081766,
+      "human_n": 2477,
+      "z": 0.4241081524681239,
+      "within_1sd": true
+    },
+    "incongruent_accuracy": {
+      "bot_mean": 0.9347980376130273,
+      "bot_sd": 0.0299119636463203,
+      "bot_n": 46,
+      "human_mean": 0.919561566410981,
+      "human_sd": 0.06322471865432497,
+      "human_n": 2477,
+      "z": 0.24098914991382137,
+      "within_1sd": true
+    },
+    "congruent_omission_rate": {
+      "bot_mean": 0.02210144927536232,
+      "bot_sd": 0.07362352916857247,
+      "bot_n": 46,
+      "human_mean": 0.004205932203389831,
+      "human_sd": 0.01587660943045175,
+      "human_n": 2478,
+      "z": 1.1271623925980327,
+      "within_1sd": false
+    },
+    "incongruent_omission_rate": {
+      "bot_mean": 0.026449275362318843,
+      "bot_sd": 0.07589597225414207,
+      "bot_n": 46,
+      "human_mean": 0.005874858757062147,
+      "human_sd": 0.017198712569535,
+      "human_n": 2478,
+      "z": 1.1962765539614437,
+      "within_1sd": false
+    }
+  }
+}

@@ -1,0 +1,38 @@
+{
+  "label": "stroop_online_(cognition.run)",
+  "human_csv": "data/human/stroop_rdoc.csv",
+  "human_n_after_exclusions": 2478,
+  "map": "data/human/comparison_maps/stroop_rdoc.json",
+  "results": {
+    "congruent_rt": {
+      "bot_mean": 602.3371199859572,
+      "bot_sd": 46.999215577119415,
+      "bot_n": 43,
+      "human_mean": 575.1424221953188,
+      "human_sd": 66.88440516142798,
+      "human_n": 2478,
+      "z": 0.40659250426168886,
+      "within_1sd": true
+    },
+    "incongruent_rt": {
+      "bot_mean": 679.6869500654384,
+      "bot_sd": 74.89545050756827,
+      "bot_n": 43,
+      "human_mean": 642.3771430185634,
+      "human_sd": 80.53841315029837,
+      "human_n": 2478,
+      "z": 0.4632548070850186,
+      "within_1sd": true
+    },
+    "stroop_effect": {
+      "bot_mean": 77.34983007948124,
+      "bot_sd": 61.246842710669284,
+      "bot_n": 43,
+      "human_mean": 67.23472082324454,
+      "human_sd": 41.32773550634743,
+      "human_n": 2478,
+      "z": 0.24475353252014345,
+      "within_1sd": true
+    }
+  }
+}

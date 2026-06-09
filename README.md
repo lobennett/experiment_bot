@@ -206,59 +206,54 @@ For detailed descriptions of each file and what generated it, see **[`examples/R
 
 ## Analyzing Data
 
-### Running the analysis notebook
-
-The primary analysis tool is `scripts/analysis.ipynb`. It loads the raw experiment data (not the bot's decision log), compares metrics to human reference data, and exports per-run CSVs.
+Two tested CLIs score sessions from the platform's own data export
+(`experiment_data.{csv,json}` — never the bot's self-log; see goal G4):
 
 ```bash
-# Open in Jupyter Lab
-uv run jupyter lab scripts/analysis.ipynb
+# Oracle: point-estimate gates vs pre-registered meta-analytic norms
+uv run experiment-bot-validate --paradigm-class conflict --label stroop_rdoc
+
+# Human-reference comparison: bot cohort mean z-positioned within the human
+# RDoC distribution (the paper's analysis)
+uv run experiment-bot-compare --label stroop_rdoc \
+  --human-csv data/human/stroop_rdoc.csv \
+  --map data/human/comparison_maps/stroop_rdoc.json
 ```
 
-The notebook processes each platform in order:
-1. **RDoC Stop Signal** (ExpFactory) — 180 test trials, go/stop split
-2. **RDoC Stroop** (ExpFactory) — 120 test trials, congruent/incongruent
-3. **STOP-IT Stop Signal** — 288 trials, signal-based filtering
-4. **Cognition.run Stroop** — 15 trials, dynamic condition mapping
-
-For each platform, the notebook:
-1. Loads the cached config and displays Claude's expected parameters (RT distributions, accuracy targets, temporal effects)
-2. Loads the experiment's raw output data (`experiment_data.{csv,json}`)
-3. Computes metrics using the experiment's own correctness scoring
-4. Compares each metric to the human reference distribution (mean ± 1 SD)
-
-### Output CSVs
-
-The notebook exports per-run metrics to `data/bot/` in the same format as the human reference data:
-- `data/bot/stop_signal.csv` — one row per bot session, same columns as `data/human/stop_signal.csv`
-- `data/bot/stroop.csv` — one row per bot session, same columns as `data/human/stroop.csv`
-
-Each row includes a generated subject ID (e.g., `bot_amber_falcon`), timestamp, platform, and all task metrics.
+Current numbers live in **[`docs/validation-results.md`](docs/validation-results.md)**
+(single living results doc). Per-metric walkthroughs that recompute every
+oracle metric from first principles against real session data are in
+**[`notebooks/`](notebooks/README.md)** (marimo; assertions verify
+hand-rolled == library == oracle).
 
 ### Human reference data
 
-Human data from an RDoC behavioral battery is in `data/human/`:
-- `stop_signal.csv` — ~2500 sessions with go RT, go accuracy, stop accuracy, SSD metrics
-- `stroop.csv` — ~2500 sessions with congruent/incongruent RT and accuracy
+Session-level RDoC battery summaries are committed at
+`data/human/{stroop,stop_signal}_rdoc.csv` (~2,510 rows each; the Include
+exclusion filter yields the paper's reference Ns 2,478 / 2,412). Trial-level
+Eisenberg data is fetched separately — see
+**[`data/human/README.md`](data/human/README.md)** for download + sha256.
+Comparison metric mappings (which human column ↔ which bot computation) are
+data files under `data/human/comparison_maps/`.
 
-Both files include exclusion columns. The notebook filters to rows where all three exclusion columns equal "Include".
+> `scripts/analysis.ipynb` is the legacy exploratory notebook this analysis
+> was ported from; it predates the current pipeline and is kept for
+> reference only — use `experiment-bot-compare` for citable numbers.
 
-### Key comparison metrics
-
-| Task | Metrics (in column order) |
-|------|---------|
-| **Stop signal** | `go_accuracy`, `go_omission_rate`, `go_rt`, `go_rt_all_responses`, `mean_stop_failure_RT`, `stop_accuracy`, `max_SSD`, `mean_SSD`, `min_SSD`, `final_SSD` |
-| **Stroop** | `congruent_accuracy`, `congruent_omission_rate`, `congruent_rt`, `incongruent_accuracy`, `incongruent_omission_rate`, `incongruent_rt` |
-
-### Quick command-line check
+## Reproduce the Paper's Numbers
 
 ```bash
-# Count completed bot runs
-find output -name "experiment_data.*" | wc -l
-
-# Check generated TaskCards
-ls taskcards/*/
+scripts/reproduce.sh 5    # sessions per paradigm (4 parallel streams)
 ```
+
+runs sessions for all four implementations, stages STOP-IT under its adapter
+label, then runs the oracle validation and the human-reference comparison.
+TaskCards are committed (content-addressed under `taskcards/`); sessions are
+reproducible per-card via `experiment-bot --taskcard-sha256 <hash> --seed
+<session_seed>` using the values recorded in each session's
+`run_metadata.json`. Expfactory preview URLs are ephemeral deployments — if
+one 404s, redeploy and update the URL (as-run commands are recorded in
+`docs/validation-results.md`).
 
 ## Project Structure
 

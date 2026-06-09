@@ -411,6 +411,9 @@ assert "post_error_slowing" not in EFFECT_REGISTRY
   provenance for the current shareable dataset.
 - `README.md` — start-to-finish pipeline + onboarding.
 - `docs/reviewer-1-charter.md` — adversarial review instructions.
+- `docs/research-review.md` — adversarial research review (generalizability,
+  analysis-code correctness, scientific software design) with prioritized
+  recommendations; benchmarked against external literature.
 - `docs/stage3-citation-history.md` — citation provenance and the
   Stage-3 fabrication history.
 

@@ -349,6 +349,64 @@ def test_oracle_ssrt_returns_nan_without_ssd_or_stop_trials(tmp_path):
 
 
 # ---------------------------------------------------------------------------
+# SSRT validity-bound abstention (Verbruggen et al. 2019, eLife 10.7554/eLife.46323)
+# ---------------------------------------------------------------------------
+
+def _ssrt_trials(n_go, n_stop, n_stop_responded, ssd=300.0, go_rt=500.0):
+    """Build a flat trial list: n_go go trials + n_stop stop trials, of which
+    n_stop_responded are responded (omission=False) and the rest omitted."""
+    trials = [
+        {"condition": "go", "rt": go_rt, "correct": True, "omission": False, "ssd": None}
+        for _ in range(n_go)
+    ]
+    for i in range(n_stop):
+        responded = i < n_stop_responded
+        trials.append({
+            "condition": "stop",
+            "rt": go_rt if responded else None,
+            "correct": not responded,
+            "omission": not responded,
+            "ssd": ssd,
+        })
+    return trials
+
+
+def test_compute_ssrt_abstains_below_min_stop_trials(caplog):
+    from experiment_bot.validation.oracle import _compute_ssrt, SSRT_MIN_STOP_TRIALS
+    # 40 stop trials (< 50), p_respond = 0.5 (in range) — abstain on count.
+    trials = _ssrt_trials(n_go=100, n_stop=40, n_stop_responded=20)
+    ctx = {"trial_loader": lambda s: trials}
+    with caplog.at_level("WARNING"):
+        val = _compute_ssrt([Path("dummy")], ctx)
+    assert math.isnan(val)
+    assert any("stop_total" in r.message and "40" in r.message for r in caplog.records)
+    assert SSRT_MIN_STOP_TRIALS == 50
+
+
+def test_compute_ssrt_abstains_when_prespond_out_of_range(caplog):
+    from experiment_bot.validation.oracle import _compute_ssrt
+    # 60 stop trials (>= 50) but p_respond = 0.9 (> 0.75) — abstain on p_respond.
+    trials = _ssrt_trials(n_go=100, n_stop=60, n_stop_responded=54)
+    ctx = {"trial_loader": lambda s: trials}
+    with caplog.at_level("WARNING"):
+        val = _compute_ssrt([Path("dummy")], ctx)
+    assert math.isnan(val)
+    assert any("p_respond" in r.message for r in caplog.records)
+
+
+def test_compute_ssrt_finite_for_valid_data():
+    from experiment_bot.validation.oracle import _compute_ssrt
+    # 80 stop trials (>= 50), p_respond = 0.5 (in [0.25, 0.75]) — valid.
+    trials = _ssrt_trials(n_go=100, n_stop=80, n_stop_responded=40, ssd=250.0, go_rt=500.0)
+    ctx = {"trial_loader": lambda s: trials}
+    val = _compute_ssrt([Path("dummy")], ctx)
+    assert not math.isnan(val)
+    assert math.isfinite(val)
+    # mu_go quantile at 0.5 (~500) minus mean_ssd (250) ≈ 250ms.
+    assert 100 < val < 400
+
+
+# ---------------------------------------------------------------------------
 # Task 5: completeness exclusion, tri-state overall_pass, bot_log guard
 # ---------------------------------------------------------------------------
 

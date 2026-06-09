@@ -35,6 +35,17 @@ logger = logging.getLogger(__name__)
 # in validate_session_set.
 GROSS_UNDERCOUNT_FRACTION = 0.6
 
+# Integration-method SSRT validity bounds (Verbruggen et al., consensus guide,
+# eLife 2019, 10.7554/eLife.46323). The integration estimate is only
+# interpretable when (a) enough stop trials accumulate to stabilize the
+# p(respond|signal) estimate and the go-RT quantile, and (b) the staircase has
+# converged so p(respond|signal) sits near 0.5; estimates from p far from 0.5
+# (and from <~50 stop trials) are biased and should not be reported. Outside
+# these bounds the oracle ABSTAINS (returns NaN → non-gating) rather than
+# emitting a misleading SSRT.
+SSRT_MIN_STOP_TRIALS = 50
+SSRT_PRESPOND_RANGE = (0.25, 0.75)
+
 
 @dataclass
 class MetricResult:
@@ -248,6 +259,12 @@ def _compute_ssrt(session_dirs: list[Path], ctx: dict) -> float:
 
     Returns NaN when there are insufficient go trials, no stop trials,
     or no SSD samples available.
+
+    Also ABSTAINS (returns NaN, making the metric non-gating) when the data
+    fall outside the integration-method validity bounds (see
+    SSRT_MIN_STOP_TRIALS / SSRT_PRESPOND_RANGE): fewer than 50 stop trials, or
+    p(respond|signal) outside [0.25, 0.75]. An out-of-bounds SSRT estimate is
+    biased and should not be reported; abstention is logged, not silent.
     """
     loader = ctx["trial_loader"]
     go_rts: list[float] = []
@@ -271,6 +288,22 @@ def _compute_ssrt(session_dirs: list[Path], ctx: dict) -> float:
         return float("nan")
     p_respond = stop_responded / stop_total
     mean_ssd = sum(ssd_samples) / len(ssd_samples)
+    # Validity-bound abstention (Verbruggen et al. 2019, 10.7554/eLife.46323).
+    p_lo, p_hi = SSRT_PRESPOND_RANGE
+    if stop_total < SSRT_MIN_STOP_TRIALS:
+        logger.warning(
+            "SSRT abstaining: stop_total=%d below validity minimum of %d "
+            "stop trials (Verbruggen et al. 2019); metric non-gating.",
+            stop_total, SSRT_MIN_STOP_TRIALS,
+        )
+        return float("nan")
+    if not (p_lo <= p_respond <= p_hi):
+        logger.warning(
+            "SSRT abstaining: p_respond=%.3f outside validity range [%.2f, %.2f] "
+            "(Verbruggen et al. 2019); stop_total=%d; metric non-gating.",
+            p_respond, p_lo, p_hi, stop_total,
+        )
+        return float("nan")
     return ssrt_integration(go_rts, p_respond, mean_ssd)
 
 

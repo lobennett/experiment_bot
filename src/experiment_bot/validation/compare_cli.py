@@ -14,7 +14,7 @@ from experiment_bot.validation.human_reference import (
     load_human_reference,
 )
 from experiment_bot.validation.oracle import select_sessions
-from experiment_bot.validation.platform_adapters import adapter_for_label
+from experiment_bot.validation.platform_adapters import resolve_trial_loader
 
 
 @click.command()
@@ -28,9 +28,11 @@ from experiment_bot.validation.platform_adapters import adapter_for_label
                    "Use when a platform's offline export can't support a metric "
                    "(e.g. cognition.run correctness is not recoverable offline).")
 @click.option("--output-dir", default="output", help="Where session subfolders live")
+@click.option("--taskcards-dir", default="taskcards",
+              help="TaskCard dir; a card carrying runtime.platform_export overrides the hand-written adapter")
 @click.option("--reports-dir", default="validation", help="Where to write the JSON report")
 @click.option("-v", "--verbose", is_flag=True, default=False)
-def main(label, human_csv, map_path, metrics, output_dir, reports_dir, verbose):
+def main(label, human_csv, map_path, metrics, output_dir, taskcards_dir, reports_dir, verbose):
     """Compare bot sessions against a human reference distribution.
 
     For each mapped metric: bot per-session values are pooled into a cohort
@@ -41,13 +43,16 @@ def main(label, human_csv, map_path, metrics, output_dir, reports_dir, verbose):
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
 
-    trial_loader = adapter_for_label(label)
+    trial_loader, loader_source = resolve_trial_loader(label, Path(taskcards_dir))
     if trial_loader is None:
         raise click.ClickException(
-            f"No platform-data adapter registered for label '{label}'. The "
-            f"comparison scores the platform's own export (G4); add an adapter "
-            f"in validation/platform_adapters.py."
+            f"No platform-data adapter registered for label '{label}' and no "
+            f"TaskCard platform_export mapping found. The comparison scores "
+            f"the platform's own export (G4); add an adapter in "
+            f"validation/platform_adapters.py or regenerate the TaskCard."
         )
+    if loader_source == "taskcard_platform_export":
+        click.echo(f"Using TaskCard-declared platform_export mapping for label '{label}'.")
 
     label_dir = Path(output_dir) / label
     if not label_dir.exists():

@@ -737,6 +737,13 @@ class RuntimeConfig:
     # always runs when a deliverer is configured and the result is
     # always installed on the sampler.
     calibration_n_keys: int = 30
+    # SP18: declarative platform-export mapping. When the Reasoner can infer
+    # the export row schema from source, it emits {row_filter, fields} here
+    # and validation builds its trial loader from the TaskCard instead of a
+    # hand-written per-paradigm adapter (see
+    # validation/platform_adapters.adapter_from_export_config). Empty dict =
+    # absent; hand-written adapters remain the fallback.
+    platform_export: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, d: dict) -> RuntimeConfig:
@@ -750,10 +757,11 @@ class RuntimeConfig:
             navigation_stimulus_condition=d.get("navigation_stimulus_condition", ""),
             delivery_channel=d.get("delivery_channel", "cdp"),
             calibration_n_keys=d.get("calibration_n_keys", 30),
+            platform_export=d.get("platform_export", {}) or {},
         )
 
     def to_dict(self) -> dict:
-        return {
+        out = {
             "phase_detection": self.phase_detection.to_dict(),
             "timing": self.timing.to_dict(),
             "advance_behavior": self.advance_behavior.to_dict(),
@@ -765,6 +773,12 @@ class RuntimeConfig:
             "delivery_channel": self.delivery_channel,
             "calibration_n_keys": self.calibration_n_keys,
         }
+        # Emit ONLY when non-empty: to_dict feeds the canonical content hash
+        # (taskcard_sha256), so an unconditional key would silently change
+        # every committed card's recomputed hash and break hermetic replay.
+        if self.platform_export:
+            out["platform_export"] = self.platform_export
+        return out
 
 
 @dataclass

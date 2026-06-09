@@ -351,3 +351,43 @@ The pattern below is fragile because it computes from DOM state WITHOUT checking
 If `window.correctResponse` is defined on this page, the anti-example's drift is silent — the bot's resolved key differs from the platform's expected on counterbalancing-dependent trials, and the only way to detect this is the SP7-style keypress audit.
 
 Always emit Pattern A or Pattern B (or omit `response_key_js` per Pattern C). Never emit the anti-example shape.
+
+## Platform-export mapping (runtime.platform_export)
+
+When the source code reveals how the platform writes its data export — the
+column names of the per-trial rows and which rows are real test trials —
+emit a declarative mapping in `runtime.platform_export` so validation can
+read the export without a hand-written adapter. Omit the field entirely when
+the export row schema is not inferable from source.
+
+```json
+"platform_export": {
+  "row_filter": {
+    "equals": {"<column>": "<value-identifying-test-rows>"},
+    "one_of": {"<column>": ["<value-1>", "<value-2>"]}
+  },
+  "fields": {
+    "condition": {"column": "<condition-column>",
+                   "value_map": {"<raw-value>": "<canonical-condition-label>"}},
+    "rt": {"column": "<rt-column>", "parse": "float"},
+    "correct": {"column": "<correctness-column>", "parse": "truthy"}
+  }
+}
+```
+
+Rules:
+- `row_filter.equals` entries must ALL match; `one_of` entries must match one
+  of the listed values. Values compare as strings, so CSV and JSON exports
+  behave identically.
+- `fields` must map at least `condition` and `rt`. Add extra numeric columns
+  (e.g. a per-trial delay the platform records) with `"parse": "float"` —
+  they pass through to the canonical trial dict under the field name you
+  choose.
+- `value_map` is optional: use it when the export encodes the condition
+  indirectly (a flag column) rather than as the label itself. The canonical
+  labels must match the `response_distributions` condition keys.
+- An omitted response is whatever leaves the rt column empty/NaN; do NOT map
+  omissions yourself — validation derives `omission` from a missing rt.
+- Derived conditions that require comparing two columns cannot be expressed
+  here; omit the field in that case and note the limitation in your
+  reasoning chain.

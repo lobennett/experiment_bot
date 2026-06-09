@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 
 from experiment_bot.validation.oracle import validate_session_set
-from experiment_bot.validation.platform_adapters import adapter_for_label
+from experiment_bot.validation.platform_adapters import resolve_trial_loader
 
 
 def _load_lag1_contrast_labels(taskcards_dir: Path, label: str) -> tuple[str, str] | None:
@@ -108,7 +108,7 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         raise click.ClickException(f"No session subdirs in {label_dir}")
 
     contrast_labels = _load_lag1_contrast_labels(Path(taskcards_dir), label)
-    trial_loader = adapter_for_label(label)
+    trial_loader, loader_source = resolve_trial_loader(label, Path(taskcards_dir))
     if trial_loader is None:
         if not allow_bot_log:
             raise click.ClickException(
@@ -132,7 +132,10 @@ def main(paradigm_class, label, norms_dir, output_dir, taskcards_dir, reports_di
         trial_source = "bot_log"
         report_data_source_override = "bot_log_self_graded"
     else:
-        click.echo(f"Using platform-data adapter for label '{label}'.")
+        if loader_source == "taskcard_platform_export":
+            click.echo(f"Using TaskCard-declared platform_export mapping for label '{label}'.")
+        else:
+            click.echo(f"Using platform-data adapter for label '{label}'.")
         trial_source = "platform_adapter"
         report_data_source_override = None
 

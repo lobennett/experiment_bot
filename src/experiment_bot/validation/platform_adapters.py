@@ -318,6 +318,108 @@ def adapter_for_label(label: str) -> Callable[[Path], list[dict]] | None:
     return PLATFORM_ADAPTERS.get(label)
 
 
+# ---------------------------------------------------------------------------
+# SP18: TaskCard-declared export mapping (generic adapter factory)
+# ---------------------------------------------------------------------------
+#
+# The long-term home for the per-paradigm knowledge above is the TaskCard
+# (the file docstring has said so since SP2). `adapter_from_export_config`
+# builds a trial loader from a declarative `runtime.platform_export` config
+# the Reasoner emits from source analysis:
+#
+#   {
+#     "row_filter": {"equals": {"<column>": "<value>", ...},
+#                     "one_of": {"<column>": ["<v1>", "<v2>", ...]}},
+#     "fields": {
+#       "condition": {"column": "<column>",
+#                      "value_map": {"<raw>": "<canonical>", ...}},  # optional
+#       "rt":        {"column": "<column>", "parse": "float"},
+#       "correct":   {"column": "<column>", "parse": "truthy"},
+#       "<extra>":   {"column": "<column>", "parse": "float"}        # e.g. ssd
+#     }
+#   }
+#
+# Filters compare as strings so CSV ("1") and JSON (1) rows behave alike.
+# `omission` is always derived as `rt is None`. Hand-written adapters above
+# remain the fallback for labels whose cards don't carry the config (and for
+# derived conditions the DSL can't express, e.g. cognition.run's
+# text==colour congruency).
+
+def _parse_field(raw, parse: str):
+    if parse == "float":
+        return _safe_float(raw)
+    if parse == "truthy":
+        if raw in (1, "1"):
+            return True
+        if raw in (0, "0"):
+            return False
+        return _is_truthy_str(raw)
+    return raw if raw is not None else ""
+
+
+def adapter_from_export_config(cfg: dict) -> Callable[[Path], list[dict]]:
+    """Build a canonical-trial loader from a TaskCard `platform_export` config."""
+    row_filter = cfg.get("row_filter") or {}
+    equals: dict = row_filter.get("equals") or {}
+    one_of: dict = row_filter.get("one_of") or {}
+    fields: dict = cfg.get("fields") or {}
+    if "rt" not in fields or "condition" not in fields:
+        raise ValueError(
+            "platform_export.fields must map at least 'condition' and 'rt'"
+        )
+
+    def _keep(row: dict) -> bool:
+        for col, want in equals.items():
+            if str(row.get(col)) != str(want):
+                return False
+        for col, wants in one_of.items():
+            if str(row.get(col)) not in {str(w) for w in wants}:
+                return False
+        return True
+
+    def loader(session_dir: Path) -> list[dict]:
+        out: list[dict] = []
+        for row in _load_experiment_rows(session_dir):
+            if not _keep(row):
+                continue
+            trial: dict = {}
+            for name, spec in fields.items():
+                value = _parse_field(row.get(spec.get("column")), spec.get("parse", "str"))
+                vmap = spec.get("value_map")
+                if vmap is not None:
+                    value = vmap.get(str(value), spec.get("default", ""))
+                trial[name] = value
+            trial["omission"] = trial.get("rt") is None
+            trial.setdefault("correct", False)
+            out.append(trial)
+        return out
+
+    return loader
+
+
+def resolve_trial_loader(
+    label: str,
+    taskcards_dir: Path | None = None,
+) -> tuple[Callable[[Path], list[dict]] | None, str]:
+    """Resolve the trial loader for ``label``: TaskCard-declared mapping
+    first, hand-written registry adapter as fallback.
+
+    Returns (loader_or_None, source) where source is one of
+    ``taskcard_platform_export`` / ``registry_adapter`` / ``none``.
+    """
+    if taskcards_dir is not None:
+        try:
+            from experiment_bot.taskcard.loader import load_latest
+            tc = load_latest(Path(taskcards_dir), label)
+            cfg = getattr(tc.runtime, "platform_export", None) or {}
+            if cfg:
+                return adapter_from_export_config(cfg), "taskcard_platform_export"
+        except FileNotFoundError:
+            pass
+    adapter = adapter_for_label(label)
+    return adapter, ("registry_adapter" if adapter else "none")
+
+
 # SP11 Phase 6: per-paradigm test-trial predicates on raw experiment_data
 # rows. The validation adapters above strip rows down to {condition, rt,
 # correct, omission} which is sufficient for population-level metrics but

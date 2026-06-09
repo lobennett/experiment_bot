@@ -15,7 +15,7 @@ import pytest
 
 from experiment_bot.core.config import RuntimeConfig
 from experiment_bot.taskcard.hashing import taskcard_sha256
-from experiment_bot.taskcard.loader import load_latest
+from experiment_bot.taskcard.loader import load_by_hash
 from experiment_bot.validation.platform_adapters import (
     adapter_from_export_config,
     read_expfactory_stroop,
@@ -119,14 +119,18 @@ def test_resolve_prefers_taskcard_config_falls_back_to_registry(tmp_path):
     assert loader3 is None and source3 == "none"
 
 
-# The four production dev cards round-trip exactly under the current schema;
-# legacy flanker/n_back cards predate newer schema fields and already do not
-# (pre-existing schema-evolution lossiness, unrelated to platform_export).
-ROUNDTRIP_STABLE_LABELS = [
-    "cognitionrun_stroop",
-    "expfactory_stop_signal",
-    "expfactory_stroop",
-    "stopit_stop_signal",
+# The four PRODUCTION dev cards (hashes pinned in docs/validation-results.md)
+# round-trip exactly under the current schema; legacy flanker/n_back cards
+# predate newer schema fields and already do not (pre-existing
+# schema-evolution lossiness, unrelated to platform_export). Loaded by
+# content hash, NOT load_latest: mtime ordering is nondeterministic on fresh
+# checkouts (all files share the checkout mtime), so on CI load_latest can
+# pick a legacy card.
+PRODUCTION_CARDS = [
+    ("cognitionrun_stroop", "b16c7891"),
+    ("expfactory_stop_signal", "e29f22de"),
+    ("expfactory_stroop", "45751cfe"),
+    ("stopit_stop_signal", "6fc729c3"),
 ]
 
 
@@ -139,13 +143,14 @@ def test_platform_export_omitted_when_empty():
     assert RuntimeConfig.from_dict({"platform_export": cfg}).to_dict()["platform_export"] == cfg
 
 
-@pytest.mark.parametrize("label", ROUNDTRIP_STABLE_LABELS)
-def test_production_card_hashes_unperturbed(label):
+@pytest.mark.parametrize("label,sha_prefix", PRODUCTION_CARDS)
+def test_production_card_hashes_unperturbed(label, sha_prefix):
     """The production dev cards must keep their recorded content hashes
     (hermetic replay recomputes and matches them)."""
-    tc = load_latest(REPO / "taskcards", label)
+    tc = load_by_hash(REPO / "taskcards", label, sha_prefix)
     payload = tc.to_dict()
     assert taskcard_sha256(payload) == payload["produced_by"]["taskcard_sha256"], label
+    assert payload["produced_by"]["taskcard_sha256"].startswith(sha_prefix)
 
 
 def test_prompt_documents_platform_export_generically():

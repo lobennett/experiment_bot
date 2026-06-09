@@ -428,7 +428,12 @@ def validate_session_set(
                 count = 0
         metas.append((Path(sd), meta, count))
 
-    nonzero = sorted(c for _, _, c in metas if c > 0)
+    # Sessions whose output save was interrupted carry a `.incomplete` marker
+    # (written by the executor's guarded save path): excluded outright, and
+    # they do not shape the cohort median.
+    marked = {sd for sd, _, _ in metas if (Path(sd) / ".incomplete").exists()}
+
+    nonzero = sorted(c for sd, _, c in metas if c > 0 and sd not in marked)
     median = nonzero[len(nonzero) // 2] if nonzero else 0
     threshold = GROSS_UNDERCOUNT_FRACTION * median
     all_sessions_incomplete = bool(metas) and all(
@@ -437,7 +442,17 @@ def validate_session_set(
 
     active_dirs: list[Path] = []
     for sd, meta, count in metas:
-        if count == 0:
+        if sd in marked:
+            try:
+                marker_text = (Path(sd) / ".incomplete").read_text().strip()
+                marker_line = marker_text.splitlines()[0][:120] if marker_text else ""
+            except OSError:
+                marker_line = ""
+            excluded_sessions.append({
+                "session": sd.name, "trials": count, "cohort_median": median,
+                "reason": f"incomplete_save: {marker_line or 'marker present'}",
+            })
+        elif count == 0:
             # Zero-trial dir reaching the oracle (the executor should have
             # hard-failed; guard the aggregate).
             excluded_sessions.append({

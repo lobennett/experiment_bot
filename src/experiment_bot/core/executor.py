@@ -3,6 +3,7 @@ from __future__ import annotations
 import asyncio
 import logging
 import random
+import sys
 import time
 from typing import TYPE_CHECKING
 
@@ -697,17 +698,7 @@ class TaskExecutor:
                     "method": self._data_capture_method,
                     "failed": self._data_capture_failed,
                 }
-                # record_trace("save") must run BEFORE finalize() so the
-                # entry lands in run_trace.json on disk. The "save"
-                # stage's duration_s is left None because the work it
-                # bookends (save_metadata + finalize itself) happens on
-                # either side of this call.
-                self._writer.record_trace(
-                    "save", {"output": str(self._writer.run_dir)},
-                )
-                self._writer.save_metadata(metadata)
-                self._writer.finalize()
-                self._narrate("save", f"output={self._writer.run_dir}")
+                self._save_outputs(metadata)
 
             # keep_open: hold the browser open after the session finishes so the
             # final experiment state can be inspected. Waits until the user
@@ -724,6 +715,37 @@ class TaskExecutor:
                 except Exception:
                     # Page/context may already be closed, or wait was interrupted.
                     pass
+
+    def _save_outputs(self, metadata: dict) -> None:
+        """Persist run_metadata + bot_log + run_trace, guarded.
+
+        Runs in `run()`'s finally block. Unguarded, a mid-save failure left a
+        plausible-looking but partial session directory (run_metadata present,
+        bot_log/run_trace missing). Any save failure now writes a best-effort
+        `.incomplete` marker — which the oracle excludes as incomplete_save —
+        and the save error is re-raised only when no task exception is already
+        propagating (raising inside a finally block would mask the original).
+        """
+        # Must be captured at entry: inside the except block below,
+        # sys.exc_info() would report the just-caught save error itself.
+        task_exception_in_flight = sys.exc_info()[0] is not None
+        try:
+            # record_trace("save") must run BEFORE finalize() so the entry
+            # lands in run_trace.json on disk. The "save" stage's duration_s
+            # is left None because the work it bookends (save_metadata +
+            # finalize itself) happens on either side of this call.
+            self._writer.record_trace(
+                "save", {"output": str(self._writer.run_dir)},
+            )
+            self._writer.save_metadata(metadata)
+            self._writer.finalize()
+        except Exception as save_err:
+            self._writer.mark_incomplete(f"save failed: {save_err!r}")
+            logger.error(f"Failed to persist session outputs: {save_err!r}")
+            if not task_exception_in_flight:
+                raise
+        else:
+            self._narrate("save", f"output={self._writer.run_dir}")
 
     async def _trial_loop(self, session, page: Page) -> None:
         """Main trial loop: detect stimulus, sample RT, respond."""

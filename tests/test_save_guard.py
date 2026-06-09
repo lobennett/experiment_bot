@@ -1,0 +1,116 @@
+"""Save-path guard: a failure while persisting session outputs must leave a
+visible `.incomplete` marker instead of a silently partial run directory, and
+the oracle must refuse to score marked sessions (audit finding: the
+save_metadata→finalize sequence in the executor's finally block was unguarded,
+so a mid-save exception produced a plausible-looking but partial session)."""
+import json
+from pathlib import Path
+from unittest.mock import MagicMock
+
+import pytest
+
+from experiment_bot.core.config import TaskConfig
+from experiment_bot.core.executor import TaskExecutor
+from experiment_bot.output.writer import OutputWriter
+from experiment_bot.validation.oracle import validate_session_set
+
+MINIMAL_CONFIG = {
+    "task": {"name": "Stroop", "platform": "expfactory", "constructs": [], "reference_literature": []},
+    "stimuli": [
+        {
+            "id": "word",
+            "description": "color word",
+            "detection": {"method": "dom_query", "selector": ".word"},
+            "response": {"key": "r", "condition": "congruent"},
+        },
+    ],
+    "response_distributions": {
+        "congruent": {"distribution": "ex_gaussian", "params": {"mu": 500, "sigma": 50, "tau": 80}},
+    },
+    "performance": {"accuracy": {"congruent": 0.95}},
+    "navigation": {"phases": []},
+    "task_specific": {},
+    "runtime": {},
+}
+
+
+def _executor():
+    return TaskExecutor(TaskConfig.from_dict(MINIMAL_CONFIG))
+
+
+def _writer_with_run(tmp_path):
+    writer = OutputWriter(base_dir=tmp_path)
+    writer.create_run("stroop", TaskConfig.from_dict(MINIMAL_CONFIG))
+    return writer
+
+
+def test_writer_mark_incomplete_writes_marker(tmp_path):
+    writer = _writer_with_run(tmp_path)
+    writer.mark_incomplete("disk full while saving metadata")
+    marker = writer.run_dir / ".incomplete"
+    assert marker.exists()
+    assert "disk full" in marker.read_text()
+
+
+def test_save_outputs_failure_marks_incomplete_and_raises(tmp_path):
+    """No in-flight exception: the save error itself must propagate."""
+    ex = _executor()
+    ex._writer = _writer_with_run(tmp_path)
+    run_dir = ex._writer.run_dir
+    ex._writer.save_metadata = MagicMock(side_effect=OSError("disk full"))
+
+    with pytest.raises(OSError, match="disk full"):
+        ex._save_outputs({"total_trials": 5})
+    assert (run_dir / ".incomplete").exists()
+
+
+def test_save_outputs_failure_does_not_mask_inflight_exception(tmp_path):
+    """In-flight exception (the finally-block case): the ORIGINAL error
+    propagates; the save failure is recorded via the marker, not raised."""
+    ex = _executor()
+    ex._writer = _writer_with_run(tmp_path)
+    run_dir = ex._writer.run_dir
+    ex._writer.save_metadata = MagicMock(side_effect=OSError("disk full"))
+
+    with pytest.raises(ValueError, match="original task error"):
+        try:
+            raise ValueError("original task error")
+        finally:
+            ex._save_outputs({"total_trials": 5})
+    assert (run_dir / ".incomplete").exists()
+
+
+def test_save_outputs_success_writes_all_files_no_marker(tmp_path):
+    ex = _executor()
+    ex._writer = _writer_with_run(tmp_path)
+    run_dir = ex._writer.run_dir
+
+    ex._save_outputs({"total_trials": 5})
+    assert (run_dir / "run_metadata.json").exists()
+    assert (run_dir / "bot_log.json").exists()
+    assert (run_dir / "run_trace.json").exists()
+    assert not (run_dir / ".incomplete").exists()
+
+
+def _make_session(tmp_path, name, trials=10, marker=False):
+    d = tmp_path / name
+    d.mkdir(parents=True)
+    (d / "run_metadata.json").write_text(json.dumps({"total_trials": trials}))
+    if marker:
+        (d / ".incomplete").write_text("save failed: disk full")
+    return d
+
+
+def test_oracle_excludes_incomplete_save_sessions(tmp_path):
+    good = _make_session(tmp_path, "s1", trials=10)
+    bad = _make_session(tmp_path, "s2", trials=10, marker=True)
+
+    def loader(session_dir: Path) -> list[dict]:
+        return [{"condition": "congruent", "rt": 500.0, "correct": True, "omission": False}] * 10
+
+    norms = {"paradigm_class": "conflict", "metrics": {}}
+    report = validate_session_set("conflict", [good, bad], norms, trial_loader=loader)
+    assert report.n_used == 1
+    assert len(report.excluded_sessions) == 1
+    assert report.excluded_sessions[0]["session"] == "s2"
+    assert "incomplete_save" in report.excluded_sessions[0]["reason"]

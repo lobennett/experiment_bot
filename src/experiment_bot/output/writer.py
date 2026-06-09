@@ -84,6 +84,16 @@ class OutputWriter:
         if self._run_dir:
             (self._run_dir / "run_metadata.json").write_text(json.dumps(metadata, indent=2))
 
+    def mark_incomplete(self, reason: str) -> None:
+        """Best-effort `.incomplete` marker: a partially-saved session must be
+        visibly broken, not plausible-looking. The oracle excludes marked
+        sessions (exclusion reason: incomplete_save)."""
+        if self._run_dir:
+            try:
+                (self._run_dir / ".incomplete").write_text(reason)
+            except OSError:
+                logger.error("Could not write .incomplete marker", exc_info=True)
+
     def finalize(self) -> None:
         if self._run_dir:
             log_path = self._run_dir / "bot_log.json"

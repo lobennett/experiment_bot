@@ -97,6 +97,54 @@ def test_cli_samples_session_params_at_start(tmp_path):
     assert kwargs.get("session_params") == sampled_params
 
 
+def test_cli_replay_by_hash_loads_exact_card(tmp_path):
+    """--taskcard-sha256 routes through load_by_hash to the exact recorded card."""
+    from experiment_bot.taskcard.hashing import taskcard_sha256
+
+    label_dir = tmp_path / "taskcards" / "stroop"
+    label_dir.mkdir(parents=True)
+    payload = _minimal_taskcard_payload()
+    h = taskcard_sha256(payload)
+    payload["produced_by"]["taskcard_sha256"] = h
+    (label_dir / f"{h[:8]}.json").write_text(json.dumps(payload))
+    # A second, newer card so load_latest (mtime) would pick the WRONG one;
+    # the hash must override that.
+    other = _minimal_taskcard_payload()
+    other["task"]["name"] = "stroop_variant"
+    (label_dir / "ffffffff.json").write_text(json.dumps(other))
+
+    fake_executor = MagicMock()
+    fake_executor.run = AsyncMock()
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor), \
+         patch("experiment_bot.cli.build_default_client", return_value=MagicMock()):
+        result = runner_invoke = CliRunner().invoke(main, [
+            "http://example.com/stroop",
+            "--label", "stroop",
+            "--taskcards-dir", str(tmp_path / "taskcards"),
+            "--taskcard-sha256", h[:8],
+            "--headless",
+        ])
+    assert result.exit_code == 0, result.output
+    fake_executor.run.assert_awaited_once()
+
+
+def test_cli_replay_by_hash_unknown_hash_errors(tmp_path):
+    """A bad --taskcard-sha256 fails via load_by_hash (not the mtime path)."""
+    label_dir = tmp_path / "taskcards" / "stroop"
+    label_dir.mkdir(parents=True)
+    (label_dir / "abcd1234.json").write_text(json.dumps(_minimal_taskcard_payload()))
+
+    result = CliRunner().invoke(main, [
+        "http://example.com/stroop",
+        "--label", "stroop",
+        "--taskcards-dir", str(tmp_path / "taskcards"),
+        "--taskcard-sha256", "deadbeefdeadbeef",
+        "--headless",
+    ])
+    assert result.exit_code != 0
+    assert "content hash" in result.output.lower()
+
+
 def test_cli_help():
     runner = CliRunner()
     result = runner.invoke(main, ["--help"])

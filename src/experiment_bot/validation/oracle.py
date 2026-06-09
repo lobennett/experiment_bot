@@ -357,58 +357,29 @@ METRIC_REGISTRY: dict[str, MetricSpec] = {
 }
 
 
-def validate_session_set(
-    paradigm_class: str,
+def select_sessions(
     session_dirs: list[Path],
-    norms: dict,
-    contrast_labels: tuple[str, str] | None = None,
-    trial_loader=None,
-    trial_source: str = "platform_adapter",
-) -> ValidationReport:
-    """Score bot sessions against published canonical norms.
+    trial_loader,
+) -> tuple[list[Path], list[dict], bool]:
+    """Cohort completeness selection — shared by the oracle and
+    `experiment-bot-compare` so both analyses score the SAME session cohort.
 
-    Iterates over the norms file's metrics dict, dispatching each through
-    METRIC_REGISTRY. Pillars accumulate dynamically based on which metrics
-    appear; new pillars (e.g. "speed_accuracy") and new metrics work
-    without code changes here — register a `MetricSpec` and the norms file
-    declares which apply per paradigm class.
+    Returns (active_dirs, excluded_sessions, all_sessions_incomplete).
 
-    `contrast_labels`, when supplied, is the (high, low) pair of condition
-    labels driving any 2-back contrast metric (e.g. cse_magnitude). The
-    CLI extracts these from the TaskCard's
-    `lag1_pair_modulation.modulation_table`; oracle does not assume any
-    specific condition vocabulary.
-
-    `trial_loader`, when supplied, is a callable
-    `(session_dir: Path) -> list[trial_dict]` returning canonical trial
-    records `{condition, rt, correct, omission}`. The CLI passes a
-    platform-data adapter from `validation/platform_adapters.py` here so
-    metrics are computed against the experiment's own data export rather
-    than `bot_log.json` (which can over-/under-count platform trials).
-    Defaults to `_default_bot_log_loader` for back-compat.
-
-    `trial_source`, when set to `"bot_log"`, marks any correctness-dependent
-    metric (post_error_slowing) as pass_=None so the bot's self-graded
-    `correct` field cannot gate overall_pass.
+    loop_exit_reason / incomplete are DIAGNOSTIC only; the exclusion trigger
+    is a cohort-relative gross-undercount, NOT the exit reason. A
+    legitimately-whole session can exit via max_misses when the experiment's
+    COMPLETE predicate never fires at the end (empirically true on
+    expfactory_stroop: 125/125 trials, loop_exit_reason=max_misses).
+    Excluding on the flag alone would drop whole-but-misdetected sessions and
+    under-count the cohort. Instead we drop only sessions whose trial count
+    is a gross outlier below the cohort median (catches the real bug: the
+    61-vs-125 stroop partial). Uniform truncation (all sessions equally
+    short) has no outlier to detect without a fragile absolute
+    expected-count, so it is surfaced via all_sessions_incomplete for manual
+    review rather than auto-failed.
     """
-    # --- completeness exclusion ---
-    if trial_loader is None:
-        trial_loader = _default_bot_log_loader
-    n_supplied = len(session_dirs)
     excluded_sessions: list[dict] = []
-
-    # Completeness handling. loop_exit_reason / incomplete are DIAGNOSTIC only;
-    # the exclusion trigger is a cohort-relative gross-undercount, NOT the exit
-    # reason. A legitimately-whole session can exit via max_misses when the
-    # experiment's COMPLETE predicate never fires at the end (empirically true
-    # on expfactory_stroop: 125/125 trials, loop_exit_reason=max_misses).
-    # Excluding on the flag alone would drop whole-but-misdetected sessions and
-    # under-count the cohort. Instead we drop only sessions whose trial count is
-    # a gross outlier below the cohort median (catches the real bug: the 61-vs-
-    # 125 stroop partial). Uniform truncation (all sessions equally short) has no
-    # outlier to detect without a fragile absolute expected-count, so it is
-    # surfaced via all_sessions_incomplete for manual review rather than auto-
-    # failed.
     metas: list[tuple[Path, dict, int]] = []
     for sd in session_dirs:
         meta_path = Path(sd) / "run_metadata.json"
@@ -471,6 +442,51 @@ def validate_session_set(
             })
         else:
             active_dirs.append(sd)
+
+    return active_dirs, excluded_sessions, all_sessions_incomplete
+
+
+def validate_session_set(
+    paradigm_class: str,
+    session_dirs: list[Path],
+    norms: dict,
+    contrast_labels: tuple[str, str] | None = None,
+    trial_loader=None,
+    trial_source: str = "platform_adapter",
+) -> ValidationReport:
+    """Score bot sessions against published canonical norms.
+
+    Iterates over the norms file's metrics dict, dispatching each through
+    METRIC_REGISTRY. Pillars accumulate dynamically based on which metrics
+    appear; new pillars (e.g. "speed_accuracy") and new metrics work
+    without code changes here — register a `MetricSpec` and the norms file
+    declares which apply per paradigm class.
+
+    `contrast_labels`, when supplied, is the (high, low) pair of condition
+    labels driving any 2-back contrast metric (e.g. cse_magnitude). The
+    CLI extracts these from the TaskCard's
+    `lag1_pair_modulation.modulation_table`; oracle does not assume any
+    specific condition vocabulary.
+
+    `trial_loader`, when supplied, is a callable
+    `(session_dir: Path) -> list[trial_dict]` returning canonical trial
+    records `{condition, rt, correct, omission}`. The CLI passes a
+    platform-data adapter from `validation/platform_adapters.py` here so
+    metrics are computed against the experiment's own data export rather
+    than `bot_log.json` (which can over-/under-count platform trials).
+    Defaults to `_default_bot_log_loader` for back-compat.
+
+    `trial_source`, when set to `"bot_log"`, marks any correctness-dependent
+    metric (post_error_slowing) as pass_=None so the bot's self-graded
+    `correct` field cannot gate overall_pass.
+    """
+    # --- completeness exclusion ---
+    if trial_loader is None:
+        trial_loader = _default_bot_log_loader
+    n_supplied = len(session_dirs)
+    active_dirs, excluded_sessions, all_sessions_incomplete = select_sessions(
+        session_dirs, trial_loader,
+    )
 
     n_used = len(active_dirs)
     # Hard-fail only when NO usable session remains (genuinely empty cohort).

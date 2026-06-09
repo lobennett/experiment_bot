@@ -32,23 +32,24 @@ TaskCards: `taskcards/expfactory_stroop/45751cfe.json`, `taskcards/expfactory_st
 
 _Last updated: 2026-06-09, `experiment-bot-compare` on the same cumulative session pool, vs the RDoC battery session-level summaries (`data/human/*_rdoc.csv`; Include-filter N = 2,478 Stroop / 2,412 stop-signal — the abstract's exact reference Ns). z = (bot cohort mean − human mean) / human between-session SD. SSRT here is the **mean method** (`go_rt − mean_SSD`) on BOTH sides — the summaries cannot support the integration method; the oracle's integration SSRT above is a different estimator._
 
-| metric | stroop\_rdoc (expfactory) | stroop cognition.run | stop\_signal\_rdoc (expfactory) | STOP-IT (kywch) |
+| metric | stroop\_rdoc (expfactory, n=45) | stroop cognition.run (n=43) | stop\_signal\_rdoc (expfactory, n=41) | STOP-IT (kywch, n=41) |
 |---|---|---|---|---|
-| congruent / go RT | 636.0 vs 575.1±66.9, z **+0.91** ✅ | 602.3, z **+0.41** ✅ | 572.8 vs 648.8±99.6, z **−0.76** ✅ | 580.1, z **−0.69** ✅ |
-| incongruent RT | 682.6 vs 642.4±80.5, z **+0.50** ✅ | 679.7, z **+0.46** ✅ | — | — |
-| Stroop effect | 46.6 vs 67.2±41.3, z **−0.50** ✅ | 77.3, z **+0.24** ✅ | — | — |
-| accuracy (cong / go) | 0.981 vs 0.961±0.046, z **+0.42** ✅ | n/c offline | 0.959 vs 0.967±0.047, z **−0.17** ✅ | 0.971, z **+0.08** ✅ |
-| accuracy (incong) | 0.935 vs 0.920±0.063, z **+0.24** ✅ | n/c offline | — | — |
-| omission rate(s) | z **+1.13 / +1.20** ❌ | n/c offline | z **+0.27** ✅ | z **+0.27** ✅ |
+| congruent / go RT | 634.1 vs 575.1±66.9, z **+0.88** ✅ | 602.3, z **+0.41** ✅ | 572.8 vs 648.8±99.6, z **−0.76** ✅ | 580.1, z **−0.69** ✅ |
+| incongruent RT | 683.0 vs 642.4±80.5, z **+0.50** ✅ | 679.7, z **+0.46** ✅ | — | — |
+| Stroop effect | 48.9 vs 67.2±41.3, z **−0.44** ✅ | 77.3, z **+0.24** ✅ | — | — |
+| accuracy (cong / go) | 0.981 vs 0.961±0.046, z **+0.41** ✅ | n/c offline | 0.959 vs 0.967±0.047, z **−0.17** ✅ | 0.971, z **+0.08** ✅ |
+| accuracy (incong) | 0.936 vs 0.920±0.063, z **+0.25** ✅ | n/c offline | — | — |
+| omission rate(s) | z **+0.46 / +0.56** ✅ | n/c offline | z **+0.27** ✅ | z **+0.27** ✅ |
 | stop accuracy | — | — | 0.471 vs 0.521±0.024, z **−2.12** ❌ | 0.496, z **−1.06** ❌ |
 | stop-failure RT | — | — | 535.4 vs 571.7±87.2, z **−0.42** ✅ | 471.2, z **−1.15** ❌ |
 | mean SSD | — | — | 304.1 vs 414.6±107.7, z **−1.03** ❌ | 279.4, z **−1.26** ❌ |
 | SSRT (mean method) | — | — | 268.7 vs 234.1±44.5, z **+0.78** ✅ | 300.6, z **+1.49** ❌ |
 
-**Verdict: 18 of 26 compared metrics fall within 1 human SD.** The pattern, stated plainly:
+**Verdict: 20 of 26 compared metrics fall within 1 human SD; both Stroop implementations are 7/7 and 3/3.** The pattern, stated plainly:
 
 - **Every RT-location and interference metric is within 1 SD on all four implementations** (go/congruent/incongruent RT, Stroop effect, expfactory stop-failure RT) — the headline humanlike-RT claim holds across both tasks and both platforms per task.
-- **The misses cluster in two places.** (a) *Tight-SD human metrics:* stroop omission rates (bot 2.2–2.6% vs human 0.4–0.6%, human SD ≈ 1.6–1.7 points) and stop accuracy (bot 47.1% expfactory vs human 52.1±2.4%) — small absolute deviations on metrics where humans are extremely uniform. (b) *Stop-side staircase products:* the bot's faster go RTs settle the platform SSD staircase ~110–135 ms lower than humans' (mean SSD z −1.03 / −1.26), dragging kywch's stop-failure RT and mean-method SSRT out of range. This is the human-reference restatement of scope-of-validity **L20** (SSRT/SSD are not framework-controlled).
+- **All six misses are stop-side.** (a) *Stop accuracy* (bot 47.1% expfactory / 49.6% kywch vs human 52.1±2.4%) — a small absolute deviation on a metric where the staircase makes humans extremely uniform. (b) *Staircase products:* the bot's faster go RTs settle the platform SSD staircase ~110–135 ms lower than humans' (mean SSD z −1.03 / −1.26), dragging kywch's stop-failure RT and mean-method SSRT out of range. This is the human-reference restatement of scope-of-validity **L20** (SSRT/SSD are not framework-controlled).
+- The comparison uses the **same cohort-selection rule as the oracle** (`oracle.select_sessions`: zero-trial, gross-undercount, `.incomplete`). This matters: with the 61-trial stroop partial included, the stroop omission rates read z +1.13/+1.20 (spuriously OUT); on the shared cohort they are +0.46/+0.56 (IN).
 - cognition.run accuracy/omission metrics are not computable offline (the adapter cannot recover correctness; see the notebooks' walkthrough) — RT metrics only, all ✅.
 
 Raw comparison reports: [`docs/results-data/human-compare-2026-06-09/`](results-data/human-compare-2026-06-09/). Reproduce: `uv run experiment-bot-compare --label <label> --human-csv data/human/<task>_rdoc.csv --map data/human/comparison_maps/<task>_rdoc.json`.
@@ -61,7 +62,7 @@ Raw comparison reports: [`docs/results-data/human-compare-2026-06-09/`](results-
 
 - **What:** First run of the new `experiment-bot-compare` CLI — the paper abstract's analysis (bot metrics z-positioned within the human RDoC reference distribution), ported from the stale `scripts/analysis.ipynb` into the tested package (audit finding: the paper's Results methodology was previously not regenerable). Same cumulative session pool as the 06-08 entry; human reference = `data/human/{stroop,stop_signal}_rdoc.csv` with the Include exclusion filter (N=2,478 / 2,412 — matching the abstract exactly).
 - **Code change:** new `validation/human_reference.py` (generic metric kinds: rt\_mean, accuracy, omission\_rate, field\_mean, subtract — paradigm knowledge lives in `data/human/comparison_maps/*.json`, per G2) + `experiment-bot-compare` CLI; +11 tests.
-- **Verdict:** 18/26 metrics within 1 human SD; all RT-location/interference metrics IN on all four implementations; misses cluster on tight-SD human metrics (omission rates, stop accuracy) and stop-side staircase products (mean SSD low by ~110–135 ms → kywch mean-method SSRT z +1.49). See the Human-reference comparison section above.
+- **Verdict:** 20/26 metrics within 1 human SD (both Stroop implementations clean: 7/7 and 3/3); all six misses are stop-side — stop accuracy plus the SSD-staircase products (mean SSD low by ~110–135 ms → kywch mean-method SSRT z +1.49). Cohort selection is shared with the oracle (`oracle.select_sessions`) — including the 61-trial stroop partial had been spuriously pushing the stroop omission rates out of range. See the Human-reference comparison section above.
 - Raw reports: `docs/results-data/human-compare-2026-06-09/` (committed — paper-supporting numbers).
 
 ---

@@ -13,6 +13,7 @@ from experiment_bot.validation.human_reference import (
     compare_metrics,
     load_human_reference,
 )
+from experiment_bot.validation.oracle import select_sessions
 from experiment_bot.validation.platform_adapters import adapter_for_label
 
 
@@ -54,6 +55,16 @@ def main(label, human_csv, map_path, metrics, output_dir, reports_dir, verbose):
     session_dirs = sorted(p for p in label_dir.iterdir() if p.is_dir())
     if not session_dirs:
         raise click.ClickException(f"No session subdirs in {label_dir}")
+
+    # Same cohort-selection rule as the oracle (zero-trial, gross-undercount,
+    # .incomplete marker) so the comparison and the validation gate score the
+    # SAME session set.
+    session_dirs, excluded, _ = select_sessions(session_dirs, trial_loader)
+    if excluded:
+        click.echo(f"Excluded {len(excluded)} session(s) (same rule as the oracle): "
+                   + "; ".join(e["session"] + " [" + e["reason"].split(":")[0] + "]" for e in excluded))
+    if not session_dirs:
+        raise click.ClickException("No usable sessions after cohort selection")
 
     human_rows = load_human_reference(human_csv)
     if not human_rows:

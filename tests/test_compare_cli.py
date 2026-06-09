@@ -77,6 +77,37 @@ def test_compare_cli_end_to_end(tmp_path):
     assert abs(report["results"]["stroop_effect"]["bot_mean"] - 85.0) < 1e-6
 
 
+def test_compare_cli_applies_oracle_cohort_selection(tmp_path):
+    """A gross-undercount partial session is excluded by the SAME rule the
+    oracle uses — the comparison and the gate must score the same cohort."""
+    out_dir = tmp_path / "output"
+    _make_stroop_session(out_dir, "s1", cong_rt=500, incong_rt=580)   # 20 trials
+    _make_stroop_session(out_dir, "s2", cong_rt=520, incong_rt=610)   # 20 trials
+    partial = _make_stroop_session(out_dir, "s3", cong_rt=900, incong_rt=900)
+    # Rewrite s3's export down to 2 trials (< 0.6 * median of 20).
+    (partial / "experiment_data.csv").write_text(
+        "trial_id,condition,rt,correct_trial\n"
+        "test_trial,congruent,900,1\n"
+        "test_trial,incongruent,900,1\n"
+    )
+    human = _make_human_csv(tmp_path / "human.csv")
+    reports = tmp_path / "reports"
+
+    result = CliRunner().invoke(main, [
+        "--label", "stroop_rdoc",
+        "--human-csv", str(human),
+        "--map", str(REPO / "data" / "human" / "comparison_maps" / "stroop_rdoc.json"),
+        "--output-dir", str(out_dir),
+        "--reports-dir", str(reports),
+    ])
+    assert result.exit_code == 0, result.output
+    assert "Excluded 1 session(s)" in result.output
+    report = json.loads(next(reports.glob("*.json")).read_text())
+    # s3's 900ms trials must NOT contaminate the bot mean: (500+520)/2 = 510.
+    assert abs(report["results"]["congruent_rt"]["bot_mean"] - 510.0) < 1e-6
+    assert report["results"]["congruent_rt"]["bot_n"] == 2
+
+
 def test_compare_cli_metrics_subset_keeps_subtract_operands(tmp_path):
     out_dir = tmp_path / "output"
     _make_stroop_session(out_dir, "s1", cong_rt=500, incong_rt=580)

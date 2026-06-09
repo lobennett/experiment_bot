@@ -32,6 +32,15 @@ participants, that the platform-rendered version of the task produces
 behavior consistent with what the published literature reports for that
 paradigm class.
 
+**Thesis precision (what "completes the task" means).** The framework
+**simulates a participant from a structured protocol** — the TaskCard —
+rather than *solving* the cognitive task. The bot does not compute task
+answers from stimuli; it samples reaction times and responses from
+parameters the Reasoner configured, and reproduces sequential structure
+via generic mechanisms (per G2). A passing RT distribution reflects a
+well-tuned sampler, not cognition. See **L24** for the scaffolding the
+pipeline requires *beyond the URL*, and `docs/research-review.md` §1.
+
 ## 2. Claims the framework makes
 
 For a paradigm class with sufficient meta-analytic literature, the bot's
@@ -52,7 +61,9 @@ session output should:
   NOT a controlled output — the bot's stop inhibition is a fixed-probability
   withhold rather than a race against a literature-derived SSRT, so measured
   SSRT is an emergent artifact of the platform's SSD staircase and is treated
-  as descriptive-only. See **L20**.
+  as descriptive-only. See **L20**. The oracle additionally ABSTAINS on SSRT
+  (returns NaN, non-gating) when the data fall outside the Verbruggen 2019
+  integration-method validity bounds — see **L23**.
 
 The decision rule for each metric is *point-estimate-within-range*: a
 metric whose published range exists and whose bot value falls inside it
@@ -62,6 +73,14 @@ and does not gate.
 
 Overall pass requires ALL gating metrics to pass and at least one
 metric to be a gate (not all-descriptive).
+
+**The gate is a descriptive screen, not an inferential test.** See **L22**:
+mu/sigma/tau, PES, and SSRT are each checked independently with no
+multiple-comparison control, the published ranges are model-prior
+estimates rather than transcribed meta-analytic values (per G4, the
+committed citation quotes/pages are not trustworthy), and a within-range
+result is a screen for gross implausibility — not a hypothesis test that
+licenses an inference of human-likeness. See `docs/research-review.md` §3.
 
 ## 3. Claims the framework does NOT make
 
@@ -266,7 +285,9 @@ non-claim; reviewers should weigh them as such.
   but whose RT histogram has the wrong shape will pass mu's gate. This
   is intentional (the meta-analytic literature reports point ranges,
   not full distributions), but it is a weaker test than KS/Wasserstein
-  against a human reference distribution would be.
+  against a human reference distribution would be. The multiplicity and
+  descriptive-screen framing of this gate is elaborated in **L22**; the
+  sample-size regime of the ex-Gaussian fit it gates on is **L25**.
 
 - **L6. Pilot integration is shipped and passes for all four dev
   paradigms.** The Reasoner's Stage 6 runs `PilotRunner` against the
@@ -576,6 +597,9 @@ non-claim; reviewers should weigh them as such.
   track the literature input consistently across platforms. This limitation was
   root-caused and adversarially verified (3-agent verification workflow,
   2026-05-30; the refutation agent could not refute, high confidence).
+  Complemented by **L23**: even where SSRT is reported descriptively, the
+  oracle now abstains entirely when the data fall outside the
+  Verbruggen 2019 integration-method validity bounds.
 
 - **L21. The shared dataset is UNCALIBRATED; reported RTs are raw
   literature-derived sampler output.** The framework has a calibration pass
@@ -599,6 +623,116 @@ non-claim; reviewers should weigh them as such.
   sequence engages only where keypress-pairing actually works. Whether
   calibration earns its keep at all is gated on resolving the layer-d
   recording gap (its own future sub-project).
+
+- **L22. The validation gate is a descriptive screen, not an inferential
+  test.** Point-estimate-within-range gating (§2) asks whether a single
+  mechanically-computed value lands inside a published band; it does not
+  test a hypothesis about human-likeness, and a pass licenses no
+  inferential claim. Three properties make this concrete:
+  - **No multiple-comparison control.** rt_distribution's mu, sigma, and
+    tau are checked independently and AND-aggregated, alongside PES and
+    (for interrupt) SSRT, with no Bonferroni/FDR correction across the
+    sub-tests. Across several independent in/out checks, metrics can pass
+    or fail by coincidence; the gate makes no allowance for this.
+  - **Ranges are model-prior estimates, not transcribed norms.** Per G4
+    and `docs/research-review.md` §3, the committed citation quotes/pages
+    backing the published ranges are not trustworthy (the conflict
+    ex-Gaussian band, for example, is attributed to a diffusion-model
+    *simulation* paper that does not survey empirical cross-task ranges).
+    Until norms are re-extracted under the post-2026-05 honest-citation
+    policy, the ranges should be read as model-prior bands, and the gate's
+    authority rests on its arithmetic, not on a verified meta-analytic
+    provenance.
+  - **Magnitude, not structure.** The gate matches point estimates, not
+    the covariance/correlational structure researchers study; matching
+    means can mask broken relationships (`docs/research-review.md` §5).
+
+  The honest reading: a within-range result is a screen for gross
+  implausibility, useful as a pre-deployment sanity check, not evidence
+  that the bot reproduces human behavior in an inferentially defensible
+  sense. See `docs/research-review.md` §3 and recommendation 5.
+
+- **L23. SSRT abstains outside the Verbruggen 2019 integration-method
+  validity bounds.** `oracle.py::_compute_ssrt` now returns NaN
+  (non-gating) — rather than emitting a number the consensus method calls
+  uninterpretable — when fewer than `SSRT_MIN_STOP_TRIALS = 50` stop
+  trials are present OR when p(respond|signal) falls outside
+  `SSRT_PRESPOND_RANGE = (0.25, 0.75)` (Verbruggen et al. 2019,
+  10.7554/eLife.46323). The abstention is logged with the offending count
+  / proportion. This complements **L20**: L20 establishes that SSRT is not
+  a framework-controlled output (it is an emergent artifact of the
+  platform SSD staircase, descriptive-only); L23 additionally refuses to
+  report even the descriptive estimate when the data are method-invalid.
+  An abstaining SSRT becomes a NaN that the oracle treats as non-gating,
+  so it neither passes nor fails the overall verdict. (Implementation per
+  `docs/research-review.md` recommendation 1. On the dev paradigms this
+  abstention did NOT change a recorded verdict — the dev stop-signal runs
+  carry enough stop trials and converge near p≈0.5 — so
+  `docs/validation-results.md` is unchanged.) **Caveat — the bound is
+  applied at the POOLED-cohort level, not per estimate.** `_compute_ssrt`
+  accumulates `stop_total` and `p(respond|signal)` across ALL sessions in
+  the batch and produces ONE pooled SSRT, so for any multi-session batch
+  (the dev runs are N≈41) the ≥50-stop-trial bound essentially never fires.
+  Verbruggen's criteria are per-subject reliability requirements; this
+  implementation enforces them only on the pooled estimate, so the
+  abstention does real work mainly on single-session / held-out runs (e.g.
+  SP16's N=1 held-out). A per-subject gate would require computing and
+  screening SSRT per session — deliberately not done here, as it would
+  change the pooled values the current results record.
+
+- **L24. "Only a URL" requires scaffolding beyond the URL.** A session is
+  not produced from the target URL alone. Beyond the URL the pipeline
+  depends on:
+  - **Per-paradigm scoring adapters** (`validation/platform_adapters.py`)
+    that filter the platform's data export to test trials and emit
+    canonical trial dicts; an unadapted paradigm falls back to
+    self-graded `bot_log.json` (see L8 and §5's circularity note).
+  - **Platform-default navigation backfills** historically supplied by a
+    `platform_defaults` registry; that registry has since been deleted
+    (see **L1**) in favor of LLM-emitted nav plus the Stage-6 walker and
+    executor adaptive nav — but navigation is still *discovered*
+    infrastructure, not read from the URL.
+  - **Pre-committed norms files** (`norms/<class>.json`), without which
+    the oracle has nothing to gate against.
+  - **A session-time adaptive-nav LLM budget** on held-out paradigms
+    (SP16, 10 steps/session; see **L19**); the held-out 666-trial run
+    used 10 such steps, so the URL alone did not navigate it.
+
+  The defensible claim is therefore narrower than "give the bot a URL and
+  it completes the task": Claude constructs a replayable protocol from a
+  page (plus the above scaffolding) and emits behaviorally plausible data.
+  See `docs/research-review.md` §1.
+
+- **L25. Gated ex-Gaussian fits use POOLED RTs; the 5-sample floor is a
+  degenerate-case guard, not the operating regime.** The methodological
+  literature places the ex-Gaussian sample floor far above the
+  `len(samples) < 5` NaN guard in
+  `effects/validation_metrics.py` (~40 trials/cell for low-bias ML,
+  ~100+ recommended, with tau the most sample-hungry parameter;
+  `docs/research-review.md` §3). That guard is NOT the regime the gate
+  operates in: the gating `rt_distribution` metric
+  (`oracle.py::_compute_rt_distribution` → `_gather_rts`) pools every RT
+  across all session directories in the batch and fits ex-Gaussian ONCE
+  on the pooled set — thousands of RTs across the cohort, not five. The
+  per-session ex-Gaussian fits (`oracle.py` `per_session_fits`) are
+  computed for descriptive context only and do NOT gate. The 5-sample
+  floor therefore guards a degenerate case (an empty or near-empty pool)
+  rather than describing how the gate is applied; reviewers should read
+  the gated fit's N from the pooled cohort, not from any single session.
+
+- **L26. Hermetic replay is available but opt-in; fresh runs still load
+  newest-by-mtime.** A session's `run_metadata.json` records the
+  `taskcard_sha256` it ran (`core/executor.py`), but the default load path
+  (`cli.py` → `taskcard.loader.load_latest`) selects the newest card by
+  file mtime — so regenerating a card for the same URL changes which card a
+  bare re-run picks up. To reproduce a past session exactly, pass
+  `experiment-bot --taskcard-sha256 <hash>` (full or unambiguous prefix),
+  which routes through `taskcard.loader.load_by_hash` to load the EXACT
+  recorded card (matched on recomputed canonical content hash, not
+  filename); pair with `--seed <session_seed>` for a full hermetic replay.
+  The default remains mtime because a fresh run should use the latest
+  reasoning; replay is the explicit, hash-pinned path. (Implementation per
+  `docs/research-review.md` recommendation 4.)
 
 ## 8. Operational rules
 

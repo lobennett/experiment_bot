@@ -5,14 +5,21 @@
 # 4 paradigms run as parallel streams (sequential within a stream — the
 # validated safe-concurrency pattern; >4-way risks RT inflation).
 #
-# Usage:  scripts/frozen_run.sh [N_PER_PARADIGM]   (default 30)
+# Usage:  scripts/frozen_run.sh [N_PER_PARADIGM] [OUTPUT_DIR]
+#   N_PER_PARADIGM default 30; OUTPUT_DIR default output_frozen (ISOLATED from
+#   the mixed-provenance main output/ so the frozen dataset is clean).
 # Pre-registration: docs/preregistration.md   Analysis: experiment-bot-per-subject
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
 N="${1:-30}"
+# Isolate the frozen dataset: the executor honors EXPERIMENT_BOT_OUTPUT_DIR
+# (output/writer.py), so sessions never mix with the old accreted output/.
+export EXPERIMENT_BOT_OUTPUT_DIR="$(pwd)/${2:-output_frozen}"
+mkdir -p "$EXPERIMENT_BOT_OUTPUT_DIR"
 SEED_BASE=730000
 echo "== frozen run: ${N} sessions/paradigm, hermetic (pinned TaskCards + seeds) =="
+echo "== output -> $EXPERIMENT_BOT_OUTPUT_DIR =="
 
 run_stream() {
   local label="$1" url="$2" hash="$3" offset="$4" log="/tmp/frozen_${1}.log"

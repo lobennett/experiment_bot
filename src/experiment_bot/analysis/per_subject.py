@@ -249,7 +249,8 @@ PARADIGMS = {
         "loader": _canon_ss_rdoc, "kind": "stop_signal", "platform": "expfactory", "expected_n": 180,
     },
     "stopit_stop_signal": {
-        "dirs": ["stop-signal_task_(stop-it)", "stop-it_stop_signal_task_(jspsych)", "stop_signal_kywch_jspsych"],
+        "dirs": ["stop-signal_task_(stop-it)", "stop-it_stop-signal_task_(jspsych)",
+                 "stop-it_stop_signal_task_(jspsych)", "stop_signal_kywch_jspsych"],
         "loader": _canon_stopit, "kind": "stop_signal", "platform": "stopit", "expected_n": 288,
     },
     "stroop_rdoc": {

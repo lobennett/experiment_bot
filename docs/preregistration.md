@@ -26,11 +26,10 @@ claims that an agentic bot produces human-like behavior in **means** (C2) and
   | cognitionrun_stroop | cognition.run | strooptest.cognition.run | `b16c7891` | 15 |
   | stopit_stop_signal | kywch STOP-IT | kywch.github.io/STOP-IT/.../experiment-transformed-first.html | `6fc729c3` | 288 |
 
-- **N per paradigm:** cognition.run Stroop **N = 30**; the three slower
-  paradigms (expfactory Stroop, expfactory + STOP-IT stop-signal) **N = 15**
-  (amended 2026-06-30 from a uniform N=30: the slow paradigms' per-session
-  runtime made N=30 impractical in the collection environment; N=15 remains a
-  real between-subject cohort). Each session uses an explicit, recorded
+- **N = 15 sessions/paradigm, uniform across all four implementations**
+  (amended 2026-06-30 from N=30: per-session runtime made larger N impractical
+  in the collection environment; a uniform N=15 keeps the cohorts balanced and
+  is a real between-subject sample). Each session uses an explicit, recorded
   `--seed` (paradigm offset + index) so the dataset is regenerable from
   `scripts/frozen_run.sh`.
 - **Calibration disabled (`--no-calibration`).** The startup keypress-latency

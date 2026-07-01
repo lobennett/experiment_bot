@@ -12,7 +12,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-N="${1:-30}"
+N="${1:-15}"
 # Isolate the frozen dataset: the executor honors EXPERIMENT_BOT_OUTPUT_DIR
 # (output/writer.py), so sessions never mix with the old accreted output/.
 export EXPERIMENT_BOT_OUTPUT_DIR="$(pwd)/${2:-output_frozen}"
@@ -28,7 +28,7 @@ run_stream() {
     local seed=$(( SEED_BASE + offset + i ))
     echo "[$label] session $i/$N seed=$seed $(date +%H:%M:%S)" >> "$log"
     uv run experiment-bot "$url" --label "$label" --headless \
-      --taskcard-sha256 "$hash" --seed "$seed" >> "$log" 2>&1 \
+      --taskcard-sha256 "$hash" --seed "$seed" --no-calibration >> "$log" 2>&1 \
       && echo "[$label] $i ok" >> "$log" || echo "[$label] $i FAIL rc=$?" >> "$log"
   done
   echo "[$label] DONE" >> "$log"

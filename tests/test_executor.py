@@ -43,6 +43,15 @@ def test_executor_init():
     assert executor._config.task.name == "Stop Signal"
 
 
+def test_calibrate_flag_default_and_override():
+    """SP19: calibration is skippable. Default on (backward-compatible); the
+    executor stores the flag so run() can guard the ~27s inert pass that
+    corrupts trial-1 RT on no-idle-window platforms (cognition.run)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    assert TaskExecutor(config)._calibrate is True
+    assert TaskExecutor(config, calibrate=False)._calibrate is False
+
+
 def test_should_respond_correctly_on_go():
     """On go trials with high accuracy, bot should usually respond correctly."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)

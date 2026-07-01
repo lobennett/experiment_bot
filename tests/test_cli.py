@@ -97,6 +97,32 @@ def test_cli_samples_session_params_at_start(tmp_path):
     assert kwargs.get("session_params") == sampled_params
 
 
+def test_cli_no_calibration_flag_disables_calibration(tmp_path):
+    """--no-calibration threads calibrate=False into the executor."""
+    label_dir = tmp_path / "taskcards" / "stroop"
+    label_dir.mkdir(parents=True)
+    (label_dir / "abcd1234.json").write_text(json.dumps(_minimal_taskcard_payload()))
+    fake_executor = MagicMock()
+    fake_executor.run = AsyncMock()
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
+         patch("experiment_bot.cli.build_default_client", return_value=MagicMock()):
+        result = CliRunner().invoke(main, [
+            "http://example.com/stroop", "--label", "stroop",
+            "--taskcards-dir", str(tmp_path / "taskcards"), "--headless",
+            "--no-calibration",
+        ])
+    assert result.exit_code == 0, result.output
+    assert exec_cls.call_args.kwargs.get("calibrate") is False
+    # default (no flag) leaves calibration on
+    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls2, \
+         patch("experiment_bot.cli.build_default_client", return_value=MagicMock()):
+        CliRunner().invoke(main, [
+            "http://example.com/stroop", "--label", "stroop",
+            "--taskcards-dir", str(tmp_path / "taskcards"), "--headless",
+        ])
+    assert exec_cls2.call_args.kwargs.get("calibrate") is True
+
+
 def test_cli_replay_by_hash_loads_exact_card(tmp_path):
     """--taskcard-sha256 routes through load_by_hash to the exact recorded card."""
     from experiment_bot.taskcard.hashing import taskcard_sha256

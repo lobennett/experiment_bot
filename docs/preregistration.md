@@ -26,9 +26,22 @@ claims that an agentic bot produces human-like behavior in **means** (C2) and
   | cognitionrun_stroop | cognition.run | strooptest.cognition.run | `b16c7891` | 15 |
   | stopit_stop_signal | kywch STOP-IT | kywch.github.io/STOP-IT/.../experiment-transformed-first.html | `6fc729c3` | 288 |
 
-- **N = 30 sessions/paradigm** (matches the abstract's ~29 scale; adjustable).
-  Each session uses an explicit, recorded `--seed` (paradigm offset + index)
-  so the dataset is regenerable from `scripts/frozen_run.sh`.
+- **N per paradigm:** cognition.run Stroop **N = 30**; the three slower
+  paradigms (expfactory Stroop, expfactory + STOP-IT stop-signal) **N = 15**
+  (amended 2026-06-30 from a uniform N=30: the slow paradigms' per-session
+  runtime made N=30 impractical in the collection environment; N=15 remains a
+  real between-subject cohort). Each session uses an explicit, recorded
+  `--seed` (paradigm offset + index) so the dataset is regenerable from
+  `scripts/frozen_run.sh`.
+- **Calibration disabled (`--no-calibration`).** The startup keypress-latency
+  calibration pass is behaviorally inert on every supported platform (it
+  reports `too_few_events` and applies an identity adjustment; scope L21) and,
+  on cognition.run (no pre-trial idle window), its ~27 s runtime was recorded
+  by the platform as the first trial's RT, corrupting it (7.6% of RTs, root-
+  caused 2026-06-30). It is disabled for the frozen dataset. cognition.run was
+  fully re-collected with it off; because the pass is inert, on-vs-off sessions
+  are behaviorally equivalent, and each session's calibration status is
+  recorded in `run_metadata.json`.
 - **Provenance:** `run_metadata.json` records `session_seed` + `taskcard_sha256`
   per session; URLs are live as of the run date (expfactory previews are
   ephemeral — re-deploy + update the script if expired).

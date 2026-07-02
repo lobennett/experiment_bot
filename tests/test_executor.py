@@ -1406,4 +1406,5 @@ async def test_provider_interrupt_handoff_withhold():
     ex._fire_response_key.assert_not_awaited()
     logged = ex._writer.log_trial.call_args.args[0]
     assert logged["condition"] == "stop_withheld"
+    assert logged["behavior_provider"] is True
     assert ex._prev_interrupt_detected is True

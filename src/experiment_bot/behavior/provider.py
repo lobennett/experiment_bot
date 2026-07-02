@@ -1,0 +1,133 @@
+"""SP21 naive-builder behavior provider.
+
+A *program* is a Python file exposing ``make_participant(seed) ->
+participant`` where ``participant.respond(ctx)`` returns a plain
+``(key_or_None, rt_ms)`` tuple and (for interrupt-capable tasks)
+``participant.on_interrupt(ctx, ssd_ms, intended)`` returns ``None``
+(withhold) or a tuple. Programs are stdlib+numpy only and cannot import
+this package — hence the tuple wire format. ``BehaviorSession`` wraps a
+program: it builds TrialContext (with previous-trial history), validates
+every return value at the boundary (no silent coercion), and normalizes
+tuples into ``Response``.
+"""
+from __future__ import annotations
+
+import hashlib
+import importlib.util
+import math
+from dataclasses import dataclass
+from pathlib import Path
+
+
+class ProtocolViolation(Exception):
+    """A generated program returned something outside the contract."""
+
+
+@dataclass(frozen=True)
+class Response:
+    key: str | None
+    rt_ms: float
+
+
+@dataclass(frozen=True)
+class TrialContext:
+    condition: str
+    correct_key: str | None
+    available_keys: tuple[str, ...]
+    trial_index: int
+    prev_condition: str | None = None
+    prev_correct: bool | None = None
+    prev_rt_ms: float | None = None
+    prev_interrupted: bool | None = None
+
+
+def program_sha256(path: Path) -> str:
+    return hashlib.sha256(Path(path).read_bytes()).hexdigest()
+
+
+def load_program(path: Path):
+    path = Path(path)
+    spec = importlib.util.spec_from_file_location(f"naive_program_{path.stem}", path)
+    mod = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(mod)
+    if not callable(getattr(mod, "make_participant", None)):
+        raise ProtocolViolation(f"{path}: program must define make_participant(seed)")
+    return mod
+
+
+def resolve_program(spec_str: str, root: Path = Path("naive_programs")) -> Path:
+    """Resolve a program spec: a direct file path, or '<label>/<hash-prefix>'."""
+    direct = Path(spec_str)
+    if direct.is_file():
+        return direct
+    if "/" in spec_str:
+        label, prefix = spec_str.split("/", 1)
+        matches = sorted((Path(root) / label).glob(f"{prefix}*.py"))
+        if len(matches) == 1:
+            return matches[0]
+        if len(matches) > 1:
+            raise FileNotFoundError(f"ambiguous program prefix {spec_str!r}: {matches}")
+    raise FileNotFoundError(f"no naive program matches {spec_str!r}")
+
+
+def _validate(raw, available_keys: tuple[str, ...], where: str) -> Response:
+    if not (isinstance(raw, tuple) and len(raw) == 2):
+        raise ProtocolViolation(f"{where}: expected (key, rt_ms) tuple, got {raw!r}")
+    key, rt = raw
+    if key is not None and key not in available_keys:
+        raise ProtocolViolation(
+            f"{where}: key {key!r} not in available_keys {available_keys}")
+    if not isinstance(rt, (int, float)) or not math.isfinite(rt) or rt <= 0 or rt > 60_000:
+        raise ProtocolViolation(f"{where}: rt_ms {rt!r} not a finite value in (0, 60000]")
+    return Response(key=key, rt_ms=float(rt))
+
+
+class BehaviorSession:
+    """One participant (= one seed) executing one program."""
+
+    def __init__(self, program_module, seed: int, available_keys: tuple[str, ...],
+                 program_path: Path | None = None):
+        self.seed = seed
+        self.available_keys = tuple(available_keys)
+        self.program_sha256 = program_sha256(program_path) if program_path else None
+        self.program_path = str(program_path) if program_path else None
+        self._participant = program_module.make_participant(seed)
+        self._prev: dict = {}
+        self._last_ctx: TrialContext | None = None
+        self._last_response: Response | None = None
+
+    def build_context(self, condition: str, correct_key: str | None,
+                      trial_index: int) -> TrialContext:
+        return TrialContext(
+            condition=condition, correct_key=correct_key,
+            available_keys=self.available_keys, trial_index=trial_index,
+            prev_condition=self._prev.get("condition"),
+            prev_correct=self._prev.get("correct"),
+            prev_rt_ms=self._prev.get("rt_ms"),
+            prev_interrupted=self._prev.get("interrupted"),
+        )
+
+    def respond(self, condition: str, correct_key: str | None,
+                trial_index: int) -> Response:
+        ctx = self.build_context(condition, correct_key, trial_index)
+        resp = _validate(self._participant.respond(ctx), self.available_keys,
+                         f"respond(trial {trial_index})")
+        self._last_ctx, self._last_response = ctx, resp
+        return resp
+
+    def on_interrupt(self, ssd_ms: float) -> Response | None:
+        if self._last_ctx is None or self._last_response is None:
+            raise ProtocolViolation("on_interrupt called before respond()")
+        fn = getattr(self._participant, "on_interrupt", None)
+        if fn is None:
+            raise ProtocolViolation("program lacks on_interrupt for an interrupt task")
+        intended = (self._last_response.key, self._last_response.rt_ms)
+        raw = fn(self._last_ctx, ssd_ms, intended)
+        if raw is None:
+            return None
+        return _validate(raw, self.available_keys, "on_interrupt")
+
+    def record_outcome(self, condition: str, correct: bool, rt_ms: float | None,
+                       interrupted: bool) -> None:
+        self._prev = {"condition": condition, "correct": correct,
+                      "rt_ms": rt_ms, "interrupted": interrupted}

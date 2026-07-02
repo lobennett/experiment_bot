@@ -1330,3 +1330,80 @@ def test_jitter_realized_provenance_recorded():
     )
     plain = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
     assert plain._jitter_realized["configured"] is False
+
+
+# --- SP21: behavior-provider bypass ---
+from pathlib import Path as _Path
+from experiment_bot.behavior.provider import BehaviorSession, load_program
+
+_TOY = _Path("tests/fixtures/toy_participant.py")
+
+
+def _toy_session(seed=42):
+    return BehaviorSession(load_program(_TOY), seed=seed,
+                           available_keys=("z",), program_path=_TOY)
+
+
+def test_executor_accepts_behavior_provider():
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    ex = TaskExecutor(config, seed=42, behavior_provider=_toy_session())
+    assert ex._behavior_provider is not None
+
+
+def test_provider_skips_between_subject_jitter():
+    """Provider path bypasses the behavioral layer entirely — including
+    the SP20 jitter (config params stay untouched)."""
+    d = dict(SAMPLE_CONFIG)
+    d["between_subject_jitter"] = {"rt_mean_sd_ms": 60.0}
+    ex = TaskExecutor(TaskConfig.from_dict(d), seed=42,
+                      behavior_provider=_toy_session())
+    assert ex._config.response_distributions["go_correct"].params["mu"] == 450
+
+
+@pytest.mark.asyncio
+async def test_provider_trial_fires_program_key_not_sampler():
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    ex = TaskExecutor(config, seed=42, behavior_provider=_toy_session())
+    ex._sampler = MagicMock()  # must never be consulted
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_awaited_once()
+    assert ex._fire_response_key.await_args.args[1] == "z"
+    ex._sampler.sample_rt_with_fallback.assert_not_called()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["behavior_provider"] is True
+    assert logged["sampled_rt_ms"] > 0
+
+
+@pytest.mark.asyncio
+async def test_provider_interrupt_handoff_withhold():
+    """When the interrupt fires and the program withholds, no key is sent
+    and the trial logs the withheld condition."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+
+    class _Stopper:
+        def respond(self, ctx):
+            return ("z", 5000.0)  # slow, so the interrupt poll wins
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            return None
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Stopper())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(config, seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=True)  # interrupt immediately
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="stop_trial", response_key=None, condition="stop")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_not_awaited()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["condition"] == "stop_withheld"
+    assert ex._prev_interrupt_detected is True

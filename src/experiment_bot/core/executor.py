@@ -93,6 +93,7 @@ class TaskExecutor:
         llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
         calibrate: bool = True,  # run the startup keypress-latency calibration pass
+        behavior_provider=None,  # SP21: BehaviorSession replacing the behavioral layer
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -106,10 +107,12 @@ class TaskExecutor:
         # (self._rng / ResponseSampler) draw-identical for zero-jitter
         # configs; jitter_distributions returns the config unchanged (no rng
         # draws) when the block is zero/absent.
-        jitter_rng = np.random.default_rng(
-            None if seed is None else [seed, _BSJ_SEED_STREAM]
-        )
-        config = jitter_distributions(config, jitter_rng)
+        self._behavior_provider = behavior_provider
+        if behavior_provider is None:
+            jitter_rng = np.random.default_rng(
+                None if seed is None else [seed, _BSJ_SEED_STREAM]
+            )
+            config = jitter_distributions(config, jitter_rng)
         bsj = config.between_subject_jitter
         self._jitter_realized = {
             "configured": bool(bsj.rt_mean_sd_ms or bsj.accuracy_sd),
@@ -683,6 +686,12 @@ class TaskExecutor:
                     "session_params": self._session_params,
                     "between_subject_jitter": self._jitter_realized,
                 }
+                if self._behavior_provider is not None:
+                    metadata["behavior_program"] = {
+                        "sha256": self._behavior_provider.program_sha256,
+                        "path": self._behavior_provider.program_path,
+                        "seed": self._behavior_provider.seed,
+                    }
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
@@ -1142,6 +1151,117 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
+    async def _execute_trial_via_provider(self, page, match, cue=None) -> None:
+        """SP21 naive arm: the behavior program supplies (key, rt); the
+        executor supplies navigation, detection, delivery, and logging.
+        No omission draw, no accuracy draw, no sampler, no temporal
+        effects — a program expresses omission by returning key=None."""
+        provider = self._behavior_provider
+        trial_start = time.monotonic()
+        condition = match.condition
+        timing = self._config.runtime.timing
+        if timing.response_window_js and not self._response_window_confirmed:
+            await self._wait_for_response_window(page, timing.response_window_js)
+            trial_start = time.monotonic()
+
+        correct_key = await self._resolve_response_key(match, page)
+        resp = provider.respond(condition, correct_key, self._trial_count)
+        rt_ms = resp.rt_ms
+
+        interrupt_detected = False
+        if self._interrupt_js:
+            poll_interval = timing.poll_interval_ms / 1000.0
+            while (time.monotonic() - trial_start) < rt_ms / 1000.0:
+                if await self._check_interrupt(page, self._interrupt_js):
+                    interrupt_detected = True
+                    break
+                await asyncio.sleep(poll_interval)
+
+        interrupt_cfg = self._config.runtime.trial_interrupt
+        if interrupt_detected:
+            ssd_ms = (time.monotonic() - trial_start) * 1000
+            decision = provider.on_interrupt(ssd_ms)
+            if decision is None:
+                self._writer.log_trial({
+                    "trial": self._trial_count,
+                    "stimulus_id": match.stimulus_id,
+                    "condition": f"{interrupt_cfg.detection_condition}_withheld",
+                    "response_key": None,
+                    "sampled_rt_ms": round(rt_ms, 1),
+                    "actual_rt_ms": None,
+                    "omission": False,
+                    "behavior_provider": True,
+                })
+                provider.record_outcome(condition, correct=True, rt_ms=None,
+                                        interrupted=True)
+                self._recent_errors.appendleft(False)
+                self._prev_interrupt_detected = True
+                await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
+                return
+            remaining_s = (decision.rt_ms / 1000.0) - (time.monotonic() - trial_start)
+            if remaining_s > 0:
+                await asyncio.sleep(remaining_s)
+            actual_rt = (time.monotonic() - trial_start) * 1000
+            delivery_meta = await self._fire_response_key(page, decision.key)
+            self._writer.log_trial({
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": f"{interrupt_cfg.detection_condition}_responded",
+                "response_key": decision.key,
+                "sampled_rt_ms": round(decision.rt_ms, 1),
+                "actual_rt_ms": round(actual_rt, 1),
+                "omission": False,
+                "delivery": delivery_meta,
+                "behavior_provider": True,
+            })
+            provider.record_outcome(condition, correct=False,
+                                    rt_ms=decision.rt_ms, interrupted=True)
+            self._recent_errors.appendleft(True)
+            self._prev_interrupt_detected = True
+            return
+
+        remaining = (rt_ms / 1000.0) - (time.monotonic() - trial_start)
+        if remaining > 0:
+            await asyncio.sleep(remaining)
+        actual_rt = (time.monotonic() - trial_start) * 1000
+
+        if resp.key is None:
+            self._writer.log_trial({
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": condition,
+                "response_key": None,
+                "sampled_rt_ms": round(rt_ms, 1),
+                "actual_rt_ms": None,
+                "omission": False,
+                "withheld": True,
+                "behavior_provider": True,
+            })
+            provider.record_outcome(condition, correct=(correct_key is None),
+                                    rt_ms=None, interrupted=False)
+            self._recent_errors.appendleft(correct_key is not None)
+            self._prev_interrupt_detected = False
+            return
+
+        delivery_meta = await self._fire_response_key(page, resp.key)
+        is_correct = (resp.key == correct_key)
+        self._writer.log_trial({
+            "trial": self._trial_count,
+            "stimulus_id": match.stimulus_id,
+            "condition": condition,
+            "response_key": resp.key,
+            "sampled_rt_ms": round(rt_ms, 1),
+            "actual_rt_ms": round(actual_rt, 1),
+            "omission": False,
+            "delivery": delivery_meta,
+            "behavior_provider": True,
+            "cue": cue,
+        })
+        provider.record_outcome(condition, correct=is_correct,
+                                rt_ms=resp.rt_ms, interrupted=False)
+        self._recent_errors.appendleft(not is_correct)
+        self._prev_interrupt_detected = False
+
     async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
         """Execute a single trial with probabilistic interrupt handling.
 
@@ -1152,6 +1272,10 @@ class TaskExecutor:
         """
         trial_start = time.monotonic()
         condition = match.condition
+
+        if self._behavior_provider is not None:
+            await self._execute_trial_via_provider(page, match, cue)
+            return
 
         if self._should_omit(condition):
             self._writer.log_trial({

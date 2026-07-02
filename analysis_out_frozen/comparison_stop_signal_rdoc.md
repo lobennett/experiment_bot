@@ -23,3 +23,23 @@ _Generated 2026-07-02. Bot N=30 sessions (30 with the expected trial count); hum
 **Notes.** SSRT is the *mean method* (`go_rt − mean_SSD`), an emergent product of the platform's SSD staircase, not a bot-controlled quantity. Human QC: 496/522 workers have p(respond|signal) within the Verbruggen [0.25, 0.75] band (`stop_acc_in_band` column); the abstract's N=447 used an exclusion that does not reproduce from this data — workers are exported unfiltered with the transparent flag.
 
 **Notes.** `lag1_autocorr` has no canonical human range in the literature; it is reported descriptively. The per-subject CSVs (`*_bot.csv`, `*_human.csv`) carry the full distributions for any further test (KS / equivalence).
+
+## Exploratory: distribution-level comparison
+
+_Pre-registered as exploratory (docs/preregistration.md §Analysis), not part of the confirmatory mean-location design above. SD ratio = bot between-subject SD / human between-subject SD (1.0 = human-like dispersion); KS = two-sample Kolmogorov–Smirnov test of the per-subject distributions. A cohort can pass the within-1-SD mean gate while failing these — matched means with far too little between-subject variability._
+
+| metric | SD ratio | KS D | KS p |
+|---|---|---|---|
+| go_accuracy | 0.504 | 0.302 | 0.009 |
+| go_omission_rate | 0.409 | 0.630 | 2.4e-11 |
+| go_rt | 0.135 | 0.393 | 1.9e-04 |
+| go_rt_all_responses | 0.138 | 0.377 | 3.9e-04 |
+| mean_stop_failure_RT | 0.133 | 0.491 | 8.8e-07 |
+| stop_accuracy | 0.305 | 0.477 | 1.9e-06 |
+| max_SSD | 0.475 | 0.251 | 0.046 |
+| mean_SSD | 0.918 | 0.239 | 0.066 |
+| min_SSD | 1.273 | 0.093 | 0.945 |
+| final_SSD | 0.933 | 0.231 | 0.081 |
+| ssrt | 1.297 | 0.382 | 3.2e-04 |
+| lag1_autocorr | 1.789 | 0.249 | 0.048 |
+| post_error_slowing_ms | 0.940 | 0.354 | 0.001 |

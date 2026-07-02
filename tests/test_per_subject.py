@@ -168,3 +168,33 @@ def test_comparison_rows_z_math():
     assert r["human_mean"] == pytest.approx(600.0)
     assert r["z"] == pytest.approx((710.0 - 600.0) / r["human_sd"])
     assert r["within_1sd"] is False  # |710-600|=110 > sd(100)
+
+
+# --- SP20: exploratory distribution-level fields (pre-reg planned) ---
+
+def test_comparison_rows_sd_ratio_and_ks():
+    rng = __import__("numpy").random.default_rng(7)
+    same = rng.normal(600, 80, 200)
+    bot = pd.DataFrame({"go_rt": same[:100]})
+    human = pd.DataFrame({"go_rt": same[100:]})
+    r = {x["metric"]: x for x in ps.comparison_rows(bot, human, ["go_rt"])}["go_rt"]
+    # Same-distribution draws: SD ratio near 1, KS non-significant.
+    assert r["sd_ratio"] == pytest.approx(r["bot_sd"] / r["human_sd"])
+    assert 0.7 < r["sd_ratio"] < 1.4
+    assert r["ks_p"] > 0.05
+
+    # Under-dispersed bot cohort (the frozen-dataset failure mode): tiny
+    # sd_ratio and a KS rejection even with matched means.
+    tight = pd.DataFrame({"go_rt": rng.normal(600, 8, 30)})
+    wide = pd.DataFrame({"go_rt": rng.normal(600, 80, 500)})
+    r2 = {x["metric"]: x for x in ps.comparison_rows(tight, wide, ["go_rt"])}["go_rt"]
+    assert r2["sd_ratio"] < 0.25
+    assert r2["ks_p"] < 0.01
+    assert abs(r2["z"]) < 1  # ...while the confirmatory mean-location gate passes
+
+
+def test_comparison_rows_ks_nan_when_insufficient():
+    bot = pd.DataFrame({"go_rt": [700.0]})
+    human = pd.DataFrame({"go_rt": [500.0, 600.0, 700.0]})
+    r = {x["metric"]: x for x in ps.comparison_rows(bot, human, ["go_rt"])}["go_rt"]
+    assert np.isnan(r["ks_p"]) and np.isnan(r["sd_ratio"])

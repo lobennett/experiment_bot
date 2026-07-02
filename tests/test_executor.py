@@ -1268,3 +1268,65 @@ def test_taskexecutor_accepts_llm_client_kwarg():
     fake = AsyncMock()
     e2 = TaskExecutor(config, seed=42, llm_client=fake)
     assert e2._llm_client is fake
+
+
+# --- SP20: between-subject jitter wiring (review root-cause fix) ---
+# The Reasoner has emitted a populated between_subject_jitter block since the
+# SP-era cards, but the executor never called jitter_distributions() — the
+# frozen N=30 cohort's between-subject SDs came out 5-10x below human as a
+# result. These tests pin the wiring contract.
+
+def _jitter_config():
+    d = dict(SAMPLE_CONFIG)
+    d["between_subject_jitter"] = {
+        "rt_mean_sd_ms": 60.0,
+        "rt_condition_sd_ms": 20.0,
+        "sigma_tau_range": [0.85, 1.15],
+        "accuracy_sd": 0.03,
+        "omission_sd": 0.01,
+    }
+    return TaskConfig.from_dict(d)
+
+
+def test_executor_applies_between_subject_jitter():
+    ex = TaskExecutor(_jitter_config(), seed=42)
+    assert ex._config.response_distributions["go_correct"].params["mu"] != 450.0
+    assert ex._config.performance.accuracy["go"] != 0.95
+
+
+def test_jitter_deterministic_by_seed():
+    mu = lambda e: e._config.response_distributions["go_correct"].params["mu"]
+    a = TaskExecutor(_jitter_config(), seed=42)
+    b = TaskExecutor(_jitter_config(), seed=42)
+    c = TaskExecutor(_jitter_config(), seed=43)
+    assert mu(a) == mu(b)
+    assert mu(a) != mu(c)
+
+
+def test_zero_jitter_config_unchanged():
+    """Backward compat: configs without a jitter block are bit-identical."""
+    ex = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
+    assert ex._config.response_distributions["go_correct"].params["mu"] == 450.0
+    assert ex._config.performance.accuracy["go"] == 0.95
+
+
+def test_jitter_does_not_perturb_trial_streams():
+    """The jitter draw uses a dedicated seed stream: trial-level sampling for a
+    zero-jitter config must match pre-wiring behavior draw-for-draw."""
+    a = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
+    b = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
+    assert [a._sampler.sample_rt("go_correct") for _ in range(5)] == [
+        b._sampler.sample_rt("go_correct") for _ in range(5)
+    ]
+
+
+def test_jitter_realized_provenance_recorded():
+    """Realized post-jitter params are stored for run_metadata provenance."""
+    ex = TaskExecutor(_jitter_config(), seed=42)
+    prov = ex._jitter_realized
+    assert prov["configured"] is True
+    assert prov["response_distributions"]["go_correct"]["mu"] == (
+        ex._config.response_distributions["go_correct"].params["mu"]
+    )
+    plain = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
+    assert plain._jitter_realized["configured"] is False

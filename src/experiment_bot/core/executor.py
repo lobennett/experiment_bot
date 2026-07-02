@@ -15,7 +15,7 @@ from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from experiment_bot.core.config import TaskConfig, TaskPhase
-from experiment_bot.core.distributions import ResponseSampler
+from experiment_bot.core.distributions import ResponseSampler, jitter_distributions
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
 from experiment_bot.navigation.stuck import StuckDetector
@@ -34,6 +34,11 @@ _ADAPTIVE_NAV_BUDGET = 10
 # during normal between-trial gaps (fixation, ITI, response-window-closed),
 # which would otherwise press keys that skip real trials.
 _ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
+
+
+# Dedicated seed-stream tag for the between-subject jitter draw, so wiring it
+# in does not shift the trial-level RNG sequences of an unchanged seed.
+_BSJ_SEED_STREAM = 202607
 
 
 def _taskcard_to_config(tc):
@@ -96,6 +101,24 @@ class TaskExecutor:
             config = _taskcard_to_config(config)
         else:
             self._taskcard = None
+        # Apply the TaskCard's declared between-subject variance before any
+        # sampler is built. A dedicated seed stream keeps trial-level RNGs
+        # (self._rng / ResponseSampler) draw-identical for zero-jitter
+        # configs; jitter_distributions returns the config unchanged (no rng
+        # draws) when the block is zero/absent.
+        jitter_rng = np.random.default_rng(
+            None if seed is None else [seed, _BSJ_SEED_STREAM]
+        )
+        config = jitter_distributions(config, jitter_rng)
+        bsj = config.between_subject_jitter
+        self._jitter_realized = {
+            "configured": bool(bsj.rt_mean_sd_ms or bsj.accuracy_sd),
+            "response_distributions": {
+                k: dict(v.params) for k, v in config.response_distributions.items()
+            },
+            "accuracy": dict(config.performance.accuracy),
+            "omission_rate": dict(config.performance.omission_rate),
+        }
         self._config = config
         self._headless = headless
         self._keep_open = keep_open
@@ -658,6 +681,7 @@ class TaskExecutor:
                     "headless": self._headless,
                     "session_seed": self._session_seed,
                     "session_params": self._session_params,
+                    "between_subject_jitter": self._jitter_realized,
                 }
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)

@@ -198,6 +198,40 @@ def validate_stage2_schema(partial: dict) -> None:
                 f"missing: {sorted(missing)}",
             ))
 
+    # Between-subject variance: when response_distributions are declared, at
+    # least one variance channel must be non-zero, or every session in a
+    # cohort collapses onto the same parameter draw (the frozen N=30 paper
+    # dataset's cohort SDs came out 5-10x below human between-subject SDs
+    # for exactly this reason). Two channels exist: the shared
+    # `between_subject_jitter` block (consumed by the executor) and
+    # per-parameter `between_subject_sd` on each response distribution
+    # (consumed by sample_session_params). The gate checks PRESENCE only —
+    # magnitudes stay literature-derived, never validator-prescribed.
+    rd = partial.get("response_distributions") or {}
+    if rd:
+        bsj_value = _value_only(partial.get("between_subject_jitter") or {})
+        has_jitter = isinstance(bsj_value, dict) and any(
+            isinstance(bsj_value.get(k), (int, float)) and bsj_value[k] > 0
+            for k in ("rt_mean_sd_ms", "rt_condition_sd_ms", "accuracy_sd", "omission_sd")
+        )
+        def _entry_has_sd(entry) -> bool:
+            if not isinstance(entry, dict):
+                return False
+            sd = entry.get("between_subject_sd") or {}
+            return isinstance(sd, dict) and any(
+                isinstance(v, (int, float)) and v > 0 for v in sd.values()
+            )
+        if not has_jitter and not any(_entry_has_sd(e) for e in rd.values()):
+            errors.append((
+                "between_subject_jitter",
+                "no between-subject variance declared: between_subject_jitter "
+                "is zero/absent and no response_distributions[*]."
+                "between_subject_sd is non-zero. A cohort of sessions would "
+                "be near-identical pseudo-replicates of one parameter draw. "
+                "Declare between-subject variability (either channel) at a "
+                "magnitude supported by the literature for this paradigm.",
+            ))
+
     if errors:
         raise Stage2SchemaError(errors)
 

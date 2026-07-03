@@ -18,8 +18,16 @@ gen_if_missing() {  # label url
 run_stream() {  # label url structural_hash seed_offset
   local label="$1" url="$2" hash="$3" offset="$4" log="/tmp/naive_${1}.log"
   : > "$log"
-  local prog
-  prog=$(ls "naive_programs/$label/"*.py | head -1)
+  local prog=""
+  for f in "naive_programs/$label/"*.py; do
+    local sha; sha="$(basename "$f" .py)"
+    if grep -q '"passed": true' "naive_programs/$label/$sha.simgate.json" 2>/dev/null; then
+      prog="$f"; break
+    fi
+  done
+  if [ -z "$prog" ]; then
+    echo "[$label] NO GATE-PASSED PROGRAM — skipping stream" >> "$log"; return 1
+  fi
   for i in $(seq 1 "$N"); do
     local seed=$(( SEED_BASE + offset + i ))
     echo "[$label] session $i/$N seed=$seed $(date +%H:%M:%S)" >> "$log"

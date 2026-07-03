@@ -92,6 +92,10 @@ become design evidence for a future generative-TaskCard grammar.
   (simulation-gate report) — the complete generation provenance trail,
   committed as data alongside (not instead of) this pre-registration.
 
+- **Collection** runs via `scripts/naive_run.sh` (generate → mechanical
+  gate → 30 seeded sessions per paradigm, 4 parallel streams) into
+  `output_naive/`; only a gate-passed program is used for live sessions.
+
 ## Generation (naive arm only)
 
 - **Model:** `claude-fable-5` (fixed; not selected post-hoc).

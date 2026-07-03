@@ -95,14 +95,21 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
             + "\nFix ONLY these mechanical problems.")
         reply = await client.complete(system="", user=user, max_tokens=16384)
         code = extract_python_block(reply.text)
-        # Attempt index folded into the archival hash: successive retries can
-        # produce byte-identical code (e.g. an LLM that repeats a broken
-        # program), and every attempt must still get its own archived
-        # program/transcript/simgate triple.
-        sha = hashlib.sha256(f"{code}\x00attempt={attempt}".encode()).hexdigest()
+        # Pure content hash — matches the content-addressing convention used
+        # by sim_cli/cli/executor (behavior.provider.program_sha256). Writing
+        # the same content twice is idempotent (same path). Retries that
+        # re-emit byte-identical code must still each get an archived
+        # transcript/simgate record (pre-registered rule: all attempts
+        # archived), so those two filenames fall back to an attempt-numbered
+        # suffix when the plain name is already taken by an earlier attempt.
+        sha = hashlib.sha256(code.encode()).hexdigest()
         prog = out_dir / f"{sha}.py"
         prog.write_text(code)
-        (out_dir / f"{sha}.transcript.json").write_text(json.dumps({
+
+        transcript_path = out_dir / f"{sha}.transcript.json"
+        if transcript_path.exists():
+            transcript_path = out_dir / f"{sha}.attempt{attempt}.transcript.json"
+        transcript_path.write_text(json.dumps({
             "model": client.model, "attempt": attempt, "url": url,
             "label": label, "prompt": user, "response": reply.text,
             "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -113,8 +120,10 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
         report = run_gate(prog, conditions=facts["conditions"],
                           key_map=facts["key_map"],
                           has_interrupt=facts["has_interrupt"])
-        (out_dir / f"{sha}.simgate.json").write_text(
-            json.dumps(report.to_dict(), indent=2))
+        simgate_path = out_dir / f"{sha}.simgate.json"
+        if simgate_path.exists():
+            simgate_path = out_dir / f"{sha}.attempt{attempt}.simgate.json"
+        simgate_path.write_text(json.dumps(report.to_dict(), indent=2))
         if report.passed:
             return prog
         last_failures = report.failures

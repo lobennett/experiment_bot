@@ -32,6 +32,7 @@ experiment-bot-validate = "experiment_bot.validation.cli:main"
 experiment-bot-compare = "experiment_bot.validation.compare_cli:main"
 experiment-bot-per-subject = "experiment_bot.analysis.cli:main"
 experiment-bot-naive-sim = "experiment_bot.behavior.sim_cli:main"
+experiment-bot-naive-gen = "experiment_bot.behavior.gen_cli:main"
 
 [build-system]
 requires = ["hatchling"]

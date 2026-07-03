@@ -1,0 +1,139 @@
+"""experiment-bot-naive-gen: SP21 naive-arm program generation.
+
+Pre-registered discipline: the first program that passes the mechanical
+simulation gate IS the program. Retries (max 2) happen only on gate
+failure, every attempt is archived. Never regenerate on behavioral taste.
+"""
+from __future__ import annotations
+
+import asyncio
+import hashlib
+import json
+import re
+from datetime import datetime, timezone
+from pathlib import Path
+
+import click
+
+from experiment_bot.behavior.provider import program_sha256
+from experiment_bot.behavior.simgate import GateReport, run_gate
+from experiment_bot.core.scraper import scrape_experiment_source
+from experiment_bot.llm.factory import build_default_client
+
+_TEMPLATE = Path(__file__).parent / "prompts" / "naive_gen.md"
+
+_INTERRUPT_NOTE = '''The task also has trials where a mid-trial signal tells
+the participant to withhold the response they were preparing. Your
+participant must also define:
+
+```python
+def on_interrupt(self, ctx, ssd_ms, intended):
+    """ssd_ms: ms from trial start to the signal. intended: the
+    (key, rt_ms) your respond() returned. Return None to withhold,
+    or (key, rt_ms) to respond anyway."""
+```'''
+
+
+def _load_structural_taskcard(label: str, taskcards_dir: str):
+    # Same newest-by-mtime loader the run CLI uses (src/experiment_bot/cli.py).
+    from experiment_bot.taskcard.loader import load_latest
+    return load_latest(taskcards_dir, label=label)
+
+
+def _combined_source(bundle) -> str:
+    """Build one text blob from a SourceBundle's page HTML + source files.
+
+    SourceBundle carries no single pre-combined field; this mirrors the
+    concatenation pattern used by the Reasoner's Stage 1 prompt builder
+    (src/experiment_bot/reasoner/stage1_structural.py::_build_stage1_prompt).
+    """
+    parts = [f"## Page HTML\n{bundle.description_text[:5000]}"]
+    for fname, content in bundle.source_files.items():
+        parts.append(f"## File: {fname}\n{content[:60000]}")
+    return "\n\n".join(parts)
+
+
+def extract_python_block(text: str) -> str:
+    m = re.search(r"```(?:python)?\n(.*?)```", text, re.DOTALL)
+    if not m:
+        raise ValueError("LLM reply contains no fenced Python block")
+    return m.group(1)
+
+
+def mechanical_facts(taskcard) -> dict:
+    conditions: list[str] = []
+    for stim in taskcard.stimuli or []:
+        cond = ((stim.get("response") or {}).get("condition")) if isinstance(stim, dict) else None
+        if cond and cond not in conditions:
+            conditions.append(cond)
+    km = {k: v for k, v in ((taskcard.task_specific or {}).get("key_map") or {}).items()
+          if isinstance(v, str) and v.lower() not in {"withhold", "none", "null", ""}}
+    ti = getattr(taskcard.runtime, "trial_interrupt", None)
+    has_interrupt = bool(ti and getattr(ti, "detection_condition", None))
+    return {"conditions": conditions, "key_map": km, "has_interrupt": has_interrupt}
+
+
+async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards",
+                   out_root: Path = Path("naive_programs"),
+                   max_retries: int = 2) -> Path:
+    bundle = await scrape_experiment_source(url=url, hint="")
+    taskcard = _load_structural_taskcard(label, taskcards_dir)
+    facts = mechanical_facts(taskcard)
+    prompt = _TEMPLATE.read_text().format(
+        PAGE_SOURCE=_combined_source(bundle),
+        CONDITIONS=", ".join(facts["conditions"]),
+        KEY_MAP=json.dumps(facts["key_map"]),
+        INTERRUPT_NOTE=_INTERRUPT_NOTE if facts["has_interrupt"] else "",
+    )
+    out_dir = Path(out_root) / label
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    last_failures: list[str] = []
+    for attempt in range(1 + max_retries):
+        user = prompt if attempt == 0 else (
+            prompt + "\n\n## Previous attempt failed the MECHANICAL gate\n"
+            + "\n".join(f"- {f}" for f in last_failures)
+            + "\nFix ONLY these mechanical problems.")
+        reply = await client.complete(system="", user=user, max_tokens=16384)
+        code = extract_python_block(reply.text)
+        # Attempt index folded into the archival hash: successive retries can
+        # produce byte-identical code (e.g. an LLM that repeats a broken
+        # program), and every attempt must still get its own archived
+        # program/transcript/simgate triple.
+        sha = hashlib.sha256(f"{code}\x00attempt={attempt}".encode()).hexdigest()
+        prog = out_dir / f"{sha}.py"
+        prog.write_text(code)
+        (out_dir / f"{sha}.transcript.json").write_text(json.dumps({
+            "model": client.model, "attempt": attempt, "url": url,
+            "label": label, "prompt": user, "response": reply.text,
+            "generated_at": datetime.now(timezone.utc).isoformat(),
+        }, indent=2))
+        try:
+            report = run_gate(prog, conditions=facts["conditions"],
+                              key_map=facts["key_map"],
+                              has_interrupt=facts["has_interrupt"])
+        except Exception as e:  # noqa: BLE001 — a crash outside the trial
+            # loop (e.g. make_participant() itself raising) is still a gate
+            # failure, not an unhandled exception in generation.
+            report = GateReport(program_sha256=program_sha256(prog), passed=False,
+                                failures=[f"gate crashed: {type(e).__name__}: {e}"])
+        (out_dir / f"{sha}.simgate.json").write_text(
+            json.dumps(report.to_dict(), indent=2))
+        if report.passed:
+            return prog
+        last_failures = report.failures
+    raise RuntimeError(
+        f"naive program for {label!r} failed the mechanical gate after "
+        f"{1 + max_retries} attempts: {last_failures}")
+
+
+@click.command()
+@click.argument("url")
+@click.option("--label", required=True)
+@click.option("--model", default="claude-fable-5", show_default=True)
+@click.option("--taskcards-dir", default="taskcards", show_default=True)
+def main(url: str, label: str, model: str, taskcards_dir: str):
+    """Generate the SP21 naive-arm participant program for LABEL."""
+    client = build_default_client(model)
+    path = asyncio.run(generate(url, label, client, taskcards_dir=taskcards_dir))
+    click.echo(f"PASS -> {path}")

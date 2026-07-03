@@ -96,6 +96,13 @@ become design evidence for a future generative-TaskCard grammar.
   gate → 30 seeded sessions per paradigm, 4 parallel streams) into
   `output_naive/`; only a gate-passed program is used for live sessions.
 
+- **Interrupt-trial semantics:** on tasks with a mid-trial withhold signal,
+  the `ssd_ms` handed to the program's `on_interrupt` is the bot's
+  *detection latency* for the signal (poll-quantized, up to one poll
+  interval late), not the platform's scheduled stop-signal delay; the
+  platform's own SSD, recorded in its data export, remains the
+  authoritative value for all analysis.
+
 ## Generation (naive arm only)
 
 - **Model:** `claude-fable-5` (fixed; not selected post-hoc).

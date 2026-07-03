@@ -15,14 +15,21 @@ from experiment_bot.behavior.simgate import run_gate
               help="Comma-separated condition labels (structural facts)")
 @click.option("--key-map", "key_map_json", required=True,
               help='JSON condition->key map, e.g. \'{"go": "z"}\'')
-@click.option("--has-interrupt", is_flag=True, default=False)
+@click.option("--has-interrupt", is_flag=True, default=False,
+              help="Deprecated alone; implied by --interrupt-condition. Kept for "
+                   "backward compatibility with existing invocations.")
+@click.option("--interrupt-condition", "interrupt_condition", default=None,
+              help="Condition label whose trials fire on_interrupt (implies "
+                   "--has-interrupt).")
 @click.option("--trials", default=1000, show_default=True)
 def main(program: Path, conditions: str, key_map_json: str,
-         has_interrupt: bool, trials: int):
+         has_interrupt: bool, interrupt_condition: str | None, trials: int):
     """Mechanical simulation gate; writes <sha>.simgate.json next to PROGRAM."""
+    has_interrupt = has_interrupt or interrupt_condition is not None
     report = run_gate(program, conditions=conditions.split(","),
                       key_map=json.loads(key_map_json),
-                      has_interrupt=has_interrupt, n_trials=trials)
+                      has_interrupt=has_interrupt, n_trials=trials,
+                      interrupt_condition=interrupt_condition)
     out = program.parent / f"{report.program_sha256}.simgate.json"
     out.write_text(json.dumps(report.to_dict(), indent=2))
     click.echo(f"{'PASS' if report.passed else 'FAIL'} -> {out}")

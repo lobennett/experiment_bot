@@ -1408,3 +1408,74 @@ async def test_provider_interrupt_handoff_withhold():
     assert logged["condition"] == "stop_withheld"
     assert logged["behavior_provider"] is True
     assert ex._prev_interrupt_detected is True
+
+
+@pytest.mark.asyncio
+async def test_provider_interrupt_handoff_commission():
+    """When the interrupt fires and the program responds anyway, the
+    commission key fires and the trial logs the responded condition."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+
+    class _Failer:
+        def respond(self, ctx):
+            return ("z", 5000.0)  # slow, so the interrupt poll wins
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            return ("z", max(200.0, ssd_ms + 50.0))
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Failer())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(config, seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=True)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="stop_trial", response_key=None, condition="stop")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_awaited_once()
+    assert ex._fire_response_key.await_args.args[1] == "z"
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["condition"] == "stop_responded"
+    assert logged["behavior_provider"] is True
+    assert ex._prev_interrupt_detected is True
+
+
+@pytest.mark.asyncio
+async def test_provider_interrupt_none_key_decision_withholds():
+    """Final-review I3: on_interrupt returning (None, rt) — e.g. echoing an
+    intended withhold — must take the withhold path, never reach
+    _fire_response_key (page.keyboard.press(None) would crash)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+
+    class _NoneKey:
+        def respond(self, ctx):
+            return (None, 5000.0)
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            return (intended[0], 300.0)  # intended[0] is None
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _NoneKey())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(config, seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=True)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="stop_trial", response_key=None, condition="stop")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_not_awaited()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["condition"] == "stop_withheld"
+    assert logged["behavior_provider"] is True
+
+
+def test_behavior_program_metadata_fragment():
+    """run_metadata's behavior_program block: present with sha/path/seed when
+    a provider is wired, absent (None) otherwise."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    ex = TaskExecutor(config, seed=7, behavior_provider=_toy_session(seed=7))
+    md = ex._behavior_program_metadata()
+    assert md["seed"] == 7
+    assert md["sha256"] == ex._behavior_provider.program_sha256
+    assert md["path"].endswith("toy_participant.py")
+    assert TaskExecutor(config, seed=7)._behavior_program_metadata() is None

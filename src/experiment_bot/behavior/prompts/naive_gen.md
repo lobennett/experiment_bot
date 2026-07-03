@@ -24,13 +24,19 @@ The participant object must define:
 def respond(self, ctx):
     """Called once per trial. Return (key, rt_ms).
 
-    key: one of ctx.available_keys, or None to make no response.
+    key: ctx.correct_key, one of ctx.available_keys, or None to make
+    no response.
     rt_ms: response time in milliseconds (float > 0).
 
     ctx fields: condition (str), correct_key (str | None),
     available_keys (tuple[str, ...]), trial_index (int),
     prev_condition, prev_correct, prev_rt_ms, prev_interrupted
     (previous-trial outcome; None on the first trial).
+
+    On some tasks the full key inventory is not known up front: it is
+    discovered trial-by-trial, so ctx.available_keys can grow as the
+    task reveals more keys. ctx.correct_key is always valid to press for
+    the current trial even if it has not appeared in ctx.available_keys yet.
     """
 ```
 

@@ -21,7 +21,9 @@ from experiment_bot.taskcard.loader import load_latest, load_by_hash
 from experiment_bot.taskcard.sampling import sample_session_params
 from experiment_bot.core.executor import TaskExecutor
 from experiment_bot.llm.factory import build_default_client
-from experiment_bot.behavior.provider import BehaviorSession, load_program, resolve_program
+from experiment_bot.behavior.provider import (
+    BehaviorSession, NON_LITERAL_KEY_SENTINELS, load_program, resolve_program,
+)
 
 # Bound at import time so tests may patch cli.TaskExecutor without
 # breaking the sentinel lookup.
@@ -30,7 +32,10 @@ _WITHHOLD_SENTINELS = TaskExecutor._WITHHOLD_SENTINELS
 
 def _available_keys_from_taskcard(taskcard) -> tuple[str, ...]:
     """Available response keys for a BehaviorSession: key_map values plus
-    per-stimulus static response keys, excluding withhold sentinels/None."""
+    per-stimulus static response keys, excluding withhold sentinels/None and
+    the "dynamic"/"dynamic_mapping" sentinels the executor resolves per-trial
+    via JS rather than from this static map (see NON_LITERAL_KEY_SENTINELS).
+    """
     keys: set[str] = set()
     km = (taskcard.task_specific or {}).get("key_map") or {}
     keys.update(v for v in km.values() if isinstance(v, str))
@@ -40,7 +45,7 @@ def _available_keys_from_taskcard(taskcard) -> tuple[str, ...]:
             keys.add(k)
     return tuple(sorted(
         k for k in keys
-        if k and k.lower() not in _WITHHOLD_SENTINELS
+        if k and k.lower() not in NON_LITERAL_KEY_SENTINELS
     ))
 
 

@@ -84,6 +84,42 @@ def test_on_interrupt_requires_prior_respond():
         s.on_interrupt(ssd_ms=100.0)
 
 
+def test_observe_key_grows_available_keys():
+    """Runtime-resolved literal keys (mirrors the executor's dynamic key
+    resolution) join the static inventory exposed via ctx.available_keys."""
+    s = _session()
+    assert s.available_keys == KEYS
+    s.observe_key("q")
+    ctx = s.build_context("go", "q", 0)
+    assert set(ctx.available_keys) == {"f", "j", "q"}
+    # None / empty observations are no-ops.
+    s.observe_key(None)
+    s.observe_key("")
+    assert set(s.available_keys) == {"f", "j", "q"}
+
+
+def test_validate_accepts_correct_key_not_in_available_keys():
+    """A program may press ctx.correct_key even before it has been observed
+    (information parity with the executor's dynamic key resolution)."""
+    class _PressCorrect:
+        def respond(self, ctx):
+            return (ctx.correct_key, 400.0)
+    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _PressCorrect())})
+    s = BehaviorSession(mod, seed=1, available_keys=KEYS)
+    r = s.respond("go", "q", 0)  # "q" not in KEYS but IS the correct_key
+    assert r.key == "q"
+
+
+def test_validate_still_rejects_arbitrary_unknown_key():
+    class _PressUnknown:
+        def respond(self, ctx):
+            return ("z", 400.0)  # neither correct_key nor in available_keys
+    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _PressUnknown())})
+    s = BehaviorSession(mod, seed=1, available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="key"):
+        s.respond("go", "q", 0)
+
+
 def test_resolve_program_by_hash_prefix(tmp_path):
     d = tmp_path / "stroop"
     d.mkdir()

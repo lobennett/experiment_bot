@@ -19,6 +19,22 @@ from dataclasses import dataclass
 from pathlib import Path
 
 
+# Sentinel key_map/response-key values that are not literal, presseable keys:
+# withhold instructions (mirrors core.executor.TaskExecutor._WITHHOLD_SENTINELS)
+# plus the "dynamic"/"dynamic_mapping" values the executor treats as "resolve
+# this key per-trial via JS, not from the static map" (core/executor.py
+# _resolve_response_key ~L418/462). Shared by cli.py and behavior/gen_cli.py
+# so both helpers that build a *static* key inventory exclude the same
+# non-literal values the executor itself never presses. Comparisons are
+# case-insensitive (`.lower()`) at the call site.
+NON_LITERAL_KEY_SENTINELS = frozenset({
+    "", "none", "null",
+    "withhold", "no_response", "noresponse",
+    "no_key", "nokey", "suppress", "skip", "pass",
+    "dynamic", "dynamic_mapping",
+})
+
+
 class ProtocolViolation(Exception):
     """A generated program returned something outside the contract."""
 
@@ -70,13 +86,24 @@ def resolve_program(spec_str: str, root: Path = Path("naive_programs")) -> Path:
     raise FileNotFoundError(f"no naive program matches {spec_str!r}")
 
 
-def _validate(raw, available_keys: tuple[str, ...], where: str) -> Response:
+def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
+              where: str) -> Response:
+    """A returned key is valid if it is None, equals the trial's correct_key,
+    or is in available_keys. The correct_key carve-out gives the naive
+    program information parity with the expert executor: on tasks where the
+    key inventory is discovered trial-by-trial (dynamic key resolution), the
+    executor learns a key only once `response_key_js` resolves it — see
+    `core.executor.TaskExecutor._seen_response_keys` — but it always knows
+    THIS trial's correct key up front. A program that presses ctx.correct_key
+    must never be rejected merely because that key hasn't been observed yet.
+    """
     if not (isinstance(raw, tuple) and len(raw) == 2):
         raise ProtocolViolation(f"{where}: expected (key, rt_ms) tuple, got {raw!r}")
     key, rt = raw
-    if key is not None and key not in available_keys:
+    if key is not None and key != correct_key and key not in available_keys:
         raise ProtocolViolation(
-            f"{where}: key {key!r} not in available_keys {available_keys}")
+            f"{where}: key {key!r} not in available_keys {available_keys} "
+            f"(correct_key={correct_key!r})")
     if not isinstance(rt, (int, float)) or not math.isfinite(rt) or rt <= 0 or rt > 60_000:
         raise ProtocolViolation(f"{where}: rt_ms {rt!r} not a finite value in (0, 60000]")
     return Response(key=key, rt_ms=float(rt))
@@ -88,13 +115,29 @@ class BehaviorSession:
     def __init__(self, program_module, seed: int, available_keys: tuple[str, ...],
                  program_path: Path | None = None):
         self.seed = seed
-        self.available_keys = tuple(available_keys)
+        self._static_keys = tuple(sorted(set(available_keys)))
+        self._observed_keys: set[str] = set()
         self.program_sha256 = program_sha256(program_path) if program_path else None
         self.program_path = str(program_path) if program_path else None
         self._participant = program_module.make_participant(seed)
         self._prev: dict = {}
         self._last_ctx: TrialContext | None = None
         self._last_response: Response | None = None
+
+    @property
+    def available_keys(self) -> tuple[str, ...]:
+        """Static key inventory unioned with every literal key resolved so
+        far at runtime (see observe_key)."""
+        return tuple(sorted(set(self._static_keys) | self._observed_keys))
+
+    def observe_key(self, key: str | None) -> None:
+        """Record a runtime-resolved literal key so future trials' ctx.available_keys
+        includes it. Mirrors the expert executor's `_seen_response_keys`: on
+        dynamic-key tasks, the key inventory is discovered trial-by-trial as
+        `response_key_js` resolves each condition's key, not known up front.
+        """
+        if isinstance(key, str) and key:
+            self._observed_keys.add(key)
 
     def build_context(self, condition: str, correct_key: str | None,
                       trial_index: int) -> TrialContext:
@@ -110,7 +153,7 @@ class BehaviorSession:
     def respond(self, condition: str, correct_key: str | None,
                 trial_index: int) -> Response:
         ctx = self.build_context(condition, correct_key, trial_index)
-        resp = _validate(self._participant.respond(ctx), self.available_keys,
+        resp = _validate(self._participant.respond(ctx), ctx.available_keys, correct_key,
                          f"respond(trial {trial_index})")
         self._last_ctx, self._last_response = ctx, resp
         return resp
@@ -125,7 +168,8 @@ class BehaviorSession:
         raw = fn(self._last_ctx, ssd_ms, intended)
         if raw is None:
             return None
-        return _validate(raw, self.available_keys, "on_interrupt")
+        return _validate(raw, self._last_ctx.available_keys, self._last_ctx.correct_key,
+                         "on_interrupt")
 
     def record_outcome(self, condition: str, correct: bool, rt_ms: float | None,
                        interrupted: bool) -> None:

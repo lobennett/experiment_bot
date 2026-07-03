@@ -686,12 +686,9 @@ class TaskExecutor:
                     "session_params": self._session_params,
                     "between_subject_jitter": self._jitter_realized,
                 }
-                if self._behavior_provider is not None:
-                    metadata["behavior_program"] = {
-                        "sha256": self._behavior_provider.program_sha256,
-                        "path": self._behavior_provider.program_path,
-                        "seed": self._behavior_provider.seed,
-                    }
+                bp_metadata = self._behavior_program_metadata()
+                if bp_metadata is not None:
+                    metadata["behavior_program"] = bp_metadata
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
@@ -1151,6 +1148,19 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
+    def _behavior_program_metadata(self) -> dict | None:
+        """run_metadata fragment identifying the wired behavior program, or
+        None when no provider is set. Factored out of run()'s finally block
+        so it's unit-testable without invoking the full (browser-dependent)
+        run()."""
+        if self._behavior_provider is None:
+            return None
+        return {
+            "sha256": self._behavior_provider.program_sha256,
+            "path": self._behavior_provider.program_path,
+            "seed": self._behavior_provider.seed,
+        }
+
     async def _execute_trial_via_provider(self, page, match, cue=None) -> None:
         """SP21 naive arm: the behavior program supplies (key, rt); the
         executor supplies navigation, detection, delivery, and logging.
@@ -1165,6 +1175,7 @@ class TaskExecutor:
             trial_start = time.monotonic()
 
         correct_key = await self._resolve_response_key(match, page)
+        provider.observe_key(correct_key)
         resp = provider.respond(condition, correct_key, self._trial_count)
         rt_ms = resp.rt_ms
 
@@ -1181,7 +1192,11 @@ class TaskExecutor:
         if interrupt_detected:
             ssd_ms = (time.monotonic() - trial_start) * 1000
             decision = provider.on_interrupt(ssd_ms)
-            if decision is None:
+            # A program may withhold explicitly (decision is None) or commit to
+            # respond but with no key (decision.key is None) — both mean "no
+            # keypress fires"; treat them as the single withhold path so a
+            # None key can never reach _fire_response_key.
+            if decision is None or decision.key is None:
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,

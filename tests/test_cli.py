@@ -211,6 +211,18 @@ def test_available_keys_from_taskcard():
     assert set(keys) == {"z", "m"}  # withhold sentinels and None excluded
 
 
+def test_available_keys_from_taskcard_excludes_dynamic_sentinel():
+    """C1: 'dynamic'/'dynamic_mapping' key_map values (executor sentinels for
+    per-trial JS key resolution) must not leak into the static key inventory,
+    case-insensitively."""
+    class _TC:
+        task_specific = {"key_map": {"go": "dynamic", "stop": "Dynamic_Mapping"}}
+        stimuli = [{"response": {"key": "DYNAMIC", "condition": "go"}},
+                   {"response": {"key": "m", "condition": "stop"}}]
+    keys = _available_keys_from_taskcard(_TC())
+    assert set(keys) == {"m"}
+
+
 def test_behavior_program_flag_builds_session(tmp_path):
     prog = tmp_path / "p.py"
     prog.write_text(Path("tests/fixtures/toy_participant.py").read_text())

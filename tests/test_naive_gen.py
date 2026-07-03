@@ -29,6 +29,32 @@ def test_mechanical_facts():
     assert set(facts["conditions"]) == {"go", "stop"}
     assert facts["key_map"] == {"go": "z"}
     assert facts["has_interrupt"] is True
+    assert facts["interrupt_condition"] == "stop"
+
+
+def test_mechanical_facts_no_interrupt():
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["has_interrupt"] is False
+    assert facts["interrupt_condition"] is None
+
+
+def test_mechanical_facts_excludes_dynamic_sentinel():
+    """C1: key_map entries of 'dynamic'/'dynamic_mapping' (any case) must be
+    filtered the same way withhold sentinels are — the executor resolves
+    those keys per-trial via JS, never from this static map."""
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "dynamic", "stop": "DYNAMIC_MAPPING",
+                                    "flank": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": None}},
+                  {"response": {"condition": "stop", "key": None}},
+                  {"response": {"condition": "flank", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["key_map"] == {"flank": "z"}
 
 
 def _fake_client(responses):
@@ -54,8 +80,10 @@ def _fake_taskcard(monkeypatch):
     tc.task_specific = {"key_map": {"go": "z"}}
     tc.stimuli = [{"response": {"condition": "go", "key": "z"}}]
     tc.runtime.trial_interrupt.detection_condition = None
-    monkeypatch.setattr(g, "_load_structural_taskcard",
-                        MagicMock(return_value=tc))
+    tc.to_dict.return_value = {"task_specific": {"key_map": {"go": "z"}}}
+    loader = MagicMock(return_value=tc)
+    monkeypatch.setattr(g, "_load_structural_taskcard", loader)
+    return loader
 
 
 def test_generate_archives_program_and_transcript(tmp_path, monkeypatch):
@@ -68,6 +96,26 @@ def test_generate_archives_program_and_transcript(tmp_path, monkeypatch):
     assert transcript["model"] == "claude-fable-5"
     assert "task source" in transcript["prompt"].lower() or transcript["prompt"]
     assert (tmp_path / "toy" / f"{sha}.simgate.json").exists()
+
+
+def test_generate_records_taskcard_sha256_in_transcript(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    from experiment_bot.taskcard.hashing import taskcard_sha256 as compute_hash
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    path = asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
+    sha = path.stem
+    transcript = json.loads((tmp_path / "toy" / f"{sha}.transcript.json").read_text())
+    expected = compute_hash({"task_specific": {"key_map": {"go": "z"}}})
+    assert transcript["taskcard_sha256"] == expected
+
+
+def test_generate_passes_taskcard_sha256_to_loader(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch)
+    loader = _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path,
+                        taskcard_sha256="deadbeef"))
+    loader.assert_called_once_with("toy", "taskcards", taskcard_sha256="deadbeef")
 
 
 def test_generate_retries_on_gate_failure_then_fails(tmp_path, monkeypatch):

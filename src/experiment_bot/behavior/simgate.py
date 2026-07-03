@@ -48,8 +48,12 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
            report: GateReport) -> list[tuple]:
     """One synthetic session; returns [(key, rt), ...]. Failures -> report."""
     keys = tuple(sorted(set(key_map.values()))) or ("z",)
-    session = BehaviorSession(load_program(program_path), seed=seed,
-                              available_keys=keys, program_path=program_path)
+    try:
+        session = BehaviorSession(load_program(program_path), seed=seed,
+                                  available_keys=keys, program_path=program_path)
+    except Exception as e:  # noqa: BLE001 — the gate reports every failure mode
+        report.fail(f"make_participant(seed={seed}): {type(e).__name__}: {e}")
+        return []
     out = []
     for i in range(n_trials):
         cond = conditions[i % len(conditions)]

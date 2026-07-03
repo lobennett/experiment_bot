@@ -55,6 +55,17 @@ def test_gate_fails_on_nondeterminism(tmp_path):
     assert any("determin" in f for f in report.failures)
 
 
+def test_gate_fails_on_constructor_crash(tmp_path):
+    bad = tmp_path / "ctor_crash.py"
+    bad.write_text(
+        "def make_participant(seed):\n"
+        "    raise RuntimeError('ctor boom')\n")
+    report = run_gate(bad, conditions=["go"], key_map=KEYS, has_interrupt=False,
+                      n_trials=10)
+    assert report.passed is False
+    assert any("ctor boom" in f for f in report.failures)
+
+
 def test_gate_fails_on_seed_clones(tmp_path):
     bad = tmp_path / "clone.py"
     bad.write_text(

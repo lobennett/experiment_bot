@@ -15,8 +15,7 @@ from pathlib import Path
 
 import click
 
-from experiment_bot.behavior.provider import program_sha256
-from experiment_bot.behavior.simgate import GateReport, run_gate
+from experiment_bot.behavior.simgate import run_gate
 from experiment_bot.core.scraper import scrape_experiment_source
 from experiment_bot.llm.factory import build_default_client
 
@@ -108,15 +107,12 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
             "label": label, "prompt": user, "response": reply.text,
             "generated_at": datetime.now(timezone.utc).isoformat(),
         }, indent=2))
-        try:
-            report = run_gate(prog, conditions=facts["conditions"],
-                              key_map=facts["key_map"],
-                              has_interrupt=facts["has_interrupt"])
-        except Exception as e:  # noqa: BLE001 — a crash outside the trial
-            # loop (e.g. make_participant() itself raising) is still a gate
-            # failure, not an unhandled exception in generation.
-            report = GateReport(program_sha256=program_sha256(prog), passed=False,
-                                failures=[f"gate crashed: {type(e).__name__}: {e}"])
+        # run_gate never raises on a broken program (simgate._trace wraps both
+        # BehaviorSession construction and the per-trial loop) — a broken
+        # program surfaces as report.passed is False, not an exception here.
+        report = run_gate(prog, conditions=facts["conditions"],
+                          key_map=facts["key_map"],
+                          has_interrupt=facts["has_interrupt"])
         (out_dir / f"{sha}.simgate.json").write_text(
             json.dumps(report.to_dict(), indent=2))
         if report.passed:

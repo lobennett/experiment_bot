@@ -15,7 +15,9 @@ from pathlib import Path
 
 import click
 
-from experiment_bot.behavior.provider import NON_LITERAL_KEY_SENTINELS
+from experiment_bot.behavior.provider import (
+    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key,
+)
 from experiment_bot.behavior.simgate import run_gate
 from experiment_bot.core.scraper import scrape_experiment_source
 from experiment_bot.llm.factory import build_default_client
@@ -48,6 +50,9 @@ _EMPTY_KEY_MAP_NOTE = (
 # constant so the neutrality invariant tests can scan it for banned terms
 # the same way they scan the template.
 _RETRY_PREFIX = "\n\n## Previous attempt failed the MECHANICAL gate\n"
+
+# Trailing retry instruction, also scanned by the neutrality invariants.
+_RETRY_SUFFIX = "\nFix ONLY these mechanical problems."
 
 
 def _load_structural_taskcard(label: str, taskcards_dir: str,
@@ -84,13 +89,16 @@ def extract_python_block(text: str) -> str:
 def mechanical_facts(taskcard) -> dict:
     conditions: list[str] = []
     for stim in taskcard.stimuli or []:
-        cond = ((stim.get("response") or {}).get("condition")) if isinstance(stim, dict) else None
+        cond, _ = stim_condition_and_key(stim)
         if cond and cond not in conditions:
             conditions.append(cond)
     km = {k: v for k, v in ((taskcard.task_specific or {}).get("key_map") or {}).items()
           if isinstance(v, str) and v.lower() not in NON_LITERAL_KEY_SENTINELS}
     ti = getattr(taskcard.runtime, "trial_interrupt", None)
-    interrupt_condition = getattr(ti, "detection_condition", None) if ti else None
+    # Real non-interrupt cards carry detection_condition == "" (empty string),
+    # which must normalize to None: a truthy check, not an is-not-None check,
+    # or the prompt gets a false interrupt note (final-review N2).
+    interrupt_condition = (getattr(ti, "detection_condition", None) if ti else None) or None
     has_interrupt = interrupt_condition is not None
     return {"conditions": conditions, "key_map": km, "has_interrupt": has_interrupt,
             "interrupt_condition": interrupt_condition}
@@ -117,7 +125,7 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
         user = prompt if attempt == 0 else (
             prompt + _RETRY_PREFIX
             + "\n".join(f"- {f}" for f in last_failures)
-            + "\nFix ONLY these mechanical problems.")
+            + _RETRY_SUFFIX)
         reply = await client.complete(system="", user=user, max_tokens=16384)
         code = extract_python_block(reply.text)
         # Pure content hash — matches the content-addressing convention used

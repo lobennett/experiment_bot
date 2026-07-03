@@ -35,6 +35,20 @@ NON_LITERAL_KEY_SENTINELS = frozenset({
 })
 
 
+def stim_condition_and_key(stim) -> tuple[str | None, str | None]:
+    """(response.condition, response.key) of a stimulus, tolerant of both
+    TaskCard shapes: raw dicts (tests, Stage-2 partials) and the typed
+    StimulusConfig/ResponseConfig objects the loaders return. The loaders'
+    typed shape is what production sees — a dict-only reader silently
+    extracts nothing from every real committed card (final-review N1)."""
+    resp = stim.get("response") if isinstance(stim, dict) else getattr(stim, "response", None)
+    if resp is None:
+        return None, None
+    if isinstance(resp, dict):
+        return resp.get("condition"), resp.get("key")
+    return getattr(resp, "condition", None), getattr(resp, "key", None)
+
+
 class ProtocolViolation(Exception):
     """A generated program returned something outside the contract."""
 

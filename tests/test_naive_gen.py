@@ -126,3 +126,45 @@ def test_generate_retries_on_gate_failure_then_fails(tmp_path, monkeypatch):
         asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
     assert client.complete.await_count == 3  # initial + 2 retries, all archived
     assert len(list((tmp_path / "toy").glob("*.transcript.json"))) == 3
+
+
+# --- Final-review N1/N2: real committed TaskCards through the real loader ---
+# The dict-shaped mocks above hid two generation-path crashes: typed
+# StimulusConfig objects yielded zero conditions, and the stroop cards'
+# empty-string detection_condition spliced a false interrupt note into the
+# prompt. These tests pin the real-card contract.
+
+def test_mechanical_facts_real_stroop_card():
+    from experiment_bot.taskcard.loader import load_by_hash
+    card = load_by_hash(Path("taskcards"), label="expfactory_stroop",
+                        sha256="45751cfe")
+    facts = mechanical_facts(card)
+    assert "congruent" in facts["conditions"]
+    assert "incongruent" in facts["conditions"]
+    # Stroop has no interrupt signal; its card carries detection_condition ""
+    # which must normalize to None, never True.
+    assert facts["interrupt_condition"] is None
+    assert facts["has_interrupt"] is False
+
+
+def test_mechanical_facts_real_stop_signal_card():
+    from experiment_bot.taskcard.loader import load_by_hash
+    card = load_by_hash(Path("taskcards"), label="expfactory_stop_signal",
+                        sha256="e29f22de")
+    facts = mechanical_facts(card)
+    assert "go" in facts["conditions"]
+    assert facts["interrupt_condition"] == "stop"
+    assert facts["has_interrupt"] is True
+
+
+def test_available_keys_real_cards():
+    from experiment_bot.cli import _available_keys_from_taskcard
+    from experiment_bot.taskcard.loader import load_by_hash
+    dyn = load_by_hash(Path("taskcards"), label="expfactory_stroop",
+                       sha256="45751cfe")
+    cog = load_by_hash(Path("taskcards"), label="cognitionrun_stroop",
+                       sha256="b16c7891")
+    # All-dynamic card: empty static inventory (keys observed at runtime).
+    assert all(k not in ("dynamic", "dynamic_mapping")
+               for k in _available_keys_from_taskcard(dyn))
+    assert {"b", "g", "r", "y"}.issubset(set(_available_keys_from_taskcard(cog)))

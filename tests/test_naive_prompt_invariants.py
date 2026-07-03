@@ -14,7 +14,7 @@ it were in the template, so they must pass the same invariants.
 from pathlib import Path
 
 from experiment_bot.behavior.gen_cli import (
-    _EMPTY_KEY_MAP_NOTE, _INTERRUPT_NOTE, _RETRY_PREFIX,
+    _EMPTY_KEY_MAP_NOTE, _INTERRUPT_NOTE, _RETRY_PREFIX, _RETRY_SUFFIX,
 )
 
 TEMPLATE = Path("src/experiment_bot/behavior/prompts/naive_gen.md")
@@ -40,6 +40,7 @@ ASSEMBLED_PROMPT_SOURCES = [
     ("gen_cli._INTERRUPT_NOTE", _INTERRUPT_NOTE),
     ("gen_cli._RETRY_PREFIX", _RETRY_PREFIX),
     ("gen_cli._EMPTY_KEY_MAP_NOTE", _EMPTY_KEY_MAP_NOTE),
+    ("gen_cli._RETRY_SUFFIX", _RETRY_SUFFIX),
 ]
 
 

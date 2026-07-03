@@ -23,6 +23,7 @@ from experiment_bot.core.executor import TaskExecutor
 from experiment_bot.llm.factory import build_default_client
 from experiment_bot.behavior.provider import (
     BehaviorSession, NON_LITERAL_KEY_SENTINELS, load_program, resolve_program,
+    stim_condition_and_key,
 )
 
 # Bound at import time so tests may patch cli.TaskExecutor without
@@ -40,7 +41,7 @@ def _available_keys_from_taskcard(taskcard) -> tuple[str, ...]:
     km = (taskcard.task_specific or {}).get("key_map") or {}
     keys.update(v for v in km.values() if isinstance(v, str))
     for stim in taskcard.stimuli or []:
-        k = ((stim.get("response") or {}).get("key")) if isinstance(stim, dict) else None
+        _, k = stim_condition_and_key(stim)
         if isinstance(k, str):
             keys.add(k)
     return tuple(sorted(

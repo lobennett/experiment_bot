@@ -12,7 +12,7 @@
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-N="${1:-15}"
+N="${1:-30}"  # default MUST match the pre-registered N: the preflight deletes out-of-target seeds
 # Isolate the frozen dataset: the executor honors EXPERIMENT_BOT_OUTPUT_DIR
 # (output/writer.py), so sessions never mix with the old accreted output/.
 export EXPERIMENT_BOT_OUTPUT_DIR="$(pwd)/${2:-output_frozen}"

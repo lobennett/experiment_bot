@@ -67,7 +67,27 @@ def _write_report(out: Path, label: str, kind: str, bot_df, human_df, human_csv:
         "reported descriptively. The per-subject CSVs (`*_bot.csv`, `*_human.csv`) carry the "
         "full distributions for any further test (KS / equivalence).",
         "",
+        "## Exploratory: distribution-level comparison",
+        "",
+        "_Pre-registered as exploratory (docs/preregistration.md §Analysis), not part of "
+        "the confirmatory mean-location design above. SD ratio = bot between-subject SD / "
+        "human between-subject SD (1.0 = human-like dispersion); KS = two-sample "
+        "Kolmogorov–Smirnov test of the per-subject distributions. A cohort can pass the "
+        "within-1-SD mean gate while failing these — matched means with far too little "
+        "between-subject variability._",
+        "",
+        "| metric | SD ratio | KS D | KS p |",
+        "|---|---|---|---|",
     ]
+    def fmt_p(p):
+        if p is None or (isinstance(p, float) and np.isnan(p)):
+            return "—"
+        return f"{p:.1e}" if p < 0.001 else f"{p:.3f}"
+    for r in rows:
+        lines.append(
+            f"| {r['metric']} | {fmt(r['sd_ratio'])} | {fmt(r['ks_D'])} | {fmt_p(r['ks_p'])} |"
+        )
+    lines.append("")
     p = out / f"comparison_{label}.md"
     p.write_text("\n".join(lines))
     return p

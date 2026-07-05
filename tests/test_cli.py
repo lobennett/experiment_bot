@@ -196,3 +196,56 @@ def test_cli_missing_url():
     runner = CliRunner()
     result = runner.invoke(main, [])
     assert result.exit_code != 0  # Should fail without URL
+
+
+# --- SP21: --behavior-program wiring ---
+from experiment_bot.cli import _available_keys_from_taskcard
+
+
+def test_available_keys_from_taskcard():
+    class _TC:
+        task_specific = {"key_map": {"go": "z", "stop": "withhold"}}
+        stimuli = [{"response": {"key": "m", "condition": "go"}},
+                   {"response": {"key": None, "condition": "stop"}}]
+    keys = _available_keys_from_taskcard(_TC())
+    assert set(keys) == {"z", "m"}  # withhold sentinels and None excluded
+
+
+def test_available_keys_from_taskcard_excludes_dynamic_sentinel():
+    """C1: 'dynamic'/'dynamic_mapping' key_map values (executor sentinels for
+    per-trial JS key resolution) must not leak into the static key inventory,
+    case-insensitively."""
+    class _TC:
+        task_specific = {"key_map": {"go": "dynamic", "stop": "Dynamic_Mapping"}}
+        stimuli = [{"response": {"key": "DYNAMIC", "condition": "go"}},
+                   {"response": {"key": "m", "condition": "stop"}}]
+    keys = _available_keys_from_taskcard(_TC())
+    assert set(keys) == {"m"}
+
+
+def test_behavior_program_flag_builds_session(tmp_path):
+    prog = tmp_path / "p.py"
+    prog.write_text(Path("tests/fixtures/toy_participant.py").read_text())
+
+    captured = {}
+
+    class _FakeExecutor:
+        def __init__(self, *a, **kw):
+            captured.update(kw)
+
+        async def run(self, url):
+            return None
+
+    with patch("experiment_bot.cli.TaskExecutor", _FakeExecutor), \
+         patch("experiment_bot.cli.load_latest") as load_tc, \
+         patch("experiment_bot.cli.sample_session_params", return_value={}), \
+         patch("experiment_bot.cli.build_default_client", return_value=None):
+        load_tc.return_value = MagicMock(
+            task_specific={"key_map": {"go": "z"}}, stimuli=[],
+            response_distributions={}, to_dict=lambda: {})
+        result = CliRunner().invoke(main, [
+            "http://x", "--label", "t", "--headless", "--seed", "7",
+            "--no-llm-client", "--behavior-program", str(prog)])
+    assert result.exit_code == 0, result.output
+    bp = captured["behavior_provider"]
+    assert bp is not None and bp.seed == 7

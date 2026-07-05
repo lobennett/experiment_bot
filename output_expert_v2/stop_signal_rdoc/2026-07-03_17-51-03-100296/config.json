@@ -1,0 +1,320 @@
+{
+  "task": {
+    "name": "stop_signal_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "expfactory",
+    "paradigm_classes": [
+      "speeded_choice",
+      "response_inhibition"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "stop",
+      "description": "Stop trial: a stop signal (star image) is rendered around the shape, instructing the participant to withhold the response.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-stop-signal-SS')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "stop"
+      }
+    },
+    {
+      "id": "go",
+      "description": "Go trial: a shape (circle or square) is shown without a stop signal; respond with the key mapped to that shape (counterbalanced by group_index).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-stop-signal-stimulus img')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "go",
+        "response_key_js": "(() => { if (typeof window.correct_response !== 'undefined' && window.correct_response !== null) return window.correct_response; const img = document.querySelector('#jspsych-stop-signal-stimulus img'); if (!img) return null; const src = img.src || ''; const isCircle = src.includes('circle'); const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const isLowGroup = (g >= 0 && g <= 4); return isCircle ? (isLowGroup ? ',' : '.') : (isLowGroup ? '.' : ','); })()"
+      }
+    }
+  ],
+  "response_distributions": {
+    "go": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 439.4756619862191,
+        "sigma": 51.24670653706705,
+        "tau": 81.72795945213677
+      },
+      "unit": "ms"
+    },
+    "stop": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 393.6207957596624,
+        "sigma": 46.864104767364495,
+        "tau": 72.02201190994631
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "go": 0.9533337650826946,
+      "stop": 0.85
+    },
+    "omission_rate": {
+      "go": 0.04245358509287704,
+      "stop": 0.0
+    }
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2200
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "go": "dynamic",
+      "stop": "withhold"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500
+    }
+  },
+  "temporal_effects": {
+    "autocorrelation": {
+      "enabled": false,
+      "phi": 0.0,
+      "rationale": ""
+    },
+    "fatigue_drift": {
+      "enabled": false,
+      "drift_per_trial_ms": 0.0,
+      "rationale": ""
+    },
+    "condition_repetition": {
+      "enabled": false,
+      "facilitation_ms": 0.0,
+      "cost_ms": 0.0,
+      "rationale": ""
+    },
+    "pink_noise": {
+      "enabled": false,
+      "sd_ms": 0.0,
+      "alpha": 0.0,
+      "rationale": ""
+    },
+    "lag1_pair_modulation": {
+      "enabled": false,
+      "modulation_table": []
+    },
+    "post_event_slowing": {
+      "enabled": true,
+      "triggers": [
+        {
+          "event": "error",
+          "slowing_ms_min": 20,
+          "slowing_ms_max": 50
+        },
+        {
+          "event": "interrupt",
+          "slowing_ms_min": 30,
+          "slowing_ms_max": 70,
+          "exclusive_with_prior_triggers": true
+        }
+      ]
+    },
+    "practice_effect": {
+      "enabled": false,
+      "initial_offset_ms": 0.0,
+      "asymptote_block": 3,
+      "trials_per_block": 30,
+      "decay_rate": 0.7,
+      "rationale": ""
+    },
+    "vigilance_decrement": {
+      "enabled": false,
+      "sd_per_100_trials_ms": 0.0,
+      "rationale": ""
+    }
+  },
+  "between_subject_jitter": {
+    "rt_mean_sd_ms": 45,
+    "rt_condition_sd_ms": 15,
+    "sigma_tau_range": [
+      0.85,
+      1.2
+    ],
+    "accuracy_sd": 0.03,
+    "omission_sd": 0.015,
+    "accuracy_clip_range": [
+      0.85,
+      1.0
+    ],
+    "omission_clip_range": [
+      0.0,
+      0.08
+    ],
+    "rationale": ""
+  },
+  "pilot": {
+    "min_trials": 20,
+    "target_conditions": [],
+    "max_blocks": 3,
+    "stimulus_container_selector": "",
+    "rationale": ""
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || (!!document.body && (document.body.innerText || '').includes('Experiment Complete'))",
+      "test": "!!document.querySelector('#jspsych-stop-signal-stimulus')",
+      "loading": "document.readyState !== 'complete' || !document.querySelector('#jspsych-content')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "(() => { const c = document.querySelector('#jspsych-content'); return !!document.querySelector('#jspsych-stop-signal-stimulus') && !!c && /comma key|period key|star appears/i.test(c.innerText || ''); })()",
+      "feedback": "(() => { const c = document.querySelector('#jspsych-content'); if (!c) return false; const t = c.innerText || ''; if (document.querySelector('#jspsych-stop-signal-stimulus') || document.querySelector('#jspsych-instructions-next')) return false; return /press\\s+.?enter.?\\s+to\\s+(begin|continue)/i.test(t) || t.includes('read your feedback') || /You have completed/i.test(t) || /Correct!|Incorrect|Respond Faster|There was a star/.test(t); })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 400,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-stop-signal-stimulus')",
+      "trial_context_js": "(() => { const img = document.querySelector('#jspsych-stop-signal-stimulus img'); const ss = document.querySelector('#jspsych-stop-signal-SS'); const shape = img ? (img.src.includes('circle') ? 'circle' : (img.src.includes('square') ? 'square' : '?')) : '?'; return (ss ? 'stop' : 'go') + ':' + shape; })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 2000,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 50.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "stop",
+      "failure_rt_key": "go",
+      "failure_rt_cap_fraction": 0.5,
+      "inhibit_wait_ms": 1250
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); const t = (el ? el.innerText : '').toLowerCase(); let m = t.match(/press the ([a-z]) key/); if (m) return m[1]; if (t.includes('second to last')) return 'y'; if (t.includes('third to last')) return 'x'; if (t.includes('last letter')) return 'z'; if (t.includes('first letter')) return 'a'; if (t.includes('second letter')) return 'b'; if (t.includes('third letter')) return 'c'; return null; })()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  }
+}

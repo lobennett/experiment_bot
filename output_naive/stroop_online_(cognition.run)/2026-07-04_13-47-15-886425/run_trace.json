@@ -1,0 +1,56 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://strooptest.cognition.run/"
+      },
+      "duration_s": 2.1695258340332657
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "instructions",
+            "action": "sequence",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 20.106003999942914
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00037687504664063454
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 15,
+        "loop_exit_reason": "complete"
+      },
+      "duration_s": 23.22336758300662
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.004788291058503
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/stroop_online_(cognition.run)/2026-07-04_13-47-15-886425"
+      },
+      "duration_s": null
+    }
+  ]
+}

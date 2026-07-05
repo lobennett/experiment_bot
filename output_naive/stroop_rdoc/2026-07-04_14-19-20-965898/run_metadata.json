@@ -1,0 +1,63 @@
+{
+  "task_name": "stroop_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/10/",
+  "total_trials": 131,
+  "headless": true,
+  "session_seed": 735009,
+  "session_params": {},
+  "between_subject_jitter": {
+    "configured": true,
+    "response_distributions": {
+      "congruent": {
+        "mu": 460,
+        "sigma": 40,
+        "tau": 140
+      },
+      "incongruent": {
+        "mu": 480,
+        "sigma": 45,
+        "tau": 190
+      }
+    },
+    "accuracy": {
+      "congruent": 0.98,
+      "incongruent": 0.94
+    },
+    "omission_rate": {
+      "congruent": 0.008,
+      "incongruent": 0.015
+    }
+  },
+  "behavior_program": {
+    "sha256": "88889c7924141d478a31cacaac4fc7d234cdbade4bd8bb7f16251ad1695a9186",
+    "path": "naive_programs/expfactory_stroop/88889c7924141d478a31cacaac4fc7d234cdbade4bd8bb7f16251ad1695a9186.py",
+    "seed": 735009
+  },
+  "taskcard_sha256": "45751cfea3e94629c6073d6125b5e805f7e6297a382cecf9dc404729362a37a0",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 131
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "js_eval_errors_by_source": {},
+  "error_injection": {
+    "unrealizable_count": 0
+  },
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

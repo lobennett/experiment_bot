@@ -1,0 +1,402 @@
+{
+  "task": {
+    "name": "Stroop Online (cognition.run)",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "cognition.run",
+    "paradigm_classes": [
+      "speeded_choice",
+      "conflict_task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "congruent_red",
+      "description": "Word 'red' rendered in red ink (word matches ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'red') return false; return getComputedStyle(el).color === 'rgb(255, 0, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "r",
+        "condition": "congruent"
+      }
+    },
+    {
+      "id": "congruent_green",
+      "description": "Word 'green' rendered in green ink (word matches ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'green') return false; return getComputedStyle(el).color === 'rgb(0, 128, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "g",
+        "condition": "congruent"
+      }
+    },
+    {
+      "id": "congruent_blue",
+      "description": "Word 'blue' rendered in blue ink (word matches ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'blue') return false; return getComputedStyle(el).color === 'rgb(0, 0, 255)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "b",
+        "condition": "congruent"
+      }
+    },
+    {
+      "id": "congruent_yellow",
+      "description": "Word 'yellow' rendered in yellow ink (word matches ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (text !== 'yellow') return false; return getComputedStyle(el).color === 'rgb(255, 255, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "y",
+        "condition": "congruent"
+      }
+    },
+    {
+      "id": "incongruent_red",
+      "description": "A color word other than 'red' rendered in red ink (respond to ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['green','blue','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(255, 0, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "r",
+        "condition": "incongruent"
+      }
+    },
+    {
+      "id": "incongruent_green",
+      "description": "A color word other than 'green' rendered in green ink (respond to ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','blue','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(0, 128, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "g",
+        "condition": "incongruent"
+      }
+    },
+    {
+      "id": "incongruent_blue",
+      "description": "A color word other than 'blue' rendered in blue ink (respond to ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','yellow'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(0, 0, 255)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "b",
+        "condition": "incongruent"
+      }
+    },
+    {
+      "id": "incongruent_yellow",
+      "description": "A color word other than 'yellow' rendered in yellow ink (respond to ink color).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); if (!['red','green','blue'].includes(text)) return false; return getComputedStyle(el).color === 'rgb(255, 255, 0)'; })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": "y",
+        "condition": "incongruent"
+      }
+    }
+  ],
+  "response_distributions": {
+    "congruent": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 446.3797158844059,
+        "sigma": 46.56904310582175,
+        "tau": 111.78754437699352
+      },
+      "unit": "ms"
+    },
+    "incongruent": {
+      "distribution": "ex_gaussian",
+      "params": {
+        "mu": 493.9933858804142,
+        "sigma": 54.38801673172473,
+        "tau": 159.1412050130108
+      },
+      "unit": "ms"
+    }
+  },
+  "performance": {
+    "accuracy": {
+      "congruent": 0.9456250063349588,
+      "incongruent": 0.9082968286072562
+    },
+    "omission_rate": {
+      "congruent": 0.011172818948810516,
+      "incongruent": 0.00686451286185066
+    }
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "instructions",
+        "action": "sequence",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "action": "press",
+            "key": " ",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "press",
+            "key": " ",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "press",
+            "key": " ",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "press",
+            "key": " ",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          }
+        ],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic",
+      "congruent_red": "r",
+      "congruent_green": "g",
+      "congruent_blue": "b",
+      "congruent_yellow": "y",
+      "incongruent_red": "r",
+      "incongruent_green": "g",
+      "incongruent_blue": "b",
+      "incongruent_yellow": "y"
+    },
+    "trial_timing": {
+      "fixation_ms": 500,
+      "iti_ms": 250,
+      "max_response_time_ms": null
+    },
+    "n_trials": 15,
+    "n_blocks": 1,
+    "colors": [
+      "red",
+      "green",
+      "blue",
+      "yellow"
+    ],
+    "valid_response_keys": [
+      "r",
+      "g",
+      "b",
+      "y"
+    ],
+    "rationale": "Source defines `var colours = ['red','green','blue','yellow']`, `var n_trials = 15`, and per-trial `choices: ['r','g','b','y']`. The correct response is the first letter of the INK COLOR in which the word is printed (color-naming Stroop), not the word itself. Congruent trials draw one color (word == ink); incongruent trials draw two distinct colors via `sampleWithoutReplacement` (word != ink). The page does NOT expose a runtime correct-key variable (no window.correctResponse), and the pilot/executor key-resolution path reliably honors only the static `response.key` per stimulus. The condition therefore cannot be a single dynamic-keyed entry; it is split into four per-color sub-stimuli (congruent_{red,green,blue,yellow} and incongruent_{red,green,blue,yellow}), each carrying a static key while still grouping under `congruent`/`incongruent` for analysis. Detection reads the computed ink color via getComputedStyle: red=rgb(255, 0, 0), green=rgb(0, 128, 0), blue=rgb(0, 0, 255), yellow=rgb(255, 255, 0). Fixation ('+') and ITI ('') screens are excluded because their text is not a color word. No response deadline is imposed (`response_ends_trial: true`, no trial_duration on the response trial), so max_response_time_ms is null and cdp_dwell_ms falls back to the 200 ms default."
+  },
+  "temporal_effects": {
+    "autocorrelation": {
+      "enabled": false,
+      "phi": 0.0,
+      "rationale": ""
+    },
+    "fatigue_drift": {
+      "enabled": false,
+      "drift_per_trial_ms": 0.0,
+      "rationale": ""
+    },
+    "condition_repetition": {
+      "enabled": false,
+      "facilitation_ms": 0.0,
+      "cost_ms": 0.0,
+      "rationale": ""
+    },
+    "pink_noise": {
+      "enabled": false,
+      "sd_ms": 0.0,
+      "alpha": 0.0,
+      "rationale": ""
+    },
+    "lag1_pair_modulation": {
+      "enabled": true,
+      "skip_after_error": true,
+      "modulation_table": [
+        {
+          "prev": "congruent",
+          "curr": "congruent",
+          "delta_ms": -10
+        },
+        {
+          "prev": "incongruent",
+          "curr": "congruent",
+          "delta_ms": 10
+        },
+        {
+          "prev": "congruent",
+          "curr": "incongruent",
+          "delta_ms": 15
+        },
+        {
+          "prev": "incongruent",
+          "curr": "incongruent",
+          "delta_ms": -15
+        }
+      ]
+    },
+    "post_event_slowing": {
+      "enabled": true,
+      "triggers": [
+        {
+          "event": "error",
+          "slowing_ms_min": 20,
+          "slowing_ms_max": 50
+        }
+      ]
+    },
+    "practice_effect": {
+      "enabled": false,
+      "initial_offset_ms": 0.0,
+      "asymptote_block": 3,
+      "trials_per_block": 30,
+      "decay_rate": 0.7,
+      "rationale": ""
+    },
+    "vigilance_decrement": {
+      "enabled": false,
+      "sd_per_100_trials_ms": 0.0,
+      "rationale": ""
+    }
+  },
+  "between_subject_jitter": {
+    "rt_mean_sd_ms": 70,
+    "rt_condition_sd_ms": 20,
+    "sigma_tau_range": [
+      0.85,
+      1.15
+    ],
+    "accuracy_sd": 0.02,
+    "omission_sd": 0.005,
+    "accuracy_clip_range": [
+      0.85,
+      1.0
+    ],
+    "omission_clip_range": [
+      0.0,
+      0.05
+    ],
+    "rationale": ""
+  },
+  "pilot": {
+    "min_trials": 20,
+    "target_conditions": [],
+    "max_blocks": 3,
+    "stimulus_container_selector": "",
+    "rationale": ""
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('jspsych-data-display')",
+      "test": "!document.getElementById('jspsych-data-display') && !!document.querySelector('#jspsych-html-keyboard-response-stimulus')",
+      "loading": "typeof jsPsych === 'undefined' || !document.querySelector('#jspsych-content') || (document.querySelector('#jspsych-content').innerHTML || '').trim() === ''",
+      "instructions": "!document.getElementById('jspsych-data-display') && !document.querySelector('#jspsych-html-keyboard-response-stimulus') && /Press Space/i.test(document.querySelector('#jspsych-content')?.textContent || '')",
+      "practice": "false",
+      "feedback": "false",
+      "attention_check": "false"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 2000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return false; const text = (el.textContent || '').trim().toLowerCase(); return ['red','green','blue','yellow'].includes(text); })()",
+      "trial_context_js": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus')?.firstElementChild; if (!el) return ''; const text = (el.textContent || '').trim(); const cs = getComputedStyle(el).color; const colorMap = {'rgb(255, 0, 0)':'red','rgb(0, 128, 0)':'green','rgb(0, 0, 255)':'blue','rgb(255, 255, 0)':'yellow'}; return 'word=' + text + ' color=' + (colorMap[cs] || cs); })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        " "
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [],
+      "feedback_fallback_keys": [
+        " "
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  }
+}

@@ -411,3 +411,57 @@ def test_stage2_validate_error_message_lists_every_violation():
     msg = str(exc.value)
     assert "post_event_slowing" in msg
     assert "lag1_pair_modulation" in msg
+
+
+# --- SP20: between-subject variance declaration gate (review fix) ---
+# The frozen N=30 cohort's between-subject SDs came out 5-10x below human
+# because neither variance channel was populated/applied. Stage 2 must
+# declare at least one channel; magnitudes stay literature-derived (the
+# validator never checks magnitude, only presence).
+
+_RD_NO_VARIANCE = {
+    "go": {"value": {"mu": 450, "sigma": 60, "tau": 80},
+           "rationale": "", "citations": []},
+}
+
+
+def test_stage2_validate_rejects_missing_between_subject_variance():
+    partial = {"response_distributions": dict(_RD_NO_VARIANCE)}
+    with pytest.raises(Stage2SchemaError) as exc:
+        validate_stage2_schema(partial)
+    assert "between-subject" in str(exc.value)
+
+
+def test_stage2_validate_accepts_variance_via_jitter_block():
+    partial = {
+        "response_distributions": dict(_RD_NO_VARIANCE),
+        "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60.0}},
+    }
+    validate_stage2_schema(partial)  # no raise
+
+
+def test_stage2_validate_accepts_variance_via_per_param_sd():
+    partial = {
+        "response_distributions": {
+            "go": {"value": {"mu": 450, "sigma": 60, "tau": 80},
+                   "between_subject_sd": {"mu": 50},
+                   "rationale": "", "citations": []},
+        },
+    }
+    validate_stage2_schema(partial)  # no raise
+
+
+def test_stage2_validate_zero_jitter_does_not_count_as_variance():
+    partial = {
+        "response_distributions": dict(_RD_NO_VARIANCE),
+        "between_subject_jitter": {"value": {"rt_mean_sd_ms": 0.0,
+                                             "accuracy_sd": 0.0}},
+    }
+    with pytest.raises(Stage2SchemaError):
+        validate_stage2_schema(partial)
+
+
+def test_stage2_validate_no_distributions_no_variance_requirement():
+    """Partials without response_distributions (e.g. refinement deltas)
+    are not subject to the variance gate."""
+    validate_stage2_schema({"temporal_effects": {}})  # no raise

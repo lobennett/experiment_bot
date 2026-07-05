@@ -17,3 +17,19 @@ _Generated 2026-07-02. Bot N=30 sessions (30 with the expected trial count); hum
 | post_error_slowing_ms | -100.7 ± 212.5 (19) | 59.2 ± 135.6 (445) | -1.18 | ❌ |
 
 **Notes.** `lag1_autocorr` has no canonical human range in the literature; it is reported descriptively. The per-subject CSVs (`*_bot.csv`, `*_human.csv`) carry the full distributions for any further test (KS / equivalence).
+
+## Exploratory: distribution-level comparison
+
+_Pre-registered as exploratory (docs/preregistration.md §Analysis), not part of the confirmatory mean-location design above. SD ratio = bot between-subject SD / human between-subject SD (1.0 = human-like dispersion); KS = two-sample Kolmogorov–Smirnov test of the per-subject distributions. A cohort can pass the within-1-SD mean gate while failing these — matched means with far too little between-subject variability._
+
+| metric | SD ratio | KS D | KS p |
+|---|---|---|---|
+| congruent_accuracy | 1.614 | 0.287 | 0.015 |
+| congruent_omission_rate | 0.000 | 0.224 | 0.098 |
+| congruent_rt | 2.007 | 0.337 | 0.002 |
+| incongruent_accuracy | 1.239 | 0.307 | 0.007 |
+| incongruent_omission_rate | 0.000 | 0.404 | 1.1e-04 |
+| incongruent_rt | 2.785 | 0.550 | 1.5e-08 |
+| stroop_effect | 6.735 | 0.546 | 2.1e-08 |
+| lag1_autocorr | 1.928 | 0.372 | 5.1e-04 |
+| post_error_slowing_ms | 1.567 | 0.437 | 0.001 |

@@ -137,10 +137,10 @@ Analyze the source code to determine:
 Optional behavioral timing knobs (override defaults only when the task requires it):
 - `navigation_delay_ms` (default 1000): Pause before pressing a navigation-stimulus key. Increase if the page needs longer to register the keypress.
 - `attention_check_delay_ms` (default 1500): Pause before handling an attention check. Simulates reading time.
-- `rt_floor_ms` (default 150.0): Lower bound on sampled RTs in milliseconds — RTs faster than this are clipped up. The 150ms default reflects the conventional "fast-guess" cutoff (Whelan 2008) for choice-RT and conflict paradigms. **Override per paradigm class**: simple-RT tasks may have a lower floor (~80–100 ms), perceptual-threshold and slow-decision paradigms may have higher floors. Cite the paradigm-specific basis.
+- `rt_floor_ms` (default 150.0): Lower bound on sampled RTs in milliseconds — RTs faster than this are clipped up. The default is the runtime's fallback only. **Derive the appropriate floor for THIS paradigm class from the literature** (the fast-guess / anticipatory-response cutoff reported for this class of task) and cite the paradigm-specific basis; do not treat the default as a recommended value.
 - `completion_settle_ms` (default 2000): Pause after the trial loop ends, before data capture. Increase for tasks with long post-trial animations.
 - `trial_end_timeout_s` (default 5.0): Maximum seconds to wait for the response window to close between trials. Increase for tasks with unusually long inter-trial intervals.
-- `cdp_dwell_ms` (default 200.0): Bot dwell in ms before firing each response keypress. **Derive this value from the paradigm's response-window timing rather than picking a fixed number.** The heuristic is `cdp_dwell_ms = min(response_window_ms) × 0.15`, where `min(response_window_ms)` is the shortest response window any trial type can present (e.g., for stop-signal, the minimum SSD if STOP trials accept response keys before the stop signal appears). The 0.15 fraction keeps the dwell well inside human-reaction-time territory (≥150 ms physiological floor) while leaving ~85% of the response window free for the bot's sampled RT to land. Examples: Stroop/Flanker with 2000 ms windows → 300 ms dwell; n-back with 1500 ms windows → 225 ms dwell; stop-signal with 250 ms minimum SSD → ~38 ms dwell (clip to a floor of 50 ms to keep CDP keypress + Playwright round-trip from dominating). If the paradigm has no documented response window, fall back to 200 ms. Show the computation in the reasoning chain so reviewers can verify the value is reproducible from source.
+- `cdp_dwell_ms` (default 200.0): Bot dwell in ms before firing each response keypress. **Derive this value from the paradigm's response-window timing rather than picking a fixed number.** The heuristic is `cdp_dwell_ms = min(response_window_ms) × 0.15`, where `min(response_window_ms)` is the shortest response window any trial type can present as read from THIS task's source (e.g. `<shortest_window_ms> × 0.15 → <dwell_ms>`). The 0.15 fraction is a bot-delivery mechanic: it leaves most of the response window free for the sampled RT to land. Clip the result to a floor of 50 ms so the CDP keypress + Playwright round-trip does not dominate. If the task's source documents no response window, fall back to the 200 ms default. Show the computation in the reasoning chain so reviewers can verify the value is reproducible from source.
 - `trial_marker_js` (default empty → jsPsych v7 `getProgress().current_trial_global`): JS arrow returning a monotonic per-atomic-trial integer used to pair bot fires to platform records. For jsPsych v6 paradigms (function-style `progress()`), set this to `() => (window.jsPsych && window.jsPsych.progress && window.jsPsych.progress().current_trial_global) || null`. For non-jsPsych platforms, supply the equivalent platform-native marker.
 - `records_js` (default empty → jsPsych `data.get().values()`): JS arrow returning the array of platform-recorded trial objects. The default works on jsPsych v6 and v7. Override for non-jsPsych platforms; the returned objects must carry at minimum `trial_index` (matching `trial_marker_js`), `response`, and `rt`.
 
@@ -176,7 +176,7 @@ If the experiment has attention checks:
 If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
 - `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
 - `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
-- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Commission errors on interrupt trials occur when the response is initiated before the interrupt signal has time to suppress it, so commission-error RTs cluster in the early portion of the response window. Derive this fraction from (a) the task's own definition of the response window or signal-delay schedule in the source code, and (b) primary-source literature on commission-error RT distributions for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
+- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Derive this fraction from (a) the task's own definition of the response window or signal-delay schedule in the source code, and (b) primary-source literature on where commission-error RTs fall within the response window for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
 - `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's signal-delay schedule or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
 **Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
@@ -195,13 +195,13 @@ The `temporal_effects` object controls sequential dependencies in RT across tria
 - `facilitation_ms`: RT reduction when condition repeats.
 - `cost_ms`: RT increase when condition switches.
 
-**`pink_noise`** — Long-range 1/f temporal correlations. A pre-generated fractional Gaussian noise buffer indexed by trial number, scaled by `sd_ms`.
-- `sd_ms`: SD of the pink-noise contribution (ms).
-- `hurst`: Hurst exponent (0.5–1.0). > 0.5 = persistent autocorrelation; 0.5 = white noise.
+**`pink_noise`** — Long-range 1/f^alpha temporal correlations. A pre-generated spectral-synthesis noise buffer indexed by trial number, scaled by `sd_ms`.
+- `sd_ms`: SD of the noise contribution (ms).
+- `alpha`: Spectral slope (must be > 0 when enabled). alpha=1 is canonical "pink" noise; values toward 0 approach white noise; alpha=2 is Brownian. (Do NOT emit the pre-SP11 `hurst` field — it is deprecated.)
 
 **`lag1_pair_modulation`** — Generic lag-1 condition-pair RT modulation. The mechanism applies an RT delta whenever the (previous_condition, current_condition) pair matches an entry in `modulation_table`. Configure ONE entry per literature-documented transition; leave the table empty if no 2-back interaction is documented.
 - `modulation_table` (list of dicts): each entry has `prev` (str: previous condition label), `curr` (str: current condition label), and either `delta_ms` (fixed RT delta in ms, can be negative for facilitation) or `delta_ms_min` + `delta_ms_max` (uniform-random delta sampled per trial). First matching entry wins.
-- `skip_after_error` (bool, default true): if true, no modulation on the trial after an error. The conventional "error contamination" guard.
+- `skip_after_error` (bool, default true): if true, no modulation on the trial after an error.
 
   Schema example (abstract labels — the bot's code does not assume any specific condition vocabulary):
   `[{prev: "<high_label>", curr: "<high_label>", delta_ms: <facilitation_ms>}, {prev: "<low_label>", curr: "<high_label>", delta_ms: <cost_ms>}]`. Use the actual condition labels from this task's `response_distributions`, and use signs and magnitudes drawn from the literature for THIS paradigm class.
@@ -211,6 +211,15 @@ The `temporal_effects` object controls sequential dependencies in RT across tria
 
   Schema example: `[{event: "<event_type>", slowing_ms_min: <min_ms>, slowing_ms_max: <max_ms>, exclusive_with_prior_triggers: true}, ...]`. Configure as many entries as the literature for this paradigm class documents; leave the list empty otherwise.
 
+**`practice_effect`** — Block-wise RT reduction across the early session, decaying exponentially to zero. RT delta at a block is `+initial_offset_ms × exp(−decay_rate × block_idx)`, capped at 0 once `block_idx >= asymptote_block`; `block_idx = trial_index // trials_per_block`.
+- `initial_offset_ms`: RT elevation (ms) at the start of the session.
+- `decay_rate`: exponential decay rate per block.
+- `asymptote_block`: block index at and beyond which the delta is 0.
+- `trials_per_block`: trials per block for the internal block counter.
+
+**`vigilance_decrement`** — RT-variance inflation over session length: a zero-mean Gaussian perturbation whose SD grows linearly with trial index. Mean RT is unchanged; variance grows.
+- `sd_per_100_trials_ms`: SD (ms) the perturbation reaches per 100 trials elapsed.
+
 ### 11. Between-Subject Jitter Schema (mechanical descriptions)
 
 The `between_subject_jitter` object controls session-level parameter variation applied once per run to simulate individual differences across participants. All jitter is sampled at session start and held constant throughout the session.
@@ -219,9 +228,9 @@ The `between_subject_jitter` object controls session-level parameter variation a
 - `rt_condition_sd_ms`: Standard deviation (ms) of an independent per-condition Gaussian shift applied to `mu` for each distribution separately (in addition to the shared shift). This allows conditions to vary slightly relative to each other across sessions.
 - `sigma_tau_range`: A two-element list `[lo, hi]` defining a uniform distribution. Each session, `sigma` and `tau` for every distribution are independently multiplied by a draw from `Uniform(lo, hi)`. Set to `[1.0, 1.0]` to disable shape jitter.
 - `accuracy_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's accuracy target.
-- `accuracy_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered accuracy values are clipped to. Defaults to `[0.60, 0.995]`, reflecting typical conflict/interrupt-task performance. **Override per paradigm class** — perceptual-threshold tasks may have a floor near chance (e.g. `[0.50, 0.85]`); psychophysics-staircase tasks converge to a known target (e.g. `[0.70, 0.85]` for a 75%-correct staircase). Cite the paradigm-specific basis.
+- `accuracy_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered accuracy values are clipped to. The runtime default is a fallback only. **Derive the range for THIS paradigm class from the literature** (e.g. `[<floor>, <ceiling>]` — a chance-level floor for threshold tasks, a staircase's convergence target where one exists) and cite the paradigm-specific basis.
 - `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate.
-- `omission_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered omission rates are clipped to. Defaults to `[0.0, 0.04]`, reflecting tightly-paced speeded tasks. **Override per paradigm class** — slow-paced or dual-task paradigms may have higher omission ceilings (e.g. `[0.0, 0.10]`); tasks with no response deadline may have higher still. Cite the paradigm-specific basis.
+- `omission_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered omission rates are clipped to. The runtime default is a fallback only. **Derive the ceiling for THIS paradigm class from the literature** (`[0.0, <ceiling>]` — pacing and response-deadline structure determine how high omissions plausibly run) and cite the paradigm-specific basis.
 - `rationale`: Free-text field for recording the basis for chosen jitter parameters.
 
 ### 12. Pilot Configuration
@@ -240,7 +249,7 @@ Specify parameters for a validation pilot run. The executor runs a short pilot s
 You are analyzing a cognitive experiment. Based on the task source code and your knowledge of the cognitive psychology literature:
 
 1. Identify the cognitive constructs being measured and the relevant literature
-2. Determine appropriate response time distributions (ex-Gaussian: mu, sigma, tau) for each condition, informed by published findings for this paradigm
+2. Determine appropriate response time distributions for each condition — choosing among the runtime's supported distribution families based on what the literature fits for this paradigm — informed by published findings
 3. Set per-condition accuracy and omission rate targets consistent with the literature
 4. Decide which temporal effects to enable and parameterize, with rationale citing relevant studies
 5. If the task involves any form of response suppression or signal-based interruption, configure the trial_interrupt parameters based on the relevant theoretical framework, citing your reasoning

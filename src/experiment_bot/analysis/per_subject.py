@@ -9,7 +9,12 @@ code.
 Estimator definitions match the submitted abstract's analysis exactly
 (``scripts/analysis.ipynb``):
   * go/congruent/incongruent RT = mean RT of CORRECT trials in that condition;
-  * SSRT = mean-method ``go_rt - mean_SSD`` (NOT the integration method);
+  * SSRT = mean-method ``go_rt - mean_SSD`` (NOT the integration method).
+    WARNING: this deliberately DIFFERS from the oracle, which computes SSRT
+    by the INTEGRATION method with Verbruggen-2019 validity abstention
+    (``validation/oracle.py::_compute_ssrt``). The two estimators produce
+    different numbers from the same sessions by construction; never compare
+    an oracle SSRT with a per-subject SSRT without naming the estimator;
   * post-error slowing = ``mean(RT | prev incorrect) - mean(RT | prev correct)``
     over within-block consecutive pairs with valid RTs, excluding omissions;
   * lag-1 autocorrelation = Pearson r of (RT_t, RT_{t+1}) over within-block
@@ -385,16 +390,36 @@ def summarize(df: pd.DataFrame, metrics: list[str]) -> pd.DataFrame:
 def comparison_rows(bot_df: pd.DataFrame, human_df: pd.DataFrame, metrics: list[str]) -> list[dict]:
     """Bot cohort mean positioned in the human between-subject distribution:
     ``z = (bot_mean - human_mean) / human_sd`` and a within-1-SD flag (matches
-    the abstract's reporting)."""
+    the abstract's reporting — the CONFIRMATORY analysis).
+
+    Also carries the pre-registered EXPLORATORY distribution-level fields
+    (docs/preregistration.md §Analysis): ``sd_ratio`` (bot between-subject SD
+    / human between-subject SD; 1.0 = human-like dispersion) and a two-sample
+    Kolmogorov-Smirnov test (``ks_D``, ``ks_p``) of the per-subject
+    distributions. These detect the failure mode the confirmatory z cannot:
+    a cohort whose mean matches while its members are near-identical
+    pseudo-replicates."""
+    from scipy import stats as _stats
+
     bs, hs = summarize(bot_df, metrics), summarize(human_df, metrics)
     out = []
     for m in metrics:
         bm, hm, hsd = bs.loc[m, "mean"], hs.loc[m, "mean"], hs.loc[m, "sd"]
         z = (bm - hm) / hsd if (not np.isnan(bm) and not np.isnan(hm) and hsd and not np.isnan(hsd)) else float("nan")
+        bv = pd.to_numeric(bot_df[m], errors="coerce").dropna() if m in bot_df.columns else pd.Series(dtype=float)
+        hv = pd.to_numeric(human_df[m], errors="coerce").dropna() if m in human_df.columns else pd.Series(dtype=float)
+        sd_ratio, ks_d, ks_p = float("nan"), float("nan"), float("nan")
+        if len(bv) >= 2 and len(hv) >= 2:
+            bsd_raw, hsd_raw = bv.std(ddof=1), hv.std(ddof=1)
+            if hsd_raw:
+                sd_ratio = float(bsd_raw / hsd_raw)
+            ks = _stats.ks_2samp(bv, hv)
+            ks_d, ks_p = float(ks.statistic), float(ks.pvalue)
         out.append({
             "metric": m,
             "bot_mean": bm, "bot_sd": bs.loc[m, "sd"], "bot_n": int(bs.loc[m, "n"]),
             "human_mean": hm, "human_sd": hsd, "human_n": int(hs.loc[m, "n"]),
             "z": z, "within_1sd": bool(abs(bm - hm) < hsd) if not np.isnan(z) else None,
+            "sd_ratio": sd_ratio, "ks_D": ks_d, "ks_p": ks_p,
         })
     return out

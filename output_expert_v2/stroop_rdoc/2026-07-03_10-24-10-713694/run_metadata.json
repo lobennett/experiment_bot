@@ -1,0 +1,69 @@
+{
+  "task_name": "stroop_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/10/",
+  "total_trials": 132,
+  "headless": true,
+  "session_seed": 731010,
+  "session_params": {
+    "congruent": {
+      "mu": 460.0,
+      "sigma": 40.0,
+      "tau": 140.0
+    },
+    "incongruent": {
+      "mu": 480.0,
+      "sigma": 45.0,
+      "tau": 190.0
+    }
+  },
+  "between_subject_jitter": {
+    "configured": true,
+    "response_distributions": {
+      "congruent": {
+        "mu": 439.9733462199737,
+        "sigma": 40.834912216793626,
+        "tau": 160.5415076498354
+      },
+      "incongruent": {
+        "mu": 541.7028381249062,
+        "sigma": 42.99609918994504,
+        "tau": 180.20601754731177
+      }
+    },
+    "accuracy": {
+      "congruent": 0.9750449566108987,
+      "incongruent": 0.963701308888639
+    },
+    "omission_rate": {
+      "congruent": 0.022931538647273864,
+      "incongruent": 0.008470770181302226
+    }
+  },
+  "taskcard_sha256": "45751cfea3e94629c6073d6125b5e805f7e6297a382cecf9dc404729362a37a0",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 129
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "js_eval_errors_by_source": {},
+  "error_injection": {
+    "unrealizable_count": 0
+  },
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

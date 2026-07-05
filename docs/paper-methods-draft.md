@@ -28,7 +28,10 @@ knowledge of the task literature, with no task-specific instruction from the
 experimenter.
 
 The experimenter intervenes on behavioral performance at two points. The first
-is the choice of distribution family (ex-Gaussian). The second is a fixed
+is a closed menu of reaction-time distribution families (ex-Gaussian,
+lognormal, shifted Wald) from which the Reasoner selects per the paradigm's
+literature; all four implementations reported here selected the ex-Gaussian.
+The second is a fixed
 selection of eight generic temporal mechanisms from which the Reasoner selects
 and parameterizes: autocorrelation, fatigue drift, condition repetition, 1/f
 (pink) noise, lag-1 pair modulation, post-error slowing, practice effect, and
@@ -159,6 +162,23 @@ Experiment Factory +25 ms, z = +0.70; STOP-IT +31 ms, z = +0.93 with the outlier
 session excluded; Stroop Experiment Factory +12 ms, z = −0.35), but was negative
 and below the human range on Cognition.run (−101 ms, z = −1.18; human
 +59 ± 136 ms).
+
+**Between-subject dispersion (exploratory).** The confirmatory analysis above
+positions the bot cohort's mean within the human between-subject distribution;
+it does not test whether the cohort disperses like human subjects, and it does
+not. Bot between-subject SDs on reaction-time measures were 0.11–0.21 of the
+human SDs (e.g., go reaction time 11.5 vs 85 ms), and a two-sample
+Kolmogorov–Smirnov test rejected bot–human equivalence on every metric tested,
+even where the mean-location gate passed. The cause is a defect identified
+after the data freeze: each TaskCard declares a between-subject variance
+configuration, but the executor version used for this dataset did not apply
+it, so the cohort behaves as near-replicates of a single mean participant
+rather than a sample of participants. The system as evaluated here therefore
+reproduces human-range means and effect directions, not human between-subject
+variability; the defect is fixed in the framework, and dispersion-matched
+cohorts are a pre-registered follow-up. Per-metric SD ratios and KS statistics
+are reported alongside the confirmatory tables in the released comparison
+reports.
 
 **Data quality.** One STOP-IT session recorded a single 552-second response — a
 data-capture stall rather than a reaction time — which we exclude from the

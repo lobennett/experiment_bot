@@ -32,7 +32,7 @@ def _minimal_partial(**overrides) -> dict:
             "practice_accuracy": 0.9,
         },
         "temporal_effects": {},
-        "between_subject_jitter": {"value": {}},
+        "between_subject_jitter": {"value": {"rt_mean_sd_ms": 60.0}},  # non-zero: SP20 variance gate
     }
     for path, value in overrides.items():
         node = base

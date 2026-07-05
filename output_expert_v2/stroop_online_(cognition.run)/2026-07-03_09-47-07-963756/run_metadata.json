@@ -1,0 +1,69 @@
+{
+  "task_name": "stroop_online_(cognition.run)",
+  "task_url": "https://strooptest.cognition.run/",
+  "total_trials": 15,
+  "headless": true,
+  "session_seed": 733019,
+  "session_params": {
+    "congruent": {
+      "mu": 485.0,
+      "sigma": 42.0,
+      "tau": 105.0
+    },
+    "incongruent": {
+      "mu": 500.0,
+      "sigma": 48.0,
+      "tau": 145.0
+    }
+  },
+  "between_subject_jitter": {
+    "configured": true,
+    "response_distributions": {
+      "congruent": {
+        "mu": 523.4193889489776,
+        "sigma": 39.03198842054872,
+        "tau": 107.9361668025394
+      },
+      "incongruent": {
+        "mu": 572.5427728805744,
+        "sigma": 51.87521615936892,
+        "tau": 159.293317199496
+      }
+    },
+    "accuracy": {
+      "congruent": 0.9566266963665034,
+      "incongruent": 0.8899433945363698
+    },
+    "omission_rate": {
+      "congruent": 0.009265243075296987,
+      "incongruent": 0.005678635013882583
+    }
+  },
+  "taskcard_sha256": "b16c789157d09f2f520d268e1af17bb52007cbb25290c6822da68ddf17cb5a3f",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 15
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "js_eval_errors_by_source": {},
+  "error_injection": {
+    "unrealizable_count": 0
+  },
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

@@ -251,6 +251,13 @@ def _compute_ssrt(session_dirs: list[Path], ctx: dict) -> float:
 
         SSRT = nth_percentile(go_RT_distribution, p_respond_given_stop) - mean_SSD
 
+    WARNING: this deliberately DIFFERS from the per-subject analysis
+    (``analysis/per_subject.py``), which uses the MEAN method
+    (``go_rt - mean_SSD``) to match the submitted abstract's estimator.
+    The two produce different numbers from the same sessions by
+    construction; never compare an oracle SSRT with a per-subject SSRT
+    without naming the estimator.
+
     The trial loader must surface `ssd` (numeric, ms) on stop trials and
     a `condition` field where stop trials are tagged `"stop"` and go
     trials are tagged `"go"`. Stop-signal platform adapters in

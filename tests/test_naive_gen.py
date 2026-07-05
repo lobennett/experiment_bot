@@ -1,0 +1,170 @@
+"""SP21 Task 6: generation CLI — archival, extraction, retry-on-gate-fail."""
+import asyncio
+import json
+from pathlib import Path
+from unittest.mock import AsyncMock, MagicMock
+
+import pytest
+
+from experiment_bot.behavior.gen_cli import (
+    extract_python_block, generate, mechanical_facts,
+)
+
+TOY_TEXT = Path("tests/fixtures/toy_participant.py").read_text()
+
+
+def test_extract_python_block():
+    assert extract_python_block(f"prose\n```python\n{TOY_TEXT}```\nmore") == TOY_TEXT
+    with pytest.raises(ValueError):
+        extract_python_block("no code here")
+
+
+def test_mechanical_facts():
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "z", "stop": "withhold"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": "z"}},
+                  {"response": {"condition": "stop", "key": None}}]
+    tc.runtime.trial_interrupt.detection_condition = "stop"
+    facts = mechanical_facts(tc)
+    assert set(facts["conditions"]) == {"go", "stop"}
+    assert facts["key_map"] == {"go": "z"}
+    assert facts["has_interrupt"] is True
+    assert facts["interrupt_condition"] == "stop"
+
+
+def test_mechanical_facts_no_interrupt():
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["has_interrupt"] is False
+    assert facts["interrupt_condition"] is None
+
+
+def test_mechanical_facts_excludes_dynamic_sentinel():
+    """C1: key_map entries of 'dynamic'/'dynamic_mapping' (any case) must be
+    filtered the same way withhold sentinels are — the executor resolves
+    those keys per-trial via JS, never from this static map."""
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "dynamic", "stop": "DYNAMIC_MAPPING",
+                                    "flank": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": None}},
+                  {"response": {"condition": "stop", "key": None}},
+                  {"response": {"condition": "flank", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["key_map"] == {"flank": "z"}
+
+
+def _fake_client(responses):
+    client = MagicMock()
+    client.model = "claude-fable-5"
+    client.complete = AsyncMock(
+        side_effect=[MagicMock(text=r) for r in responses])
+    return client
+
+
+def _fake_scrape(monkeypatch):
+    import experiment_bot.behavior.gen_cli as g
+    bundle = MagicMock()
+    bundle.description_text = "<html>task</html>"
+    bundle.source_files = {}
+    monkeypatch.setattr(g, "scrape_experiment_source",
+                        AsyncMock(return_value=bundle))
+
+
+def _fake_taskcard(monkeypatch):
+    import experiment_bot.behavior.gen_cli as g
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    tc.to_dict.return_value = {"task_specific": {"key_map": {"go": "z"}}}
+    loader = MagicMock(return_value=tc)
+    monkeypatch.setattr(g, "_load_structural_taskcard", loader)
+    return loader
+
+
+def test_generate_archives_program_and_transcript(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    path = asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
+    assert path.exists() and path.suffix == ".py"
+    sha = path.stem
+    transcript = json.loads((tmp_path / "toy" / f"{sha}.transcript.json").read_text())
+    assert transcript["model"] == "claude-fable-5"
+    assert "task source" in transcript["prompt"].lower() or transcript["prompt"]
+    assert (tmp_path / "toy" / f"{sha}.simgate.json").exists()
+
+
+def test_generate_records_taskcard_sha256_in_transcript(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    from experiment_bot.taskcard.hashing import taskcard_sha256 as compute_hash
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    path = asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
+    sha = path.stem
+    transcript = json.loads((tmp_path / "toy" / f"{sha}.transcript.json").read_text())
+    expected = compute_hash({"task_specific": {"key_map": {"go": "z"}}})
+    assert transcript["taskcard_sha256"] == expected
+
+
+def test_generate_passes_taskcard_sha256_to_loader(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch)
+    loader = _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path,
+                        taskcard_sha256="deadbeef"))
+    loader.assert_called_once_with("toy", "taskcards", taskcard_sha256="deadbeef")
+
+
+def test_generate_retries_on_gate_failure_then_fails(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    crash = "def make_participant(seed):\n    raise ValueError('boom')\n"
+    client = _fake_client([f"```python\n{crash}```"] * 3)
+    with pytest.raises(RuntimeError, match="gate"):
+        asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
+    assert client.complete.await_count == 3  # initial + 2 retries, all archived
+    assert len(list((tmp_path / "toy").glob("*.transcript.json"))) == 3
+
+
+# --- Final-review N1/N2: real committed TaskCards through the real loader ---
+# The dict-shaped mocks above hid two generation-path crashes: typed
+# StimulusConfig objects yielded zero conditions, and the stroop cards'
+# empty-string detection_condition spliced a false interrupt note into the
+# prompt. These tests pin the real-card contract.
+
+def test_mechanical_facts_real_stroop_card():
+    from experiment_bot.taskcard.loader import load_by_hash
+    card = load_by_hash(Path("taskcards"), label="expfactory_stroop",
+                        sha256="45751cfe")
+    facts = mechanical_facts(card)
+    assert "congruent" in facts["conditions"]
+    assert "incongruent" in facts["conditions"]
+    # Stroop has no interrupt signal; its card carries detection_condition ""
+    # which must normalize to None, never True.
+    assert facts["interrupt_condition"] is None
+    assert facts["has_interrupt"] is False
+
+
+def test_mechanical_facts_real_stop_signal_card():
+    from experiment_bot.taskcard.loader import load_by_hash
+    card = load_by_hash(Path("taskcards"), label="expfactory_stop_signal",
+                        sha256="e29f22de")
+    facts = mechanical_facts(card)
+    assert "go" in facts["conditions"]
+    assert facts["interrupt_condition"] == "stop"
+    assert facts["has_interrupt"] is True
+
+
+def test_available_keys_real_cards():
+    from experiment_bot.cli import _available_keys_from_taskcard
+    from experiment_bot.taskcard.loader import load_by_hash
+    dyn = load_by_hash(Path("taskcards"), label="expfactory_stroop",
+                       sha256="45751cfe")
+    cog = load_by_hash(Path("taskcards"), label="cognitionrun_stroop",
+                       sha256="b16c7891")
+    # All-dynamic card: empty static inventory (keys observed at runtime).
+    assert all(k not in ("dynamic", "dynamic_mapping")
+               for k in _available_keys_from_taskcard(dyn))
+    assert {"b", "g", "r", "y"}.issubset(set(_available_keys_from_taskcard(cog)))

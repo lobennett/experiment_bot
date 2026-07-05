@@ -32,6 +32,7 @@ async def _run_task(
     no_llm_client: bool = False,
     keep_open: bool = False,
     taskcard_sha256: str | None = None,
+    calibrate: bool = True,
 ) -> None:
     try:
         # Hermetic replay: when a hash is given, load the EXACT card a past
@@ -66,6 +67,7 @@ async def _run_task(
         seed=seed, session_params=sampled,
         llm_client=llm_client,
         keep_open=keep_open,
+        calibrate=calibrate,
     )
     await executor.run(url)
     click.echo("Done!")
@@ -91,9 +93,15 @@ async def _run_task(
               help="Leave the browser open after the session ends (inspect final "
                    "state). Close the window or Ctrl+C the process to exit. "
                    "Best with non-headless (omit --headless).")
+@click.option("--no-calibration", is_flag=True, default=False,
+              help="Skip the startup keypress-latency calibration pass. The pass is "
+                   "behaviorally inert on supported platforms (reports too_few_events) "
+                   "and on platforms with no pre-trial idle window (e.g. cognition.run) "
+                   "its runtime is recorded as the first trial's RT, corrupting it. "
+                   "Recommended for cognition.run and any single-block task.")
 def main(url: str, label: str, headless: bool, taskcards_dir: str,
          seed: int | None, verbose: bool, no_llm_client: bool, keep_open: bool,
-         taskcard_sha256: str | None):
+         taskcard_sha256: str | None, no_calibration: bool):
     """experiment-bot: Execute a previously-reasoned TaskCard against URL.
 
     Use `experiment-bot-reason` to generate the TaskCard first.
@@ -101,5 +109,5 @@ def main(url: str, label: str, headless: bool, taskcards_dir: str,
     _setup_logging(verbose)
     asyncio.run(_run_task(
         url, label, headless, Path(taskcards_dir), seed, no_llm_client, keep_open,
-        taskcard_sha256=taskcard_sha256,
+        taskcard_sha256=taskcard_sha256, calibrate=not no_calibration,
     ))

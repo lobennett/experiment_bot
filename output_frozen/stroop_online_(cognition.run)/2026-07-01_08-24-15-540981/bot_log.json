@@ -1,0 +1,281 @@
+[
+  {
+    "trial": 1,
+    "stimulus_id": "incongruent_green",
+    "condition": "incongruent",
+    "response_key": "g",
+    "sampled_rt_ms": 690.1,
+    "actual_rt_ms": 690.8,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "incongruent",
+    "cue": "word=yellow color=green",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 3,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 2,
+    "stimulus_id": "congruent_yellow",
+    "condition": "congruent",
+    "response_key": "y",
+    "sampled_rt_ms": 627.3,
+    "actual_rt_ms": 627.5,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=yellow color=yellow",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 6,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 3,
+    "stimulus_id": "incongruent_blue",
+    "condition": "incongruent",
+    "response_key": "y",
+    "sampled_rt_ms": 584.4,
+    "actual_rt_ms": 585.6,
+    "omission": false,
+    "intended_error": true,
+    "rt_distribution": "incongruent",
+    "cue": "word=green color=blue",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 9,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 4,
+    "stimulus_id": "congruent_green",
+    "condition": "congruent",
+    "response_key": "g",
+    "sampled_rt_ms": 570.8,
+    "actual_rt_ms": 572.1,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=green color=green",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 12,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 5,
+    "stimulus_id": "incongruent_green",
+    "condition": "incongruent",
+    "response_key": "g",
+    "sampled_rt_ms": 796.4,
+    "actual_rt_ms": 796.7,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "incongruent",
+    "cue": "word=blue color=green",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 15,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 6,
+    "stimulus_id": "congruent_yellow",
+    "condition": "congruent",
+    "response_key": "y",
+    "sampled_rt_ms": 707.0,
+    "actual_rt_ms": 707.8,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=yellow color=yellow",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 18,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 7,
+    "stimulus_id": "incongruent_red",
+    "condition": "incongruent",
+    "response_key": "r",
+    "sampled_rt_ms": 639.0,
+    "actual_rt_ms": 640.2,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "incongruent",
+    "cue": "word=blue color=red",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 21,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 8,
+    "stimulus_id": "incongruent_red",
+    "condition": "incongruent",
+    "response_key": "r",
+    "sampled_rt_ms": 538.2,
+    "actual_rt_ms": 539.3,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "incongruent",
+    "cue": "word=green color=red",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 24,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 9,
+    "stimulus_id": "congruent_blue",
+    "condition": "congruent",
+    "response_key": null,
+    "sampled_rt_ms": null,
+    "actual_rt_ms": null,
+    "omission": true
+  },
+  {
+    "trial": 10,
+    "stimulus_id": "congruent_blue",
+    "condition": "congruent",
+    "response_key": "y",
+    "sampled_rt_ms": 644.5,
+    "actual_rt_ms": 644.9,
+    "omission": false,
+    "intended_error": true,
+    "rt_distribution": "congruent",
+    "cue": "word=blue color=blue",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 27,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 11,
+    "stimulus_id": "incongruent_green",
+    "condition": "incongruent",
+    "response_key": "g",
+    "sampled_rt_ms": 789.1,
+    "actual_rt_ms": 790.4,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "incongruent",
+    "cue": "word=red color=green",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 30,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 12,
+    "stimulus_id": "congruent_red",
+    "condition": "congruent",
+    "response_key": "r",
+    "sampled_rt_ms": 537.0,
+    "actual_rt_ms": 537.6,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=red color=red",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 33,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 13,
+    "stimulus_id": "incongruent_red",
+    "condition": "incongruent",
+    "response_key": "b",
+    "sampled_rt_ms": 699.9,
+    "actual_rt_ms": 701.0,
+    "omission": false,
+    "intended_error": true,
+    "rt_distribution": "incongruent",
+    "cue": "word=blue color=red",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 36,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 14,
+    "stimulus_id": "congruent_yellow",
+    "condition": "congruent",
+    "response_key": "y",
+    "sampled_rt_ms": 690.7,
+    "actual_rt_ms": 691.1,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=yellow color=yellow",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 39,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 15,
+    "stimulus_id": "congruent_blue",
+    "condition": "congruent",
+    "response_key": "b",
+    "sampled_rt_ms": 609.2,
+    "actual_rt_ms": 609.4,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=blue color=blue",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 42,
+      "skipped": false,
+      "skip_reason": null
+    }
+  },
+  {
+    "trial": 16,
+    "stimulus_id": "congruent_yellow",
+    "condition": "congruent",
+    "response_key": "y",
+    "sampled_rt_ms": 537.9,
+    "actual_rt_ms": 539.0,
+    "omission": false,
+    "intended_error": false,
+    "rt_distribution": "congruent",
+    "cue": "word=yellow color=yellow",
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 45,
+      "skipped": false,
+      "skip_reason": null
+    }
+  }
+]

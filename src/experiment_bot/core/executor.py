@@ -87,6 +87,7 @@ class TaskExecutor:
         session_params: dict | None = None,
         llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
+        calibrate: bool = True,  # run the startup keypress-latency calibration pass
     ):
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
@@ -98,6 +99,7 @@ class TaskExecutor:
         self._config = config
         self._headless = headless
         self._keep_open = keep_open
+        self._calibrate = calibrate
         # Persisted to run_metadata.json so a session is exactly reproducible
         # (same seed + same TaskCard hash = same output) for runs WITHOUT
         # adaptive nav (--no-llm-client). Sessions that invoke SP16 adaptive
@@ -563,8 +565,21 @@ class TaskExecutor:
                 # SP11 Phase 5b: calibration pass (auto-invoked when a
                 # deliverer is configured). Result is always applied to
                 # the sampler.
+                #
+                # SP19: skippable. The pass is behaviorally inert on every
+                # supported platform (it reports `too_few_events` because the
+                # page never records its probe keypresses — SP7 layer-d /
+                # scope L21 — so the applied adjustment is identity). On
+                # platforms with no pre-trial idle window (cognition.run,
+                # whose first test trial is live immediately) the pass's
+                # ~27 s runtime is timestamped by the platform as the first
+                # trial's RT, corrupting it. Disabling calibration removes
+                # both the cost and that artifact with no behavioral change.
                 _t0 = time.monotonic()
-                await self._run_calibration_pass(page)
+                if self._calibrate:
+                    await self._run_calibration_pass(page)
+                else:
+                    logger.info("Calibration pass skipped (calibrate=False).")
                 cal = self._calibration_run
                 if cal is None:
                     self._narrate("calibration", "skipped")

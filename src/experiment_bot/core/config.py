@@ -5,10 +5,11 @@ from enum import Enum
 
 
 def _unwrap_value(v):
-    """Unwrap a Stage 2 {value, rationale} envelope to its inner value.
-    Bare numbers and None pass through unchanged. Handles both dict
-    envelopes (temporal_effects style) and number envelopes
-    (performance.* style under SP4a's schema generalization).
+    """Unwrap a {value, rationale} envelope to its inner value. Committed
+    TaskCards (produced by the expert pipeline on main) wrap some fields in
+    such envelopes; bare numbers and None pass through unchanged. Handles
+    both dict envelopes (temporal_effects style) and number envelopes
+    (performance.* style).
     """
     if isinstance(v, dict) and "value" in v:
         return v["value"]
@@ -387,12 +388,10 @@ class RuntimeConfig:
     # always runs when a deliverer is configured and the result is
     # always installed on the sampler.
     calibration_n_keys: int = 30
-    # SP18: declarative platform-export mapping. When the Reasoner can infer
-    # the export row schema from source, it emits {row_filter, fields} here
-    # and validation builds its trial loader from the TaskCard instead of a
-    # hand-written per-paradigm adapter (see
-    # validation/platform_adapters.adapter_from_export_config). Empty dict =
-    # absent; hand-written adapters remain the fallback.
+    # Declarative platform-export mapping ({row_filter, fields}), carried by
+    # committed TaskCards. Nothing on this branch reads it (the expert arm's
+    # adapter machinery lives on main); retained for card compatibility.
+    # Empty dict = absent.
     platform_export: dict = field(default_factory=dict)
 
     @classmethod

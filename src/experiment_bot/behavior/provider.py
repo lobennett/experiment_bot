@@ -37,7 +37,7 @@ NON_LITERAL_KEY_SENTINELS = frozenset({
 
 def stim_condition_and_key(stim) -> tuple[str | None, str | None]:
     """(response.condition, response.key) of a stimulus, tolerant of both
-    TaskCard shapes: raw dicts (tests, Stage-2 partials) and the typed
+    TaskCard shapes: raw dicts (tests, stage partials) and the typed
     StimulusConfig/ResponseConfig objects the loaders return. The loaders'
     typed shape is what production sees — a dict-only reader silently
     extracts nothing from every real committed card (final-review N1)."""

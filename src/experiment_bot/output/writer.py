@@ -86,8 +86,8 @@ class OutputWriter:
 
     def mark_incomplete(self, reason: str) -> None:
         """Best-effort `.incomplete` marker: a partially-saved session must be
-        visibly broken, not plausible-looking. The oracle excludes marked
-        sessions (exclusion reason: incomplete_save)."""
+        visibly broken, not plausible-looking. Downstream analysis and the
+        collection script (scripts/naive_run.sh) exclude marked sessions."""
         if self._run_dir:
             try:
                 (self._run_dir / ".incomplete").write_text(reason)

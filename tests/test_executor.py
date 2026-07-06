@@ -1274,3 +1274,38 @@ def test_executor_requires_behavior_provider():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     with pytest.raises(ValueError, match="behavior_provider"):
         TaskExecutor(config, seed=7)
+
+
+def test_is_trial_stimulus_on_structural_only_card():
+    """Held-out flanker regression: structural-only cards carry empty
+    response_distributions, which made _is_trial_stimulus reject every
+    stimulus (0-trial sessions). Trial-ness must derive from structural
+    roles only."""
+    import copy
+    d = copy.deepcopy(SAMPLE_CONFIG)
+    d["response_distributions"] = {}
+    config = TaskConfig.from_dict(d)
+    ex = TaskExecutor(config, seed=1, behavior_provider=_toy_session())
+    trial = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    nav = StimulusMatch(stimulus_id="nav", response_key=" ", condition="navigation")
+    attn = StimulusMatch(stimulus_id="ac", response_key=None, condition="attention_check")
+    stop = StimulusMatch(stimulus_id="stop_trial", response_key=None, condition="stop")
+    assert ex._is_trial_stimulus(trial) is True
+    assert ex._is_trial_stimulus(nav) is False
+    assert ex._is_trial_stimulus(attn) is False
+    # 'stop' is SAMPLE_CONFIG's trial_interrupt detection condition —
+    # detected mid-trial, never trial-initiating.
+    assert ex._is_trial_stimulus(stop) is False
+    # dynamic-key stimulus (key None, response_key_js present) is a trial;
+    # a channel-less stimulus (fixation) is not.
+    d2 = copy.deepcopy(d)
+    d2["stimuli"].append({"id": "dyn", "description": "d",
+        "detection": {"method": "dom_query", "selector": ".x"},
+        "response": {"key": None, "condition": "dyn_cond",
+                     "response_key_js": "window.correctResponse"}})
+    d2["stimuli"].append({"id": "fix", "description": "f",
+        "detection": {"method": "dom_query", "selector": ".fix"},
+        "response": {"key": None, "condition": "fixation"}})
+    ex2 = TaskExecutor(TaskConfig.from_dict(d2), seed=1, behavior_provider=_toy_session())
+    assert ex2._is_trial_stimulus(StimulusMatch(stimulus_id="dyn", response_key=None, condition="dyn_cond")) is True
+    assert ex2._is_trial_stimulus(StimulusMatch(stimulus_id="fix", response_key=None, condition="fixation")) is False

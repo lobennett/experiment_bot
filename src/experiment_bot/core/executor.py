@@ -103,6 +103,7 @@ class TaskExecutor:
         self._trial_count = 0
         self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
+        self._last_advance_action: float = 0.0  # human-paced advance throttle (monotonic)
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
 
         # Resolve static key mappings from task_specific
@@ -407,17 +408,41 @@ class TaskExecutor:
         return None
 
     def _is_trial_stimulus(self, match: StimulusMatch) -> bool:
-        """Whether a stimulus represents a trial requiring RT-distributed response.
+        """Whether a stimulus is a trial the behavior program should answer.
 
-        Derived from config: a condition is trial-level if it maps to an RT distribution.
+        A stimulus is trial-level unless it plays a structural role: the
+        navigation condition, an attention-check condition, or the
+        mid-trial interrupt signal (detected inside a trial, never
+        trial-initiating). Legacy expert-era cards inferred trial-ness
+        from response_distributions; structural-only cards carry an empty
+        dict there, which made every stimulus non-trial and silently
+        produced 0-trial sessions (held-out flanker, 2026-07-06).
         """
-        dists = self._config.response_distributions
         condition = match.condition
-        # Direct match or correct/error variant exists
-        if condition in dists or f"{condition}_correct" in dists or f"{condition}_error" in dists:
+        if condition == self._navigation_condition_name:
+            return False
+        if condition in self._attention_check_conditions:
+            return False
+        interrupt_cond = getattr(
+            self._config.runtime.trial_interrupt, "detection_condition", None
+        )
+        if interrupt_cond and condition == interrupt_cond:
+            return False
+        # A trial needs a response channel: a static key, or a dynamic
+        # per-trial response_key_js on the stimulus (or globally). Stimuli
+        # with neither (fixation, cue displays) are non-trial — they must
+        # not reset the miss counter or reach the behavior program.
+        if match.response_key is not None:
             return True
-        # Has distributions and stimulus has a response key → likely a trial
-        return bool(dists) and match.response_key is not None
+        for stim in self._config.stimuli or []:
+            sid = stim.get("id") if isinstance(stim, dict) else getattr(stim, "id", None)
+            if sid != match.stimulus_id:
+                continue
+            resp = stim.get("response") if isinstance(stim, dict) else getattr(stim, "response", None)
+            rkj = (resp or {}).get("response_key_js") if isinstance(resp, dict) else getattr(resp, "response_key_js", None)
+            if rkj:
+                return True
+        return bool((self._config.task_specific or {}).get("response_key_js"))
 
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
@@ -807,9 +832,17 @@ class TaskExecutor:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     self._loop_exit_reason = "max_misses"
                     break
-                # Try pressing advance keys periodically to advance between-block screens
+                # Try pressing advance keys periodically to advance between-block screens.
+                # Human-paced: advance actions are spaced >= _ADVANCE_MIN_SPACING_S apart.
+                # Poll-cadence advancing trips anti-skim guards ('read the instructions
+                # too quickly' re-read loops, seen live on the RDoC flanker flow) that a
+                # human — and therefore the Stage-6 replay gate, which models this same
+                # pacing — never trips.
                 ab = self._config.runtime.advance_behavior
-                if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                if (consecutive_misses % ab.advance_interval_polls == 0
+                        and consecutive_misses < max_no_stimulus_polls
+                        and (time.monotonic() - self._last_advance_action) >= _ADVANCE_MIN_SPACING_S):
+                    self._last_advance_action = time.monotonic()
                     logger.info(f"No stimulus for {consecutive_misses} polls, pressing advance keys")
                     if ab.pre_keypress_js:
                         try:

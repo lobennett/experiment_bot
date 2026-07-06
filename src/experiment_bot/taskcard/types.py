@@ -48,10 +48,11 @@ class ParameterValue:
         — used when Stage 5 of the Reasoner tags individual sub-parameters
         (mu/sigma/tau) at different sensitivity levels.
 
-    The `distribution` field names the RT sampler family the Reasoner chose
-    for this condition. Defaults to "ex_gaussian" for backward compatibility
-    with existing TaskCards that predate this field. The executor honors it
-    via _taskcard_to_config → DistributionConfig; see core/distributions.py.
+    The `distribution` field is retained for compatibility with committed
+    TaskCards (it named the expert arm's RT sampler family). The naive
+    executor path projects response_distributions structurally — only the
+    condition KEYS are read (trial-condition identity); behavioral content
+    comes from the generated participant program.
     """
     value: dict
     literature_range: dict | None = None

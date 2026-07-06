@@ -585,7 +585,7 @@ async def test_stage6_fails_when_replay_cannot_reach_trials(tmp_path, monkeypatc
     import experiment_bot.reasoner.stage6_pilot as s6
 
     async def _replay_fail(*a, **k):
-        return False
+        return False, "<div>stuck interstitial</div>"
 
     monkeypatch.setattr(s6, "replay_navigation", _replay_fail)
 
@@ -608,7 +608,7 @@ async def test_stage6_passes_when_replay_succeeds(tmp_path, monkeypatch):
     import experiment_bot.reasoner.stage6_pilot as s6
 
     async def _replay_pass(*a, **k):
-        return True
+        return True, ""
 
     monkeypatch.setattr(s6, "replay_navigation", _replay_pass)
 
@@ -658,9 +658,49 @@ async def test_replay_navigation_presses_advance_keys_to_reach_trials():
         phases = []
 
     with _patch_pilot_session(session):
-        reached = await s6.replay_navigation(
+        reached, final_dom = await s6.replay_navigation(
             "http://x", _Nav(), object(), advance_behavior=_AB(),
             headless=True, max_polls=50,
         )
     assert reached is True
+    assert final_dom == ""
     assert "Enter" in pressed, "replay must press advance_keys to clear the interstitial"
+
+
+@pytest.mark.asyncio
+async def test_replay_gate_failure_heals_via_proposed_phase(tmp_path, monkeypatch):
+    """Held-out flanker regression: live pilot passes but the replay stalls
+    on a final interstitial. One replay-refine round (proposed phase from
+    the stuck DOM) must heal the gate rather than hard-failing."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    calls = {"n": 0}
+
+    async def _replay(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return False, "<p>Press enter to begin practice.</p>"
+        return True, ""
+
+    async def _propose(client, dom, phases, diffs):
+        assert "Press enter" in dom
+        return {"phase": "begin_practice", "action": "keypress",
+                "target": "", "key": "Enter", "duration_ms": 0, "steps": []}
+
+    monkeypatch.setattr(s6, "replay_navigation", _replay)
+    monkeypatch.setattr(s6, "_propose_next_phase", _propose)
+
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        result, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert calls["n"] == 2
+    phases = result["navigation"]["phases"]
+    assert any(p.get("phase") == "begin_practice" and p.get("key") == "Enter"
+               for p in phases)
+    assert (tmp_path / "fake_task" / "pilot_replay_refinement_1.diff").exists()

@@ -87,7 +87,8 @@ def _build_stage1_prompt(bundle: SourceBundle) -> str:
         "(with key_map and trial_timing if applicable), performance.accuracy/"
         "omission, and a pilot_validation_config block. Do NOT produce "
         "response_distributions, temporal_effects, or any behavioral parameters "
-        "yet — those come in stage 2. Return JSON only."
+        "— the behavioral layer is supplied at run time by a generated "
+        "participant program, not by this card. Return JSON only."
     )
     return "\n\n".join(parts)
 

@@ -39,11 +39,13 @@ _SYSTEM_PROMPT_PATH = Path(__file__).parent.parent / "prompts" / "system.md"
 def main(url: str, label: str, hint: str, taskcards_dir: str, work_dir: str,
          resume: bool, skip_pilot: bool, pilot_headed: bool,
          pilot_max_retries: int, verbose: bool):
-    """Run the Reasoner against URL and produce a TaskCard.
+    """Run the Reasoner against URL and produce a structural TaskCard.
 
-    Stages 1-5 produce structural and behavioral fields from source code +
-    literature. Stage 6 (pilot) validates the TaskCard against the live URL
-    via Playwright and refines on failure. Use --skip-pilot to disable Stage 6.
+    Stage 1 produces structural fields (navigation, stimulus detection,
+    keys, runtime) from source code. Stage 6 (pilot) validates the TaskCard
+    against the live URL via Playwright and refines on failure. Use
+    --skip-pilot to disable Stage 6. Behavior comes from a generated
+    participant program (experiment-bot-naive-gen), not from the card.
     """
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
@@ -73,6 +75,13 @@ async def _run(url, label, hint, taskcards_dir, work_dir, resume,
     # Promote internal _reasoning_chain to the public reasoning_chain field
     if "_reasoning_chain" in final:
         final["reasoning_chain"] = final.pop("_reasoning_chain")
+    # Structural-only pipeline: no stage produces behavioral fields. Emit
+    # empty/minimal defaults so TaskCard.from_dict loads the card; the
+    # naive executor path never reads them.
+    final.setdefault("performance", {"accuracy": {}, "omission_rate": {}})
+    final.setdefault("response_distributions", {})
+    final.setdefault("temporal_effects", {})
+    final.setdefault("between_subject_jitter", {})
     tc = TaskCard.from_dict(final)
     out = save_taskcard(tc, taskcards_dir, label=label)
     click.echo(f"TaskCard written: {out}")

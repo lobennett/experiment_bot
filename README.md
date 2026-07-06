@@ -1,12 +1,12 @@
 # experiment-bot
 
-A zero-shot bot that completes web-based cognitive experiments with humanlike behavior. Given only a URL, it scrapes the experiment source, sends it to Claude which infers all behavioral parameters from the cognitive psychology literature, then executes the task via Playwright — no task-specific code required.
+A zero-shot bot that completes web-based cognitive experiments with humanlike behavior. Given only a URL, it scrapes the experiment source and asks Claude to (a) extract the structural facts a browser harness needs (navigation, stimulus detection, keys) into a TaskCard, and (b) author a generative *participant program* — a small Python program that decides every response (key, RT) trial by trial. The harness executes the task via Playwright with the program as the behavioral layer — no task-specific code required.
 
 ## Why This Exists
 
 Online cognitive experiments are vulnerable to automated participants producing fake data. This bot demonstrates that a general-purpose agent can produce behavioral data that is difficult to distinguish from real human performance on standard cognitive tasks (Stroop, stop signal, etc.), motivating platform-level countermeasures.
 
-The bot contains **no hardcoded domain knowledge**. All behavioral parameters — response time distributions, accuracy targets, temporal effects, error patterns — are inferred by the Reasoner (from the cognitive-psychology literature) into a TaskCard. The Python code provides execution mechanics only.
+The bot contains **no hardcoded domain knowledge and no behavioral scaffolding**. All behavior — RT structure, accuracy, errors, sequential effects, stop-signal race dynamics — comes from the LLM-generated participant program (one per task implementation, gated only by a mechanical simulation check). The Python code provides execution mechanics only.
 
 For the full start-to-finish walkthrough, see [How It Works](#how-it-works) below.
 
@@ -35,51 +35,47 @@ cp .env.example .env
 ### Run
 
 ```bash
-# Step 1: generate TaskCard (once per experiment, uses Claude)
+# Step 1: generate the structural TaskCard (once per experiment, uses Claude)
 uv run experiment-bot-reason "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop
 
-# Step 2: run a session (no API key required)
-uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop --headless
+# Step 2: generate the participant program (once per experiment, uses Claude)
+uv run experiment-bot-naive-gen "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop
 
-# With a hint (not recommended — Claude should infer from source)
-uv run experiment-bot-reason "https://example.com/experiment/" --label my_experiment --hint "task switching"
-uv run experiment-bot "https://example.com/experiment/" --label my_experiment --headless
+# Step 3: run a session (no API key required; seed = participant)
+uv run experiment-bot "https://deploy.expfactory.org/preview/10/" --label expfactory_stroop \
+  --behavior-program expfactory_stroop/<hash-prefix> --seed 735001 --headless
 ```
 
-Run `experiment-bot-reason` once per experiment to generate the TaskCard, then use `experiment-bot` for all sessions. The TaskCard is stored in `taskcards/{label}/` and does not require the API again.
+Run `experiment-bot-reason` and `experiment-bot-naive-gen` once per experiment, then use `experiment-bot` for all sessions. The TaskCard is stored in `taskcards/{label}/`, the program under `naive_programs/{label}/` (content-hashed) — neither requires the API again.
 
 ## How It Works
 
-The system is three layers run in order: the **Reasoner** thinks (offline,
-once per experiment), the **Executor** acts (per session), and the **Oracle**
-scores (after sessions). The Reasoner makes every behavioral decision; the
-Executor applies them mechanically; the Oracle judges them against published
-norms.
+The system is three layers run in order: the **structural Reasoner** maps the
+page (offline, once per experiment), the **program generator** writes the
+computational participant (offline, once per experiment), and the **Executor**
+runs sessions. Analysis compares the recorded data per-subject against the
+human reference.
 
 ```
-URL ──[experiment-bot-reason]──► TaskCard ──[experiment-bot]──► output/  ──[experiment-bot-validate]──► report
-       (Reasoner: Stages 1–6)     (JSON)      (Executor: Playwright)        (Oracle: norms scoring)
+URL ──[experiment-bot-reason]──► TaskCard ─┐
+       (Stage 1 structural → Stage 6 pilot) │
+URL ──[experiment-bot-naive-gen]──► program ┴─[experiment-bot]──► output/ ──[experiment-bot-per-subject]──► report
+       (participant program + sim gate)        (Executor: Playwright)          (vs. human reference data)
 ```
 
 ### 1. Reasoner — `experiment-bot-reason` (offline, once per experiment)
 
 The Reasoner scrapes the experiment's HTML and linked JS/CSS, then runs a
-six-stage pipeline that infers every behavioral parameter from the
-cognitive-psychology literature and emits a TaskCard. It has never seen the
-experiment before and contains no hardcoded knowledge of any task, paradigm,
-or platform.
+structural pipeline and emits a TaskCard. It has never seen the experiment
+before and contains no hardcoded knowledge of any task, paradigm, or platform.
 
 | Stage | Role |
 |---|---|
 | 1. structural | Parse page source → stimuli (with detection rules), navigation steps, runtime knobs |
-| 2. behavioral | Add `response_distributions` (ex-Gaussian mu/sigma/tau per condition), per-condition accuracy/omission targets, and which generic temporal-effect mechanisms to enable |
-| 3. citations | Attach literature citations + rationale to numeric parameters |
-| 4. DOI-verify | Check each citation's DOI against OpenAlex (existence, year, author, title) |
-| 5. sensitivity | Tag each parameter's sensitivity |
 | 6. pilot | Optional live-DOM pilot against the real URL; a sequential walker advances one screen at a time and refines navigation/selectors until the run reaches trials |
 
-Each numeric parameter records its provenance (literature range, citation,
-rationale) so the TaskCard is peer-reviewable. The TaskCard is written to
+The TaskCard carries **no behavioral parameters** — behavior lives in the
+generated participant program. The TaskCard is written to
 `taskcards/{label}/{sha}.json` — content-addressed and immutable.
 
 ### 2. TaskCard — the versioned JSON contract
@@ -91,20 +87,18 @@ dataclass tree (`core/config.py`, `taskcard/types.py`) with these sections:
 |---|---|
 | `stimuli` | Per-stimulus detection rule (`dom_query`, `js_eval`), response key, condition label |
 | `navigation` | Ordered steps from page load to the first trial (`click`, `keypress`, `wait`, `sequence`, `repeat`) |
-| `response_distributions` | Per-condition RT distribution parameters (ex-Gaussian mu/sigma/tau) plus a between-subject SD |
-| `temporal_effects` | Generic mechanism configs — the Reasoner enables only those documented for the paradigm; all default to off |
-| citations | Each numeric parameter carries its DOI-verified citation (or an explicit no-citation rationale) and reasoning chain |
+| `runtime` | Phase detection, timing knobs, advance behavior, trial-interrupt detection, data capture |
+| `task_specific` | `key_map` (condition → key) and trial timing facts |
 
 The Executor loads the **newest-by-mtime** card from `taskcards/{label}/` via
 `taskcard.loader.load_latest`. No reasoning happens after this point.
 
 ### 3. Executor — `experiment-bot` (per session)
 
-`experiment-bot <url> --label <label>` loads the latest TaskCard, samples one
-session's distributional parameters via `sample_session_params(seed=...)`
-(drawn from `N(mean, between_subject_sd²)`, clipped to the literature range —
-deterministic given `--seed`), then drives the live URL through a single
-Playwright session (`PilotSession`):
+`experiment-bot <url> --label <label> --behavior-program <program>` loads the
+latest TaskCard, instantiates the program's participant for this `--seed`
+(`make_participant(seed)` — each seed is a distinct simulated subject), then
+drives the live URL through a single Playwright session (`PilotSession`):
 
 1. **Navigate** the TaskCard's instruction phases to reach the first trial.
    If a between-block instruction screen the fixed nav can't advance survives
@@ -112,24 +106,22 @@ Playwright session (`PilotSession`):
    (budgeted; disabled with `--no-llm-client`).
 2. **Trial loop** — each cycle: detect the current stimulus (first matching
    detection rule wins; stop-signal stimuli are ordered before go stimuli),
-   sample a response time, decide whether to omit and whether to be correct,
-   and fire the keypress (via Chrome DevTools Protocol, falling back to
-   Playwright's keyboard).
+   pass the trial context (condition, correct key, keys seen so far, trial
+   index, previous-trial outcome) to the program's `respond(ctx)`, and fire
+   whatever (key, RT) it returns (via Chrome DevTools Protocol, falling back
+   to Playwright's keyboard). Returning `key=None` withholds/omits.
 3. **Finalize** — capture the platform's own data export, then write the
    session directory.
 
-**RT modeling.** Response times are drawn from the per-condition distribution
-in the TaskCard (ex-Gaussian: `Normal(mu, sigma) + Exponential(tau)`, the
-standard model for human RT), floored at a physiological minimum. After
-sampling, the executor applies whichever generic temporal-effect mechanisms
-the Reasoner enabled — autocorrelation, fatigue/linear drift, lag-1 pair
-modulation, post-event slowing, practice effect, vigilance decrement, pink
-(1/f) noise. These are named in **mechanism** vocabulary, not paradigm
-vocabulary (per G2 below): a conflict task's congruency-sequence effect is
-configured as `lag1_pair_modulation`, not "CSE". When a stimulus carries an
-interrupt condition (stop-signal), the executor runs the independent race
-model — polling for the interrupt during the go-RT wait and either inhibiting
-or firing from the faster failure-RT distribution.
+**Behavior modeling.** The harness never imposes distributions, effects, or
+race structure — the program is the participant. On stop trials the executor
+polls for the interrupt during the program's intended RT and, on detection,
+hands the program the signal delay via `on_interrupt(ctx, ssd_ms, intended)`;
+the program itself decides the stop/go race. Programs are stdlib+numpy only,
+deterministic per seed, and pass a mechanical simulation gate
+(`experiment-bot-naive-sim`: no crashes over ~1,000 synthetic trials, seed
+determinism, import whitelist) before first use — never behavioral iteration
+(see `docs/preregistration-naive.md`).
 
 Each run writes `output/{task_name}/{timestamp}/`:
 
@@ -137,17 +129,16 @@ Each run writes `output/{task_name}/{timestamp}/`:
 |---|---|
 | `experiment_data.{csv,json}` | The platform's own recorded data (the authoritative source for validation) |
 | `bot_log.json` | Per-trial decision log (stimulus, condition, sampled RT, key pressed, accuracy) + delivery metadata |
-| `run_metadata.json` | Session metadata (seed, sampled params, delivery-channel counts, adaptive-nav summary) |
+| `run_metadata.json` | Session metadata (seed, program sha256 + path, delivery-channel counts, adaptive-nav summary) |
 | `config.json` | The TaskCard's effective config for this run |
 
-### 4. Oracle — `experiment-bot-validate` (after sessions)
+### 4. Analysis — `experiment-bot-per-subject` (after sessions)
 
-`experiment-bot-validate --label <label> --paradigm-class <class>` reads the
-platform export through a per-paradigm adapter (`validation/platform_adapters.py`),
-computes per-metric values (mean RT, accuracy, effect sizes, SSRT, etc.), and
-gates each against the published ranges in `norms/<class>.json` (e.g.
-`conflict`, `interrupt`, `working_memory`), writing a pass/fail report. It
-reads the platform's export — never the bot's own log.
+`experiment-bot-per-subject` computes per-subject measures (RT location and
+dispersion, accuracy, omissions, sequential structure, SSRT) from the
+platform's own data export and compares the bot cohort against trial-level
+human reference data (Eisenberg et al. 2019) with identical estimators for
+both cohorts. It reads the platform's export — never the bot's own log.
 
 ### Design principles
 
@@ -155,23 +146,27 @@ reads the platform's export — never the bot's own log.
   knowledge. Pointing the bot at a novel paradigm's URL (n-back, Flanker,
   etc.) should work without code changes; held-out paradigms verify this
   empirically.
-- **G2 — Generic mechanisms.** The bot's library is a small set of generic
-  mechanisms; the Reasoner translates the literature into mechanism
-  *configurations*. The bot's code never names a paradigm-specific phenomenon.
-- **G4 — Anti-circularity.** The Reasoner cites primary studies; the Oracle
-  gates on independent meta-analytic norms committed *before* the sessions
-  that reference them — two different evidence tiers, so validation can't be
-  tuned to its own answer.
+- **G2 — No behavioral scaffolding.** The harness's code contains no
+  distributions, no effect vocabulary, no race structure. The generation
+  prompt names no phenomena and carries no numeric priors (enforced by
+  invariant tests); everything behavioral is authored by the model inside
+  the participant program.
+- **G4 — No behavioral iteration.** The first program per task to pass the
+  mechanical simulation gate is the program (pre-registered;
+  `docs/preregistration-naive.md`). Programs are content-hashed and archived
+  with their generation transcripts under `naive_programs/`.
 
 ## CLI Options
 
 | Flag | Description |
 |------|-------------|
-| `--hint TEXT` | Optional hint about the task type (not recommended — Claude should infer from source) |
-| `--label TEXT` | TaskCard label (default: URL hash) |
+| `--label TEXT` | TaskCard label (folder under `taskcards/`) |
+| `--behavior-program TEXT` | Required: program path or `<label>/<hash-prefix>` under `naive_programs/` |
+| `--seed INT` | Selects the program's participant (default: random) |
 | `--headless` | Run browser without a visible window |
-| `--rt-mean FLOAT` | Override mean reaction time (mu) in ms |
-| `--accuracy FLOAT` | Override primary accuracy target (0-1) |
+| `--taskcard-sha256 TEXT` | Hermetic replay: load the exact card a past session recorded |
+| `--no-llm-client` | Disable adaptive nav (deterministic / no-LLM runs) |
+| `--no-calibration` | Skip the startup keypress-latency calibration pass |
 | `-v, --verbose` | Enable debug logging |
 
 ## Batch Runs
@@ -179,17 +174,13 @@ reads the platform's export — never the bot's own log.
 For collecting multiple sessions of bot data:
 
 ```bash
-# Sequential batch: 5 instances of each task, one at a time (recommended)
-bash scripts/batch_run.sh --count 5 --headless
-
-# Parallel batch: 5 instances each, launched simultaneously with stagger delays
-bash scripts/launch.sh --headless --count 5
-
-# Filter to a specific task
-bash scripts/launch.sh --label expfactory_stroop --count 10 --headless
+# N seeded sessions per paradigm (generate once, then collect; idempotent by seed)
+bash scripts/naive_run.sh 30
 ```
 
-`batch_run.sh` runs instances sequentially (one at a time) — recommended for clean timing data. `launch.sh` runs instances in parallel, which is faster but may inflate RTs under CPU contention.
+`scripts/naive_run.sh` pins one program per task (content hash recorded),
+assigns explicit seeds, and runs the four dev paradigms as parallel streams
+(sequential within a stream).
 
 ## Output
 
@@ -206,25 +197,17 @@ For detailed descriptions of each file and what generated it, see **[`examples/R
 
 ## Analyzing Data
 
-Two tested CLIs score sessions from the platform's own data export
-(`experiment_data.{csv,json}` — never the bot's self-log; see goal G4):
+`experiment-bot-per-subject` scores sessions from the platform's own data
+export (`experiment_data.{csv,json}` — never the bot's self-log):
 
 ```bash
-# Oracle: point-estimate gates vs pre-registered meta-analytic norms
-uv run experiment-bot-validate --paradigm-class conflict --label stroop_rdoc
-
-# Human-reference comparison: bot cohort mean z-positioned within the human
-# RDoC distribution (the paper's analysis)
-uv run experiment-bot-compare --label stroop_rdoc \
-  --human-csv data/human/stroop_rdoc.csv \
-  --map data/human/comparison_maps/stroop_rdoc.json
+# Per-subject measures + comparison against the human reference
+uv run experiment-bot-per-subject --help
 ```
 
 Current numbers live in **[`docs/validation-results.md`](docs/validation-results.md)**
-(single living results doc). Per-metric walkthroughs that recompute every
-oracle metric from first principles against real session data are in
-**[`notebooks/`](notebooks/README.md)** (marimo; assertions verify
-hand-rolled == library == oracle).
+(single living results doc); naive-arm outputs land under
+`analysis_out_naive/`.
 
 ### Human reference data
 
@@ -236,20 +219,16 @@ Eisenberg data is fetched separately — see
 Comparison metric mappings (which human column ↔ which bot computation) are
 data files under `data/human/comparison_maps/`.
 
-> `scripts/analysis.ipynb` is the legacy exploratory notebook this analysis
-> was ported from; it predates the current pipeline and is kept for
-> reference only — use `experiment-bot-compare` for citable numbers.
-
 ## Reproduce the Paper's Numbers
 
 ```bash
-scripts/reproduce.sh 5    # sessions per paradigm (4 parallel streams)
+scripts/naive_run.sh 30    # seeded sessions per paradigm (4 parallel streams)
 ```
 
-runs sessions for all four implementations, stages STOP-IT under its adapter
-label, then runs the oracle validation and the human-reference comparison.
-TaskCards are committed (content-addressed under `taskcards/`); sessions are
-reproducible per-card via `experiment-bot --taskcard-sha256 <hash> --seed
+collects the naive-arm dataset for all four implementations. TaskCards and
+programs are committed (content-addressed under `taskcards/` and
+`naive_programs/`); sessions are reproducible via `experiment-bot
+--taskcard-sha256 <hash> --behavior-program <label>/<hash> --seed
 <session_seed>` using the values recorded in each session's
 `run_metadata.json`. Expfactory preview URLs are ephemeral deployments — if
 one 404s, redeploy and update the URL (as-run commands are recorded in
@@ -263,31 +242,28 @@ experiment-bot/
 │   ├── cli.py                  # experiment-bot entry point (Executor)
 │   ├── core/
 │   │   ├── config.py           # TaskCard config dataclass tree
-│   │   ├── distributions.py    # Ex-Gaussian RT sampling + temporal-effects application
-│   │   ├── executor.py         # Playwright task execution engine
+│   │   ├── executor.py         # Playwright task execution engine (program-driven trials)
 │   │   ├── pilot_session.py    # Single-session Playwright wrapper (PilotSession)
 │   │   ├── stimulus.py         # Stimulus detection rules
 │   │   ├── phase_detection.py  # Experiment phase detection
 │   │   └── scraper.py          # Experiment source scraping
-│   ├── reasoner/               # 6-stage reasoning pipeline + experiment-bot-reason CLI
-│   ├── taskcard/               # TaskCard schema, loader, session sampling
-│   ├── effects/                # Generic temporal-effect mechanisms + validation metrics
+│   ├── behavior/               # Naive arm: program generation (naive-gen), sim gate, provider
+│   ├── reasoner/               # Structural pipeline (Stage 1 + Stage 6 pilot) + reason CLI
+│   ├── taskcard/               # TaskCard schema, loader, content hashing
+│   ├── analysis/               # experiment-bot-per-subject (vs. human reference)
 │   ├── calibration/            # Optional platform-recording offset calibration
-│   ├── validation/             # Oracle: experiment-bot-validate + per-paradigm adapters
-│   ├── llm/                    # Claude CLI + API client shim (Reasoner consumer)
+│   ├── llm/                    # Claude CLI + API client shim
 │   ├── navigation/             # Instruction-screen navigation
 │   └── output/                 # Data capture and output writing
-├── taskcards/                  # Content-addressed TaskCards per experiment
-├── norms/                      # Pre-committed meta-analytic norms per paradigm class
-├── data/human/                 # Human reference data (RDoC)
+├── taskcards/                  # Content-addressed structural TaskCards per experiment
+├── naive_programs/             # Content-hashed participant programs + generation transcripts
+├── data/human/                 # Human reference data (RDoC / Eisenberg)
 ├── examples/                   # Sample output from one run per task (see examples/README.md)
 ├── scripts/
-│   ├── analysis.ipynb          # Bot vs. human comparison notebook
-│   ├── launch.sh               # Parallel batch launcher
-│   └── batch_run.sh            # Sequential batch launcher
+│   └── naive_run.sh            # Seeded naive-arm collection (4 parallel streams)
 ├── tests/                      # pytest test suite
-├── docs/                       # Scope, validation results, reviewer charter, citation history
-└── output/                     # Bot run outputs (gitignored)
+├── docs/                       # Scope, validation results, pre-registration, paper drafts
+└── output_naive/               # Naive-arm session outputs
 ```
 
 ## Validated Experiments

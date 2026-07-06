@@ -186,34 +186,7 @@ def test_parameter_value_round_trip_preserves_distribution():
     assert rt == data
 
 
-def test_shifted_wald_taskcard_drives_sampler():
-    """A TaskCard with shifted_wald distribution instantiates ShiftedWaldSampler
-    through _taskcard_to_config → ResponseSampler without KeyError."""
-    import copy
-    from experiment_bot.core.executor import _taskcard_to_config
-    from experiment_bot.core.distributions import ResponseSampler, ShiftedWaldSampler
 
-    tc_dict = _minimal_taskcard_dict()
-    tc_dict["response_distributions"] = {
-        "go": {
-            "value": {"drift_rate": 1.2, "boundary": 0.8, "shift_ms": 150.0},
-            "distribution": "shifted_wald",
-            "citations": [],
-            "rationale": "",
-            "sensitivity": "unknown",
-            "literature_range": None,
-            "between_subject_sd": None,
-        }
-    }
-    tc = TaskCard.from_dict(tc_dict)
-    cfg = _taskcard_to_config(tc)
-    # ResponseSampler must instantiate without KeyError
-    sampler = ResponseSampler(cfg.response_distributions, seed=42)
-    # Verify the underlying sampler is ShiftedWaldSampler
-    assert isinstance(sampler._samplers["go"], ShiftedWaldSampler)
-    # And sampling produces a positive value
-    rt = sampler.sample_rt("go")
-    assert rt > 0
 
 
 def test_parameter_value_audit_fields_round_trip():

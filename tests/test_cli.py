@@ -4,6 +4,10 @@ from unittest.mock import patch, AsyncMock, MagicMock
 from click.testing import CliRunner
 from experiment_bot.cli import main
 
+# The CLI requires --behavior-program (the naive program IS the behavioral
+# layer); use the toy fixture everywhere.
+_TOY_PROGRAM = str(Path("tests/fixtures/toy_participant.py").resolve())
+
 
 def _minimal_taskcard_payload():
     return {
@@ -46,6 +50,7 @@ def test_cli_loads_taskcard_and_runs_executor(tmp_path):
             "--label", "stroop",
             "--taskcards-dir", str(tmp_path / "taskcards"),
             "--headless",
+            "--behavior-program", _TOY_PROGRAM,
         ])
     assert result.exit_code == 0, result.output
     fake_executor.run.assert_awaited_once_with("http://example.com/stroop")
@@ -58,43 +63,23 @@ def test_cli_errors_on_missing_taskcard(tmp_path):
         "--label", "nonexistent",
         "--taskcards-dir", str(tmp_path / "empty_taskcards"),
         "--headless",
+        "--behavior-program", _TOY_PROGRAM,
     ])
     assert result.exit_code != 0
     assert "TaskCard" in result.output or "not found" in result.output.lower()
 
 
-def test_cli_samples_session_params_at_start(tmp_path):
-    """Session-level draw of mu/sigma/tau happens before executor runs."""
-    runner = CliRunner()
-    fake_taskcard_path = tmp_path / "taskcards" / "stroop"
-    fake_taskcard_path.mkdir(parents=True)
-    (fake_taskcard_path / "abcd1234.json").write_text(
-        json.dumps(_minimal_taskcard_payload())
-    )
-
-    fake_executor = MagicMock()
-    fake_executor.run = AsyncMock()
-
-    sampled_params = {"default": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}}
-    fake_client = MagicMock()
-    with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor) as exec_cls, \
-         patch("experiment_bot.cli.sample_session_params",
-               return_value=sampled_params) as samp, \
-         patch("experiment_bot.cli.build_default_client", return_value=fake_client):
-        result = runner.invoke(main, [
-            "http://example.com/x",
-            "--label", "stroop",
-            "--taskcards-dir", str(tmp_path / "taskcards"),
-            "--headless",
-            "--seed", "12345",
-        ])
-    assert result.exit_code == 0, result.output
-    samp.assert_called_once()
-    # Session_seed and session_params must reach the executor so they
-    # land in run_metadata.json — that's what makes a run reproducible.
-    _, kwargs = exec_cls.call_args
-    assert kwargs.get("seed") == 12345
-    assert kwargs.get("session_params") == sampled_params
+def test_cli_requires_behavior_program(tmp_path):
+    """--behavior-program is required: the naive program is the only
+    behavioral layer."""
+    result = CliRunner().invoke(main, [
+        "http://example.com/x",
+        "--label", "stroop",
+        "--taskcards-dir", str(tmp_path / "taskcards"),
+        "--headless",
+    ])
+    assert result.exit_code != 0
+    assert "behavior-program" in result.output
 
 
 def test_cli_no_calibration_flag_disables_calibration(tmp_path):
@@ -110,6 +95,7 @@ def test_cli_no_calibration_flag_disables_calibration(tmp_path):
             "http://example.com/stroop", "--label", "stroop",
             "--taskcards-dir", str(tmp_path / "taskcards"), "--headless",
             "--no-calibration",
+            "--behavior-program", _TOY_PROGRAM,
         ])
     assert result.exit_code == 0, result.output
     assert exec_cls.call_args.kwargs.get("calibrate") is False
@@ -119,6 +105,7 @@ def test_cli_no_calibration_flag_disables_calibration(tmp_path):
         CliRunner().invoke(main, [
             "http://example.com/stroop", "--label", "stroop",
             "--taskcards-dir", str(tmp_path / "taskcards"), "--headless",
+            "--behavior-program", _TOY_PROGRAM,
         ])
     assert exec_cls2.call_args.kwargs.get("calibrate") is True
 
@@ -143,12 +130,13 @@ def test_cli_replay_by_hash_loads_exact_card(tmp_path):
     fake_executor.run = AsyncMock()
     with patch("experiment_bot.cli.TaskExecutor", return_value=fake_executor), \
          patch("experiment_bot.cli.build_default_client", return_value=MagicMock()):
-        result = runner_invoke = CliRunner().invoke(main, [
+        result = CliRunner().invoke(main, [
             "http://example.com/stroop",
             "--label", "stroop",
             "--taskcards-dir", str(tmp_path / "taskcards"),
             "--taskcard-sha256", h[:8],
             "--headless",
+            "--behavior-program", _TOY_PROGRAM,
         ])
     assert result.exit_code == 0, result.output
     fake_executor.run.assert_awaited_once()
@@ -166,6 +154,7 @@ def test_cli_replay_by_hash_unknown_hash_errors(tmp_path):
         "--taskcards-dir", str(tmp_path / "taskcards"),
         "--taskcard-sha256", "deadbeefdeadbeef",
         "--headless",
+        "--behavior-program", _TOY_PROGRAM,
     ])
     assert result.exit_code != 0
     assert "content hash" in result.output.lower()
@@ -238,7 +227,6 @@ def test_behavior_program_flag_builds_session(tmp_path):
 
     with patch("experiment_bot.cli.TaskExecutor", _FakeExecutor), \
          patch("experiment_bot.cli.load_latest") as load_tc, \
-         patch("experiment_bot.cli.sample_session_params", return_value={}), \
          patch("experiment_bot.cli.build_default_client", return_value=None):
         load_tc.return_value = MagicMock(
             task_specific={"key_map": {"go": "z"}}, stimuli=[],

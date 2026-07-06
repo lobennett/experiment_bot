@@ -11,6 +11,19 @@ from experiment_bot.core.config import TaskConfig
 from experiment_bot.llm.protocol import LLMResponse
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
+
 # Minimal config matching the pattern in tests/test_executor.py
 _SAMPLE_CONFIG = {
     "task": {
@@ -54,9 +67,7 @@ def make_executor():
             config,
             headless=True,
             seed=42,
-            session_params={},
-            llm_client=fake_client,
-        )
+            llm_client=fake_client, behavior_provider=_bp_stub())
         return executor
     return _make
 

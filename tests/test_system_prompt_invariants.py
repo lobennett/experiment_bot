@@ -32,18 +32,6 @@ def test_no_paradigm_class_accuracy_priors():
         assert anchor not in PROMPT
 
 
-def test_every_registered_mechanism_documented():
-    from experiment_bot.effects.registry import EFFECT_REGISTRY
-    for name in EFFECT_REGISTRY:
-        assert f"`{name}`" in PROMPT, (
-            f"temporal-effects mechanism {name!r} is registered but "
-            "undocumented in system.md section 10"
-        )
 
 
-def test_pink_noise_documents_alpha_not_hurst():
-    assert "`alpha`" in PROMPT
-    # `hurst` may appear only inside the do-not-emit deprecation warning.
-    for line in PROMPT.splitlines():
-        if "hurst" in line.lower():
-            assert "deprecated" in line.lower() or "do not" in line.lower()
+

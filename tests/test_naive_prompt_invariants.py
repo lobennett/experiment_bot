@@ -57,13 +57,21 @@ def test_no_banned_behavioral_terms():
             assert term not in lowered, f"banned term in {name}: {term!r}"
 
 
+# Frozen vocabulary of the deleted expert-arm effect registry: the naive
+# prompt must never name the old mechanism library either.
+_LEGACY_MECHANISM_NAMES = (
+    "autocorrelation", "fatigue_drift", "condition_repetition",
+    "lag1_pair_modulation", "post_event_slowing", "linear_drift",
+    "practice_effect", "vigilance_decrement", "pink_noise",
+)
+
+
 def test_no_registry_mechanism_names():
-    from experiment_bot.effects.registry import EFFECT_REGISTRY
     for name, text in ASSEMBLED_PROMPT_SOURCES:
         lowered = text.lower()
-        for mech_name in EFFECT_REGISTRY:
+        for mech_name in _LEGACY_MECHANISM_NAMES:
             assert mech_name.lower() not in lowered, (
-                f"registry mechanism name {mech_name!r} leaked into {name}")
+                f"mechanism name {mech_name!r} leaked into {name}")
 
 
 def test_no_numeric_behavioral_priors():

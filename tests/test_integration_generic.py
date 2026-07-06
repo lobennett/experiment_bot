@@ -21,6 +21,19 @@ from experiment_bot.core.config import (
 from experiment_bot.core.executor import TaskExecutor
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
+
 GENERIC_CONFIG = {
     "task": {
         "name": "Flanker Task",
@@ -105,17 +118,17 @@ def test_generic_config_json_serializable():
 def test_generic_executor_constructs():
     """Executor constructs from generic config without platform_name."""
     config = TaskConfig.from_dict(GENERIC_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
 
     assert len(executor._lookup._rules) == 2
-    assert "go_correct" in executor._sampler._samplers
+    assert "go_correct" in executor._config.response_distributions
     assert executor._key_map == {"congruent": "f", "incongruent": "j"}
 
 
 def test_generic_executor_runtime_config_accessible():
     """All runtime config values are accessible through the executor."""
     config = TaskConfig.from_dict(GENERIC_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
 
     assert executor._config.runtime.timing.max_no_stimulus_polls == 80
     assert executor._config.runtime.timing.completion_wait_ms == 2000
@@ -123,13 +136,3 @@ def test_generic_executor_runtime_config_accessible():
     assert executor._config.runtime.data_capture.format == "json"
 
 
-def test_generic_executor_samples_rt():
-    """Response sampler produces plausible RTs from generic config."""
-    config = TaskConfig.from_dict(GENERIC_CONFIG)
-    executor = TaskExecutor(config, seed=42)
-
-    rts = [executor._sampler.sample_rt_with_fallback("go_correct") for _ in range(100)]
-    assert all(100 < rt < 3000 for rt in rts)
-    # Mean should be near mu + tau = 420 + 70 = 490
-    mean_rt = sum(rts) / len(rts)
-    assert 350 < mean_rt < 650

@@ -52,8 +52,7 @@ defaults.
 - `task.paradigm_classes` (list of strings) — abstract classes the paradigm
   belongs to. **Open-ended vocabulary**: choose the abstract class names from
   the literature that best describe the cognitive operations the task taxes.
-  Used to filter which paradigm-specific sequential effects apply and to look
-  up the canonical-norms file for validation. Always include
+  Recorded as card metadata. Always include
   `"speeded_choice"` for any timed-decision task, plus one or more specific
   classes drawn from review-article terminology. See system.md "Paradigm
   classes" for examples and guidance on picking class names.

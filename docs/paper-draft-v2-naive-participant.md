@@ -4,6 +4,10 @@ _Draft 2026-07-05, for co-author review. Companion:
 `paper-draft-v1-expert-pipeline.md`. Pre-registration:
 `docs/preregistration-naive.md` (committed before any generation call)._
 
+_Provenance note (branch `naive-only`): the comparison-arm (expert pipeline)
+code and dataset — including the companion draft above — live on the `main`
+branch; this branch contains the naive system only._
+
 ## Methods
 
 **Claim under test.** Given only a web experiment's source code, and no

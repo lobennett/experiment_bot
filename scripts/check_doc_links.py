@@ -33,8 +33,14 @@ def find_dangling(sources: list[Path], repo: Path) -> list[tuple[str, str]]:
     return bad
 
 
+# Frozen pre-registered docs are never edited post-hoc; they reference
+# expert-arm assets that live on the `main` branch, so they are exempt.
+FROZEN = {"preregistration-naive.md"}
+
+
 def _default_sources(repo: Path) -> list[Path]:
-    return [repo / "README.md", repo / "CLAUDE.md", *sorted((repo / "docs").glob("*.md"))]
+    docs = [p for p in sorted((repo / "docs").glob("*.md")) if p.name not in FROZEN]
+    return [repo / "README.md", repo / "CLAUDE.md", *docs]
 
 
 def main() -> int:

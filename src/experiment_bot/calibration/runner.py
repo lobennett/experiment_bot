@@ -25,9 +25,8 @@ from experiment_bot.calibration.estimator import (
 logger = logging.getLogger(__name__)
 
 
-# Default calibration sequence: 30 keypresses at intervals derived
-# from a uniform-random ex-Gaussian RT distribution clipped to a
-# realistic range. The exact intervals don't matter for offset
+# Default calibration sequence: 30 keypresses at fixed intervals spread
+# over a realistic range. The exact intervals don't matter for offset
 # estimation (estimator filters on key-match, not RT closeness); the
 # spread does matter for the regression fallback.
 _DEFAULT_KEYS = ["Space"] * 30

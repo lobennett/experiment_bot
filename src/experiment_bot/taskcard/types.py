@@ -45,8 +45,8 @@ class ParameterValue:
       - A single string: "high" / "medium" / "low" / "unknown" — applies to
         the parameter as a whole.
       - A dict keyed by sub-parameter name: e.g. {"mu": "high", "sigma": "medium"}
-        — used when Stage 5 of the Reasoner tags individual sub-parameters
-        (mu/sigma/tau) at different sensitivity levels.
+        — written by the expert pipeline (main branch) when it tagged
+        individual sub-parameters at different sensitivity levels.
 
     The `distribution` field is retained for compatibility with committed
     TaskCards (it named the expert arm's RT sampler family). The naive

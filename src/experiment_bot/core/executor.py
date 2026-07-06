@@ -596,7 +596,7 @@ class TaskExecutor:
                 # Task 2: completeness signals — a nonzero partial session is no
                 # longer indistinguishable from a whole one.  The ==0 hard-fail
                 # above remains unchanged; these fields are ADDITIONAL signals so
-                # downstream analysis (oracle, reviewer) can filter/flag partial
+                # downstream analysis can filter/flag partial
                 # sessions without aborting.  Do NOT raise on early break —
                 # held-out paradigms legitimately end early.
                 metadata["loop_exit_reason"] = self._loop_exit_reason
@@ -642,7 +642,8 @@ class TaskExecutor:
         Runs in `run()`'s finally block. Unguarded, a mid-save failure left a
         plausible-looking but partial session directory (run_metadata present,
         bot_log/run_trace missing). Any save failure now writes a best-effort
-        `.incomplete` marker — which the oracle excludes as incomplete_save —
+        `.incomplete` marker — which downstream analysis and the collection
+        script exclude as incomplete —
         and the save error is re-raised only when no task exception is already
         propagating (raising inside a finally block would mask the original).
         """

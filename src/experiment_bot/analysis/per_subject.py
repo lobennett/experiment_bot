@@ -6,15 +6,15 @@ stop-signal, ``ssd``; optional ``block_num``). Generic estimators then compute
 one metric row from a canonical table, so bot and human flow through identical
 code.
 
-Estimator definitions match the submitted abstract's analysis exactly
-(``scripts/analysis.ipynb``):
+Estimator definitions match the submitted abstract's analysis exactly:
   * go/congruent/incongruent RT = mean RT of CORRECT trials in that condition;
   * SSRT = mean-method ``go_rt - mean_SSD`` (NOT the integration method).
-    WARNING: this deliberately DIFFERS from the oracle, which computes SSRT
-    by the INTEGRATION method with Verbruggen-2019 validity abstention
-    (``validation/oracle.py::_compute_ssrt``). The two estimators produce
+    WARNING: this deliberately DIFFERS from the expert pipeline's validation
+    oracle (main branch), which computes SSRT by the INTEGRATION method with
+    Verbruggen-2019 validity abstention. The two estimators produce
     different numbers from the same sessions by construction; never compare
-    an oracle SSRT with a per-subject SSRT without naming the estimator;
+    an integration-method SSRT with a per-subject SSRT without naming the
+    estimator;
   * post-error slowing = ``mean(RT | prev incorrect) - mean(RT | prev correct)``
     over within-block consecutive pairs with valid RTs, excluding omissions;
   * lag-1 autocorrelation = Pearson r of (RT_t, RT_{t+1}) over within-block

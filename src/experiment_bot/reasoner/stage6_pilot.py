@@ -6,9 +6,9 @@ condition coverage), and on failure either refines the partial via Claude
 or hard-fails — depending on `max_retries`.
 
 The pilot exercises only structural fields (stimuli, navigation,
-runtime). It does not sample RTs or check temporal effects. Pilot runs
-between Stage 5 (sensitivity) and TaskCard finalization, so refinements
-target the same fields Stage 1 produced.
+runtime). It does not sample RTs or model behavior. Pilot runs after
+Stage 1 and before TaskCard finalization, so refinements target the
+same fields Stage 1 produced.
 """
 from __future__ import annotations
 
@@ -97,8 +97,8 @@ existing phase already advanced the bot past its target screen.
 Fix ONLY structural fields: `stimuli`, `navigation`, `runtime.advance_behavior`,
 `runtime.phase_detection`, `runtime.data_capture`, `task_specific`. Do NOT modify
 `response_distributions`, `temporal_effects`, `between_subject_jitter`, or
-`performance.accuracy/omission_rate` — those are set by other Reasoner stages
-and the pilot's evidence does not bear on them.
+`performance.accuracy/omission_rate` — those fields are not structural and
+the pilot's evidence does not bear on them.
 
 ## Navigation phase JSON schema (CRITICAL — get this right)
 

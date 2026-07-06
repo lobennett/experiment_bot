@@ -704,3 +704,55 @@ async def test_replay_gate_failure_heals_via_proposed_phase(tmp_path, monkeypatc
     assert any(p.get("phase") == "begin_practice" and p.get("key") == "Enter"
                for p in phases)
     assert (tmp_path / "fake_task" / "pilot_replay_refinement_1.diff").exists()
+
+
+@pytest.mark.asyncio
+async def test_replay_navigation_clicks_feedback_selectors():
+    """Held-out flanker regression: an instructions PAGER advances by button
+    click, not keypress. The replay must mirror the executor's full advance
+    behavior (keys + first visible feedback selector) or it is stricter than
+    the executor and rejects runnable cards."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    state = {"clicks": 0}
+    session = _make_session_mock()
+
+    class _Locator:
+        @property
+        def first(self):
+            return self
+        async def is_visible(self, timeout=None):
+            return True
+        async def click(self, timeout=None):
+            state["clicks"] += 1
+
+    class _Page:
+        def locator(self, sel):
+            return _Locator()
+        class keyboard:
+            @staticmethod
+            async def press(k): pass
+    session.page = _Page()
+    session.press = AsyncMock()
+
+    async def _probe(_lookup):
+        # advances only after two selector clicks (multi-page pager)
+        return StimulusProbe(match=(object() if state["clicks"] >= 2 else None),
+                             dom_at_probe="")
+    session.probe_stimulus = AsyncMock(side_effect=_probe)
+
+    class _AB:
+        advance_keys = ["Enter"]
+        feedback_selectors = ["#jspsych-instructions-next"]
+        advance_interval_polls = 5
+
+    class _Nav:
+        phases = []
+
+    with _patch_pilot_session(session):
+        reached, _ = await s6.replay_navigation(
+            "http://x", _Nav(), object(), advance_behavior=_AB(),
+            headless=True, max_polls=50,
+        )
+    assert reached is True
+    assert state["clicks"] >= 2, "replay must click feedback selectors like the executor"

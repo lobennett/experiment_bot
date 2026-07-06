@@ -75,13 +75,15 @@ async def _run(url, label, hint, taskcards_dir, work_dir, resume,
     # Promote internal _reasoning_chain to the public reasoning_chain field
     if "_reasoning_chain" in final:
         final["reasoning_chain"] = final.pop("_reasoning_chain")
-    # Structural-only pipeline: no stage produces behavioral fields. Emit
-    # empty/minimal defaults so TaskCard.from_dict loads the card; the
-    # naive executor path never reads them.
-    final.setdefault("performance", {"accuracy": {}, "omission_rate": {}})
-    final.setdefault("response_distributions", {})
-    final.setdefault("temporal_effects", {})
-    final.setdefault("between_subject_jitter", {})
+    # Structural-only pipeline: no stage OWNS behavioral fields, so they
+    # are always overwritten with canonical empties — Stage 1's LLM
+    # sometimes emits a stray shape (e.g. performance.accuracy as a bare
+    # float) that would crash downstream consumers expecting per-condition
+    # dicts. The naive executor path never reads them.
+    final["performance"] = {"accuracy": {}, "omission_rate": {}}
+    final["response_distributions"] = {}
+    final["temporal_effects"] = {}
+    final["between_subject_jitter"] = {}
     tc = TaskCard.from_dict(final)
     out = save_taskcard(tc, taskcards_dir, label=label)
     click.echo(f"TaskCard written: {out}")

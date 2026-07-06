@@ -7,6 +7,17 @@ from experiment_bot.reasoner.stage1_structural import run_stage1
 from experiment_bot.reasoner.stage6_pilot import run_stage6
 
 
+def _scrub_behavioral_fields(partial: dict) -> None:
+    """The structural pipeline owns no behavioral fields; Stage 1's LLM
+    occasionally emits stray ones in non-canonical shapes (observed live:
+    performance.accuracy as a bare float), which crash downstream consumers
+    expecting per-condition dicts. Drop them — the run CLI re-emits
+    canonical empties when the card is written."""
+    for key in ("performance", "response_distributions", "temporal_effects",
+                "between_subject_jitter"):
+        partial.pop(key, None)
+
+
 class ReasonerPipeline:
     """Runs the structural stages (1 and 6), persisting partial state after
     each so --resume works.
@@ -69,7 +80,10 @@ class ReasonerPipeline:
         if start_after < 1:
             partial, step = await run_stage1(self._client, bundle)
             partial.setdefault("_reasoning_chain", []).append(step.to_dict())
+            _scrub_behavioral_fields(partial)
             self._save(label, 1, partial)
+        else:
+            _scrub_behavioral_fields(partial)
         if self._run_pilot:
             # Persist refinements back to the resume point so a Stage 6
             # hard-fail can be picked up by --resume from the refined

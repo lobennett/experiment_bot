@@ -258,10 +258,20 @@ Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
 # replay's stuck DOM, append, re-replay).
 _REPLAY_REFINE_BUDGET = 2
 
+# Minimum seconds between replay advance actions (executor-faithful pacing;
+# see replay_navigation docstring note on anti-skim guards).
+_REPLAY_ADVANCE_SPACING_S = 2.0
+
+# Poll budget for the paced replay: pacing allows ~1 advance per
+# _REPLAY_ADVANCE_SPACING_S, so a multi-screen instruction flow needs a
+# time-commensurate budget (1200 polls x 50ms ~= 60s of wall clock plus
+# locator latencies) rather than the walker's shorter early-stop budget.
+_REPLAY_MAX_POLLS = 1200
+
 
 async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                             headless=True, viewport=None,
-                            max_polls=_NO_MATCH_EARLY_STOP) -> bool:
+                            max_polls=_REPLAY_MAX_POLLS) -> bool:
     """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
     serially via the unified PilotSession engine (exactly as the executor's entry
     nav does), then poll for a trial stimulus WHILE pressing advance_keys
@@ -281,6 +291,12 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
     advance_keys = list(getattr(advance_behavior, "advance_keys", []) or [])
     feedback_selectors = list(getattr(advance_behavior, "feedback_selectors", []) or [])
     interval = getattr(advance_behavior, "advance_interval_polls", 10) or 10
+    # Executor-faithful pacing: the executor separates advance actions by its
+    # navigation delays (~1s+); an unpaced replay advancing every ~0.5s trips
+    # anti-skim guards ("read too quickly" re-read loops on RDoC-style
+    # instruction flows) that the executor never trips. Held-out flanker
+    # surfaced this. Keep advance actions >= _REPLAY_ADVANCE_SPACING_S apart.
+    last_advance = 0.0
     async with PilotSession(headless=headless, viewport=viewport) as session:
         await session.goto(url)
         for phase in navigation.phases:
@@ -291,7 +307,9 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
             if probe.match is not None:
                 return True, ""
             misses += 1
-            if misses % interval == 0:
+            import time as _time
+            if misses % interval == 0 and (_time.monotonic() - last_advance) >= _REPLAY_ADVANCE_SPACING_S:
+                last_advance = _time.monotonic()
                 for k in advance_keys:
                     await session.press(k)
                 # Mirror the executor's full advance behavior (executor.py

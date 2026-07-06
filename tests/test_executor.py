@@ -5,6 +5,22 @@ from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusMatch
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init.
+    Structural tests that do reach a trial get a fast withhold response."""
+    from types import SimpleNamespace
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    p.respond.return_value = SimpleNamespace(key=None, rt_ms=1.0)
+    p.on_interrupt.return_value = None
+    return p
+
+
+
+
 SAMPLE_CONFIG = {
     "task": {"name": "Stop Signal", "platform": "expfactory", "constructs": [], "reference_literature": []},
     "stimuli": [
@@ -39,7 +55,7 @@ SAMPLE_CONFIG = {
 
 def test_executor_init():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._config.task.name == "Stop Signal"
 
 
@@ -48,23 +64,10 @@ def test_calibrate_flag_default_and_override():
     executor stores the flag so run() can guard the ~27s inert pass that
     corrupts trial-1 RT on no-idle-window platforms (cognition.run)."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    assert TaskExecutor(config)._calibrate is True
-    assert TaskExecutor(config, calibrate=False)._calibrate is False
+    assert TaskExecutor(config, behavior_provider=_bp_stub())._calibrate is True
+    assert TaskExecutor(config, calibrate=False, behavior_provider=_bp_stub())._calibrate is False
 
 
-def test_should_respond_correctly_on_go():
-    """On go trials with high accuracy, bot should usually respond correctly."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
-    correct_count = sum(1 for _ in range(100) if executor._should_respond_correctly("go"))
-    assert 85 < correct_count < 100
-
-
-def test_should_omit_rarely():
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
-    omit_count = sum(1 for _ in range(1000) if executor._should_omit("go"))
-    assert 5 < omit_count < 50
 
 
 @pytest.mark.asyncio
@@ -77,7 +80,7 @@ async def test_attention_check_uses_response_js():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value="q")
@@ -91,7 +94,7 @@ async def test_attention_check_falls_back_to_enter_without_response_js():
     config_data = dict(SAMPLE_CONFIG)
     config_data["runtime"] = {"attention_check": {}}
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
     page = AsyncMock()
     await executor._handle_attention_check(page)
@@ -141,7 +144,7 @@ TASK_SWITCHING_CONFIG = {
 def test_resolve_key_mapping_task_switching():
     """Verify key_map is read directly from task_specific.key_map."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     key_map = executor._resolve_key_mapping(config)
 
     assert key_map["parity_even"] == "."
@@ -154,7 +157,7 @@ def test_resolve_key_mapping_task_switching():
 async def test_resolve_response_key_dynamic_from_key_map():
     """When response_key='dynamic', falls back to static key_map lookup."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
 
     stimulus_match = StimulusMatch(
         stimulus_id="parity_even",
@@ -171,7 +174,7 @@ async def test_resolve_response_key_dynamic_from_key_map():
 async def test_resolve_response_key_static():
     """Static response_key='z' returns 'z' unchanged."""
     config = TaskConfig.from_dict(TASK_SWITCHING_CONFIG)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
 
     stimulus_match = StimulusMatch(
         stimulus_id="go_left",
@@ -198,7 +201,7 @@ async def test_resolve_response_key_via_response_key_js():
         },
     }]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
 
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value=",")
@@ -226,7 +229,7 @@ def test_direct_key_map_from_config():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._key_map == config.task_specific["key_map"]
 
 
@@ -238,7 +241,7 @@ def test_direct_key_map_overrides_legacy():
         "parity_odd": "s",
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._key_map["parity_even"] == "a"
     assert executor._key_map["parity_odd"] == "s"
 
@@ -256,7 +259,7 @@ def test_executor_uses_runtime_timing():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._config.runtime.timing.poll_interval_ms == 50
     assert executor._config.runtime.timing.max_no_stimulus_polls == 1000
     assert executor._config.runtime.timing.stuck_timeout_s == 15.0
@@ -300,26 +303,11 @@ def test_trial_interrupt_config_controls_inhibition():
         },
     ]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     # _build_interrupt_check_js should find "inhibit" condition
     js = executor._build_interrupt_check_js()
     assert js == "!!(checkInhibit())"
 
-
-def test_should_respond_correctly_uses_per_condition_accuracy():
-    """_should_respond_correctly uses per-condition accuracy from the dict."""
-    config_data = dict(SAMPLE_CONFIG)
-    config_data["performance"] = {
-        "accuracy": {"go": 0.95, "inhibit": 0.50},
-        "omission_rate": {"go": 0.02},
-        "practice_accuracy": 0.85,
-    }
-    config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
-    # "inhibit" should use its own accuracy (0.50)
-    results = [executor._should_respond_correctly("inhibit") for _ in range(100)]
-    # accuracy is 0.50, so roughly 50% should be True
-    assert 30 < sum(results) < 70
 
 
 def test_executor_no_platform_name_dependency():
@@ -340,36 +328,7 @@ def test_executor_no_platform_name_dependency():
         assert 'platform_name == "expfactory"' not in source, f"{method_name} branches on expfactory"
 
 
-def test_executor_sampler_uses_config_floor():
-    """ResponseSampler receives floor_ms from runtime config."""
-    config_data = dict(SAMPLE_CONFIG)
-    config_data["runtime"] = {"timing": {"rt_floor_ms": 200.0}}
-    config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
-    # The sampler should use 200.0 as floor, not the default 150.0
-    assert executor._sampler._floor_ms == 200.0
 
-
-def test_resolve_rt_distribution_key_condition_correct_error():
-    """Configs with {condition}_correct distributions resolve via correct/error variants."""
-    config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
-    # SAMPLE_CONFIG has "go_correct" distribution — "go" + "_correct" matches
-    assert executor._resolve_rt_distribution_key("go", True) == "go_correct"
-    # "go_error" not in dists, so falls back to direct match → "go" not in dists → first available
-    assert executor._resolve_rt_distribution_key("go", False) == "go_correct"
-
-
-def test_sampler_fallback_to_first_distribution():
-    """When requested condition doesn't exist, sampler falls back to first available."""
-    from experiment_bot.core.distributions import ResponseSampler
-    from experiment_bot.core.config import DistributionConfig, TemporalEffectsConfig
-    dists = {
-        "task_switch": DistributionConfig(distribution="ex_gaussian", params={"mu": 580, "sigma": 70, "tau": 100}),
-    }
-    sampler = ResponseSampler(dists, temporal_effects=TemporalEffectsConfig(), seed=42)
-    rt = sampler.sample_rt_with_fallback("go_correct")
-    assert 150 < rt < 2000
 
 
 @pytest.mark.asyncio
@@ -383,7 +342,7 @@ async def test_wait_for_completion_captures_data():
         }
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
     executor._writer.run_dir = "/tmp/fake"
     page = AsyncMock()
@@ -402,7 +361,7 @@ def test_is_trial_stimulus_with_direct_distribution():
         "congruent": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     match = StimulusMatch(stimulus_id="cong_1", response_key="f", condition="congruent")
     assert executor._is_trial_stimulus(match) is True
 
@@ -410,7 +369,7 @@ def test_is_trial_stimulus_with_direct_distribution():
 def test_is_trial_stimulus_with_correct_error_variant():
     """_is_trial_stimulus returns True when {condition}_correct exists."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     # SAMPLE_CONFIG has "go_correct" distribution
     match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
     assert executor._is_trial_stimulus(match) is True
@@ -420,7 +379,7 @@ def test_is_trial_stimulus_false_for_navigation():
     """_is_trial_stimulus returns False for stimuli without matching distributions."""
     config_data = dict(SAMPLE_CONFIG)
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     match = StimulusMatch(stimulus_id="nav", response_key=None, condition="navigation")
     assert executor._is_trial_stimulus(match) is False
 
@@ -433,7 +392,7 @@ async def test_feedback_phase_overridden_by_trial_stimulus():
         "phase_detection": {"feedback": "true", "complete": "false", "test": "true"},
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
 
     page = AsyncMock()
@@ -472,7 +431,7 @@ async def test_feedback_proceeds_when_no_trial_stimulus():
         "phase_detection": {"feedback": "true", "complete": "false", "test": "true"},
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
 
     page = AsyncMock()
@@ -494,18 +453,6 @@ async def test_feedback_proceeds_when_no_trial_stimulus():
     # No trials — feedback was handled, then completion
     assert executor._trial_count == 0
 
-
-def test_direct_condition_distribution_matching():
-    """When condition name is a distribution key, it's used directly."""
-    config_data = dict(SAMPLE_CONFIG)
-    config_data["response_distributions"] = {
-        "congruent": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
-        "incongruent": {"distribution": "ex_gaussian", "params": {"mu": 500, "sigma": 70, "tau": 90}},
-    }
-    config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
-    assert executor._resolve_rt_distribution_key("congruent", True) == "congruent"
-    assert executor._resolve_rt_distribution_key("incongruent", True) == "incongruent"
 
 
 def test_per_condition_accuracy_lookup():
@@ -554,7 +501,7 @@ def test_non_trial_stimulus_does_not_reset_consecutive_misses():
         "go": {"distribution": "ex_gaussian", "params": {"mu": 450, "sigma": 60, "tau": 80}},
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
 
     # A fixation match: null key, no_response condition, no matching distribution
     fixation_match = StimulusMatch(
@@ -568,7 +515,7 @@ def test_non_trial_stimulus_does_not_reset_consecutive_misses():
 def test_build_interrupt_check_js_wraps_dom_query():
     """dom_query selectors are wrapped in document.querySelector() for JS evaluation."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     js = executor._build_interrupt_check_js()
     assert js is not None
     assert "document.querySelector" in js
@@ -587,7 +534,7 @@ def test_build_interrupt_check_js_combines_multiple_stimuli():
          "response": {"key": None, "condition": "stop"}},
     ]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     js = executor._build_interrupt_check_js()
     assert "||" in js
     assert "stop_left" in js
@@ -597,97 +544,13 @@ def test_build_interrupt_check_js_combines_multiple_stimuli():
 def test_prev_interrupt_detected_state_initialized():
     """Executor starts with _prev_interrupt_detected = False."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     assert executor._prev_interrupt_detected is False
 
 
-def test_executor_invokes_post_event_slowing():
-    """The executor's trial loop applies post-event slowing via the
-    generic mechanism (apply_post_event_slowing). Trigger priority
-    (interrupt vs error) is encoded in the TaskCard's triggers list,
-    not in inline if/elif logic in the executor."""
-    import inspect
-    source = inspect.getsource(TaskExecutor._execute_trial)
-    assert "apply_post_event_slowing" in source
-    assert "te.post_event_slowing" in source
-    # Should NOT have hardcoded paradigm-specific names
-    assert "te.post_interrupt_slowing" not in source
-    assert "te.post_error_slowing" not in source
 
 
-def test_post_event_slowing_reads_from_config():
-    """Post-event slowing magnitudes come from the temporal_effects config."""
-    import inspect
-    source = inspect.getsource(TaskExecutor._execute_trial)
-    assert "post_event_slowing" in source
 
-
-def test_post_event_slowing_uses_lag1_prev_error_not_window_or():
-    """Regression: the prev_error value passed into apply_post_event_slowing
-    must reflect ONLY the immediately preceding trial (lag-1 contract from
-    the literature), not whether any trial in the executor's 8-trial
-    window was an error.
-
-    The earlier bug used `prev_error=any(self._recent_errors)` which made
-    prev_error=True on most trials in stop-signal paradigms (commission-
-    error rate ~12% × 8-trial window ≈ 64% of trials always have a
-    recent error). PES fired on essentially every trial, neutralizing
-    the post-error vs post-correct lag-1 contrast PES is defined as.
-
-    Anchor the assertion on the actual assignment, not a substring search
-    that could match a comment.
-    """
-    import inspect, ast, textwrap
-    src = textwrap.dedent(inspect.getsource(TaskExecutor._execute_trial))
-    tree = ast.parse(src)
-    # Find every keyword arg `prev_error=...` passed in this function.
-    found_lag1 = False
-    found_any = False
-    for node in ast.walk(tree):
-        if not isinstance(node, ast.keyword) or node.arg != "prev_error":
-            continue
-        expr = ast.unparse(node.value)
-        if "any(" in expr and "_recent_errors" in expr:
-            found_any = True
-        elif "_recent_errors[0]" in expr:
-            found_lag1 = True
-    # Also check for prev_error = ...  assignments inside the function body
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Assign):
-            for t in node.targets:
-                if isinstance(t, ast.Name) and t.id == "prev_error":
-                    expr = ast.unparse(node.value)
-                    if "any(" in expr and "_recent_errors" in expr:
-                        found_any = True
-                    elif "_recent_errors[0]" in expr:
-                        found_lag1 = True
-    assert not found_any, (
-        "executor uses any(self._recent_errors) for prev_error — multi-trial "
-        "OR semantics will neutralize the lag-1 PES contrast"
-    )
-    assert found_lag1, (
-        "expected prev_error to be derived from self._recent_errors[0] (the "
-        "most recent trial, due to appendleft)"
-    )
-
-
-def test_executor_sampler_receives_temporal_effects():
-    """Executor passes temporal_effects to ResponseSampler."""
-    config_data = dict(SAMPLE_CONFIG)
-    config_data["temporal_effects"] = {
-        "autocorrelation": {"enabled": True, "phi": 0.3, "rationale": "test"},
-    }
-    from experiment_bot.core.config import TaskConfig
-    config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
-    assert executor._sampler._effects.autocorrelation.phi == 0.3
-
-
-def test_post_interrupt_skips_condition_repetition():
-    """When post-interrupt slowing fires, condition_repetition is suppressed."""
-    import inspect
-    source = inspect.getsource(TaskExecutor._execute_trial)
-    assert "skip_condition_repetition" in source
 
 
 # ---------------------------------------------------------------------------
@@ -742,7 +605,7 @@ async def test_trial_loop_uses_config_navigation_condition():
         phase_detection={"complete": "false", "test": "true"},
     )
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
 
     nav_match = StimulusMatch(stimulus_id="nav", response_key="Enter", condition="nav_screen")
@@ -776,7 +639,7 @@ async def test_trial_loop_uses_config_attention_check_conditions():
         phase_detection={"complete": "false", "test": "true"},
     )
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
 
     ac_match = StimulusMatch(stimulus_id="ac1", response_key=None, condition="custom_ac")
@@ -929,7 +792,7 @@ def test_executor_trial_end_timeout_uses_config():
 async def test_resolve_response_key_returns_none_for_empty_string():
     """Empty string return from JS is treated as withhold (returns None)."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value="")
@@ -948,7 +811,7 @@ async def test_resolve_response_key_returns_none_for_none_value():
         "response": {"key": None, "condition": "go", "response_key_js": "getKey()"},
     }]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value=None)
@@ -978,7 +841,7 @@ async def test_resolve_response_key_returns_none_for_sentinel_strings(sentinel):
         "response": {"key": None, "condition": "stop", "response_key_js": "getKey()"},
     }]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     match = StimulusMatch(stimulus_id="stop_stim", response_key=None, condition="stop")
     page = AsyncMock()
     page.evaluate = AsyncMock(return_value=sentinel)
@@ -1004,7 +867,7 @@ async def test_resolve_response_key_sentinel_no_keyboard_press(monkeypatch):
         "omission_rate": {"go": 0.0},
     }
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     executor._writer = MagicMock()
 
     page = AsyncMock()
@@ -1046,7 +909,6 @@ def test_live_executor_runs_against_regenerated_taskcard():
     from pathlib import Path
     from experiment_bot.core.executor import TaskExecutor
     from experiment_bot.taskcard.loader import load_latest
-    from experiment_bot.taskcard.sampling import sample_session_params
 
     if not os.environ.get("RUN_LIVE_LLM"):
         pytest.skip("Set RUN_LIVE_LLM=1 to run live tests")
@@ -1056,12 +918,7 @@ def test_live_executor_runs_against_regenerated_taskcard():
         pytest.skip(f"{label} TaskCard not present")
 
     tc = load_latest(Path("taskcards"), label=label)
-    sampled = sample_session_params(tc.to_dict(), seed=42)
-    for cond, params in sampled.items():
-        if cond in tc.response_distributions:
-            tc.response_distributions[cond].value.update(params)
-
-    ex = TaskExecutor(tc, headless=True)
+    ex = TaskExecutor(tc, headless=True, seed=42, behavior_provider=_toy_session())
     asyncio.run(ex.run("https://deploy.expfactory.org/preview/10/"))
 
 
@@ -1074,7 +931,7 @@ def test_navigation_condition_name_attribute_is_config_driven(monkeypatch):
     cfg_dict = _minimal_config_dict()
     cfg_dict["runtime"]["navigation_stimulus_condition"] = "advance_screen"
     config = TaskConfig.from_dict(cfg_dict)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._navigation_condition_name == "advance_screen"
 
 
@@ -1083,7 +940,7 @@ def test_attention_check_conditions_attribute_is_config_driven():
     cfg_dict = _minimal_config_dict()
     cfg_dict["runtime"]["attention_check"] = {"stimulus_conditions": ["probe", "probe_resp"]}
     config = TaskConfig.from_dict(cfg_dict)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
     assert executor._attention_check_conditions == {"probe", "probe_resp"}
 
 
@@ -1118,23 +975,6 @@ def test_is_withhold_sentinel_does_not_overmatch_real_keys(real_key):
     assert TaskExecutor._is_withhold_sentinel(real_key) is False
 
 
-@pytest.mark.parametrize("sentinel", [
-    "withhold", "none", "null", "", "skip", "pass", "noresponse",
-    "no_response", "no_key", "nokey", "suppress",
-])
-def test_pick_wrong_key_filters_sentinels(sentinel):
-    """_pick_wrong_key must return None (not the sentinel) when the only wrong-key
-    candidate is a sentinel value.  (robust-003: single-real-key paradigm honesty.)"""
-    config = TaskConfig.from_dict(_minimal_config_dict())
-    executor = TaskExecutor(config)
-    executor._key_map = {"go": "z", "stop": sentinel}
-    executor._seen_response_keys = set()
-    # correct_key = "z"; the only other candidate is sentinel; must not return sentinel
-    result = executor._pick_wrong_key("z")
-    # After robust-003 fix: unrealizable injection signals None, not the sentinel itself
-    assert result is None, f"Expected None (unrealizable), got {result!r}"
-
-
 @pytest.mark.asyncio
 async def test_resolve_response_key_static_key_map_sentinel_returns_none():
     """_resolve_response_key must return None when the static key_map maps to a sentinel."""
@@ -1148,7 +988,7 @@ async def test_resolve_response_key_static_key_map_sentinel_returns_none():
         "response": {"key": "dynamic", "condition": "stop"},
     }]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config)
+    executor = TaskExecutor(config, behavior_provider=_bp_stub())
 
     # No page provided, so JS paths are skipped; falls through to static key_map
     match = StimulusMatch(stimulus_id="stop_stim", response_key="dynamic", condition="stop")
@@ -1178,7 +1018,7 @@ async def test_resolve_response_key_global_js_sentinel_returns_none(sentinel):
         "response": {"key": None, "condition": "stop"},
     }]
     config = TaskConfig.from_dict(config_data)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
 
     match = StimulusMatch(stimulus_id="stop_stim", response_key=None, condition="stop")
     page = AsyncMock()
@@ -1218,22 +1058,18 @@ def test_executor_constructs_from_taskcard():
         "pilot_validation": {},
     }
     tc = TaskCard.from_dict(base)
-    executor = TaskExecutor(tc)
+    executor = TaskExecutor(tc, behavior_provider=_bp_stub())
     assert executor._config.task.name == "stroop"
     # Legacy TaskConfig view still has response_distributions
     assert "default" in executor._config.response_distributions
 
 
-def test_executor_persists_session_seed_and_params_to_metadata():
-    """Regression for SP2-E3 backlog item #5: run_metadata must record
-    session_seed and per-session sampled params so a run is reproducible
-    and the sampler's per-session draws are auditable."""
+def test_executor_persists_session_seed_to_metadata():
+    """run_metadata must record session_seed so a run's participant
+    (program seed) is auditable."""
     from unittest.mock import MagicMock
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
-    executor = TaskExecutor(
-        config, seed=12345,
-        session_params={"go": {"mu": 510.0, "sigma": 65.0, "tau": 85.0}},
-    )
+    executor = TaskExecutor(config, seed=12345, behavior_provider=_bp_stub())
     fake_writer = MagicMock()
     executor._writer = fake_writer
     # Hand-call the metadata save the way the run() finally block does.
@@ -1243,13 +1079,11 @@ def test_executor_persists_session_seed_and_params_to_metadata():
         "total_trials": executor._trial_count,
         "headless": executor._headless,
         "session_seed": executor._session_seed,
-        "session_params": executor._session_params,
     }
     fake_writer.save_metadata(metadata)
     saved_args, _ = fake_writer.save_metadata.call_args
     saved = saved_args[0]
     assert saved["session_seed"] == 12345
-    assert saved["session_params"]["go"]["mu"] == 510.0
 
 
 # SP16: TaskExecutor accepts llm_client kwarg
@@ -1258,7 +1092,7 @@ def test_taskexecutor_accepts_llm_client_kwarg():
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
 
     # Default: no llm_client
-    e1 = TaskExecutor(config, seed=42)
+    e1 = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     assert e1._llm_client is None
     assert e1._adaptive_nav_uses == 0
     assert e1._adaptive_nav_diffs == []
@@ -1266,7 +1100,7 @@ def test_taskexecutor_accepts_llm_client_kwarg():
 
     # With an explicit client
     fake = AsyncMock()
-    e2 = TaskExecutor(config, seed=42, llm_client=fake)
+    e2 = TaskExecutor(config, seed=42, llm_client=fake, behavior_provider=_bp_stub())
     assert e2._llm_client is fake
 
 
@@ -1276,60 +1110,14 @@ def test_taskexecutor_accepts_llm_client_kwarg():
 # frozen N=30 cohort's between-subject SDs came out 5-10x below human as a
 # result. These tests pin the wiring contract.
 
-def _jitter_config():
-    d = dict(SAMPLE_CONFIG)
-    d["between_subject_jitter"] = {
-        "rt_mean_sd_ms": 60.0,
-        "rt_condition_sd_ms": 20.0,
-        "sigma_tau_range": [0.85, 1.15],
-        "accuracy_sd": 0.03,
-        "omission_sd": 0.01,
-    }
-    return TaskConfig.from_dict(d)
-
-
-def test_executor_applies_between_subject_jitter():
-    ex = TaskExecutor(_jitter_config(), seed=42)
-    assert ex._config.response_distributions["go_correct"].params["mu"] != 450.0
-    assert ex._config.performance.accuracy["go"] != 0.95
-
-
-def test_jitter_deterministic_by_seed():
-    mu = lambda e: e._config.response_distributions["go_correct"].params["mu"]
-    a = TaskExecutor(_jitter_config(), seed=42)
-    b = TaskExecutor(_jitter_config(), seed=42)
-    c = TaskExecutor(_jitter_config(), seed=43)
-    assert mu(a) == mu(b)
-    assert mu(a) != mu(c)
-
 
 def test_zero_jitter_config_unchanged():
     """Backward compat: configs without a jitter block are bit-identical."""
-    ex = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
+    ex = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42, behavior_provider=_bp_stub())
     assert ex._config.response_distributions["go_correct"].params["mu"] == 450.0
     assert ex._config.performance.accuracy["go"] == 0.95
 
 
-def test_jitter_does_not_perturb_trial_streams():
-    """The jitter draw uses a dedicated seed stream: trial-level sampling for a
-    zero-jitter config must match pre-wiring behavior draw-for-draw."""
-    a = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
-    b = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
-    assert [a._sampler.sample_rt("go_correct") for _ in range(5)] == [
-        b._sampler.sample_rt("go_correct") for _ in range(5)
-    ]
-
-
-def test_jitter_realized_provenance_recorded():
-    """Realized post-jitter params are stored for run_metadata provenance."""
-    ex = TaskExecutor(_jitter_config(), seed=42)
-    prov = ex._jitter_realized
-    assert prov["configured"] is True
-    assert prov["response_distributions"]["go_correct"]["mu"] == (
-        ex._config.response_distributions["go_correct"].params["mu"]
-    )
-    plain = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42)
-    assert plain._jitter_realized["configured"] is False
 
 
 # --- SP21: behavior-provider bypass ---
@@ -1470,12 +1258,19 @@ async def test_provider_interrupt_none_key_decision_withholds():
 
 
 def test_behavior_program_metadata_fragment():
-    """run_metadata's behavior_program block: present with sha/path/seed when
-    a provider is wired, absent (None) otherwise."""
+    """run_metadata's behavior_program block records sha/path/seed of the
+    wired program (a provider is always present now)."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     ex = TaskExecutor(config, seed=7, behavior_provider=_toy_session(seed=7))
     md = ex._behavior_program_metadata()
     assert md["seed"] == 7
     assert md["sha256"] == ex._behavior_provider.program_sha256
     assert md["path"].endswith("toy_participant.py")
-    assert TaskExecutor(config, seed=7)._behavior_program_metadata() is None
+
+
+def test_executor_requires_behavior_provider():
+    """The behavioral layer is the generated program: constructing a
+    TaskExecutor without one is a hard error."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    with pytest.raises(ValueError, match="behavior_provider"):
+        TaskExecutor(config, seed=7)

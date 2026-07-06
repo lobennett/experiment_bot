@@ -13,6 +13,19 @@ import pytest
 from experiment_bot.core.config import RuntimeConfig, TimingConfig
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
+
 _SAMPLE_CONFIG = {
     "task": {"name": "Phase5a Test", "platform": "test", "constructs": [], "reference_literature": []},
     "stimuli": [
@@ -36,7 +49,7 @@ def _make_executor_for_test():
     delivery wiring is exercised."""
     from experiment_bot.core.config import TaskConfig
     from experiment_bot.core.executor import TaskExecutor
-    ex = TaskExecutor(TaskConfig.from_dict(_SAMPLE_CONFIG))
+    ex = TaskExecutor(TaskConfig.from_dict(_SAMPLE_CONFIG), behavior_provider=_bp_stub())
     return ex
 
 

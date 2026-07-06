@@ -130,7 +130,7 @@ class ProducedBy:
 
 from experiment_bot.core.config import (
     TaskMetadata, StimulusConfig, NavigationConfig, RuntimeConfig,
-    PerformanceConfig, BetweenSubjectJitterConfig,
+    PerformanceConfig,
 )
 
 
@@ -146,7 +146,7 @@ class TaskCard:
     performance: PerformanceConfig
     response_distributions: dict[str, ParameterValue]
     temporal_effects: dict[str, ParameterValue]
-    between_subject_jitter: BetweenSubjectJitterConfig | dict
+    between_subject_jitter: dict
     reasoning_chain: list[ReasoningStep]
     pilot_validation: dict
 
@@ -186,11 +186,7 @@ class TaskCard:
             "performance": self.performance.to_dict(),
             "response_distributions": {k: v.to_dict() for k, v in self.response_distributions.items()},
             "temporal_effects": {k: v.to_dict() for k, v in self.temporal_effects.items()},
-            "between_subject_jitter": (
-                self.between_subject_jitter.to_dict()
-                if hasattr(self.between_subject_jitter, "to_dict")
-                else self.between_subject_jitter
-            ),
+            "between_subject_jitter": self.between_subject_jitter,
             "reasoning_chain": [s.to_dict() for s in self.reasoning_chain],
             "pilot_validation": self.pilot_validation,
         }

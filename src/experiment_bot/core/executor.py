@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import random
 import sys
 import time
 from typing import TYPE_CHECKING
@@ -10,12 +9,10 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from experiment_bot.llm.protocol import LLMClient
 
-import numpy as np
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
 from experiment_bot.core.config import TaskConfig, TaskPhase
-from experiment_bot.core.distributions import ResponseSampler, jitter_distributions
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
 from experiment_bot.navigation.stuck import StuckDetector
@@ -36,24 +33,16 @@ _ADAPTIVE_NAV_BUDGET = 10
 _ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
 
 
-# Dedicated seed-stream tag for the between-subject jitter draw, so wiring it
-# in does not shift the trial-level RNG sequences of an unchanged seed.
-_BSJ_SEED_STREAM = 202607
-
-
 def _taskcard_to_config(tc):
     """Project a TaskCard into a TaskConfig the executor knows how to drive.
 
     Reads: tc.task, tc.stimuli, tc.navigation, tc.runtime, tc.task_specific,
-    tc.performance. Behavioral fields are projected from ParameterValue.value.
+    tc.performance. response_distributions are projected structurally (their
+    KEYS identify trial-level conditions in _is_trial_stimulus); the naive
+    behavior program supplies all behavioral content.
     """
-    from experiment_bot.core.config import (
-        TaskConfig,
-        DistributionConfig,
-        TemporalEffectsConfig,
-        BetweenSubjectJitterConfig,
-    )
-    cfg = TaskConfig(
+    from experiment_bot.core.config import TaskConfig, DistributionConfig
+    return TaskConfig(
         task=tc.task,
         stimuli=tc.stimuli,
         response_distributions={
@@ -67,17 +56,6 @@ def _taskcard_to_config(tc):
         task_specific=tc.task_specific,
         runtime=tc.runtime,
     )
-    te_dict = {k: v.value for k, v in tc.temporal_effects.items()}
-    cfg.temporal_effects = TemporalEffectsConfig.from_dict(te_dict)
-    bsj = tc.between_subject_jitter
-    if isinstance(bsj, dict):
-        bsj_value = bsj.get("value", {})
-    else:
-        # already a BetweenSubjectJitterConfig
-        cfg.between_subject_jitter = bsj
-        return cfg
-    cfg.between_subject_jitter = BetweenSubjectJitterConfig.from_dict(bsj_value)
-    return cfg
 
 
 class TaskExecutor:
@@ -89,12 +67,20 @@ class TaskExecutor:
         *,
         seed: int | None = None,
         headless: bool = False,
-        session_params: dict | None = None,
         llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
         calibrate: bool = True,  # run the startup keypress-latency calibration pass
-        behavior_provider=None,  # SP21: BehaviorSession replacing the behavioral layer
+        behavior_provider=None,  # SP21: BehaviorSession — the behavioral layer (required)
     ):
+        # The naive behavior program IS the behavioral layer; the executor
+        # supplies only navigation, detection, delivery, and capture.
+        if behavior_provider is None:
+            raise ValueError(
+                "TaskExecutor requires a behavior_provider (BehaviorSession "
+                "wrapping a generated participant program). Run with "
+                "--behavior-program <path-or-label/hash>."
+            )
+        self._behavior_provider = behavior_provider
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
         if isinstance(config, TaskCard):
@@ -102,59 +88,19 @@ class TaskExecutor:
             config = _taskcard_to_config(config)
         else:
             self._taskcard = None
-        # Apply the TaskCard's declared between-subject variance before any
-        # sampler is built. A dedicated seed stream keeps trial-level RNGs
-        # (self._rng / ResponseSampler) draw-identical for zero-jitter
-        # configs; jitter_distributions returns the config unchanged (no rng
-        # draws) when the block is zero/absent.
-        self._behavior_provider = behavior_provider
-        if behavior_provider is None:
-            jitter_rng = np.random.default_rng(
-                None if seed is None else [seed, _BSJ_SEED_STREAM]
-            )
-            config = jitter_distributions(config, jitter_rng)
-        bsj = config.between_subject_jitter
-        self._jitter_realized = {
-            "configured": bool(bsj.rt_mean_sd_ms or bsj.accuracy_sd),
-            "response_distributions": {
-                k: dict(v.params) for k, v in config.response_distributions.items()
-            },
-            "accuracy": dict(config.performance.accuracy),
-            "omission_rate": dict(config.performance.omission_rate),
-        }
         self._config = config
         self._headless = headless
         self._keep_open = keep_open
         self._calibrate = calibrate
-        # Persisted to run_metadata.json so a session is exactly reproducible
-        # (same seed + same TaskCard hash = same output) for runs WITHOUT
-        # adaptive nav (--no-llm-client). Sessions that invoke SP16 adaptive
-        # nav are NOT bit-reproducible from the seed alone — the navigation
-        # path is a nondeterministic session-time LLM decision; only RT/accuracy
-        # sampling is seeded. The realized nav path is recorded per-session in
-        # bot_log.json (type:'adaptive_nav') for audit. Per-session sampled
-        # values are auditable post-hoc.
+        # Persisted to run_metadata.json for provenance. The seed selects the
+        # behavior program's participant; the realized nav path of sessions
+        # that invoke SP16 adaptive nav is recorded per-session in
+        # bot_log.json (type:'adaptive_nav') for audit.
         self._session_seed = seed
-        self._session_params = session_params or {}
-        self._rng = np.random.default_rng(seed)
-        self._py_rng = random.Random(seed)
 
         self._lookup = StimulusLookup(config)
-        self._sampler = ResponseSampler(
-            config.response_distributions,
-            temporal_effects=config.temporal_effects,
-            floor_ms=config.runtime.timing.rt_floor_ms,
-            seed=seed,
-            paradigm_classes=getattr(config.task, "paradigm_classes", None) or [],
-        )
         self._writer = OutputWriter()
         self._trial_count = 0
-        # Rolling window of recent error flags (most recent first / appendleft).
-        # Default 1-trial window. Future generic mechanisms that need a
-        # longer history can read this state field; today the
-        # post_event_slowing handler only consults the most recent trial.
-        from collections import deque
-        self._recent_errors: deque[bool] = deque(maxlen=8)
         self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
@@ -202,12 +148,6 @@ class TaskExecutor:
         # Keys: "response_key_js", "response_window_js"
         self._js_eval_errors: dict[str, int] = {}
 
-        # Task 4 (robust-003): count trials where error injection was requested but
-        # unrealizable because no genuinely-wrong key exists (single-real-key paradigms).
-        # When unrealizable, the call site presses the correct key and logs is_error=False
-        # so bot_log matches the key actually pressed.
-        self._error_injection_unrealizable: int = 0
-
         # Task 6 (platform-004): data-capture visibility — populated by
         # _wait_for_completion so the run() finally block can write them into
         # run_metadata without needing a return value from the method.
@@ -243,8 +183,8 @@ class TaskExecutor:
         self, page: Page, n_keys: int | None = None,
     ) -> None:
         """SP11 Phase 5a/5b: run a calibration sequence using the
-        configured deliverer; install the resulting CalibrationResult
-        on the sampler.
+        configured deliverer; record the CalibrationResult in
+        run_metadata for latency audit.
 
         No-op if no deliverer is configured (delivery_channel='none').
         Should be called after navigation completes (so the bot is
@@ -275,13 +215,12 @@ class TaskExecutor:
                 keys=keys,
                 target_intervals_ms=intervals,
             )
-            self._sampler.set_calibration_result(self._calibration_run.result)
             logger.info(
                 f"Calibration pass complete: model="
                 f"{self._calibration_run.result.model}, "
                 f"n_correctly_recorded="
                 f"{self._calibration_run.result.n_events_correctly_recorded}/"
-                f"{n_keys}, applied to sampler"
+                f"{n_keys}"
             )
         except Exception as e:
             logger.warning(f"Calibration pass failed: {e}; continuing un-calibrated.")
@@ -480,61 +419,6 @@ class TaskExecutor:
         # Has distributions and stimulus has a response key → likely a trial
         return bool(dists) and match.response_key is not None
 
-    def _should_respond_correctly(self, condition: str) -> bool:
-        """Decide whether to give the correct response based on accuracy targets."""
-        return self._py_rng.random() < self._config.performance.get_accuracy(condition)
-
-    def _should_omit(self, condition: str = "") -> bool:
-        return self._py_rng.random() < self._config.performance.get_omission_rate(condition)
-
-    def _pick_wrong_key(self, correct_key: str) -> str | None:
-        """Return a random incorrect key from known response keys, or None if unrealizable.
-
-        Returns None when no genuinely-wrong key exists (single-real-key paradigm).
-        The call site must treat None as "cannot inject error; press correct key honestly"
-        and set is_error=False so bot_log matches what was actually pressed.
-        """
-        # Use static key_map when all values are real keys; exclude sentinel values
-        static_keys = {
-            v for v in self._key_map.values()
-            if v not in ("dynamic", "dynamic_mapping")
-            and not self._is_withhold_sentinel(v)
-        }
-        all_keys = list(static_keys or self._seen_response_keys)
-        wrong_keys = [k for k in all_keys if k != correct_key and not self._is_withhold_sentinel(k)]
-        if not wrong_keys:
-            return None  # Unrealizable: no genuinely-wrong key available
-        return self._py_rng.choice(wrong_keys)
-
-    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
-        """Determine which RT distribution to sample from.
-
-        Resolution order:
-        1. {condition}_correct / {condition}_error variants
-        2. Direct condition name match
-        3. Fallback to first available distribution
-        """
-        dists = self._config.response_distributions
-
-        # Try condition-specific correct/error variants
-        if not is_correct:
-            error_key = f"{condition}_error"
-            if error_key in dists:
-                return error_key
-        else:
-            correct_key = f"{condition}_correct"
-            if correct_key in dists:
-                return correct_key
-
-        # Direct match: condition name is itself a distribution key
-        if condition in dists:
-            return condition
-
-        # Fallback to first available distribution
-        if dists:
-            return next(iter(dists))
-        return condition
-
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
         import time as _time
@@ -683,12 +567,8 @@ class TaskExecutor:
                     "total_trials": self._trial_count,
                     "headless": self._headless,
                     "session_seed": self._session_seed,
-                    "session_params": self._session_params,
-                    "between_subject_jitter": self._jitter_realized,
                 }
-                bp_metadata = self._behavior_program_metadata()
-                if bp_metadata is not None:
-                    metadata["behavior_program"] = bp_metadata
+                metadata["behavior_program"] = self._behavior_program_metadata()
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
@@ -729,11 +609,6 @@ class TaskExecutor:
                 # Task 3: surface JS-eval errors so a malformed Reasoner-emitted JS
                 # expression is visible to the reviewer instead of silently degrading.
                 metadata["js_eval_errors_by_source"] = dict(self._js_eval_errors)
-                # Task 4 (robust-003): surface unrealizable error-injection count so
-                # single-real-key paradigms are visible in run_metadata.
-                metadata["error_injection"] = {
-                    "unrealizable_count": self._error_injection_unrealizable,
-                }
                 # Task 6 (platform-004): data-capture status so a silent export
                 # failure is visible to the reviewer. failed=True means the method
                 # was configured but raised an exception (vs. no-method-configured
@@ -1148,20 +1023,17 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
-    def _behavior_program_metadata(self) -> dict | None:
-        """run_metadata fragment identifying the wired behavior program, or
-        None when no provider is set. Factored out of run()'s finally block
-        so it's unit-testable without invoking the full (browser-dependent)
-        run()."""
-        if self._behavior_provider is None:
-            return None
+    def _behavior_program_metadata(self) -> dict:
+        """run_metadata fragment identifying the wired behavior program.
+        Factored out of run()'s finally block so it's unit-testable without
+        invoking the full (browser-dependent) run()."""
         return {
             "sha256": self._behavior_provider.program_sha256,
             "path": self._behavior_provider.program_path,
             "seed": self._behavior_provider.seed,
         }
 
-    async def _execute_trial_via_provider(self, page, match, cue=None) -> None:
+    async def _execute_trial(self, page, match, cue=None) -> None:
         """SP21 naive arm: the behavior program supplies (key, rt); the
         executor supplies navigation, detection, delivery, and logging.
         No omission draw, no accuracy draw, no sampler, no temporal
@@ -1209,7 +1081,6 @@ class TaskExecutor:
                 })
                 provider.record_outcome(condition, correct=True, rt_ms=None,
                                         interrupted=True)
-                self._recent_errors.appendleft(False)
                 self._prev_interrupt_detected = True
                 await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
                 return
@@ -1231,7 +1102,6 @@ class TaskExecutor:
             })
             provider.record_outcome(condition, correct=False,
                                     rt_ms=decision.rt_ms, interrupted=True)
-            self._recent_errors.appendleft(True)
             self._prev_interrupt_detected = True
             return
 
@@ -1254,7 +1124,6 @@ class TaskExecutor:
             })
             provider.record_outcome(condition, correct=(correct_key is None),
                                     rt_ms=None, interrupted=False)
-            self._recent_errors.appendleft(correct_key is not None)
             self._prev_interrupt_detected = False
             return
 
@@ -1274,223 +1143,6 @@ class TaskExecutor:
         })
         provider.record_outcome(condition, correct=is_correct,
                                 rt_ms=resp.rt_ms, interrupted=False)
-        self._recent_errors.appendleft(not is_correct)
-        self._prev_interrupt_detected = False
-
-    async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
-        """Execute a single trial with probabilistic interrupt handling.
-
-        For tasks with a configured `runtime.trial_interrupt`, polls for the
-        interrupt stimulus during the RT wait. If detected, uses configured
-        accuracy to decide inhibition success/failure probabilistically,
-        producing race-model-valid behavior.
-        """
-        trial_start = time.monotonic()
-        condition = match.condition
-
-        if self._behavior_provider is not None:
-            await self._execute_trial_via_provider(page, match, cue)
-            return
-
-        if self._should_omit(condition):
-            self._writer.log_trial({
-                "trial": self._trial_count,
-                "stimulus_id": match.stimulus_id,
-                "condition": condition,
-                "response_key": None,
-                "sampled_rt_ms": None,
-                "actual_rt_ms": None,
-                "omission": True,
-            })
-            self._recent_errors.appendleft(True)
-            self._prev_interrupt_detected = False
-            await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
-            return
-
-        # Synchronize with platform's response window when the trial loop hasn't
-        # already confirmed it (e.g., PsyToolkit where the gate isn't in the loop)
-        timing = self._config.runtime.timing
-        if timing.response_window_js and not self._response_window_confirmed:
-            await self._wait_for_response_window(page, timing.response_window_js)
-        trial_start = time.monotonic()
-
-        # Sample go RT — track whether this is an intentional error trial
-        is_correct = self._should_respond_correctly(condition)
-        rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
-        is_error = not is_correct
-        te = self._config.temporal_effects
-        # Suppress condition_repetition on the trial after an interrupt, but
-        # only when the post_event_slowing config has an "interrupt" trigger
-        # (suggesting the literature for this paradigm couples post-interrupt
-        # slowing with reset of the condition-repetition prior).
-        _pe_cfg = te.post_event_slowing
-        _has_interrupt_trigger = any(
-            (t.get("event") if isinstance(t, dict) else getattr(t, "event", None)) == "interrupt"
-            for t in (
-                _pe_cfg.triggers if hasattr(_pe_cfg, "triggers")
-                else (_pe_cfg.get("triggers", []) if isinstance(_pe_cfg, dict) else [])
-            )
-        )
-        skip_cond_rep = self._prev_interrupt_detected and _has_interrupt_trigger
-        rt_ms = self._sampler.sample_rt_with_fallback(rt_condition, skip_condition_repetition=skip_cond_rep)
-
-        # Post-event slowing (generic mechanism). Trigger priority is
-        # encoded in the TaskCard's `triggers` list — the executor
-        # invokes the handler with the current SamplerState and lets
-        # the trigger ordering decide the magnitude.
-        from experiment_bot.effects.handlers import (
-            apply_post_event_slowing, SamplerState as _SS,
-        )
-        # Lag-1 PES contract: only the IMMEDIATELY preceding trial counts.
-        # Earlier code used `any(self._recent_errors)` over an 8-trial window,
-        # which made `prev_error=True` on almost every trial in stop-signal
-        # (commission-error rate ≈ 12% × window 8 ≈ 64% of trials always
-        # have a recent error). PES then fired on most trials regardless of
-        # immediate recency and the standard lag-1 post-error vs post-correct
-        # contrast collapsed toward zero. The deque is kept (maxlen=8) for
-        # any future multi-trial decay mechanism, but the executor passes
-        # only the most-recent flag through to the handler.
-        prev_error = bool(self._recent_errors and self._recent_errors[0])
-        post_event_state = _SS(
-            mu=0.0, sigma=0.0, tau=0.0, expected_rt=0.0,
-            prev_rt=None, prev_condition=None, trial_index=self._trial_count,
-            prev_error=prev_error,
-            prev_interrupt_detected=self._prev_interrupt_detected,
-            condition=condition, pink_buffer=None,
-        )
-        rt_ms += apply_post_event_slowing(
-            post_event_state, te.post_event_slowing, self._rng
-        )
-
-        # Cap RT at the task's max response window (prevents late keypresses)
-        max_response_ms = self._config.task_specific.get(
-            "trial_timing", {}
-        ).get("max_response_time_ms") or 0
-        if max_response_ms > 0:
-            rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
-
-        interrupt_detected = False
-
-        if self._interrupt_js:
-            # Poll for interrupt stimulus during RT wait
-            poll_interval = self._config.runtime.timing.poll_interval_ms / 1000.0
-            while (time.monotonic() - trial_start) < rt_ms / 1000.0:
-                if await self._check_interrupt(page, self._interrupt_js):
-                    interrupt_detected = True
-                    break
-                await asyncio.sleep(poll_interval)
-        else:
-            await asyncio.sleep(rt_ms / 1000.0)
-
-        interrupt_cfg = self._config.runtime.trial_interrupt
-        if interrupt_detected:
-            # Decide inhibition outcome probabilistically based on configured accuracy
-            if self._should_respond_correctly(interrupt_cfg.detection_condition):
-                # Successful inhibition — withhold response
-                self._writer.log_trial({
-                    "trial": self._trial_count,
-                    "stimulus_id": match.stimulus_id,
-                    "condition": f"{interrupt_cfg.detection_condition}_withheld",
-                    "response_key": None,
-                    "sampled_rt_ms": round(rt_ms, 1),
-                    "actual_rt_ms": None,
-                    "omission": False,
-                })
-                self._recent_errors.appendleft(False)
-                self._prev_interrupt_detected = True
-                await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
-                return
-            else:
-                # Failed inhibition — sample from failure RT distribution
-                # (faster than go RTs, satisfying independent race model)
-                sf_rt_ms = self._sampler.sample_rt_with_fallback(interrupt_cfg.failure_rt_key)
-                if max_response_ms > 0:
-                    sf_rt_ms = min(sf_rt_ms, max_response_ms * interrupt_cfg.failure_rt_cap_fraction)
-
-                # Wait until failure RT has elapsed from trial start
-                elapsed_s = time.monotonic() - trial_start
-                remaining_s = (sf_rt_ms / 1000.0) - elapsed_s
-                if remaining_s > 0:
-                    await asyncio.sleep(remaining_s)
-
-                actual_rt = (time.monotonic() - trial_start) * 1000
-                resolved_key = await self._resolve_response_key(match, page)
-                delivery_meta: dict = {}
-                if resolved_key:
-                    delivery_meta = await self._fire_response_key(page, resolved_key)
-                self._writer.log_trial({
-                    "trial": self._trial_count,
-                    "stimulus_id": match.stimulus_id,
-                    "condition": f"{interrupt_cfg.detection_condition}_responded",
-                    "response_key": resolved_key,
-                    "sampled_rt_ms": round(sf_rt_ms, 1),
-                    "actual_rt_ms": round(actual_rt, 1),
-                    "omission": False,
-                    "delivery": delivery_meta,
-                })
-                self._recent_errors.appendleft(True)
-                self._prev_interrupt_detected = True
-                return
-
-        # No interrupt — normal trial response
-        if not self._interrupt_js:
-            actual_rt = (time.monotonic() - trial_start) * 1000
-        else:
-            # Wait remaining RT time if we were polling
-            remaining = (rt_ms / 1000.0) - (time.monotonic() - trial_start)
-            if remaining > 0:
-                await asyncio.sleep(remaining)
-            actual_rt = (time.monotonic() - trial_start) * 1000
-
-        resolved_key = await self._resolve_response_key(match, page)
-
-        # A None resolved_key here means the config's response_key_js returned a
-        # withhold sentinel ("", "none", "null").  This is a config-authored
-        # withhold instruction — not a random omission.  Log it distinctly and
-        # skip the keyboard press.
-        if resolved_key is None:
-            self._writer.log_trial({
-                "trial": self._trial_count,
-                "stimulus_id": match.stimulus_id,
-                "condition": condition,
-                "response_key": None,
-                "sampled_rt_ms": round(rt_ms, 1),
-                "actual_rt_ms": None,
-                "omission": False,
-                "withheld": True,
-                "rt_distribution": rt_condition,
-                "cue": cue,
-            })
-            self._recent_errors.appendleft(False)
-            self._prev_interrupt_detected = False
-            return
-
-        if is_error:
-            wrong = self._pick_wrong_key(resolved_key)
-            if wrong is None:
-                # Cannot inject a wrong key (single-real-key paradigm); press
-                # the correct key honestly and record is_error=False so bot_log
-                # matches the key actually pressed (robust-003).
-                is_error = False
-                self._error_injection_unrealizable += 1
-            else:
-                resolved_key = wrong
-        delivery_meta = await self._fire_response_key(page, resolved_key)
-
-        self._writer.log_trial({
-            "trial": self._trial_count,
-            "stimulus_id": match.stimulus_id,
-            "condition": condition,
-            "response_key": resolved_key,
-            "sampled_rt_ms": round(rt_ms, 1),
-            "actual_rt_ms": round(actual_rt, 1),
-            "omission": False,
-            "intended_error": is_error,
-            "rt_distribution": rt_condition,
-            "cue": cue,
-            "delivery": delivery_meta,
-        })
-        self._recent_errors.appendleft(is_error)
         self._prev_interrupt_detected = False
 
     async def _handle_attention_check(self, page: Page) -> None:

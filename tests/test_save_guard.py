@@ -11,6 +11,19 @@ from experiment_bot.core.config import TaskConfig
 from experiment_bot.core.executor import TaskExecutor
 from experiment_bot.output.writer import OutputWriter
 
+
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
 MINIMAL_CONFIG = {
     "task": {"name": "Stroop", "platform": "expfactory", "constructs": [], "reference_literature": []},
     "stimuli": [
@@ -32,7 +45,7 @@ MINIMAL_CONFIG = {
 
 
 def _executor():
-    return TaskExecutor(TaskConfig.from_dict(MINIMAL_CONFIG))
+    return TaskExecutor(TaskConfig.from_dict(MINIMAL_CONFIG), behavior_provider=_bp_stub())
 
 
 def _writer_with_run(tmp_path):

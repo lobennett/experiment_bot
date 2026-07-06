@@ -27,3 +27,22 @@ def test_every_committed_taskcard_loads(label):
         assert stim.detection.selector, (label, stim.id)
     assert tc.runtime is not None
     assert tc.navigation is not None
+
+
+def test_structural_pipeline_scrubs_stray_behavioral_fields():
+    """Live-run regression (flanker, 2026-07-06): Stage 1's LLM emitted
+    performance={'accuracy': 0.8} (bare float) though the structural prompt
+    doesn't ask for it; Stage 6's PerformanceConfig.from_dict crashed on
+    .items(). The pipeline must drop stray behavioral fields."""
+    from experiment_bot.reasoner.pipeline import _scrub_behavioral_fields
+    partial = {"task": {"name": "x"}, "stimuli": [],
+               "performance": {"accuracy": 0.8, "omission": 0.1},
+               "response_distributions": {"go": {}},
+               "temporal_effects": {"anything": 1},
+               "between_subject_jitter": {"value": {}},
+               "_reasoning_chain": []}
+    _scrub_behavioral_fields(partial)
+    for k in ("performance", "response_distributions", "temporal_effects",
+              "between_subject_jitter"):
+        assert k not in partial
+    assert partial["task"] == {"name": "x"}

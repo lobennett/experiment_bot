@@ -49,13 +49,11 @@ defaults.
 
 ## REQUIRED task metadata
 
-- `task.paradigm_classes` (list of strings) — abstract classes the paradigm
-  belongs to. **Open-ended vocabulary**: choose the abstract class names from
-  the literature that best describe the cognitive operations the task taxes.
-  Recorded as card metadata. Always include
-  `"speeded_choice"` for any timed-decision task, plus one or more specific
-  classes drawn from review-article terminology. See system.md "Paradigm
-  classes" for examples and guidance on picking class names.
+- `task.paradigm_classes` (list of strings) — short descriptive tags for
+  the task family (metadata only; no runtime component reads them). Use
+  brief, generic descriptors of what the task requires (e.g. a speeded
+  two-choice task, a task with a mid-trial withhold signal); do not use
+  lab-specific task names. See system.md "Paradigm classes".
 """
 
 

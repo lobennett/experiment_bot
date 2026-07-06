@@ -26,14 +26,7 @@ psychology / neuroscience literature. Classes you choose should:
 
 The class names you choose should be those used in review articles or
 meta-analyses for grouping paradigms with shared effect signatures.
-Do not invent new class names when an established one applies. Propose
-a new class name only when the literature for this paradigm does not
-fit any established grouping; in that case, the framework will look
-for `norms/<class_name>.json` and the user can extract norms via
-`experiment-bot-extract-norms --paradigm-class <class_name>`.
-
-The classes are used to look up the canonical norms file for validation
-(`norms/<class_name>.json`).
+Do not invent new class names when an established one applies.
 
 ---
 
@@ -174,66 +167,12 @@ If the experiment has attention checks:
 ### 9. Trial Interrupt (response suppression trials)
 
 If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
-- `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
-- `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
-- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Derive this fraction from (a) the task's own definition of the response window or signal-delay schedule in the source code, and (b) primary-source literature on where commission-error RTs fall within the response window for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
+- `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression. On detection, the executor hands the interrupt (with its onset delay) to the generated participant program, which decides whether the response is withheld.
 - `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's signal-delay schedule or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
 **Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
 
-### 10. Temporal Effects Schema (generic mechanisms)
-
-The `temporal_effects` object controls sequential dependencies in RT across trials. The bot's library contains **generic mechanisms only** — no paradigm-specific effects. Each is a *configuration* you supply per task from the literature for THIS paradigm. Each sub-object has an `enabled` boolean, mechanism-specific parameters, and a `rationale` string. Leave a mechanism disabled when the literature for the paradigm does not document it.
-
-**`autocorrelation`** — AR(1) serial dependency: each trial's RT is pulled toward the previous trial's RT. The deviation of the previous RT from the condition mean is multiplied by `phi` and added to the current RT.
-- `phi`: AR(1) coefficient (0–1). 0 = no carry-over; 1 = current RT fully determined by previous deviation.
-
-**`fatigue_drift`** — Linear monotonic drift in RT across trials. `drift_per_trial_ms` × trial index is added to each sampled RT.
-- `drift_per_trial_ms`: ms added per trial (cumulative).
-
-**`condition_repetition`** — Same-vs-different binary condition transition. If current condition matches previous, subtract `facilitation_ms`; otherwise add `cost_ms`.
-- `facilitation_ms`: RT reduction when condition repeats.
-- `cost_ms`: RT increase when condition switches.
-
-**`pink_noise`** — Long-range 1/f^alpha temporal correlations. A pre-generated spectral-synthesis noise buffer indexed by trial number, scaled by `sd_ms`.
-- `sd_ms`: SD of the noise contribution (ms).
-- `alpha`: Spectral slope (must be > 0 when enabled). alpha=1 is canonical "pink" noise; values toward 0 approach white noise; alpha=2 is Brownian. (Do NOT emit the pre-SP11 `hurst` field — it is deprecated.)
-
-**`lag1_pair_modulation`** — Generic lag-1 condition-pair RT modulation. The mechanism applies an RT delta whenever the (previous_condition, current_condition) pair matches an entry in `modulation_table`. Configure ONE entry per literature-documented transition; leave the table empty if no 2-back interaction is documented.
-- `modulation_table` (list of dicts): each entry has `prev` (str: previous condition label), `curr` (str: current condition label), and either `delta_ms` (fixed RT delta in ms, can be negative for facilitation) or `delta_ms_min` + `delta_ms_max` (uniform-random delta sampled per trial). First matching entry wins.
-- `skip_after_error` (bool, default true): if true, no modulation on the trial after an error.
-
-  Schema example (abstract labels — the bot's code does not assume any specific condition vocabulary):
-  `[{prev: "<high_label>", curr: "<high_label>", delta_ms: <facilitation_ms>}, {prev: "<low_label>", curr: "<high_label>", delta_ms: <cost_ms>}]`. Use the actual condition labels from this task's `response_distributions`, and use signs and magnitudes drawn from the literature for THIS paradigm class.
-
-**`post_event_slowing`** — Generic post-event RT slowing. The mechanism applies a uniform-random RT delta whenever a configured triggering event was detected on the previous trial. Configure one entry per literature-documented event type; list them in priority order so the first match wins.
-- `triggers` (list of dicts): each entry has `event` (str — one of `"error"` or `"interrupt"`, matching the runtime sources `prev_error` and `prev_interrupt_detected`), `slowing_ms_min`, `slowing_ms_max` (uniform-random RT addition in ms), and `exclusive_with_prior_triggers` (bool, default true).
-
-  Schema example: `[{event: "<event_type>", slowing_ms_min: <min_ms>, slowing_ms_max: <max_ms>, exclusive_with_prior_triggers: true}, ...]`. Configure as many entries as the literature for this paradigm class documents; leave the list empty otherwise.
-
-**`practice_effect`** — Block-wise RT reduction across the early session, decaying exponentially to zero. RT delta at a block is `+initial_offset_ms × exp(−decay_rate × block_idx)`, capped at 0 once `block_idx >= asymptote_block`; `block_idx = trial_index // trials_per_block`.
-- `initial_offset_ms`: RT elevation (ms) at the start of the session.
-- `decay_rate`: exponential decay rate per block.
-- `asymptote_block`: block index at and beyond which the delta is 0.
-- `trials_per_block`: trials per block for the internal block counter.
-
-**`vigilance_decrement`** — RT-variance inflation over session length: a zero-mean Gaussian perturbation whose SD grows linearly with trial index. Mean RT is unchanged; variance grows.
-- `sd_per_100_trials_ms`: SD (ms) the perturbation reaches per 100 trials elapsed.
-
-### 11. Between-Subject Jitter Schema (mechanical descriptions)
-
-The `between_subject_jitter` object controls session-level parameter variation applied once per run to simulate individual differences across participants. All jitter is sampled at session start and held constant throughout the session.
-
-- `rt_mean_sd_ms`: Standard deviation (ms) of a shared Gaussian shift applied identically to the `mu` parameter of ALL condition distributions. A single draw is shared across conditions, preserving inter-condition differences (e.g., switch costs) while shifting the overall speed level. Set to 0 to disable global speed jitter.
-- `rt_condition_sd_ms`: Standard deviation (ms) of an independent per-condition Gaussian shift applied to `mu` for each distribution separately (in addition to the shared shift). This allows conditions to vary slightly relative to each other across sessions.
-- `sigma_tau_range`: A two-element list `[lo, hi]` defining a uniform distribution. Each session, `sigma` and `tau` for every distribution are independently multiplied by a draw from `Uniform(lo, hi)`. Set to `[1.0, 1.0]` to disable shape jitter.
-- `accuracy_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's accuracy target.
-- `accuracy_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered accuracy values are clipped to. The runtime default is a fallback only. **Derive the range for THIS paradigm class from the literature** (e.g. `[<floor>, <ceiling>]` — a chance-level floor for threshold tasks, a staircase's convergence target where one exists) and cite the paradigm-specific basis.
-- `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate.
-- `omission_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered omission rates are clipped to. The runtime default is a fallback only. **Derive the ceiling for THIS paradigm class from the literature** (`[0.0, <ceiling>]` — pacing and response-deadline structure determine how high omissions plausibly run) and cite the paradigm-specific basis.
-- `rationale`: Free-text field for recording the basis for chosen jitter parameters.
-
-### 12. Pilot Configuration
+### 10. Pilot Configuration
 
 Specify parameters for a validation pilot run. The executor runs a short pilot session before the full experiment to test your selectors and detection logic against the live DOM. Based on the experiment's trial structure (block sizes, condition ratios, practice/test phases), specify:
 - `min_trials`: Minimum trials needed to observe all conditions at least once
@@ -244,26 +183,9 @@ Specify parameters for a validation pilot run. The executor runs a short pilot s
 
 ---
 
-## Section B — Behavioral Instructions
-
-You are analyzing a cognitive experiment. Based on the task source code and your knowledge of the cognitive psychology literature:
-
-1. Identify the cognitive constructs being measured and the relevant literature
-2. Determine appropriate response time distributions for each condition — choosing among the runtime's supported distribution families based on what the literature fits for this paradigm — informed by published findings
-3. Set per-condition accuracy and omission rate targets consistent with the literature
-4. Decide which temporal effects to enable and parameterize, with rationale citing relevant studies
-5. If the task involves any form of response suppression or signal-based interruption, configure the trial_interrupt parameters based on the relevant theoretical framework, citing your reasoning
-6. Configure between-subject jitter parameters based on known individual differences in the literature
-
-Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields.
-
-The human behavioral literature you reference may come from laboratory settings. The experiments you are configuring run online in a web browser. Use your judgment about whether to adjust parameters, but do not apply blanket inflation — many online samples produce RTs comparable to laboratory norms.
-
----
-
 ## Response Format
 
-Return ONLY valid JSON conforming to the provided schema. No markdown, no explanation, just the JSON object.
+Return ONLY valid JSON with the fields described above. No markdown, no explanation, just the JSON object.
 
 ## Analysis Strategy
 

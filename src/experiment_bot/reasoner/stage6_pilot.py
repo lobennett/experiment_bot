@@ -253,6 +253,12 @@ Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
 """
 
 
+# Extra single-phase refinement rounds granted when the C3 replay gate
+# fails after a passing live pilot (each round: propose ONE phase from the
+# replay's stuck DOM, append, re-replay).
+_REPLAY_REFINE_BUDGET = 2
+
+
 async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                             headless=True, viewport=None,
                             max_polls=_NO_MATCH_EARLY_STOP) -> bool:
@@ -261,8 +267,10 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
     nav does), then poll for a trial stimulus WHILE pressing advance_keys
     periodically — mirroring the executor's trial loop, which presses advance keys
     when no stimulus matches (e.g. to dismiss a "press enter to begin practice"
-    interstitial that nav legitimately leaves the bot on). Returns True iff a
-    trial stimulus is reached.
+    interstitial that nav legitimately leaves the bot on). Returns
+    (reached, final_dom): reached is True iff a trial stimulus is rendered;
+    final_dom is the page snapshot at exit so a gate failure can seed one
+    more walker refinement round (see run_stage6's replay-refine loop).
 
     The advance-key behavior is load-bearing: nav phases get the bot to the brink
     of the trial block, but the final transition into trials is driven by the
@@ -280,13 +288,13 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
         for _ in range(max_polls):
             probe = await session.probe_stimulus(lookup)
             if probe.match is not None:
-                return True
+                return True, ""
             misses += 1
             if advance_keys and misses % interval == 0:
                 for k in advance_keys:
                     await session.press(k)
             await asyncio.sleep(0.05)  # 50ms between polls, let DOM transition settle
-        return False
+        return False, await session.dom_snapshot()
 
 
 def _partial_to_pilot_config(partial: dict) -> TaskConfig:
@@ -632,18 +640,51 @@ async def run_stage6(
                         f"conditions {conditions_observed}."
                     )
                 # C3: prove the finalized nav is executor-replayable (fresh browser).
-                replay_config = _partial_to_pilot_config(partial)
+                # A gate failure feeds the replay's stuck DOM back into the
+                # walker's refinement proposer for a bounded number of extra
+                # single-phase rounds (surfaced by held-out flanker: Stage 1
+                # omitted advance_keys, leaving a final "press enter to begin"
+                # interstitial that neither nav phases nor advance-key presses
+                # crossed — one proposed keypress phase heals it replayably).
                 from experiment_bot.core.stimulus import StimulusLookup as _StimulusLookup
-                reached = await replay_navigation(
-                    bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
-                    advance_behavior=replay_config.runtime.advance_behavior,
-                    headless=headless, viewport=replay_config.runtime.timing.viewport,
-                )
-                if not reached:
-                    raise PilotValidationError(
-                        "Stage-6 replay gate: finalized navigation.phases did not reach "
-                        "trial rendering in a fresh-browser executor-shaped replay. The "
-                        "walker's nav is not executor-replayable. See pilot.md."
+                replay_diffs: list[str] = []
+                for replay_round in range(1 + _REPLAY_REFINE_BUDGET):
+                    replay_config = _partial_to_pilot_config(partial)
+                    reached, replay_dom = await replay_navigation(
+                        bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
+                        advance_behavior=replay_config.runtime.advance_behavior,
+                        headless=headless, viewport=replay_config.runtime.timing.viewport,
+                    )
+                    if reached:
+                        break
+                    if replay_round == _REPLAY_REFINE_BUDGET:
+                        raise PilotValidationError(
+                            "Stage-6 replay gate: finalized navigation.phases did not reach "
+                            "trial rendering in a fresh-browser executor-shaped replay, and "
+                            f"{_REPLAY_REFINE_BUDGET} replay-refine round(s) did not heal it. "
+                            "See pilot.md."
+                        )
+                    try:
+                        new_phase = await _propose_next_phase(
+                            client, replay_dom, accumulated_phases, replay_diffs,
+                        )
+                    except Exception as e:  # noqa: BLE001 — budget-bounded; fall through to gate error
+                        logger.warning("replay-refine proposal failed: %s", e)
+                        continue
+                    accumulated_phases.append(new_phase)
+                    partial.setdefault('navigation', {})['phases'] = accumulated_phases
+                    diff_text = (
+                        f"# Replay-gate refinement round {replay_round + 1}\n"
+                        f"# (appended after the live pilot passed; replay could not reach trials)\n\n"
+                        + json.dumps(new_phase, indent=2)
+                    )
+                    replay_diffs.append(diff_text)
+                    _diff_dir = Path(taskcards_dir) / label
+                    _diff_dir.mkdir(parents=True, exist_ok=True)
+                    (_diff_dir / f"pilot_replay_refinement_{replay_round + 1}.diff").write_text(diff_text)
+                    evidence.append(
+                        f"replay_refine_{replay_round + 1}: appended phase "
+                        f"{new_phase.get('phase', '?')!r} ({new_phase.get('action', '?')})"
                     )
                 return partial, ReasoningStep(
                     step="stage6_pilot",

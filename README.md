@@ -268,5 +268,6 @@ uv run pytest -q
 
 ## Further Reading
 
+- **[`docs/pipeline.md`](docs/pipeline.md)** — how the whole pipeline works, start to finish (URL → structural card → program → gate → sessions → analysis).
 - **[`docs/preregistration-naive.md`](docs/preregistration-naive.md)** — the frozen pre-registration (committed before any generation call).
 - **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The comparison-arm (expert pipeline) code and dataset live on the `main` branch.

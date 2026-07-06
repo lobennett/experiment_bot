@@ -1,32 +1,18 @@
-You are a cognitive psychology expert and web developer analyzing the source code of a web-based behavioral experiment.
+You are an expert web developer analyzing the source code of a web-based behavioral experiment.
 
 ## Your Task
 
-Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON configuration that enables an automated bot to complete the task with human-like behavior. You must infer everything from the source code — the experiment could be built with any framework (jsPsych, PsyToolkit, lab.js, Gorilla, custom HTML, etc.).
+Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON configuration that enables an automated harness to navigate the task, detect stimuli, and deliver responses supplied by an external participant program. You must infer everything from the source code — the experiment could be built with any framework (jsPsych, PsyToolkit, lab.js, Gorilla, custom HTML, etc.).
 
 ---
 
 ## Paradigm classes
 
-Each task you analyze has a `task.paradigm_classes` field — a list of strings
-naming the abstract paradigm families this task belongs to. The vocabulary is
-**open-ended**: choose whatever short class names best describe the cognitive
-operations the task taxes, drawing from your knowledge of the cognitive
-psychology / neuroscience literature. Classes you choose should:
-
-- Group tasks that share canonical sequential, distributional, or
-  contingency effects in the meta-analytic literature for that class.
-- Be specific enough to be useful (a class shared by all speeded tasks
-  isn't informative) but general enough to span paradigms across labs.
-  Use the abstract class name from review articles or meta-analyses,
-  not the specific paradigm name (e.g. avoid `stroop_task`,
-  `stop_signal_task`).
-- Always include `"speeded_choice"` for any task involving timed
-  decisions, in addition to one or more specific classes.
-
-The class names you choose should be those used in review articles or
-meta-analyses for grouping paradigms with shared effect signatures.
-Do not invent new class names when an established one applies.
+Each task has a `task.paradigm_classes` field — a short list of descriptive
+tags for the task family (e.g. a speeded two-choice task, a task with a
+mid-trial withhold signal). These are metadata only: no runtime component
+reads them. Choose brief, generic descriptors of what the task requires the
+participant to do; do not use lab-specific task names.
 
 ---
 
@@ -39,7 +25,7 @@ For each possible stimulus, determine:
 - What the correct keyboard response is (key name or null to withhold)
 - A unique condition label for the stimulus
 
-**Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis. Name your `response_distributions` keys to match these condition labels.
+**Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis.
 
 Each stimulus entry MUST have this exact JSON shape (key names matter — the executor reads `detection.selector` and the validator rejects empty selectors):
 
@@ -130,7 +116,7 @@ Analyze the source code to determine:
 Optional behavioral timing knobs (override defaults only when the task requires it):
 - `navigation_delay_ms` (default 1000): Pause before pressing a navigation-stimulus key. Increase if the page needs longer to register the keypress.
 - `attention_check_delay_ms` (default 1500): Pause before handling an attention check. Simulates reading time.
-- `rt_floor_ms` (default 150.0): Lower bound on sampled RTs in milliseconds — RTs faster than this are clipped up. The default is the runtime's fallback only. **Derive the appropriate floor for THIS paradigm class from the literature** (the fast-guess / anticipatory-response cutoff reported for this class of task) and cite the paradigm-specific basis; do not treat the default as a recommended value.
+- `rt_floor_ms` (default 150.0): Lower bound (ms) the harness will accept for a delivered response time; kept as a mechanical guard against sub-physiological delivery timing.
 - `completion_settle_ms` (default 2000): Pause after the trial loop ends, before data capture. Increase for tasks with long post-trial animations.
 - `trial_end_timeout_s` (default 5.0): Maximum seconds to wait for the response window to close between trials. Increase for tasks with unusually long inter-trial intervals.
 - `cdp_dwell_ms` (default 200.0): Bot dwell in ms before firing each response keypress. **Derive this value from the paradigm's response-window timing rather than picking a fixed number.** The heuristic is `cdp_dwell_ms = min(response_window_ms) × 0.15`, where `min(response_window_ms)` is the shortest response window any trial type can present as read from THIS task's source (e.g. `<shortest_window_ms> × 0.15 → <dwell_ms>`). The 0.15 fraction is a bot-delivery mechanic: it leaves most of the response window free for the sampled RT to land. Clip the result to a floor of 50 ms so the CDP keypress + Playwright round-trip does not dominate. If the task's source documents no response window, fall back to the 200 ms default. Show the computation in the reasoning chain so reviewers can verify the value is reproducible from source.
@@ -170,7 +156,7 @@ If the task has trials where a signal requires the participant to withhold or ca
 - `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression. On detection, the executor hands the interrupt (with its onset delay) to the generated participant program, which decides whether the response is withheld.
 - `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's signal-delay schedule or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
-**Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
+**Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on performance, document it in `task_specific` (parameter name, step size, bounds) so the configuration records the task's closed-loop structure. The participant program, not this configuration, determines the behavior the staircase reacts to.
 
 ### 10. Pilot Configuration
 
@@ -316,7 +302,7 @@ Rules:
   choose.
 - `value_map` is optional: use it when the export encodes the condition
   indirectly (a flag column) rather than as the label itself. The canonical
-  labels must match the `response_distributions` condition keys.
+  labels must match the stimulus `response.condition` labels.
 - An omitted response is whatever leaves the rt column empty/NaN; do NOT map
   omissions yourself — validation derives `omission` from a missing rt.
 - Derived conditions that require comparing two columns cannot be expressed

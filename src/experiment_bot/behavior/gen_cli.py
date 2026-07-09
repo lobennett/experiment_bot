@@ -16,7 +16,7 @@ from pathlib import Path
 import click
 
 from experiment_bot.behavior.provider import (
-    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key,
+    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key, stim_response_elements,
 )
 from experiment_bot.behavior.simgate import run_gate
 from experiment_bot.core.scraper import scrape_experiment_source
@@ -112,10 +112,16 @@ def _pilot_condition_stream(taskcards_dir: str, label: str,
 
 def mechanical_facts(taskcard) -> dict:
     conditions: list[str] = []
+    response_elements: dict[str, list[str]] = {}
     for stim in taskcard.stimuli or []:
         cond, _ = stim_condition_and_key(stim)
         if cond and cond not in conditions:
             conditions.append(cond)
+        # Wave B1: clickable option labels per condition, so the gate can
+        # replay click-response trials with the same ctx shape as live runs.
+        labels = [label for label, _sel in stim_response_elements(stim)]
+        if cond and labels and cond not in response_elements:
+            response_elements[cond] = labels
     km = {k: v for k, v in ((taskcard.task_specific or {}).get("key_map") or {}).items()
           if isinstance(v, str) and v.lower() not in NON_LITERAL_KEY_SENTINELS}
     ti = getattr(taskcard.runtime, "trial_interrupt", None)
@@ -125,7 +131,8 @@ def mechanical_facts(taskcard) -> dict:
     interrupt_condition = (getattr(ti, "detection_condition", None) if ti else None) or None
     has_interrupt = interrupt_condition is not None
     return {"conditions": conditions, "key_map": km, "has_interrupt": has_interrupt,
-            "interrupt_condition": interrupt_condition}
+            "interrupt_condition": interrupt_condition,
+            "response_elements": response_elements}
 
 
 async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards",
@@ -181,7 +188,8 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
                           key_map=facts["key_map"],
                           has_interrupt=facts["has_interrupt"],
                           interrupt_condition=facts["interrupt_condition"],
-                          condition_stream=condition_stream)
+                          condition_stream=condition_stream,
+                          response_elements=facts["response_elements"])
         simgate_path = out_dir / f"{sha}.simgate.json"
         if simgate_path.exists():
             simgate_path = out_dir / f"{sha}.attempt{attempt}.simgate.json"

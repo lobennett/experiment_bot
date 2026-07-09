@@ -12,6 +12,7 @@ if TYPE_CHECKING:
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
+from experiment_bot.behavior.provider import ClickResponse, stim_response_elements
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
@@ -328,6 +329,22 @@ class TaskExecutor:
             "skipped": rec.skipped,
             "skip_reason": rec.skip_reason,
         }
+
+    async def _fire_response_click(self, page: Page, selector: str) -> dict:
+        """Wave B1: deliver a click response on a response element's
+        selector. Mirrors the feedback-selector click pattern (.first /
+        visibility wait / click, bounded timeouts). A delivery failure is
+        recorded in the metadata, never raised — the trial still logs.
+        """
+        meta: dict = {"method": "locator_click", "selector": selector}
+        try:
+            btn = page.locator(selector).first
+            await btn.wait_for(state="visible", timeout=1500)
+            await btn.click(timeout=1500)
+        except Exception as e:
+            logger.warning(f"Click delivery failed for {selector!r}: {e}")
+            meta["error"] = str(e)
+        return meta
 
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
@@ -1131,8 +1148,16 @@ class TaskExecutor:
         # Wave B3: the already-computed trial context text (the logged `cue`)
         # is exposed to the program as ctx.stimulus_text.
         stimulus_text = str(cue) if cue is not None else None
+        # Wave B1: clickable response options declared on the matched
+        # stimulus — (label, selector) pairs; labels go to the program,
+        # selectors resolve a returned click by index.
+        stim_cfg = next(
+            (s for s in self._config.stimuli if s.id == match.stimulus_id), None)
+        response_elements = stim_response_elements(stim_cfg) if stim_cfg else ()
         resp = provider.respond(condition, correct_key, self._trial_count,
-                                stimulus_text=stimulus_text)
+                                stimulus_text=stimulus_text,
+                                response_elements=tuple(
+                                    label for label, _sel in response_elements))
         rt_ms = resp.rt_ms
 
         interrupt_detected = False
@@ -1151,8 +1176,10 @@ class TaskExecutor:
             # A program may withhold explicitly (decision is None) or commit to
             # respond but with no key (decision.key is None) — both mean "no
             # keypress fires"; treat them as the single withhold path so a
-            # None key can never reach _fire_response_key.
-            if decision is None or decision.key is None:
+            # None key can never reach _fire_response_key. A ClickResponse
+            # decision is always a commission (its index is validated).
+            if decision is None or (not isinstance(decision, ClickResponse)
+                                    and decision.key is None):
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
@@ -1172,18 +1199,26 @@ class TaskExecutor:
             if remaining_s > 0:
                 await asyncio.sleep(remaining_s)
             actual_rt = (time.monotonic() - trial_start) * 1000
-            delivery_meta = await self._fire_response_key(page, decision.key)
-            self._writer.log_trial({
+            entry = {
                 "trial": self._trial_count,
                 "stimulus_id": match.stimulus_id,
                 "condition": f"{interrupt_cfg.detection_condition}_responded",
-                "response_key": decision.key,
                 "sampled_rt_ms": round(decision.rt_ms, 1),
                 "actual_rt_ms": round(actual_rt, 1),
                 "omission": False,
-                "delivery": delivery_meta,
                 "behavior_provider": True,
-            })
+            }
+            if isinstance(decision, ClickResponse):
+                label, selector = response_elements[decision.element_index]
+                entry["delivery"] = await self._fire_response_click(page, selector)
+                entry["response_type"] = "click"
+                entry["response_element"] = label
+                entry["response_element_index"] = decision.element_index
+                entry["response_key"] = None
+            else:
+                entry["delivery"] = await self._fire_response_key(page, decision.key)
+                entry["response_key"] = decision.key
+            self._writer.log_trial(entry)
             provider.record_outcome(condition, correct=False,
                                     rt_ms=decision.rt_ms, interrupted=True)
             self._prev_interrupt_detected = True
@@ -1193,6 +1228,35 @@ class TaskExecutor:
         if remaining > 0:
             await asyncio.sleep(remaining)
         actual_rt = (time.monotonic() - trial_start) * 1000
+
+        if isinstance(resp, ClickResponse):
+            # Wave B1: click delivery — resolve the element's selector by
+            # index and click it. Correctness mirrors the keypress rule:
+            # the clicked option's label is compared to the resolved
+            # correct key (the structural card carries the correct option's
+            # label there for click-response tasks).
+            label, selector = response_elements[resp.element_index]
+            delivery_meta = await self._fire_response_click(page, selector)
+            is_correct = (correct_key is not None and label == correct_key)
+            self._writer.log_trial({
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": condition,
+                "response_type": "click",
+                "response_element": label,
+                "response_element_index": resp.element_index,
+                "response_key": None,
+                "sampled_rt_ms": round(rt_ms, 1),
+                "actual_rt_ms": round(actual_rt, 1),
+                "omission": False,
+                "delivery": delivery_meta,
+                "behavior_provider": True,
+                "cue": cue,
+            })
+            provider.record_outcome(condition, correct=is_correct,
+                                    rt_ms=resp.rt_ms, interrupted=False)
+            self._prev_interrupt_detected = False
+            return
 
         if resp.key is None:
             self._writer.log_trial({

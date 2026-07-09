@@ -5,8 +5,8 @@ from pathlib import Path
 import pytest
 
 from experiment_bot.behavior.provider import (
-    BehaviorSession, ProtocolViolation, Response, TrialContext,
-    load_program, program_sha256, resolve_program,
+    BehaviorSession, ClickResponse, ProtocolViolation, Response, TrialContext,
+    load_program, program_sha256, resolve_program, stim_response_elements,
 )
 
 TOY = Path("tests/fixtures/toy_participant.py")
@@ -158,6 +158,133 @@ def test_on_interrupt_sees_same_ctx_with_stimulus_text():
     s.respond("stop", "f", 0, stimulus_text="cue-text")
     s.on_interrupt(ssd_ms=250.0)
     assert seen["stimulus_text"] == "cue-text"
+
+
+# --- Wave B1: click response modality ---
+
+def _program(respond_fn, on_interrupt_fn=None):
+    attrs = {"respond": lambda self, ctx: respond_fn(ctx)}
+    if on_interrupt_fn is not None:
+        attrs["on_interrupt"] = lambda self, ctx, ssd_ms, intended: \
+            on_interrupt_fn(ctx, ssd_ms, intended)
+    cls = type("_P", (), attrs)
+    return type("M", (), {"make_participant": staticmethod(lambda seed: cls())})
+
+ELEMENTS = ("Left option", "Right option")
+
+
+def test_context_response_elements_default_empty():
+    s = _session()
+    assert s.build_context("go", "f", 0).response_elements == ()
+
+
+def test_click_tuple_validates_to_click_response():
+    s = BehaviorSession(_program(lambda ctx: ("click", 1, 500.0)), seed=1,
+                        available_keys=KEYS)
+    r = s.respond("choice", None, 0, response_elements=ELEMENTS)
+    assert isinstance(r, ClickResponse)
+    assert r.element_index == 1
+    assert r.rt_ms == 500.0
+
+
+def test_click_rejected_when_no_response_elements():
+    s = BehaviorSession(_program(lambda ctx: ("click", 0, 400.0)), seed=1,
+                        available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="response_elements"):
+        s.respond("go", "f", 0)  # keypress trial: no elements
+
+
+@pytest.mark.parametrize("idx", [2, -1, 0.0, "0", True, None])
+def test_click_bad_index_rejected(idx):
+    s = BehaviorSession(_program(lambda ctx: ("click", idx, 400.0)), seed=1,
+                        available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="element_index"):
+        s.respond("choice", None, 0, response_elements=ELEMENTS)
+
+
+def test_click_bad_rt_rejected():
+    s = BehaviorSession(_program(lambda ctx: ("click", 0, float("inf"))), seed=1,
+                        available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="rt"):
+        s.respond("choice", None, 0, response_elements=ELEMENTS)
+
+
+def test_key_tuple_still_valid_when_elements_present():
+    """The 2-tuple keypress contract is untouched by response_elements."""
+    s = BehaviorSession(_program(lambda ctx: ("f", 400.0)), seed=1,
+                        available_keys=KEYS)
+    r = s.respond("choice", "f", 0, response_elements=ELEMENTS)
+    assert isinstance(r, Response) and r.key == "f"
+
+
+def test_respond_threads_response_elements_to_program():
+    seen = {}
+
+    def _respond(ctx):
+        seen["elements"] = ctx.response_elements
+        return ("click", 0, 350.0)
+    s = BehaviorSession(_program(_respond), seed=1, available_keys=KEYS)
+    s.respond("choice", None, 0, response_elements=ELEMENTS)
+    assert seen["elements"] == ELEMENTS
+
+
+def test_on_interrupt_intended_carries_click_shape():
+    seen = {}
+
+    def _on_interrupt(ctx, ssd_ms, intended):
+        seen["intended"] = intended
+        return None
+    s = BehaviorSession(_program(lambda ctx: ("click", 1, 600.0), _on_interrupt),
+                        seed=1, available_keys=KEYS)
+    s.respond("choice", None, 0, response_elements=ELEMENTS)
+    assert s.on_interrupt(ssd_ms=200.0) is None
+    assert seen["intended"] == ("click", 1, 600.0)
+
+
+def test_on_interrupt_click_return_validated_against_last_elements():
+    s = BehaviorSession(
+        _program(lambda ctx: ("click", 0, 600.0),
+                 lambda ctx, ssd, intended: ("click", 1, 700.0)),
+        seed=1, available_keys=KEYS)
+    s.respond("choice", None, 0, response_elements=ELEMENTS)
+    d = s.on_interrupt(ssd_ms=200.0)
+    assert isinstance(d, ClickResponse) and d.element_index == 1
+
+    s2 = BehaviorSession(
+        _program(lambda ctx: ("f", 600.0),
+                 lambda ctx, ssd, intended: ("click", 0, 700.0)),
+        seed=1, available_keys=KEYS)
+    s2.respond("go", "f", 0)  # no elements this trial
+    with pytest.raises(ProtocolViolation, match="response_elements"):
+        s2.on_interrupt(ssd_ms=200.0)
+
+
+def test_stim_response_elements_reads_dict_shape():
+    stim = {"response": {"condition": "choice", "key": None,
+                         "response_elements": [
+                             {"label": "Left option", "selector": "#opt-left"},
+                             {"label": "Right option", "selector": "#opt-right"},
+                             {"selector": "#no-label-dropped"},
+                         ]}}
+    assert stim_response_elements(stim) == (
+        ("Left option", "#opt-left"), ("Right option", "#opt-right"))
+
+
+def test_stim_response_elements_reads_typed_shape():
+    from experiment_bot.core.config import StimulusConfig
+    stim = StimulusConfig.from_dict({
+        "id": "choice", "description": "choice grid",
+        "detection": {"method": "dom_query", "selector": ".grid"},
+        "response": {"condition": "choice", "key": None,
+                     "response_elements": [
+                         {"label": "A", "selector": ".opt-a"}]},
+    })
+    assert stim_response_elements(stim) == (("A", ".opt-a"),)
+
+
+def test_stim_response_elements_empty_when_absent():
+    assert stim_response_elements({"response": {"condition": "go", "key": "f"}}) == ()
+    assert stim_response_elements({}) == ()
 
 
 def test_resolve_program_by_hash_prefix(tmp_path):

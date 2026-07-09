@@ -37,6 +37,25 @@ def test_navigation_phase_empty_value_omitted_from_to_dict():
     assert "value" not in p.to_dict()
 
 
+# --- Wave B1: response_elements on stimulus response config ---
+
+def test_response_config_response_elements_round_trips():
+    d = {"key": None, "condition": "choice",
+         "response_elements": [{"label": "A", "selector": ".opt-a"},
+                               {"label": "B", "selector": ".opt-b"}]}
+    r = ResponseConfig.from_dict(d)
+    assert r.response_elements == d["response_elements"]
+    assert r.to_dict()["response_elements"] == d["response_elements"]
+
+
+def test_response_config_empty_response_elements_omitted_from_to_dict():
+    """Hash stability: committed cards (no response_elements) must keep
+    serializing byte-identically."""
+    r = ResponseConfig.from_dict({"key": "f", "condition": "go"})
+    assert r.response_elements == []
+    assert "response_elements" not in r.to_dict()
+
+
 def test_task_phase_enum():
     assert TaskPhase.LOADING.value == "loading"
     assert TaskPhase.INSTRUCTIONS.value == "instructions"

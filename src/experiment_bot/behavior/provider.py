@@ -2,13 +2,14 @@
 
 A *program* is a Python file exposing ``make_participant(seed) ->
 participant`` where ``participant.respond(ctx)`` returns a plain
-``(key_or_None, rt_ms)`` tuple and (for interrupt-capable tasks)
-``participant.on_interrupt(ctx, ssd_ms, intended)`` returns ``None``
-(withhold) or a tuple. Programs are stdlib+numpy only and cannot import
-this package — hence the tuple wire format. ``BehaviorSession`` wraps a
-program: it builds TrialContext (with previous-trial history), validates
-every return value at the boundary (no silent coercion), and normalizes
-tuples into ``Response``.
+``(key_or_None, rt_ms)`` tuple — or, on trials whose ctx carries
+``response_elements``, ``("click", element_index, rt_ms)`` (Wave B1) — and
+(for interrupt-capable tasks) ``participant.on_interrupt(ctx, ssd_ms,
+intended)`` returns ``None`` (withhold) or a tuple. Programs are
+stdlib+numpy only and cannot import this package — hence the tuple wire
+format. ``BehaviorSession`` wraps a program: it builds TrialContext (with
+previous-trial history), validates every return value at the boundary (no
+silent coercion), and normalizes tuples into ``Response``/``ClickResponse``.
 """
 from __future__ import annotations
 
@@ -49,6 +50,29 @@ def stim_condition_and_key(stim) -> tuple[str | None, str | None]:
     return getattr(resp, "condition", None), getattr(resp, "key", None)
 
 
+def stim_response_elements(stim) -> tuple[tuple[str, str], ...]:
+    """(label, selector) pairs of a stimulus's clickable response options
+    (Wave B1), tolerant of the same shapes as stim_condition_and_key: raw
+    dicts and typed StimulusConfig/ResponseConfig objects. Each entry may
+    itself be a {label, selector} dict or an object with those attributes;
+    entries without a label are dropped. Returns () when the stimulus
+    declares no response_elements (keypress tasks)."""
+    resp = stim.get("response") if isinstance(stim, dict) else getattr(stim, "response", None)
+    if resp is None:
+        return ()
+    raw = (resp.get("response_elements") if isinstance(resp, dict)
+           else getattr(resp, "response_elements", None))
+    out = []
+    for entry in raw or []:
+        if isinstance(entry, dict):
+            label, sel = entry.get("label"), entry.get("selector")
+        else:
+            label, sel = getattr(entry, "label", None), getattr(entry, "selector", None)
+        if label:
+            out.append((str(label), str(sel or "")))
+    return tuple(out)
+
+
 class ProtocolViolation(Exception):
     """A generated program returned something outside the contract."""
 
@@ -56,6 +80,17 @@ class ProtocolViolation(Exception):
 @dataclass(frozen=True)
 class Response:
     key: str | None
+    rt_ms: float
+
+
+@dataclass(frozen=True)
+class ClickResponse:
+    """Wave B1: a program's click on an on-screen response option. The
+    index selects into the trial context's response_elements labels; the
+    executor resolves the matching selector and clicks it. Kept as a
+    separate frozen dataclass (not a field on Response) so the existing
+    keypress contract and every consumer of Response.key stay untouched."""
+    element_index: int
     rt_ms: float
 
 
@@ -72,6 +107,9 @@ class TrialContext:
     # Wave B3: the trial's visible context text (the executor's
     # trial_context_js/cue value) when the task exposes one, else None.
     stimulus_text: str | None = None
+    # Wave B1: human-readable labels of the trial's clickable response
+    # options; empty for keypress tasks.
+    response_elements: tuple[str, ...] = ()
 
 
 def program_sha256(path: Path) -> str:
@@ -103,8 +141,17 @@ def resolve_program(spec_str: str, root: Path = Path("naive_programs")) -> Path:
     raise FileNotFoundError(f"no naive program matches {spec_str!r}")
 
 
+def _validate_rt(rt, where: str) -> float:
+    # Exact check the 2-tuple path has always applied (byte-identical
+    # backward compatibility), factored out so clicks share it.
+    if not isinstance(rt, (int, float)) or not math.isfinite(rt) or rt <= 0 or rt > 60_000:
+        raise ProtocolViolation(f"{where}: rt_ms {rt!r} not a finite value in (0, 60000]")
+    return float(rt)
+
+
 def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
-              where: str) -> Response:
+              where: str,
+              response_elements: tuple[str, ...] = ()) -> Response | ClickResponse:
     """A returned key is valid if it is None, equals the trial's correct_key,
     or is in available_keys. The correct_key carve-out gives the naive
     program information parity with the expert executor: on tasks where the
@@ -113,17 +160,32 @@ def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
     `core.executor.TaskExecutor._seen_response_keys` — but it always knows
     THIS trial's correct key up front. A program that presses ctx.correct_key
     must never be rejected merely because that key hasn't been observed yet.
+
+    Wave B1: a program may instead return ("click", element_index, rt_ms) —
+    valid only when the trial has response_elements and the index is in
+    range. Nothing is silently coerced, same as the keypress path.
     """
+    if isinstance(raw, tuple) and len(raw) == 3 and raw[0] == "click":
+        _, idx, rt = raw
+        if not response_elements:
+            raise ProtocolViolation(
+                f"{where}: click returned but this trial has no response_elements")
+        if isinstance(idx, bool) or not isinstance(idx, int) \
+                or not (0 <= idx < len(response_elements)):
+            raise ProtocolViolation(
+                f"{where}: click element_index {idx!r} not in "
+                f"range(0, {len(response_elements)})")
+        return ClickResponse(element_index=idx, rt_ms=_validate_rt(rt, where))
     if not (isinstance(raw, tuple) and len(raw) == 2):
-        raise ProtocolViolation(f"{where}: expected (key, rt_ms) tuple, got {raw!r}")
+        raise ProtocolViolation(
+            f"{where}: expected (key, rt_ms) or (\"click\", element_index, rt_ms) "
+            f"tuple, got {raw!r}")
     key, rt = raw
     if key is not None and key != correct_key and key not in available_keys:
         raise ProtocolViolation(
             f"{where}: key {key!r} not in available_keys {available_keys} "
             f"(correct_key={correct_key!r})")
-    if not isinstance(rt, (int, float)) or not math.isfinite(rt) or rt <= 0 or rt > 60_000:
-        raise ProtocolViolation(f"{where}: rt_ms {rt!r} not a finite value in (0, 60000]")
-    return Response(key=key, rt_ms=float(rt))
+    return Response(key=key, rt_ms=_validate_rt(rt, where))
 
 
 class BehaviorSession:
@@ -139,7 +201,7 @@ class BehaviorSession:
         self._participant = program_module.make_participant(seed)
         self._prev: dict = {}
         self._last_ctx: TrialContext | None = None
-        self._last_response: Response | None = None
+        self._last_response: Response | ClickResponse | None = None
 
     @property
     def available_keys(self) -> tuple[str, ...]:
@@ -158,7 +220,8 @@ class BehaviorSession:
 
     def build_context(self, condition: str, correct_key: str | None,
                       trial_index: int,
-                      stimulus_text: str | None = None) -> TrialContext:
+                      stimulus_text: str | None = None,
+                      response_elements: tuple[str, ...] = ()) -> TrialContext:
         return TrialContext(
             condition=condition, correct_key=correct_key,
             available_keys=self.available_keys, trial_index=trial_index,
@@ -167,30 +230,39 @@ class BehaviorSession:
             prev_rt_ms=self._prev.get("rt_ms"),
             prev_interrupted=self._prev.get("interrupted"),
             stimulus_text=stimulus_text,
+            response_elements=tuple(response_elements),
         )
 
     def respond(self, condition: str, correct_key: str | None,
                 trial_index: int,
-                stimulus_text: str | None = None) -> Response:
+                stimulus_text: str | None = None,
+                response_elements: tuple[str, ...] = ()) -> Response | ClickResponse:
         ctx = self.build_context(condition, correct_key, trial_index,
-                                 stimulus_text=stimulus_text)
+                                 stimulus_text=stimulus_text,
+                                 response_elements=response_elements)
         resp = _validate(self._participant.respond(ctx), ctx.available_keys, correct_key,
-                         f"respond(trial {trial_index})")
+                         f"respond(trial {trial_index})",
+                         response_elements=ctx.response_elements)
         self._last_ctx, self._last_response = ctx, resp
         return resp
 
-    def on_interrupt(self, ssd_ms: float) -> Response | None:
+    def on_interrupt(self, ssd_ms: float) -> Response | ClickResponse | None:
         if self._last_ctx is None or self._last_response is None:
             raise ProtocolViolation("on_interrupt called before respond()")
         fn = getattr(self._participant, "on_interrupt", None)
         if fn is None:
             raise ProtocolViolation("program lacks on_interrupt for an interrupt task")
-        intended = (self._last_response.key, self._last_response.rt_ms)
+        if isinstance(self._last_response, ClickResponse):
+            intended = ("click", self._last_response.element_index,
+                        self._last_response.rt_ms)
+        else:
+            intended = (self._last_response.key, self._last_response.rt_ms)
         raw = fn(self._last_ctx, ssd_ms, intended)
         if raw is None:
             return None
         return _validate(raw, self._last_ctx.available_keys, self._last_ctx.correct_key,
-                         "on_interrupt")
+                         "on_interrupt",
+                         response_elements=self._last_ctx.response_elements)
 
     def record_outcome(self, condition: str, correct: bool, rt_ms: float | None,
                        interrupted: bool) -> None:

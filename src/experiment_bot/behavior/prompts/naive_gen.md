@@ -33,12 +33,19 @@ def respond(self, ctx):
     prev_condition, prev_correct, prev_rt_ms, prev_interrupted
     (previous-trial outcome; None on the first trial),
     stimulus_text (str | None): the trial's visible context text
-    when the task exposes one, else None.
+    when the task exposes one, else None,
+    response_elements (tuple[str, ...]): labels of the trial's
+    clickable on-screen response options; empty for keyboard tasks.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the
     task reveals more keys. ctx.correct_key is always valid to press for
     the current trial even if it has not appeared in ctx.available_keys yet.
+
+    Some tasks are answered by clicking an on-screen option instead of
+    pressing a key. On trials where ctx.response_elements is non-empty
+    you may return ("click", index, rt_ms), where index selects the
+    option to click from ctx.response_elements.
     """
 ```
 

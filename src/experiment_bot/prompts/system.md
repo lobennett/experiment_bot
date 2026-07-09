@@ -47,6 +47,20 @@ Each stimulus entry MUST have this exact JSON shape (key names matter — the ex
 
 Do NOT use alternate key names like `detect`, `value`, `expression`, or `type` — use exactly `detection`, `selector`, `method`. The validator will reject any stimulus whose `detection.selector` is empty.
 
+**Click-response tasks** (on-screen buttons, choice grids): when the participant answers a stimulus by clicking an on-screen option instead of pressing a key, add `response_elements` to that stimulus's `response` block — one entry per clickable option, each with the option's visible label and a CSS selector for it:
+
+```json
+"response": {
+  "condition": "<condition label>",
+  "key": "<the correct option's visible label, or null>",
+  "response_elements": [
+    {"label": "<visible option label>", "selector": "<CSS selector for that option>"}
+  ]
+}
+```
+
+For these stimuli, put the correct option's visible label in `response.key` (and in `task_specific.key_map`) so correctness is resolved the same way as for keys. Omit `response_elements` entirely for keyboard-response tasks.
+
 Detection methods:
 - `dom_query`: `selector` is a CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
 - `js_eval`: `selector` is a JavaScript expression — truthy if it returns a truthy value

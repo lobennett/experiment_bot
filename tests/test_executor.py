@@ -1285,6 +1285,145 @@ async def test_provider_trial_threads_cue_as_stimulus_text():
     assert seen["stimulus_text"] is None
 
 
+# --- Wave B1: click response modality (executor delivery) ---
+
+def _click_config():
+    """SAMPLE_CONFIG variant whose go stimulus is answered by clicking."""
+    import copy
+    d = copy.deepcopy(SAMPLE_CONFIG)
+    d["stimuli"][0]["response"] = {
+        "key": "Left arrow", "condition": "go",
+        "response_elements": [
+            {"label": "Left arrow", "selector": "#opt-left"},
+            {"label": "Right arrow", "selector": "#opt-right"},
+        ],
+    }
+    return TaskConfig.from_dict(d)
+
+
+def _click_session_program(index=0, rt=300.0):
+    class _Clicker:
+        def respond(self, ctx):
+            return ("click", index, rt)
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Clicker())})
+    return BehaviorSession(mod, seed=1, available_keys=("z",))
+
+
+@pytest.mark.asyncio
+async def test_provider_click_trial_delivers_locator_click():
+    """A ("click", index, rt) program response resolves the element's
+    selector by index, clicks it, and logs response_type/element — no
+    keypress fires."""
+    ex = TaskExecutor(_click_config(), seed=42,
+                      behavior_provider=_click_session_program(index=1))
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={"method": "locator_click"})
+    ex._resolve_response_key = AsyncMock(return_value="Left arrow")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_not_awaited()
+    ex._fire_response_click.assert_awaited_once()
+    assert ex._fire_response_click.await_args.args[1] == "#opt-right"
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["response_type"] == "click"
+    assert logged["response_element"] == "Right arrow"
+    assert logged["response_element_index"] == 1
+    assert logged["behavior_provider"] is True
+    assert logged["sampled_rt_ms"] > 0
+
+
+@pytest.mark.asyncio
+async def test_provider_click_trial_correctness_is_label_match():
+    """Click correctness mirrors the keypress rule: clicked label ==
+    resolved correct key (Stage 1 puts the correct option's label there)."""
+    session = _click_session_program(index=0)  # clicks "Left arrow"
+    ex = TaskExecutor(_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="Left arrow")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert session._prev["correct"] is True
+
+
+@pytest.mark.asyncio
+async def test_provider_keypress_trial_log_unchanged_by_click_support():
+    """Keypress trials on a card WITH response_elements keep the exact log
+    shape (no response_type key added)."""
+    class _Presser:
+        def respond(self, ctx):
+            return ("z", 300.0)
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Presser())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert "response_type" not in logged
+    assert logged["response_key"] == "z"
+
+
+@pytest.mark.asyncio
+async def test_provider_interrupt_click_commission_delivers_click():
+    """A ClickResponse commission after an interrupt is delivered as a
+    click, not treated as a withhold."""
+    class _ClickFailer:
+        def respond(self, ctx):
+            return ("click", 0, 5000.0)  # slow, so the interrupt poll wins
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            return ("click", 1, max(200.0, ssd_ms + 50.0))
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _ClickFailer())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=True)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key=None, condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_not_awaited()
+    ex._fire_response_click.assert_awaited_once()
+    assert ex._fire_response_click.await_args.args[1] == "#opt-right"
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["condition"] == "stop_responded"
+    assert logged["response_type"] == "click"
+
+
+@pytest.mark.asyncio
+async def test_fire_response_click_success_and_failure_meta():
+    ex = TaskExecutor(_click_config(), seed=42,
+                      behavior_provider=_click_session_program())
+    page = MagicMock()
+    btn = MagicMock()
+    btn.wait_for = AsyncMock()
+    btn.click = AsyncMock()
+    page.locator.return_value.first = btn
+    meta = await ex._fire_response_click(page, "#opt-left")
+    btn.click.assert_awaited_once()
+    assert meta["selector"] == "#opt-left"
+    assert "error" not in meta
+
+    btn.wait_for = AsyncMock(side_effect=Exception("not visible"))
+    meta = await ex._fire_response_click(page, "#opt-left")
+    assert "not visible" in meta["error"]
+
+
 def test_behavior_program_metadata_fragment():
     """run_metadata's behavior_program block records sha/path/seed of the
     wired program (a provider is always present now)."""

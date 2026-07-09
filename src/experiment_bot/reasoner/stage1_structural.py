@@ -47,6 +47,12 @@ defaults.
 - `runtime.data_capture.format` (string: "csv" | "tsv" | "json") — required
   alongside `method` when `method != ""`.
 
+- `stimuli[].response.response_elements` (list of {label, selector}) — ONLY
+  for stimuli answered by clicking an on-screen option (buttons, choice
+  grids): one entry per clickable option with its visible label and a CSS
+  selector. Put the correct option's label in `response.key`. Omit the field
+  entirely for keyboard-response stimuli.
+
 ## REQUIRED task metadata
 
 - `task.paradigm_classes` (list of strings) — short descriptive tags for

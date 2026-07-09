@@ -911,3 +911,155 @@ def test_capture_row_count_variants():
     assert _capture_row_count("rt,correct\n", "csv") == 0
     assert _capture_row_count("", "csv") == 0
     assert _capture_row_count("a\tb\n1\t2", "tsv") == 1
+
+
+# --- Wave A2: phase-predicate validation against recorded DOM snapshots ---
+
+def _partial_with_predicates(complete_js: str, test_js: str = "", practice_js: str = "") -> dict:
+    p = _stage5_partial()
+    p["runtime"]["phase_detection"] = {
+        "complete": complete_js, "test": test_js, "practice": practice_js,
+    }
+    return p
+
+
+def _throwaway_page(session_mock, evaluate_fn):
+    """Wire session.context.new_page() to a throwaway page mock whose
+    evaluate() runs evaluate_fn(wrapped_expr)."""
+    page = AsyncMock()
+    page.set_content = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=evaluate_fn)
+    page.close = AsyncMock()
+    session_mock.context = MagicMock()
+    session_mock.context.new_page = AsyncMock(return_value=page)
+    return page
+
+
+@pytest.mark.asyncio
+async def test_complete_predicate_true_on_trial_dom_hard_fails(tmp_path):
+    """A 'complete' predicate that fires on the trial DOM would end live
+    sessions mid-task — hard failure, not a warning."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="document.querySelector('#stim') !== null",  # true during trials!
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return "#stim" in expr  # complete-predicate truthy, others false
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="complete"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_complete_true_on_after_nav_dom_is_warning(tmp_path):
+    """'complete' TRUE on the after-navigation DOM (but false on trial DOM)
+    is a WARNING in evidence + pilot.md, not a failure."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+    # _passing_dict trial snapshot html is '<div>trial</div>'; after-nav DOM
+    # comes from dom_snapshot() = '<div>test</div>'. Key the eval off the
+    # set_content'ed html instead of the expr.
+    state = {"html": ""}
+
+    async def _set_content(html):
+        state["html"] = html
+
+    async def _eval(expr):
+        if "finished" in expr:
+            return "test" in state["html"]  # true only on the after-nav DOM
+        if "phase" in expr:
+            return "trial" in state["html"]  # trial predicate ok on trial DOM
+        return False
+
+    page = _throwaway_page(session_mock, _eval)
+    page.set_content = AsyncMock(side_effect=_set_content)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    warnings = [e for e in step.evidence_lines if "phase_predicate_warning" in e]
+    assert any("complete" in w and "after" in w.lower() for w in warnings), warnings
+    assert "phase_predicate_warning" in (tmp_path / "fake_task" / "pilot.md").read_text()
+
+
+@pytest.mark.asyncio
+async def test_no_trialish_predicate_true_on_trial_dom_is_warning(tmp_path):
+    """Neither 'test' nor 'practice' fires on the recorded trial DOM (the
+    observed live failure): WARNING, since trial-ness no longer depends on
+    the predicates."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="document.querySelector('#never-there') !== null",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return False  # nothing fires anywhere
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    warnings = [e for e in step.evidence_lines if "phase_predicate_warning" in e]
+    assert any("trial DOM" in w for w in warnings), warnings
+
+
+@pytest.mark.asyncio
+async def test_predicates_all_consistent_no_warnings(tmp_path):
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return "phase" in expr  # trial-ish true, complete false
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert not any("phase_predicate_warning" in e for e in step.evidence_lines)
+
+
+@pytest.mark.asyncio
+async def test_predicate_validation_degrades_to_warning_on_page_error(tmp_path):
+    """If the throwaway page can't be built, the check degrades to a warning
+    (advisory) rather than failing an otherwise-passing pilot."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(complete_js="window.finished === true")
+    session_mock = _make_session_mock()
+    session_mock.context = MagicMock()
+    session_mock.context.new_page = AsyncMock(side_effect=RuntimeError("no context"))
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("phase_predicate" in e and "skipped" in e for e in step.evidence_lines)

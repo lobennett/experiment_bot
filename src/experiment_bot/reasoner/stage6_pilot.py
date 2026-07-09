@@ -331,6 +331,61 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
         return False, await session.dom_snapshot()
 
 
+async def _validate_phase_predicates(session, phase_detection, trial_html, after_nav_html):
+    """Evaluate the card's phase predicates against recorded pilot DOM
+    snapshots in a throwaway page (A2 hardening: LLM-written predicates can
+    be wrong yet silently harmless-or-harmful; observed live as a 'test'
+    predicate that never fired during real trials).
+
+    Returns (hard_fail_msg | None, warnings). Advisory except the one lethal
+    case: a 'complete' predicate that fires on the trial DOM would end live
+    sessions mid-task. A page-construction error degrades the whole check to
+    a skipped-note (the predicates are advisory to the executor since
+    trial-ness derives from structural roles, not phases)."""
+    try:
+        page = await session.context.new_page()
+    except Exception as e:  # noqa: BLE001 — advisory check must not sink a passing pilot
+        return None, [f"phase_predicate check skipped: {type(e).__name__}: {e}"]
+    warnings: list[str] = []
+    try:
+        async def _fires(js: str, html: str) -> bool:
+            if not js:
+                return False
+            await page.set_content(html)
+            try:
+                return bool(await page.evaluate(f"!!({js})"))
+            except Exception:  # noqa: BLE001 — malformed predicate == does not fire
+                return False
+
+        complete_js = getattr(phase_detection, "complete", "") or ""
+        test_js = getattr(phase_detection, "test", "") or ""
+        practice_js = getattr(phase_detection, "practice", "") or ""
+        if trial_html:
+            if await _fires(complete_js, trial_html):
+                return (
+                    "phase_detection.complete fires on the recorded trial DOM — "
+                    "live sessions would be declared complete mid-task",
+                    warnings,
+                )
+            if not (await _fires(test_js, trial_html)
+                    or await _fires(practice_js, trial_html)):
+                warnings.append(
+                    "phase_predicate_warning: neither 'test' nor 'practice' "
+                    "fires on the recorded trial DOM"
+                )
+        if after_nav_html and await _fires(complete_js, after_nav_html):
+            warnings.append(
+                "phase_predicate_warning: 'complete' fires on the "
+                "after-navigation DOM"
+            )
+    finally:
+        try:
+            await page.close()
+        except Exception:  # noqa: BLE001
+            pass
+    return None, warnings
+
+
 def _partial_to_pilot_config(partial: dict) -> TaskConfig:
     """Build a TaskConfig from a Reasoner partial that's runnable for pilot.
 
@@ -765,6 +820,29 @@ async def run_stage6(
                             s.setdefault('detection', {})['selector'] = new_sel
                 _save_diagnostic(diagnostics, taskcards_dir, label)
                 _save_pilot_observations(diagnostics, taskcards_dir, label)
+                # A2: check the card's phase predicates against the pilot's
+                # recorded DOMs (hard-fail only on complete-fires-on-trial-DOM).
+                _trial_html = next(
+                    (s.get("html", "") for s in (diagnostics.dom_snapshots or [])
+                     if s.get("trigger") == "first_stimulus_match"),
+                    next((s.get("html", "") for s in (diagnostics.dom_snapshots or [])
+                          if s.get("trigger") != "after_navigation"), ""),
+                )
+                _hard_fail, _pred_warnings = await _validate_phase_predicates(
+                    session, config.runtime.phase_detection, _trial_html, after_nav_snap,
+                )
+                if _hard_fail:
+                    raise PilotValidationError(
+                        f"Stage-6 phase-predicate gate: {_hard_fail}"
+                    )
+                evidence.extend(_pred_warnings)
+                if _pred_warnings:
+                    _pmd = Path(taskcards_dir) / label / "pilot.md"
+                    with open(_pmd, "a") as _fh:
+                        _fh.write(
+                            "\n### Phase-predicate warnings\n"
+                            + "\n".join(f"- {w}" for w in _pred_warnings) + "\n"
+                        )
                 if attempt == 0 and not accumulated_stim_overrides:
                     inference = (
                         f"Pilot passed first attempt: "

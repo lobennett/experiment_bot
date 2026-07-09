@@ -1257,6 +1257,34 @@ async def test_provider_interrupt_none_key_decision_withholds():
     assert logged["behavior_provider"] is True
 
 
+@pytest.mark.asyncio
+async def test_provider_trial_threads_cue_as_stimulus_text():
+    """Wave B3: the trial's logged cue text reaches the program as
+    ctx.stimulus_text (None when the task exposes no trial context)."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    seen = {}
+
+    class _Capture:
+        def respond(self, ctx):
+            seen["stimulus_text"] = ctx.stimulus_text
+            return ("z", 300.0)
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Capture())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(config, seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue="RED")
+    assert seen["stimulus_text"] == "RED"
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert seen["stimulus_text"] is None
+
+
 def test_behavior_program_metadata_fragment():
     """run_metadata's behavior_program block records sha/path/seed of the
     wired program (a provider is always present now)."""

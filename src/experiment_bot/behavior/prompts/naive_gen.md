@@ -31,7 +31,9 @@ def respond(self, ctx):
     ctx fields: condition (str), correct_key (str | None),
     available_keys (tuple[str, ...]), trial_index (int),
     prev_condition, prev_correct, prev_rt_ms, prev_interrupted
-    (previous-trial outcome; None on the first trial).
+    (previous-trial outcome; None on the first trial),
+    stimulus_text (str | None): the trial's visible context text
+    when the task exposes one, else None.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the

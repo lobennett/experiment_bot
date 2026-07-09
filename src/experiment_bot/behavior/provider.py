@@ -69,6 +69,9 @@ class TrialContext:
     prev_correct: bool | None = None
     prev_rt_ms: float | None = None
     prev_interrupted: bool | None = None
+    # Wave B3: the trial's visible context text (the executor's
+    # trial_context_js/cue value) when the task exposes one, else None.
+    stimulus_text: str | None = None
 
 
 def program_sha256(path: Path) -> str:
@@ -154,7 +157,8 @@ class BehaviorSession:
             self._observed_keys.add(key)
 
     def build_context(self, condition: str, correct_key: str | None,
-                      trial_index: int) -> TrialContext:
+                      trial_index: int,
+                      stimulus_text: str | None = None) -> TrialContext:
         return TrialContext(
             condition=condition, correct_key=correct_key,
             available_keys=self.available_keys, trial_index=trial_index,
@@ -162,11 +166,14 @@ class BehaviorSession:
             prev_correct=self._prev.get("correct"),
             prev_rt_ms=self._prev.get("rt_ms"),
             prev_interrupted=self._prev.get("interrupted"),
+            stimulus_text=stimulus_text,
         )
 
     def respond(self, condition: str, correct_key: str | None,
-                trial_index: int) -> Response:
-        ctx = self.build_context(condition, correct_key, trial_index)
+                trial_index: int,
+                stimulus_text: str | None = None) -> Response:
+        ctx = self.build_context(condition, correct_key, trial_index,
+                                 stimulus_text=stimulus_text)
         resp = _validate(self._participant.respond(ctx), ctx.available_keys, correct_key,
                          f"respond(trial {trial_index})")
         self._last_ctx, self._last_response = ctx, resp

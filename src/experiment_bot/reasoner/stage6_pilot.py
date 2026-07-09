@@ -26,6 +26,7 @@ from experiment_bot.core.config import (
 from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner, _NO_MATCH_EARLY_STOP
 from experiment_bot.core.pilot_session import PilotSession
 from experiment_bot.core.stimulus import StimulusLookup
+from experiment_bot.output.data_capture import ConfigDrivenCapture
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.normalize import normalize_partial
 from experiment_bot.reasoner.parse_retry import parse_with_retry
@@ -355,6 +356,87 @@ def _partial_to_pilot_config(partial: dict) -> TaskConfig:
         task_specific=p.get("task_specific", {}),
         pilot=PilotConfig.from_dict(pilot_dict),
         runtime=RuntimeConfig.from_dict(p.get("runtime", {})),
+    )
+
+
+def _capture_row_count(data: str, fmt: str) -> int:
+    """Count trial rows in a captured export string (Wave A1).
+
+    - ``json``: a list counts its elements; a dict counts its longest
+      list-valued entry (wrapper objects like ``{"trials": [...]}``);
+      any other parsed shape counts 0. Invalid JSON raises
+      ``ValueError("unparseable ...")``.
+    - delimited (csv/tsv and anything else): non-empty lines minus one
+      assumed header line — a header-only (or single-line) export counts
+      0 rows. Conservative on purpose: the gate exists to catch empty
+      exports, and a lone line is indistinguishable from a bare header.
+    """
+    if fmt == "json":
+        try:
+            parsed = json.loads(data)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"unparseable JSON: {e}") from None
+        if isinstance(parsed, list):
+            return len(parsed)
+        if isinstance(parsed, dict):
+            lengths = [len(v) for v in parsed.values() if isinstance(v, list)]
+            return max(lengths) if lengths else 0
+        return 0
+    lines = [ln for ln in data.splitlines() if ln.strip()]
+    return max(0, len(lines) - 1)
+
+
+async def _validate_data_capture(session: PilotSession, capture_cfg,
+                                 evidence: list[str]) -> None:
+    """Data-capture gate (Wave A1): a platform can pass selector/nav
+    validation yet produce an EMPTY experiment_data export, failing only
+    after a full live session.
+
+    Variant choice (documented per spec): the pilot never FINISHES the
+    experiment, so an end-of-experiment capture isn't observable at Stage 6.
+    The capture configuration is therefore evaluated MID-PILOT, on the
+    walker's live session, after the pilot has completed >= pilot.min_trials
+    trials — and must already return parseable output with >= 1 trial row.
+    This is the honest, implementable variant: it gates on "the configured
+    capture method reads back platform-recorded trial rows", the only thing
+    the pilot can actually observe. (A platform that materializes its export
+    only at completion would fail here — that limitation is preferred over
+    passing cards whose capture config was never exercised.)
+
+    Skips — with an evidence note — when no capture method is configured:
+    the executor treats that as "platform saves server-side", not an error.
+    """
+    if not capture_cfg.method:
+        evidence.append("data_capture_gate: skipped (no capture method configured)")
+        return
+    result = await ConfigDrivenCapture(capture_cfg).capture(session.page)
+    if result.failed or not (result.data or "").strip():
+        what = ("raised an exception during capture" if result.failed
+                else "returned empty output")
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"{what} on the live pilot session after completed pilot trials. "
+            f"The executor would run a full session and export nothing. "
+            f"Fix runtime.data_capture (expression/selector) so it reads back "
+            f"the platform's recorded trials."
+        )
+    fmt = capture_cfg.format or "csv"
+    try:
+        rows = _capture_row_count(result.data, fmt)
+    except ValueError as e:
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"returned unparseable {fmt} output ({e}). "
+            f"First 200 chars: {result.data[:200]!r}"
+        ) from None
+    if rows < 1:
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"returned parseable {fmt} output but 0 trial rows after completed "
+            f"pilot trials. First 200 chars: {result.data[:200]!r}"
+        )
+    evidence.append(
+        f"data_capture_gate: method={capture_cfg.method} format={fmt} rows={rows}"
     )
 
 
@@ -743,6 +825,13 @@ async def run_stage6(
                         f"replay_refine_{replay_round + 1}: appended phase "
                         f"{new_phase.get('phase', '?')!r} ({new_phase.get('action', '?')})"
                     )
+                # Wave A1: data-capture gate — after the replay gate passes,
+                # exercise the card's capture config on the walker's live
+                # session (which has completed pilot trials). See
+                # _validate_data_capture for the mid-pilot variant rationale.
+                await _validate_data_capture(
+                    session, config.runtime.data_capture, evidence,
+                )
                 return partial, ReasoningStep(
                     step="stage6_pilot",
                     inference=inference,

@@ -118,6 +118,10 @@ def _make_session_mock(poll_side_effect=None, dom_snapshot_html="<div>test</div>
     session.probe_stimulus = AsyncMock(
         return_value=StimulusProbe(match=_sentinel_match, dom_at_probe=dom_snapshot_html)
     )
+    # Live-page eval returns one parseable trial row so the Wave-A1
+    # data-capture gate passes by default (tests override to exercise it).
+    session.page = AsyncMock()
+    session.page.evaluate = AsyncMock(return_value='[{"trial": 1}]')
     if poll_side_effect is not None:
         session.poll_stimuli = AsyncMock(side_effect=poll_side_effect)
     else:
@@ -800,3 +804,110 @@ async def test_stage6_skips_sidecar_when_trial_log_empty(tmp_path):
             headless=True, max_retries=1,
         )
     assert not (tmp_path / "fake_task" / "pilot_observations.json").exists()
+
+
+# --- Wave A1: data-capture gate ---
+
+def _mock_capture_eval(session_mock, value):
+    """Point the walker session's live page at a canned capture result."""
+    session_mock.page = AsyncMock()
+    session_mock.page.evaluate = AsyncMock(return_value=value)
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_passes_on_parseable_rows(tmp_path):
+    """Pilot + replay pass and the capture expression returns >=1 parseable
+    trial row: stage 6 passes and records the gate in the evidence."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, '[{"trial": 1}, {"trial": 2}]')
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("data_capture_gate" in e for e in step.evidence_lines)
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_empty_output(tmp_path):
+    """Capture method configured but returns nothing: hard fail naming the
+    method and that the output was empty."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="js_expression") as exc:
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+    assert "empty" in str(exc.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_unparseable_output(tmp_path):
+    fake_client = AsyncMock()
+    partial = _stage5_partial()  # data_capture.format == "json"
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "this is not json {")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="unparseable"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_zero_rows(tmp_path):
+    """A parseable but EMPTY export (e.g. '[]') is the exact silent-failure
+    mode this gate exists for."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "[]")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="0 trial rows"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_skips_when_no_method_configured(tmp_path):
+    """No capture method on the card == platform saves server-side; the
+    executor treats that as expected, so the gate must not fail it."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    partial["runtime"]["data_capture"] = {}
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("data_capture_gate: skipped" in e for e in step.evidence_lines)
+
+
+def test_capture_row_count_variants():
+    from experiment_bot.reasoner.stage6_pilot import _capture_row_count
+    # JSON list / wrapper dict / scalar
+    assert _capture_row_count('[{"a": 1}, {"a": 2}]', "json") == 2
+    assert _capture_row_count('{"trials": [1, 2, 3], "meta": "x"}', "json") == 3
+    assert _capture_row_count('"just a string"', "json") == 0
+    with pytest.raises(ValueError, match="unparseable"):
+        _capture_row_count("not json {", "json")
+    # Delimited: header line assumed
+    assert _capture_row_count("rt,correct\n512,1\n498,1\n", "csv") == 2
+    assert _capture_row_count("rt,correct\n", "csv") == 0
+    assert _capture_row_count("", "csv") == 0
+    assert _capture_row_count("a\tb\n1\t2", "tsv") == 1

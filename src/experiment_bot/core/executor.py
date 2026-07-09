@@ -15,10 +15,13 @@ from playwright.async_api import Page
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.loop_diagnostics import LoopDiagnostics
+from experiment_bot.core.outcome import classify_outcome
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
 from experiment_bot.core.phase_detection import detect_phase
 from experiment_bot.output.data_capture import ConfigDrivenCapture
+from experiment_bot.output.data_quality import compute_stall_flags, DEFAULT_CEILING_MS
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +34,15 @@ _ADAPTIVE_NAV_BUDGET = 10
 # during normal between-trial gaps (fixation, ITI, response-window-closed),
 # which would otherwise press keys that skip real trials.
 _ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
+
+# Human-paced advance throttle: minimum spacing (seconds) between two
+# "press advance keys" actions on a no-stimulus screen. Documented in the
+# commit that introduced this gate (af8cf4d, "human-paced advance throttle
+# (_ADVANCE_MIN_SPACING_S=2.0)") but the constant itself was never actually
+# defined, leaving a NameError latent in the "no stimulus match" miss branch
+# whenever consecutive_misses landed on an advance_interval_polls multiple
+# (found while adding A3 loop-diagnostics test coverage for that branch).
+_ADVANCE_MIN_SPACING_S = 2.0
 
 
 def _taskcard_to_config(tc):
@@ -155,6 +167,16 @@ class TaskExecutor:
         self._data_capture_written: bool = False
         self._data_capture_method: str = ""
         self._data_capture_failed: bool = False
+
+        # A3: per-poll trial-loop diagnostics — accumulated at the trial
+        # loop's existing branch points; written into both run_trace's
+        # trial_loop stage and run_metadata.loop_diagnostics.
+        self._loop_diagnostics = LoopDiagnostics()
+
+        # A5b: capture-time stall flags — populated by _wait_for_completion
+        # after a successful data capture; default explains why it's absent
+        # (no capture attempted / capture failed) when never overwritten.
+        self._data_quality: dict = {"stall_trials": None, "note": "no data captured"}
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -546,6 +568,7 @@ class TaskExecutor:
                     "trial_loop", {
                         "trials": self._trial_count,
                         "loop_exit_reason": self._loop_exit_reason,
+                        "loop_diagnostics": self._loop_diagnostics.as_dict(),
                     },
                     duration_s=time.monotonic() - _t0,
                 )
@@ -586,6 +609,10 @@ class TaskExecutor:
                 self._writer.save_screenshot(screenshot, "error.png")
                 raise
             finally:
+                # A5a: captured here (not inside _save_outputs) so it reflects
+                # the exception that triggered this finally block, not a
+                # later save-time error.
+                _in_flight_exc = sys.exc_info()[1]
                 metadata = {
                     "task_name": task_name,
                     "task_url": task_url,
@@ -626,6 +653,17 @@ class TaskExecutor:
                 # held-out paradigms legitimately end early.
                 metadata["loop_exit_reason"] = self._loop_exit_reason
                 metadata["incomplete"] = self._loop_exit_reason != "complete"
+                # A5a: outcome taxonomy — completed/zero_trials/nav_stall/
+                # program_error/platform_error. See core/outcome.py for the
+                # classification rules.
+                metadata["outcome"] = classify_outcome(
+                    self._loop_exit_reason, self._trial_count, _in_flight_exc,
+                )
+                # A3: per-poll trial-loop diagnostics (phase/window/identify/
+                # advance/feedback/attention-check/nav-rerun counters).
+                metadata["loop_diagnostics"] = self._loop_diagnostics.as_dict()
+                # A5b: capture-time stall flags (see _wait_for_completion).
+                metadata["data_quality"] = self._data_quality
                 # robust-008: flag sessions where adaptive nav ran but the loop
                 # didn't complete naturally — adaptive nav may have navigated
                 # past trials, inflating/deflating the trial count.
@@ -709,6 +747,7 @@ class TaskExecutor:
         while True:
             from experiment_bot.core import phase_detection as _pd
             phase = await detect_phase(page, self._config.runtime.phase_detection)
+            self._loop_diagnostics.record_phase(phase.value)
             if phase == TaskPhase.COMPLETE:
                 # Capture the page state that triggered completion so post-hoc
                 # diagnosis can tell genuine completion from a false-positive
@@ -738,6 +777,7 @@ class TaskExecutor:
 
             if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
                 probe = await self._lookup.identify(page)
+                self._loop_diagnostics.record_identify(probe.condition if probe else None)
                 if probe is None or not self._is_trial_stimulus(probe):
                     if phase == TaskPhase.FEEDBACK:
                         await self._handle_feedback(page)
@@ -746,6 +786,7 @@ class TaskExecutor:
                         # same semantics as entry nav). Each phase is attempted
                         # independently so one already-dismissed button can't crash
                         # the whole re-run.
+                        self._loop_diagnostics.record_nav_rerun()
                         for _nav_phase in self._config.navigation.phases:
                             _attempt = await session.try_phase(_nav_phase)
                             if not _attempt.success:
@@ -793,9 +834,11 @@ class TaskExecutor:
                 try:
                     ready = await page.evaluate(timing.response_window_js)
                     if not ready:
+                        self._loop_diagnostics.record_window_closed()
                         consecutive_misses += 1
                         ab = self._config.runtime.advance_behavior
                         if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                            self._loop_diagnostics.record_advance()
                             logger.info(f"Response window closed for {consecutive_misses} polls, pressing advance keys")
                             if ab.pre_keypress_js:
                                 try:
@@ -812,6 +855,7 @@ class TaskExecutor:
                         await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                         continue
                     self._response_window_confirmed = True
+                    self._loop_diagnostics.record_window_open()
                     consecutive_misses = 0
                 except PlaywrightError:
                     # Benign: page context torn down by navigation — treat as window open
@@ -826,6 +870,7 @@ class TaskExecutor:
                 match = probe
             else:
                 match = await self._lookup.identify(page)
+                self._loop_diagnostics.record_identify(match.condition if match else None)
             if match is None:
                 consecutive_misses += 1
                 if consecutive_misses > max_no_stimulus_polls:
@@ -843,6 +888,7 @@ class TaskExecutor:
                         and consecutive_misses < max_no_stimulus_polls
                         and (time.monotonic() - self._last_advance_action) >= _ADVANCE_MIN_SPACING_S):
                     self._last_advance_action = time.monotonic()
+                    self._loop_diagnostics.record_advance()
                     logger.info(f"No stimulus for {consecutive_misses} polls, pressing advance keys")
                     if ab.pre_keypress_js:
                         try:
@@ -1185,6 +1231,7 @@ class TaskExecutor:
         Claude must provide response_js in the attention_check config —
         the executor has no built-in knowledge of attention check formats.
         """
+        self._loop_diagnostics.record_attention_check()
         await asyncio.sleep(
             self._config.runtime.timing.attention_check_delay_ms / 1000.0
         )
@@ -1205,6 +1252,7 @@ class TaskExecutor:
 
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback screens."""
+        self._loop_diagnostics.record_feedback()
         logger.info("Handling feedback screen")
         ab = self._config.runtime.advance_behavior
         await asyncio.sleep(self._config.runtime.timing.feedback_delay_ms / 1000.0)
@@ -1303,6 +1351,26 @@ class TaskExecutor:
             "llm_disabled": self._llm_client is None,
         }
 
+    def _stall_ceiling_ms(self) -> float:
+        """A5b: the mechanical ceiling used to flag stalled rt values.
+
+        4x the card's configured max response window when derivable from
+        ``task_specific.trial_timing.max_response_time_ms`` (Stage 1's
+        conventional location for it); otherwise a fixed 10s. This is a
+        deliberately loose multiple — it exists to catch a hung poll or
+        broken export recorded as a multi-second "response", not to gate on
+        anything resembling a real human RT.
+        """
+        trial_timing = (self._config.task_specific or {}).get("trial_timing") or {}
+        max_rw = trial_timing.get("max_response_time_ms") if isinstance(trial_timing, dict) else None
+        try:
+            max_rw = float(max_rw) if max_rw is not None else None
+        except (TypeError, ValueError):
+            max_rw = None
+        if max_rw and max_rw > 0:
+            return max_rw * 4.0
+        return DEFAULT_CEILING_MS
+
     async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""
         await asyncio.sleep(
@@ -1319,6 +1387,12 @@ class TaskExecutor:
             ext = self._config.runtime.data_capture.format or "csv"
             self._writer.save_task_data(capture_result.data, f"experiment_data.{ext}")
             logger.info("Experiment data saved")
+            # A5b: flag (never exclude) trials whose captured rt exceeds a
+            # mechanical ceiling — signals a hung poll or bad export, not a
+            # real human RT.
+            self._data_quality = compute_stall_flags(
+                capture_result.data, ext, self._stall_ceiling_ms(),
+            )
         else:
             if capture_result.failed:
                 logger.warning(

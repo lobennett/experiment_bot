@@ -176,6 +176,104 @@ def stroop_metrics(trials: pd.DataFrame) -> dict:
 
 
 # --------------------------------------------------------------------------- #
+# Wave C3a: declarative export mapping (TaskCard runtime.platform_export DSL,
+# documented in prompts/system.md §"Platform-export mapping")
+# --------------------------------------------------------------------------- #
+
+def _parse_truthy(series: pd.Series) -> pd.Series:
+    """'truthy' parse per the DSL: 1/0 flags however the platform spells them.
+    Unrecognized / empty values become NaN (never silently coerced)."""
+    mapped = series.map(
+        lambda v: {"true": 1.0, "1": 1.0, "1.0": 1.0, "yes": 1.0,
+                   "false": 0.0, "0": 0.0, "0.0": 0.0, "no": 0.0,
+                   }.get(str(v).strip().lower(), float("nan"))
+    )
+    return pd.to_numeric(mapped, errors="coerce")
+
+
+def canon_from_export_mapping(df: pd.DataFrame, mapping: dict) -> pd.DataFrame:
+    """Canonical trial table from a platform export + a card-declared mapping.
+
+    Implements the DSL the Stage 1 prompt documents: ``row_filter.equals``
+    entries must ALL match and ``one_of`` entries must match one listed value
+    (string comparison, so CSV and JSON exports behave identically);
+    ``fields`` must map at least ``condition`` and ``rt``; ``parse`` is
+    ``float``/``truthy``; ``value_map`` recodes raw condition flags to
+    canonical labels. ``omission`` is always DERIVED from a missing rt —
+    never mapped directly."""
+    fields = mapping.get("fields") or {}
+    for required in ("condition", "rt"):
+        if required not in fields:
+            raise ValueError(
+                f"platform_export.fields must map '{required}' "
+                f"(got: {sorted(fields)})")
+
+    row_filter = mapping.get("row_filter") or {}
+    mask = pd.Series(True, index=df.index)
+    for col, val in (row_filter.get("equals") or {}).items():
+        if col not in df.columns:
+            raise ValueError(f"row_filter column {col!r} not in export")
+        mask &= df[col].astype(str) == str(val)
+    for col, vals in (row_filter.get("one_of") or {}).items():
+        if col not in df.columns:
+            raise ValueError(f"row_filter column {col!r} not in export")
+        mask &= df[col].astype(str).isin([str(v) for v in vals])
+    t = df[mask]
+
+    out = pd.DataFrame({"order": range(len(t))})
+    for name, spec in fields.items():
+        if isinstance(spec, str):  # tolerant read: bare column name
+            spec = {"column": spec}
+        col = spec.get("column", "")
+        if col not in t.columns:
+            raise ValueError(f"fields[{name!r}] column {col!r} not in export")
+        raw = t[col]
+        parse = spec.get("parse", "")
+        if parse == "float":
+            series = pd.to_numeric(raw, errors="coerce")
+        elif parse == "truthy":
+            series = _parse_truthy(raw)
+        else:
+            series = raw.astype(str)
+        value_map = spec.get("value_map") or {}
+        if value_map:
+            series = series.map(lambda v: value_map.get(v, value_map.get(str(v), v)))
+        out[name] = series.to_numpy()
+    if "correct" not in out.columns:
+        out["correct"] = float("nan")
+    out["omission"] = pd.to_numeric(out["rt"], errors="coerce").isna().to_numpy()
+    return out
+
+
+# --------------------------------------------------------------------------- #
+# Wave C3b: generic per-subject metrics (no paradigm-specific metric fn)
+# --------------------------------------------------------------------------- #
+
+def generic_metrics(trials: pd.DataFrame) -> dict:
+    """One metric row from any canonical trial table: per-condition
+    correct-trial mean RT / accuracy / omission rate, plus the same temporal
+    estimators the paradigm-specific rows carry. When the export exposes no
+    correctness column (all-NaN ``correct``), per-condition RT falls back to
+    all responded trials and accuracy is NaN."""
+    conditions = [c for c in pd.unique(trials["condition"].astype(str)) if c]
+    out = {"n_trials": int(len(trials))}
+    for cond in conditions:
+        sub = trials[trials["condition"].astype(str) == cond]
+        correct = pd.to_numeric(sub["correct"], errors="coerce")
+        out[f"n_{cond}"] = int(len(sub))
+        if correct.notna().any():
+            out[f"{cond}_rt"] = _mean_responded(sub[correct == 1]["rt"])
+            out[f"{cond}_accuracy"] = float(correct.mean())
+        else:
+            out[f"{cond}_rt"] = _mean_responded(sub["rt"])
+            out[f"{cond}_accuracy"] = float("nan")
+        out[f"{cond}_omission_rate"] = float(sub["omission"].mean()) if len(sub) else float("nan")
+    out["lag1_autocorr"] = lag1_autocorr(trials)
+    out["post_error_slowing_ms"] = post_error_slowing(trials)
+    return out
+
+
+# --------------------------------------------------------------------------- #
 # Bot canonical-trial loaders (one per paradigm; match analysis.ipynb)
 # --------------------------------------------------------------------------- #
 
@@ -286,10 +384,18 @@ def session_dirs_for(output_dir: Path, label: str) -> list[Path]:
     return out
 
 
-def collect_bot_per_subject(output_dir: Path, label: str) -> pd.DataFrame:
+def collect_bot_per_subject(output_dir: Path, label: str,
+                            taskcards_dir: Path | str = "taskcards") -> pd.DataFrame:
     """One metric row per bot session for ``label``. Off-count sessions are
     KEPT (transparency) and flagged via ``complete``; the legacy notebook
-    silently dropped them."""
+    silently dropped them.
+
+    Wave C3: when ``label`` has no hand-written loader, sessions are read
+    through the card-declared ``runtime.platform_export`` mapping (the card
+    is resolved from each session's run_metadata ``taskcard_sha256``) and
+    scored with :func:`generic_metrics`."""
+    if label not in PARADIGMS:
+        return _collect_bot_generic(output_dir, label, taskcards_dir)
     spec = PARADIGMS[label]
     metric_fn = _METRIC_FN[spec["kind"]]
     rows = []
@@ -305,6 +411,69 @@ def collect_bot_per_subject(output_dir: Path, label: str) -> pd.DataFrame:
             "sub_id": sd.name, "source": "bot", "platform": spec["platform"],
             "complete": m["n_trials"] == spec["expected_n"], **m,
         })
+    return pd.DataFrame(rows)
+
+
+def _generic_session_dirs(output_dir: Path):
+    """All session dirs with an export under any task-name subdir (unknown
+    labels have no known output-dir name variants)."""
+    output_dir = Path(output_dir)
+    if not output_dir.exists():
+        return
+    for d in sorted(output_dir.iterdir()):
+        if not d.is_dir():
+            continue
+        for sub in sorted(d.iterdir()):
+            if (sub.is_dir() and list(sub.glob("experiment_data.*"))
+                    and not (sub / ".incomplete").exists()):
+                yield sub
+
+
+def _collect_bot_generic(output_dir: Path, label: str,
+                         taskcards_dir: Path | str) -> pd.DataFrame:
+    """Card-declared-mapping path for labels without a hand-written loader.
+
+    A session belongs to ``label`` iff its run_metadata ``taskcard_sha256``
+    resolves to a card under ``taskcards_dir/<label>/`` (content-hash match,
+    same loader the run CLI uses). Sessions pinned to other labels' cards are
+    skipped; a resolvable card without a ``platform_export`` mapping, or a
+    mapping the export doesn't satisfy, yields an error row, never a crash."""
+    from experiment_bot.taskcard.loader import load_by_hash
+    rows = []
+    card_cache: dict[str, object] = {}
+    for sd in _generic_session_dirs(output_dir):
+        meta_path = sd / "run_metadata.json"
+        if not meta_path.exists():
+            continue
+        try:
+            sha = json.loads(meta_path.read_text()).get("taskcard_sha256", "")
+        except (OSError, json.JSONDecodeError):
+            continue
+        if not sha:
+            continue
+        if sha not in card_cache:
+            try:
+                card_cache[sha] = load_by_hash(Path(taskcards_dir), label=label, sha256=sha)
+            except FileNotFoundError:
+                card_cache[sha] = None  # not this label's card
+        card = card_cache[sha]
+        if card is None:
+            continue
+        mapping = card.runtime.platform_export
+        if not mapping:
+            rows.append({"sub_id": sd.name, "source": "bot", "platform": "export_mapping",
+                         "metrics": "generic",
+                         "error": f"card {sha[:12]} has no platform_export mapping"})
+            continue
+        try:
+            canon = canon_from_export_mapping(load_experiment_df(sd), mapping)
+            m = generic_metrics(canon)
+        except Exception as e:
+            rows.append({"sub_id": sd.name, "source": "bot", "platform": "export_mapping",
+                         "metrics": "generic", "error": str(e)[:120]})
+            continue
+        rows.append({"sub_id": sd.name, "source": "bot", "platform": "export_mapping",
+                     "metrics": "generic", **m})
     return pd.DataFrame(rows)
 
 

@@ -1128,7 +1128,11 @@ class TaskExecutor:
 
         correct_key = await self._resolve_response_key(match, page)
         provider.observe_key(correct_key)
-        resp = provider.respond(condition, correct_key, self._trial_count)
+        # Wave B3: the already-computed trial context text (the logged `cue`)
+        # is exposed to the program as ctx.stimulus_text.
+        stimulus_text = str(cue) if cue is not None else None
+        resp = provider.respond(condition, correct_key, self._trial_count,
+                                stimulus_text=stimulus_text)
         rt_ms = resp.rt_ms
 
         interrupt_detected = False

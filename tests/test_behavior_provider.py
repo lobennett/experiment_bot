@@ -120,6 +120,46 @@ def test_validate_still_rejects_arbitrary_unknown_key():
         s.respond("go", "q", 0)
 
 
+# --- Wave B3: stimulus_text in TrialContext ---
+
+def test_context_stimulus_text_defaults_to_none():
+    s = _session()
+    ctx = s.build_context("go", "f", 0)
+    assert ctx.stimulus_text is None
+
+
+def test_respond_threads_stimulus_text_to_program():
+    seen = {}
+
+    class _Capture:
+        def respond(self, ctx):
+            seen["stimulus_text"] = ctx.stimulus_text
+            return ("f", 400.0)
+    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _Capture())})
+    s = BehaviorSession(mod, seed=1, available_keys=KEYS)
+    s.respond("go", "f", 0, stimulus_text="RED")
+    assert seen["stimulus_text"] == "RED"
+    s.respond("go", "f", 1)
+    assert seen["stimulus_text"] is None
+
+
+def test_on_interrupt_sees_same_ctx_with_stimulus_text():
+    seen = {}
+
+    class _Stopper:
+        def respond(self, ctx):
+            return ("f", 400.0)
+
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            seen["stimulus_text"] = ctx.stimulus_text
+            return None
+    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _Stopper())})
+    s = BehaviorSession(mod, seed=1, available_keys=KEYS)
+    s.respond("stop", "f", 0, stimulus_text="cue-text")
+    s.on_interrupt(ssd_ms=250.0)
+    assert seen["stimulus_text"] == "cue-text"
+
+
 def test_resolve_program_by_hash_prefix(tmp_path):
     d = tmp_path / "stroop"
     d.mkdir()

@@ -417,6 +417,58 @@ async def test_navigation_refinement_prompt_has_schema_section():
 
 
 @pytest.mark.asyncio
+async def test_refinement_prompts_document_form_actions():
+    """Wave B2: both nav-refinement prompts must document the fill/select
+    form actions (with the `value` field) so the walker/adaptive-nav LLM
+    can propose form fills when a consent/demographic form blocks progress."""
+    from experiment_bot.reasoner.stage6_pilot import (
+        NAVIGATION_REFINEMENT_PROMPT, REFINEMENT_PROMPT,
+    )
+    for prompt in (REFINEMENT_PROMPT, NAVIGATION_REFINEMENT_PROMPT):
+        for action_name in ("fill", "select"):
+            assert f'"action": "{action_name}"' in prompt, \
+                f"prompt must include a concrete example of action={action_name}"
+        assert "`value`" in prompt, "prompt must document the value field"
+        assert "plausible neutral values" in prompt, \
+            "prompt must tell the LLM to propose plausible neutral form values"
+
+
+@pytest.mark.asyncio
+async def test_walker_navigation_refinement_splices_fill_phase(tmp_path):
+    """Wave B2: a proposed fill phase (form field blocking progress) is
+    executed via try_phase and spliced into navigation.phases on success."""
+    fake_client = AsyncMock()
+    fill_phase_json = ('{"phase": "consent_form", "action": "fill", '
+                       '"target": "#participant-age", "key": "", '
+                       '"value": "anon", "duration_ms": 0, "steps": []}')
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text=fill_phase_json))
+
+    partial = _stage5_partial()
+    session_mock = _make_session_mock(
+        poll_side_effect=[_failing_dict("<form>consent</form>"), _passing_dict()],
+    )
+    session_mock.try_phase = AsyncMock(return_value=PhaseAttempt(
+        success=True, dom_after="<div>instructions</div>", error=None,
+    ))
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=2,
+        )
+
+    phases = out["navigation"]["phases"]
+    assert len(phases) == 1, f"expected 1 nav phase appended, got {phases}"
+    assert phases[0]["action"] == "fill"
+    assert phases[0]["target"] == "#participant-age"
+    assert phases[0]["value"] == "anon"
+    # try_phase received the typed phase with the value threaded through
+    tried = session_mock.try_phase.await_args_list[-1].args[0]
+    assert tried.action == "fill" and tried.value == "anon"
+
+
+@pytest.mark.asyncio
 async def test_stimulus_refinement_prompt_has_expected_fields():
     from experiment_bot.reasoner.stage6_pilot import STIMULUS_REFINEMENT_PROMPT
     assert "stim_id" in STIMULUS_REFINEMENT_PROMPT

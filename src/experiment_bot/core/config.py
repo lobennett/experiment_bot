@@ -185,6 +185,9 @@ class NavigationPhase:
     steps: list[dict] = field(default_factory=list)
     duration_ms: int = 0
     pre_js: str = ""
+    # Wave B2: form actions — the text to enter (action "fill") or the
+    # dropdown option value/label to pick (action "select").
+    value: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> NavigationPhase:
@@ -196,6 +199,7 @@ class NavigationPhase:
             steps=d.get("steps", []),
             duration_ms=d.get("duration_ms", 0),
             pre_js=d.get("pre_js", ""),
+            value=d.get("value", ""),
         )
 
     def to_dict(self) -> dict:
@@ -204,6 +208,10 @@ class NavigationPhase:
              "steps": self.steps, "duration_ms": self.duration_ms}
         if self.pre_js:
             d["pre_js"] = self.pre_js
+        if self.value:
+            # Emitted only when set: committed cards without the field must
+            # keep serializing byte-identically (content-hash stability).
+            d["value"] = self.value
         return d
 
 

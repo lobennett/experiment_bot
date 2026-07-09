@@ -756,3 +756,47 @@ async def test_replay_navigation_clicks_feedback_selectors():
         )
     assert reached is True
     assert state["clicks"] >= 2, "replay must click feedback selectors like the executor"
+
+
+# --- Wave A4a: pilot-observed condition stream persisted as sidecar ---
+
+@pytest.mark.asyncio
+async def test_stage6_persists_pilot_observed_condition_stream(tmp_path):
+    """A passing pilot writes pilot_observations.json (sidecar — NOT a card
+    field, so committed card hashes stay stable) with the observed per-trial
+    condition sequence in encounter order."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    passing = _passing_dict()
+    passing["trial_log"] = [
+        {"trial": 1, "stimulus_id": "go", "condition": "go", "response_key": "f"},
+        {"trial": 2, "stimulus_id": "go", "condition": "go", "response_key": "f"},
+        {"trial": 3, "stimulus_id": "go", "condition": "other", "response_key": "j"},
+    ]
+    session_mock = _make_session_mock(poll_side_effect=[passing])
+    with _patch_pilot_session(session_mock):
+        await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    import json as _json
+    sidecar = tmp_path / "fake_task" / "pilot_observations.json"
+    assert sidecar.exists()
+    obs = _json.loads(sidecar.read_text())
+    assert obs["condition_stream"] == ["go", "go", "other"]
+
+
+@pytest.mark.asyncio
+async def test_stage6_skips_sidecar_when_trial_log_empty(tmp_path):
+    """No observed trials in the log -> no sidecar (nothing to replay)."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()  # _passing_dict has trial_log=[]
+    with _patch_pilot_session(session_mock):
+        await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert not (tmp_path / "fake_task" / "pilot_observations.json").exists()

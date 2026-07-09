@@ -86,6 +86,30 @@ def extract_python_block(text: str) -> str:
     return m.group(1)
 
 
+def _pilot_condition_stream(taskcards_dir: str, label: str,
+                            conditions: list[str]) -> list[str] | None:
+    """Read the pilot-observed condition sequence Stage 6 persisted as a
+    sidecar (taskcards/<label>/pilot_observations.json). Returns None when
+    absent/unreadable — the gate then falls back to round-robin. Labels
+    outside the card's condition vocabulary (e.g. structural-only screens)
+    are dropped so the gate only replays conditions the program was briefed
+    on. Wave A4a.
+    """
+    path = Path(taskcards_dir) / label / "pilot_observations.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    stream = data.get("condition_stream")
+    if not isinstance(stream, list):
+        return None
+    known = set(conditions)
+    filtered = [c for c in stream if isinstance(c, str) and c in known]
+    return filtered or None
+
+
 def mechanical_facts(taskcard) -> dict:
     conditions: list[str] = []
     for stim in taskcard.stimuli or []:
@@ -111,6 +135,8 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
     taskcard = _load_structural_taskcard(label, taskcards_dir, taskcard_sha256=taskcard_sha256)
     tc_hash = _compute_taskcard_hash(taskcard.to_dict())
     facts = mechanical_facts(taskcard)
+    condition_stream = _pilot_condition_stream(
+        taskcards_dir, label, facts["conditions"])
     prompt = _TEMPLATE.read_text().format(
         PAGE_SOURCE=_combined_source(bundle),
         CONDITIONS=", ".join(facts["conditions"]),
@@ -154,7 +180,8 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
         report = run_gate(prog, conditions=facts["conditions"],
                           key_map=facts["key_map"],
                           has_interrupt=facts["has_interrupt"],
-                          interrupt_condition=facts["interrupt_condition"])
+                          interrupt_condition=facts["interrupt_condition"],
+                          condition_stream=condition_stream)
         simgate_path = out_dir / f"{sha}.simgate.json"
         if simgate_path.exists():
             simgate_path = out_dir / f"{sha}.attempt{attempt}.simgate.json"

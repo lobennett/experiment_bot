@@ -184,6 +184,72 @@ def test_generate_source_budget_excludes_oversized_file(tmp_path, monkeypatch):
     assert by_name["task.js"]["included"] is True
 
 
+# --- Wave C4: K-program generation ---
+
+def test_generate_programs_k2_archives_two_transcripts_and_gates(tmp_path, monkeypatch):
+    """K=2 with distinct replies: two passing programs, each with its own
+    transcript + gate record, one scrape for the whole batch."""
+    from experiment_bot.behavior.gen_cli import generate_programs
+    import experiment_bot.behavior.gen_cli as g
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    variant = TOY_TEXT + "\n# independent variant\n"
+    client = _fake_client([f"```python\n{TOY_TEXT}```",
+                           f"```python\n{variant}```"])
+    passed, failures = asyncio.run(generate_programs(
+        "http://x", "toy", client, n_programs=2, out_root=tmp_path))
+    assert failures == []
+    assert len(passed) == 2
+    assert len({p.stem for p in passed}) == 2  # distinct hashes
+    out = tmp_path / "toy"
+    transcripts = list(out.glob("*.transcript.json"))
+    assert len(transcripts) == 2
+    assert len(list(out.glob("*.simgate.json"))) == 2
+    indices = sorted(json.loads(t.read_text())["program_index"] for t in transcripts)
+    assert indices == [0, 1]
+    assert g.scrape_experiment_source.await_count == 1
+
+
+def test_generate_programs_duplicate_program_is_not_independent(tmp_path, monkeypatch):
+    """A slot whose passing code is byte-identical to an earlier slot's is a
+    failure (not an independent program), but its transcript+gate are still
+    archived (all attempts archived)."""
+    from experiment_bot.behavior.gen_cli import generate_programs
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"] * 2)
+    passed, failures = asyncio.run(generate_programs(
+        "http://x", "toy", client, n_programs=2, out_root=tmp_path))
+    assert len(passed) == 1
+    assert len(failures) == 1 and "not independent" in failures[0]
+    out = tmp_path / "toy"
+    assert len(list(out.glob("*.py"))) == 1  # same content -> same path
+    assert len(list(out.glob("*.transcript.json"))) == 2
+    assert len(list(out.glob("*.simgate.json"))) == 2
+
+
+def test_cli_exits_nonzero_when_fewer_than_k_pass(monkeypatch):
+    from click.testing import CliRunner
+    import experiment_bot.behavior.gen_cli as g
+    monkeypatch.setattr(g, "build_default_client", MagicMock(return_value=MagicMock()))
+    monkeypatch.setattr(g, "generate_programs",
+                        AsyncMock(return_value=([Path("a.py")], ["program 1: gate"])))
+    result = CliRunner().invoke(
+        g.main, ["http://x", "--label", "toy", "--n-programs", "2"])
+    assert result.exit_code != 0
+    assert "PASS -> a.py" in result.output
+
+
+def test_cli_exits_zero_when_all_k_pass(monkeypatch):
+    from click.testing import CliRunner
+    import experiment_bot.behavior.gen_cli as g
+    monkeypatch.setattr(g, "build_default_client", MagicMock(return_value=MagicMock()))
+    monkeypatch.setattr(g, "generate_programs",
+                        AsyncMock(return_value=([Path("a.py"), Path("b.py")], [])))
+    result = CliRunner().invoke(
+        g.main, ["http://x", "--label", "toy", "--n-programs", "2"])
+    assert result.exit_code == 0
+    assert "PASS -> a.py" in result.output and "PASS -> b.py" in result.output
+
+
 # --- Final-review N1/N2: real committed TaskCards through the real loader ---
 # The dict-shaped mocks above hid two generation-path crashes: typed
 # StimulusConfig objects yielded zero conditions, and the stroop cards'

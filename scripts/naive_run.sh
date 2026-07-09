@@ -9,6 +9,12 @@ N="${1:-30}"
 export EXPERIMENT_BOT_OUTPUT_DIR="$(pwd)/${2:-output_naive}"
 mkdir -p "$EXPERIMENT_BOT_OUTPUT_DIR"
 SEED_BASE=730000
+# C4: optionally generate/run K independent gate-passed programs, splitting
+# the seed list evenly across them (deterministic: seed index mod K over the
+# FULL target list). Default 1 = the pre-registered single-program flow.
+# Note: generation is skipped when programs already exist; to raise
+# N_PROGRAMS after a previous run, clear naive_programs/<label>/ first.
+N_PROGRAMS="${N_PROGRAMS:-1}"
 
 echo "=== [$(date +%H:%M:%S)] preflight: normalize to N=$N target seeds (idempotent) ==="
 uv run python - <<PY
@@ -40,6 +46,10 @@ for label, (d, off) in paradigms.items():
         done.add(seed)
     missing = [s for s in sorted(target) if s not in done]
     Path(f"/tmp/naive_{label}.seeds").write_text("\n".join(map(str, missing)) + ("\n" if missing else ""))
+    # C4: the FULL ordered target list — seed->program assignment must be
+    # computed over this (never the residual missing list) so re-runs give
+    # each seed the same program.
+    Path(f"/tmp/naive_{label}.target_seeds").write_text("\n".join(map(str, sorted(target))) + "\n")
     print(f"  {label}: target={N} keep={len(done)} missing={len(missing)}")
 PY
 
@@ -47,26 +57,45 @@ gen_if_missing() {  # label url structural_hash
   local label="$1" url="$2" hash="$3"
   if ! ls "naive_programs/$label/"*.py >/dev/null 2>&1; then
     uv run experiment-bot-naive-gen "$url" --label "$label" \
-      --taskcard-sha256 "$hash" || return 1
+      --taskcard-sha256 "$hash" --n-programs "$N_PROGRAMS" || return 1
   fi
 }
 
 run_stream() {  # label url structural_hash
   local label="$1" url="$2" hash="$3" log="/tmp/naive_${1}.log"
   : > "$log"
-  local prog=""
-  for f in "naive_programs/$label/"*.py; do
-    local sha; sha="$(basename "$f" .py)"
+  # Gate-passed programs, sorted by hash for a stable assignment order.
+  local progs=() f sha
+  for f in $(ls "naive_programs/$label/"*.py 2>/dev/null | sort); do
+    sha="$(basename "$f" .py)"
     if grep -q '"passed": true' "naive_programs/$label/$sha.simgate.json" 2>/dev/null; then
-      prog="$f"; break
+      progs+=("$f")
     fi
   done
-  if [ -z "$prog" ]; then
+  if [ "${#progs[@]}" -eq 0 ]; then
     echo "[$label] NO GATE-PASSED PROGRAM — skipping stream" >> "$log"; return 1
   fi
+  # C4: deterministic seed->program map (seed index mod K over the FULL
+  # target list). K=1 assigns every seed the first gate-passed program,
+  # matching the pre-registered single-program flow. Which program served
+  # which seed lands in each session's run_metadata via the program sha.
+  local mapfile="/tmp/naive_${label}.progmap"
+  uv run python - "$label" "${progs[@]}" > "$mapfile" <<'PY'
+import sys
+from pathlib import Path
+from experiment_bot.behavior.seed_split import split_seeds
+label, programs = sys.argv[1], sys.argv[2:]
+seeds = [int(s) for s in Path(f"/tmp/naive_{label}.target_seeds").read_text().split()]
+for seed, prog in split_seeds(seeds, programs).items():
+    print(seed, prog)
+PY
   while read -r seed; do
     [ -z "$seed" ] && continue
-    echo "[$label] seed=$seed start $(date +%H:%M:%S)" >> "$log"
+    local prog; prog="$(awk -v s="$seed" '$1==s{print $2}' "$mapfile")"
+    if [ -z "$prog" ]; then
+      echo "[$label] $seed NO PROGRAM MAPPED — skipping" >> "$log"; continue
+    fi
+    echo "[$label] seed=$seed prog=$(basename "$prog" .py | cut -c1-12) start $(date +%H:%M:%S)" >> "$log"
     uv run experiment-bot "$url" --label "$label" --headless --no-calibration \
       --taskcard-sha256 "$hash" --seed "$seed" \
       --behavior-program "$prog" >> "$log" 2>&1 \

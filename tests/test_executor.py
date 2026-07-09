@@ -503,11 +503,13 @@ def test_non_trial_stimulus_does_not_reset_consecutive_misses():
     config = TaskConfig.from_dict(config_data)
     executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
 
-    # A fixation match: null key, no_response condition, no matching distribution
+    # A structural (navigation-condition) match: must not reset the miss
+    # counter. (Withhold trials — key None on a non-structural condition —
+    # ARE trials since the go/nogo fix and DO reset it.)
     fixation_match = StimulusMatch(
-        stimulus_id="fixation",
+        stimulus_id="nav_screen",
         response_key=None,
-        condition="no_response",
+        condition="navigation",
     )
     assert executor._is_trial_stimulus(fixation_match) is False
 
@@ -1475,4 +1477,42 @@ def test_is_trial_stimulus_on_structural_only_card():
         "response": {"key": None, "condition": "fixation"}})
     ex2 = TaskExecutor(TaskConfig.from_dict(d2), seed=1, behavior_provider=_toy_session())
     assert ex2._is_trial_stimulus(StimulusMatch(stimulus_id="dyn", response_key=None, condition="dyn_cond")) is True
-    assert ex2._is_trial_stimulus(StimulusMatch(stimulus_id="fix", response_key=None, condition="fixation")) is False
+    # go/nogo regression: key=None on a non-structural condition is the
+    # DOCUMENTED withhold channel — a real trial the program must decide.
+    assert ex2._is_trial_stimulus(StimulusMatch(stimulus_id="fix", response_key=None, condition="fixation")) is True
+
+
+@pytest.mark.asyncio
+async def test_withhold_trial_routes_to_program_and_commission_fires():
+    """go/nogo regression: a key=None trial stimulus reaches the program; if
+    the program responds anyway (commission error), the key fires and the
+    trial logs incorrect."""
+    import copy
+    d = copy.deepcopy(SAMPLE_CONFIG)
+    d["response_distributions"] = {}
+    d["runtime"] = {}  # no trial_interrupt: withhold comes from the stimulus
+    d["stimuli"] = [{
+        "id": "nogo_sq", "description": "outlined square",
+        "detection": {"method": "dom_query", "selector": ".sq"},
+        "response": {"key": None, "condition": "nogo"},
+    }]
+
+    class _Committer:
+        def respond(self, ctx):
+            assert ctx.correct_key is None  # withhold trial
+            return ("z", 300.0)  # commission error
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Committer())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(TaskConfig.from_dict(d), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="nogo_sq", response_key=None, condition="nogo")
+    assert ex._is_trial_stimulus(match) is True
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_awaited_once()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["response_key"] == "z"
+    assert logged["behavior_provider"] is True

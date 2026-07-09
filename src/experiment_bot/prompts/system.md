@@ -20,7 +20,9 @@ participant to do; do not use lab-specific task names.
 
 ### 1. Stimulus-Response Mappings
 
-For each possible stimulus, determine:
+Only declare stimuli that constitute TRIAL EVENTS — displays the participant must respond to, or must explicitly withhold a response to. Do not declare passive displays (fixation crosses, inter-trial screens, cues with no response) as stimuli.
+
+For each such stimulus, determine:
 - How to detect it (JavaScript expression or CSS selector)
 - What the correct keyboard response is (key name or null to withhold)
 - A unique condition label for the stimulus

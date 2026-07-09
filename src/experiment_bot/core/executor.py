@@ -472,21 +472,15 @@ class TaskExecutor:
         )
         if interrupt_cond and condition == interrupt_cond:
             return False
-        # A trial needs a response channel: a static key, or a dynamic
-        # per-trial response_key_js on the stimulus (or globally). Stimuli
-        # with neither (fixation, cue displays) are non-trial — they must
-        # not reset the miss counter or reach the behavior program.
-        if match.response_key is not None:
-            return True
-        for stim in self._config.stimuli or []:
-            sid = stim.get("id") if isinstance(stim, dict) else getattr(stim, "id", None)
-            if sid != match.stimulus_id:
-                continue
-            resp = stim.get("response") if isinstance(stim, dict) else getattr(stim, "response", None)
-            rkj = (resp or {}).get("response_key_js") if isinstance(resp, dict) else getattr(resp, "response_key_js", None)
-            if rkj:
-                return True
-        return bool((self._config.task_specific or {}).get("response_key_js"))
+        # Any other declared stimulus is a trial. In particular, key=None is
+        # the DOCUMENTED withhold channel ("key name or null to withhold",
+        # prompts/system.md) — go/nogo-style withhold trials are real trials
+        # the behavior program must decide (respond = commission error).
+        # The earlier response-channel requirement silently excluded them:
+        # observed live as a 0.000 false-alarm rate because no-go trials
+        # never reached the program. Passive displays (fixation, ITI) must
+        # not be declared as stimuli at all (see prompts/system.md §1).
+        return True
 
     async def run(self, task_url: str) -> None:
         """Execute the full task."""

@@ -16,6 +16,9 @@ from pathlib import Path
 from experiment_bot.behavior.gen_cli import (
     _EMPTY_KEY_MAP_NOTE, _INTERRUPT_NOTE, _RETRY_PREFIX, _RETRY_SUFFIX,
 )
+from experiment_bot.behavior.source_slim import (
+    BLOB_MARKER, EXCLUDED_LINE, EXCLUDED_SECTION_HEADER,
+)
 
 TEMPLATE = Path("src/experiment_bot/behavior/prompts/naive_gen.md")
 
@@ -41,6 +44,11 @@ ASSEMBLED_PROMPT_SOURCES = [
     ("gen_cli._RETRY_PREFIX", _RETRY_PREFIX),
     ("gen_cli._EMPTY_KEY_MAP_NOTE", _EMPTY_KEY_MAP_NOTE),
     ("gen_cli._RETRY_SUFFIX", _RETRY_SUFFIX),
+    # Wave C2: the mechanical slimmer's markers are spliced into the live
+    # prompt's {PAGE_SOURCE}, so they face the same neutrality scans.
+    ("source_slim.BLOB_MARKER", BLOB_MARKER),
+    ("source_slim.EXCLUDED_SECTION_HEADER", EXCLUDED_SECTION_HEADER),
+    ("source_slim.EXCLUDED_LINE", EXCLUDED_LINE),
 ]
 
 

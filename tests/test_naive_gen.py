@@ -145,6 +145,45 @@ def test_generate_retries_on_gate_failure_then_fails(tmp_path, monkeypatch):
     assert len(list((tmp_path / "toy").glob("*.transcript.json"))) == 3
 
 
+# --- Wave C2: mechanical source slimming wired into generation ---
+
+def test_generate_records_slimming_manifest_in_transcript(tmp_path, monkeypatch):
+    """Every attempt's transcript archives the slimming manifest (what was
+    included/excluded from the prompt's page source, and the budget)."""
+    from experiment_bot.behavior.source_slim import DEFAULT_SOURCE_BUDGET
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    path = asyncio.run(generate("http://x", "toy", client, out_root=tmp_path))
+    sha = path.stem
+    transcript = json.loads((tmp_path / "toy" / f"{sha}.transcript.json").read_text())
+    assert transcript["slimming"]["budget"] == DEFAULT_SOURCE_BUDGET
+    assert transcript["slimming"]["entry"]["truncated"] is False
+    assert transcript["slimming"]["files"] == []
+
+
+def test_generate_source_budget_excludes_oversized_file(tmp_path, monkeypatch):
+    """source_budget flows into the slimmer: an oversized vendor file is
+    excluded from the prompt but recorded in the manifest."""
+    import experiment_bot.behavior.gen_cli as g
+    bundle = MagicMock()
+    bundle.description_text = "<html><script src='vendor.min.js'></script></html>"
+    bundle.source_files = {"vendor.min.js": "var a=1;" * 4000,
+                           "task.js": "var task = true;\n"}
+    monkeypatch.setattr(g, "scrape_experiment_source",
+                        AsyncMock(return_value=bundle))
+    _fake_taskcard(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    path = asyncio.run(generate("http://x", "toy", client, out_root=tmp_path,
+                                source_budget=2_000))
+    sha = path.stem
+    transcript = json.loads((tmp_path / "toy" / f"{sha}.transcript.json").read_text())
+    assert "var a=1;var a=1;" not in transcript["prompt"]
+    assert "var task = true;" in transcript["prompt"]
+    by_name = {f["name"]: f for f in transcript["slimming"]["files"]}
+    assert by_name["vendor.min.js"]["included"] is False
+    assert by_name["task.js"]["included"] is True
+
+
 # --- Final-review N1/N2: real committed TaskCards through the real loader ---
 # The dict-shaped mocks above hid two generation-path crashes: typed
 # StimulusConfig objects yielded zero conditions, and the stroop cards'

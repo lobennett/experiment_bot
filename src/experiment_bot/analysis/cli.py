@@ -93,6 +93,57 @@ def _write_report(out: Path, label: str, kind: str, bot_df, human_df, human_csv:
     return p
 
 
+def _write_generic_report(out: Path, label: str, bot_df) -> Path:
+    """Wave C3: cohort summary for a label with no hand-written loader —
+    GENERIC metrics from the card-declared export mapping, no human-reference
+    comparison (none supplied)."""
+    ts = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    skip = {"sub_id", "source", "platform", "metrics", "error", "complete"}
+    metrics = [c for c in bot_df.columns if c not in skip]
+    lines = [
+        f"# Per-subject behavioral summary — {label} (GENERIC metrics)",
+        "",
+        f"_Generated {ts}. Bot N={len(bot_df)} sessions._",
+        "",
+        "**GENERIC metrics** — this label has no hand-written loader; trials "
+        "were read through the TaskCard's declarative `runtime.platform_export` "
+        "mapping and scored with the generic per-condition estimators "
+        "(correct-trial mean RT, accuracy, omission rate, lag-1 RT "
+        "autocorrelation, post-error slowing). **No human-reference comparison** "
+        "— no reference dataset was supplied for this paradigm.",
+        "",
+        "| metric | mean | SD | n |",
+        "|---|---|---|---|",
+    ]
+    if metrics and len(bot_df):
+        summary = ps.summarize(bot_df, metrics)
+        for m in metrics:
+            mean, sd, n = summary.loc[m, "mean"], summary.loc[m, "sd"], summary.loc[m, "n"]
+            def _f(v):
+                return "—" if v is None or (isinstance(v, float) and np.isnan(v)) else f"{v:.3f}"
+            lines.append(f"| {m} | {_f(mean)} | {_f(sd)} | {int(n)} |")
+    if "error" in bot_df.columns:
+        n_err = int(bot_df["error"].notna().sum())
+        if n_err:
+            lines += ["", f"**{n_err} session(s) recorded errors** (see the "
+                          "`error` column in the per-subject CSV)."]
+    lines.append("")
+    p = out / f"generic_{label}.md"
+    p.write_text("\n".join(lines))
+    return p
+
+
+def _run_one_generic(label, output_dir, out_dir, taskcards_dir):
+    bot_df = ps.collect_bot_per_subject(Path(output_dir), label,
+                                        taskcards_dir=taskcards_dir)
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    bot_path = out_dir / f"per_subject_{label}_bot.csv"
+    bot_df.to_csv(bot_path, index=False)
+    report = _write_generic_report(out_dir, label, bot_df)
+    return bot_df, bot_path, report
+
+
 def _run_one(label, output_dir, human_csv, out_dir):
     spec = ps.PARADIGMS[label]
     kind = spec["kind"]
@@ -117,14 +168,25 @@ def _run_one(label, output_dir, human_csv, out_dir):
 @click.option("--human-stroop", type=click.Path(path_type=Path), default=None,
               help="Eisenberg Stroop trial-level CSV (for Stroop labels)")
 @click.option("--out-dir", default="analysis_out", help="Where to write CSVs + reports")
+@click.option("--taskcards-dir", default="taskcards", show_default=True,
+              help="Where structural TaskCards live (used to resolve the "
+                   "card-declared export mapping for labels without a "
+                   "hand-written loader).")
 @click.option("-v", "--verbose", is_flag=True, default=False)
-def main(label, output_dir, human_stop, human_stroop, out_dir, verbose):
+def main(label, output_dir, human_stop, human_stroop, out_dir, taskcards_dir, verbose):
     """Export per-subject metric CSVs + a bot-vs-human comparison report."""
     logging.basicConfig(level=logging.DEBUG if verbose else logging.INFO,
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     labels = list(ps.PARADIGMS) if label == "all" else [label]
     if label != "all" and label not in ps.PARADIGMS:
-        raise click.ClickException(f"Unknown label '{label}'. Choose from: {', '.join(ps.PARADIGMS)} or 'all'.")
+        # Wave C3: unknown label -> generic metrics through the card-declared
+        # export mapping. Clearly marked; no human-reference comparison.
+        bot_df, bp, rep = _run_one_generic(label, output_dir, out_dir, taskcards_dir)
+        click.echo(f"[{label}] GENERIC metrics (no hand-written loader; "
+                   f"card-declared export mapping) — no human-reference comparison")
+        click.echo(f"[{label}] bot N={len(bot_df)} → {bp.name}; report → {rep.name}")
+        click.echo(f"Wrote to {out_dir}/")
+        return
     human_for = {"stop_signal": human_stop, "stroop": human_stroop}
     for lab in labels:
         kind = ps.PARADIGMS[lab]["kind"]

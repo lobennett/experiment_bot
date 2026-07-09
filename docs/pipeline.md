@@ -24,7 +24,8 @@ URL ──▶ 1. structural reasoning ──▶ TaskCard (structure only)
 An LLM reads the experiment's scraped page source and produces a
 **structural TaskCard**: how to *detect* each stimulus (CSS selector or JS
 expression, with a condition label per stimulus), how to *navigate* the
-instruction flow (ordered phases: clicks, keypresses, waits), which *keys*
+instruction flow (ordered phases: clicks, keypresses, form fills/selects,
+waits), which *keys*
 the task accepts, runtime timing knobs (response-window checks, keypress
 dwell, data-capture expressions), and whether the task has a mid-trial
 interrupt signal. A short live pilot (~20 trials) then validates the
@@ -57,12 +58,15 @@ The model's reply is archived under its content hash at
 **The protocol** (`src/experiment_bot/behavior/provider.py`): a program
 defines `make_participant(seed)` returning an object with
 `respond(ctx) -> (key, rt_ms)` — called once per trial with the condition,
-the correct key, the keys observed so far, the trial index, and the previous
-trial's outcome — and, for interrupt tasks, `on_interrupt(ctx, ssd_ms,
-intended)` returning `None` (withhold) or a `(key, rt_ms)` commission
-response. Programs are stdlib+numpy only, deterministic per seed, no
-I/O/network/clock. Every return value is validated at the boundary; nothing
-is silently coerced.
+the correct key, the keys observed so far, the trial index, the previous
+trial's outcome, the trial's visible context text (`ctx.stimulus_text`,
+when the task exposes one), and, for tasks answered by clicking an
+on-screen option, the options' labels (`ctx.response_elements`; the program
+may then return `("click", index, rt_ms)` instead of a keypress) — and, for
+interrupt tasks, `on_interrupt(ctx, ssd_ms, intended)` returning `None`
+(withhold) or a commission response. Programs are stdlib+numpy only,
+deterministic per seed, no I/O/network/clock. Every return value is
+validated at the boundary; nothing is silently coerced.
 
 ## 3. Mechanical gate — `experiment-bot-naive-sim <program> ...`
 
@@ -83,7 +87,8 @@ card: navigates the instruction flow (with a bounded LLM fallback for
 unfamiliar screens), then polls the DOM for stimuli. Per trial it resolves
 the correct key, builds the trial context, asks the program for `(key,
 rt_ms)`, waits exactly that long, and delivers the keypress through a
-timing-calibrated CDP channel. On interrupt-capable tasks it polls for the
+timing-calibrated CDP channel (a `("click", index, rt_ms)` response is
+delivered instead as a click on the chosen option's selector). On interrupt-capable tasks it polls for the
 signal during the intended RT and, if the signal appears, hands the
 program the stop/go decision (`ssd_ms` is the bot's detection latency for
 the signal; the platform's own recorded delay is authoritative for

@@ -21,6 +21,13 @@ ALLOWED_IMPORTS = frozenset({
 # different key" behavior even when no static key_map exists.
 DYNAMIC_KEY_FALLBACK = ("f", "j")
 
+# Protocol-fuzz constants (Wave A4b). The label is deliberately synthetic —
+# it must never collide with a real card's condition vocabulary.
+_FUZZ_UNSEEN_CONDITION = "__gate_fuzz_unseen_condition__"
+# Extreme interrupt latencies a live session can legitimately produce
+# (near-instant detection; very late signal on a slow page).
+_FUZZ_INTERRUPT_SSDS = (1.0, 5000.0)
+
 
 @dataclass
 class GateReport:
@@ -51,7 +58,8 @@ def scan_imports(program_path: Path) -> list[str]:
 
 def _trace(program_path: Path, seed: int, conditions: list[str],
            key_map: dict[str, str], has_interrupt: bool, n_trials: int,
-           report: GateReport, interrupt_condition: str | None = None) -> list[tuple]:
+           report: GateReport, interrupt_condition: str | None = None,
+           condition_stream: list[str] | None = None) -> list[tuple]:
     """One synthetic session; returns [(key, rt), ...]. Failures -> report.
 
     An interrupt trial is one whose condition == interrupt_condition (NOT
@@ -63,9 +71,15 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
     dynamic-key cards (empty key_map), the correct_key is synthesized
     deterministically from a fixed 2-key set rather than a static key_map
     lookup, since no static mapping exists.
+
+    `condition_stream`, when supplied (e.g. the pilot-observed trial
+    sequence), is replayed verbatim — cycled to n_trials — instead of the
+    round-robin over `conditions`. The gate stays behavior-blind: the
+    stream orders MECHANICAL facts, it carries no behavioral content.
     """
     filtered_keys = tuple(sorted({v for v in key_map.values() if v}))
     keys = filtered_keys or DYNAMIC_KEY_FALLBACK
+    stream = condition_stream or conditions
     try:
         session = BehaviorSession(load_program(program_path), seed=seed,
                                   available_keys=keys, program_path=program_path)
@@ -74,7 +88,7 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
         return []
     out = []
     for i in range(n_trials):
-        cond = conditions[i % len(conditions)]
+        cond = stream[i % len(stream)]
         is_interrupt_trial = has_interrupt and cond == interrupt_condition
         if is_interrupt_trial:
             correct = None
@@ -83,7 +97,10 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
         else:
             # Dynamic-key card: no static mapping for this condition — pick a
             # stable (not RNG-driven) key from the fixed fallback set.
-            correct = keys[conditions.index(cond) % len(keys)]
+            # (A supplied stream may in principle carry a label absent from
+            # `conditions`; index 0 keeps the choice deterministic.)
+            cond_idx = conditions.index(cond) if cond in conditions else 0
+            correct = keys[cond_idx % len(keys)]
         try:
             r = session.respond(cond, correct, i)
             interrupted = False
@@ -102,27 +119,101 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
     return out
 
 
+def _fuzz_protocol(program_path: Path, conditions: list[str],
+                   key_map: dict[str, str], has_interrupt: bool,
+                   report: GateReport, interrupt_condition: str | None = None,
+                   seed: int = 3) -> None:
+    """Protocol fuzz cases (Wave A4b) — still purely mechanical.
+
+    A live session can present contexts the round-robin trace never does:
+    the very first trial (all prev_* None), a condition label the card
+    didn't list, an empty key inventory (dynamic-key card before any key
+    is observed), and interrupt signals at extreme latencies. A program
+    crashing on any of these fails the gate with a named `fuzz:<case>`
+    failure. No behavioral judgment — only "does not crash / stays within
+    the protocol contract".
+    """
+    if not conditions:
+        return
+    filtered_keys = tuple(sorted({v for v in key_map.values() if v}))
+    keys = filtered_keys or DYNAMIC_KEY_FALLBACK
+
+    def _fresh(available_keys: tuple[str, ...]):
+        return BehaviorSession(load_program(program_path), seed=seed,
+                               available_keys=available_keys,
+                               program_path=program_path)
+
+    def _correct_for(cond: str) -> str | None:
+        if has_interrupt and cond == interrupt_condition:
+            return None
+        return key_map.get(cond, keys[0])
+
+    cases: list[tuple[str, object]] = []
+
+    def _first_trial(s):
+        cond = conditions[0]
+        s.respond(cond, _correct_for(cond), 0)
+    cases.append(("first_trial", _first_trial))
+
+    def _unseen_condition(s):
+        s.respond(_FUZZ_UNSEEN_CONDITION, keys[0], 0)
+    cases.append(("unseen_condition", _unseen_condition))
+
+    def _empty_available_keys(s):
+        cond = conditions[0]
+        s.respond(cond, _correct_for(cond), 0)
+    cases.append(("empty_available_keys", _empty_available_keys))
+
+    if has_interrupt and interrupt_condition is not None:
+        def _extreme_ssd(s):
+            for i, ssd in enumerate(_FUZZ_INTERRUPT_SSDS):
+                r = s.respond(interrupt_condition, None, i)
+                d = s.on_interrupt(ssd_ms=ssd)
+                if d is not None:
+                    r = d
+                s.record_outcome(interrupt_condition, correct=(r.key is None),
+                                 rt_ms=r.rt_ms, interrupted=True)
+        cases.append(("interrupt_extreme_ssd", _extreme_ssd))
+
+    for name, fn in cases:
+        try:
+            session = _fresh(() if name == "empty_available_keys" else keys)
+            fn(session)
+        except Exception as e:  # noqa: BLE001 — every crash is a named gate failure
+            report.fail(f"fuzz:{name}: {type(e).__name__}: {e}")
+
+
 def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
              has_interrupt: bool, n_trials: int = 1000,
              seeds: tuple[int, ...] = (1, 2),
-             interrupt_condition: str | None = None) -> GateReport:
+             interrupt_condition: str | None = None,
+             condition_stream: list[str] | None = None) -> GateReport:
     report = GateReport(program_sha256=program_sha256(program_path))
     bad_imports = scan_imports(program_path)
     if bad_imports:
         report.fail(f"disallowed imports: {bad_imports}")
         return report
     t1 = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
-                n_trials, report, interrupt_condition=interrupt_condition)
+                n_trials, report, interrupt_condition=interrupt_condition,
+                condition_stream=condition_stream)
     if not report.passed:
         return report
     t1_again = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
-                      n_trials, report, interrupt_condition=interrupt_condition)
+                      n_trials, report, interrupt_condition=interrupt_condition,
+                      condition_stream=condition_stream)
     if t1 != t1_again:
         report.fail("non-deterministic: same seed produced different traces")
     t2 = _trace(program_path, seeds[1], conditions, key_map, has_interrupt,
-                n_trials, report, interrupt_condition=interrupt_condition)
+                n_trials, report, interrupt_condition=interrupt_condition,
+                condition_stream=condition_stream)
     if report.passed and t1 == t2:
         report.fail("seeds not distinct: different seeds produced identical traces")
+    if report.passed:
+        _fuzz_protocol(program_path, conditions, key_map, has_interrupt,
+                       report, interrupt_condition=interrupt_condition)
     report.stats = {"n_trials": len(t1), "seeds": list(seeds),
-                    "n_conditions": len(conditions)}
+                    "n_conditions": len(conditions),
+                    "condition_stream_source": (
+                        "supplied" if condition_stream else "round_robin"),
+                    }
     return report

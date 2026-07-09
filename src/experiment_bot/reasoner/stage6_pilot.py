@@ -528,6 +528,29 @@ def _save_diagnostic(diagnostics: PilotDiagnostics, taskcards_dir: Path, label: 
     (out_dir / "pilot.md").write_text(diagnostics.to_report())
 
 
+def _save_pilot_observations(
+    diagnostics: PilotDiagnostics, taskcards_dir: Path, label: str,
+) -> None:
+    """Persist the pilot-observed per-trial condition sequence (encounter
+    order) as a SIDECAR next to pilot.md. A sidecar — not a card field — so
+    the canonical content hashes of already-committed cards stay stable.
+    The mechanical gate (behavior/simgate.py) replays this stream instead
+    of a round-robin when it's available (Wave A4a). Skipped when the pilot
+    logged no trials.
+    """
+    stream = [
+        e.get("condition") for e in diagnostics.trial_log
+        if isinstance(e.get("condition"), str) and e.get("condition")
+    ]
+    if not stream:
+        return
+    out_dir = Path(taskcards_dir) / label
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "pilot_observations.json").write_text(
+        json.dumps({"condition_stream": stream, "source": "stage6_pilot"}, indent=2)
+    )
+
+
 def _save_refinement_diff(
     before: dict, after: dict, taskcards_dir: Path, label: str, attempt: int,
 ) -> str:
@@ -659,6 +682,7 @@ async def run_stage6(
                         if s.get('id') == stim_id:
                             s.setdefault('detection', {})['selector'] = new_sel
                 _save_diagnostic(diagnostics, taskcards_dir, label)
+                _save_pilot_observations(diagnostics, taskcards_dir, label)
                 if attempt == 0 and not accumulated_stim_overrides:
                     inference = (
                         f"Pilot passed first attempt: "

@@ -168,3 +168,58 @@ def test_available_keys_real_cards():
     assert all(k not in ("dynamic", "dynamic_mapping")
                for k in _available_keys_from_taskcard(dyn))
     assert {"b", "g", "r", "y"}.issubset(set(_available_keys_from_taskcard(cog)))
+
+
+# --- Wave A4a: gen_cli replays the pilot-observed condition stream ---
+
+def _capture_run_gate(monkeypatch):
+    import experiment_bot.behavior.gen_cli as g
+    captured = {}
+    real_report = MagicMock()
+    real_report.passed = True
+    real_report.to_dict.return_value = {"passed": True}
+
+    def _fake_run_gate(prog, **kwargs):
+        captured.update(kwargs)
+        return real_report
+    monkeypatch.setattr(g, "run_gate", _fake_run_gate)
+    return captured
+
+
+def test_generate_passes_pilot_condition_stream_to_gate(tmp_path, monkeypatch):
+    """When the card's pilot artifacts include pilot_observations.json, the
+    gate replays that observed sequence."""
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    captured = _capture_run_gate(monkeypatch)
+    taskcards_dir = tmp_path / "taskcards"
+    (taskcards_dir / "toy").mkdir(parents=True)
+    (taskcards_dir / "toy" / "pilot_observations.json").write_text(
+        json.dumps({"condition_stream": ["go", "go", "go"]}))
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
+                        taskcards_dir=str(taskcards_dir)))
+    assert captured["condition_stream"] == ["go", "go", "go"]
+
+
+def test_generate_condition_stream_none_without_sidecar(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    captured = _capture_run_gate(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
+                        taskcards_dir=str(tmp_path / "taskcards")))
+    assert captured.get("condition_stream") is None
+
+
+def test_generate_filters_unknown_conditions_from_stream(tmp_path, monkeypatch):
+    """Sidecar labels not in the card's condition vocabulary are dropped
+    (e.g. structural-only conditions the gate isn't briefed on)."""
+    _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
+    captured = _capture_run_gate(monkeypatch)
+    taskcards_dir = tmp_path / "taskcards"
+    (taskcards_dir / "toy").mkdir(parents=True)
+    (taskcards_dir / "toy" / "pilot_observations.json").write_text(
+        json.dumps({"condition_stream": ["go", "navigation", "go"]}))
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
+                        taskcards_dir=str(taskcards_dir)))
+    assert captured["condition_stream"] == ["go", "go"]

@@ -29,12 +29,17 @@ logger = logging.getLogger(__name__)
 # SP16: adaptive nav constants
 _ADAPTIVE_NAV_STUCK_POLLS = 20
 _ADAPTIVE_NAV_BUDGET = 10
-# SP16: adaptive nav fires only when an INSTRUCTIONS-phase screen survives this
-# many consecutive standard nav re-runs without its DOM changing. Gating on a
-# stuck INSTRUCTIONS DOM (not on stimulus-polling misses) prevents false-firing
-# during normal between-trial gaps (fixation, ITI, response-window-closed),
-# which would otherwise press keys that skip real trials.
-_ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
+# SP16 (generalized in Wave C1): adaptive nav fires only when a non-trial
+# screen survives this many consecutive stuck detections without its DOM
+# changing. For INSTRUCTIONS-phase screens a "detection" is one standard nav
+# re-run; for any other phase label (the LLM-written phase predicates are
+# advisory and can misclassify) a "detection" is one throttled advance
+# attempt (>= _ADVANCE_MIN_SPACING_S apart) with no stimulus identify hit.
+# Gating on a stuck DOM — never on raw stimulus-polling misses — prevents
+# false-firing during normal between-trial gaps (fixation, ITI,
+# response-window-closed), which would otherwise press keys that skip real
+# trials.
+_ADAPTIVE_NAV_STUCK_DETECTIONS = 2
 
 # Human-paced advance throttle: minimum spacing (seconds) between two
 # "press advance keys" actions on a no-stimulus screen. Documented in the
@@ -761,6 +766,13 @@ class TaskExecutor:
         consecutive_misses = 0
         instructions_stuck_fp = ""
         instructions_stuck_count = 0
+        # Wave C1: stuck-DOM tracking for NON-instructions phase labels (the
+        # phase predicates are LLM-written and advisory — a stuck screen can
+        # be misclassified as test/practice/loading). Sampled only at
+        # throttled advance instants so normal between-trial gaps (changing
+        # DOM, or shorter than the advance spacing) never accumulate.
+        misc_stuck_fp = ""
+        misc_stuck_count = 0
         while True:
             from experiment_bot.core import phase_detection as _pd
             phase = await detect_phase(page, self._config.runtime.phase_detection)
@@ -790,6 +802,7 @@ class TaskExecutor:
             if phase == TaskPhase.ATTENTION_CHECK:
                 await self._handle_attention_check(page)
                 consecutive_misses = 0
+                misc_stuck_fp, misc_stuck_count = "", 0
                 continue
 
             if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
@@ -800,38 +813,22 @@ class TaskExecutor:
                         await self._handle_feedback(page)
                     else:
                         # In-trial nav re-run via the unified engine (skip-on-fail,
-                        # same semantics as entry nav). Each phase is attempted
-                        # independently so one already-dismissed button can't crash
-                        # the whole re-run.
-                        self._loop_diagnostics.record_nav_rerun()
-                        for _nav_phase in self._config.navigation.phases:
-                            _attempt = await session.try_phase(_nav_phase)
-                            if not _attempt.success:
-                                logger.info(
-                                    "In-trial nav re-run phase %r skipped: %s",
-                                    _nav_phase.phase or "<unnamed>", _attempt.error,
-                                )
+                        # same semantics as entry nav).
+                        await self._nav_rerun(session)
                         # SP16: if the standard nav re-run left us on the SAME
                         # instruction DOM across consecutive detections, the
                         # TaskCard's fixed nav can't advance this screen — fire
                         # adaptive nav. Gated on a stuck INSTRUCTIONS DOM (not on
                         # stimulus-poll misses) so normal between-trial gaps never
                         # trigger it.
-                        import hashlib as _hashlib
-                        try:
-                            _dom = await page.evaluate(
-                                "document.body ? document.body.outerHTML.slice(0,4000) : ''"
-                            )
-                        except Exception:
-                            _dom = ""
-                        _fp = _hashlib.sha256(_dom.encode()).hexdigest()[:16] if _dom else ""
+                        _fp = await self._dom_fingerprint(page)
                         if _fp and _fp == instructions_stuck_fp:
                             instructions_stuck_count += 1
                         else:
                             instructions_stuck_fp = _fp
                             instructions_stuck_count = 0
                         if (
-                            instructions_stuck_count >= _ADAPTIVE_NAV_INSTRUCTIONS_STUCK
+                            instructions_stuck_count >= _ADAPTIVE_NAV_STUCK_DETECTIONS
                             and self._llm_client is not None
                             and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
                         ):
@@ -839,6 +836,7 @@ class TaskExecutor:
                             instructions_stuck_count = 0
                             instructions_stuck_fp = ""
                     consecutive_misses = 0
+                    misc_stuck_fp, misc_stuck_count = "", 0
                     continue
                 logger.debug("Trial stimulus %s overrides %s phase", probe.stimulus_id, phase.value)
 
@@ -874,6 +872,7 @@ class TaskExecutor:
                     self._response_window_confirmed = True
                     self._loop_diagnostics.record_window_open()
                     consecutive_misses = 0
+                    misc_stuck_fp, misc_stuck_count = "", 0
                 except PlaywrightError:
                     # Benign: page context torn down by navigation — treat as window open
                     pass
@@ -906,6 +905,40 @@ class TaskExecutor:
                         and (time.monotonic() - self._last_advance_action) >= _ADVANCE_MIN_SPACING_S):
                     self._last_advance_action = time.monotonic()
                     self._loop_diagnostics.record_advance()
+                    # Wave C1: a stable non-trial DOM across consecutive
+                    # throttled advance attempts means the standard advance
+                    # keys can't move this screen, whatever the (advisory)
+                    # phase predicates labeled it — fire the same nav re-run
+                    # + adaptive-nav path the INSTRUCTIONS branch uses.
+                    # Never reached during an in-flight trial or when
+                    # identify is matching (this is the match-is-None branch).
+                    _fp = await self._dom_fingerprint(page)
+                    if _fp and _fp == misc_stuck_fp:
+                        misc_stuck_count += 1
+                    else:
+                        misc_stuck_fp = _fp
+                        misc_stuck_count = 0
+                    if misc_stuck_count >= _ADAPTIVE_NAV_STUCK_DETECTIONS:
+                        logger.info(
+                            "Stuck non-trial DOM (phase=%s) after %d advance attempts; "
+                            "running nav re-run + adaptive nav",
+                            phase.value, misc_stuck_count + 1,
+                        )
+                        await self._nav_rerun(session)
+                        if (
+                            self._llm_client is not None
+                            and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
+                        ):
+                            await self._adaptive_nav_step(session, page)
+                        stuck_fp_before = misc_stuck_fp
+                        misc_stuck_fp, misc_stuck_count = "", 0
+                        # If the recovery actually changed the DOM, restart the
+                        # miss accounting so the loop keeps polling the new
+                        # screen instead of breaking on max_misses.
+                        if await self._dom_fingerprint(page) != stuck_fp_before:
+                            consecutive_misses = 0
+                        await asyncio.sleep(timing.poll_interval_ms / 1000.0)
+                        continue
                     logger.info(f"No stimulus for {consecutive_misses} polls, pressing advance keys")
                     if ab.pre_keypress_js:
                         try:
@@ -958,6 +991,7 @@ class TaskExecutor:
                 continue
 
             consecutive_misses = 0
+            misc_stuck_fp, misc_stuck_count = "", 0
             stuck_detector.heartbeat()
 
             # Handle navigation stimuli (press Enter on feedback screens).
@@ -1338,6 +1372,37 @@ class TaskExecutor:
         for key in ab.feedback_fallback_keys:
             await page.keyboard.press(key)
             await asyncio.sleep(0.5)
+
+    async def _dom_fingerprint(self, page) -> str:
+        """Short fingerprint of the current DOM head for stuck detection.
+
+        Empty string when the page is unavailable (fingerprint comparisons
+        treat "" as never-stuck, so a torn-down context can't trigger
+        adaptive nav).
+        """
+        import hashlib
+        try:
+            dom = await page.evaluate(
+                "document.body ? document.body.outerHTML.slice(0,4000) : ''"
+            )
+        except Exception:
+            dom = ""
+        if not isinstance(dom, str):
+            dom = ""
+        return hashlib.sha256(dom.encode()).hexdigest()[:16] if dom else ""
+
+    async def _nav_rerun(self, session) -> None:
+        """In-trial nav re-run via the unified engine (skip-on-fail, same
+        semantics as entry nav). Each phase is attempted independently so one
+        already-dismissed button can't crash the whole re-run."""
+        self._loop_diagnostics.record_nav_rerun()
+        for _nav_phase in self._config.navigation.phases:
+            _attempt = await session.try_phase(_nav_phase)
+            if not _attempt.success:
+                logger.info(
+                    "In-trial nav re-run phase %r skipped: %s",
+                    _nav_phase.phase or "<unnamed>", _attempt.error,
+                )
 
     async def _adaptive_nav_step(self, session, page) -> bool:
         """LLM-driven one-step adaptive nav. Returns True if the bot's DOM

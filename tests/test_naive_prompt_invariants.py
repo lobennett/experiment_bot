@@ -50,6 +50,14 @@ def test_template_exists_with_placeholders():
         assert ph in text
 
 
+def test_template_documents_click_contract_mechanically():
+    """Wave B1: the click wire form is documented in the contract section
+    (inside the protocol code block, like the rest of the ctx fields)."""
+    text = TEMPLATE.read_text()
+    assert "response_elements" in text
+    assert '("click", index, rt_ms)' in text
+
+
 def test_no_banned_behavioral_terms():
     for name, text in ASSEMBLED_PROMPT_SOURCES:
         lowered = text.lower()

@@ -57,6 +57,23 @@ def test_mechanical_facts_excludes_dynamic_sentinel():
     assert facts["key_map"] == {"flank": "z"}
 
 
+def test_mechanical_facts_collects_response_elements():
+    """Wave B1: click-response stimuli contribute condition -> option-label
+    lists so the gate can replay clickable trials."""
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {}}
+    tc.stimuli = [
+        {"response": {"condition": "choice", "key": None,
+                      "response_elements": [
+                          {"label": "Left", "selector": "#l"},
+                          {"label": "Right", "selector": "#r"}]}},
+        {"response": {"condition": "go", "key": "z"}},
+    ]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["response_elements"] == {"choice": ["Left", "Right"]}
+
+
 def _fake_client(responses):
     client = MagicMock()
     client.model = "claude-fable-5"
@@ -199,6 +216,25 @@ def test_generate_passes_pilot_condition_stream_to_gate(tmp_path, monkeypatch):
     asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
                         taskcards_dir=str(taskcards_dir)))
     assert captured["condition_stream"] == ["go", "go", "go"]
+
+
+def test_generate_passes_response_elements_to_gate(tmp_path, monkeypatch):
+    """Wave B1: the card's click-response option labels reach run_gate."""
+    _fake_scrape(monkeypatch)
+    import experiment_bot.behavior.gen_cli as g
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {}}
+    tc.stimuli = [{"response": {"condition": "choice", "key": None,
+                                "response_elements": [
+                                    {"label": "Left", "selector": "#l"}]}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    tc.to_dict.return_value = {}
+    monkeypatch.setattr(g, "_load_structural_taskcard", MagicMock(return_value=tc))
+    captured = _capture_run_gate(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
+                        taskcards_dir=str(tmp_path / "taskcards")))
+    assert captured["response_elements"] == {"choice": ["Left"]}
 
 
 def test_generate_condition_stream_none_without_sidecar(tmp_path, monkeypatch):

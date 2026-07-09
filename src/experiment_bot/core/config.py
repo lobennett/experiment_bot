@@ -61,6 +61,10 @@ class ResponseConfig:
     key: str | None
     condition: str
     response_key_js: str = ""  # JS expression returning the correct key at runtime
+    # Wave B1: clickable response options for click-response tasks (buttons,
+    # choice grids) — a list of {label, selector} dicts. Empty for keypress
+    # tasks.
+    response_elements: list = field(default_factory=list)
 
     @classmethod
     def from_dict(cls, d: dict) -> ResponseConfig:
@@ -68,12 +72,17 @@ class ResponseConfig:
             key=d.get("key"),
             condition=d["condition"],
             response_key_js=d.get("response_key_js", ""),
+            response_elements=d.get("response_elements") or [],
         )
 
     def to_dict(self) -> dict:
         d = {"key": self.key, "condition": self.condition}
         if self.response_key_js:
             d["response_key_js"] = self.response_key_js
+        if self.response_elements:
+            # Emitted only when set: committed cards without the field must
+            # keep serializing byte-identically (content-hash stability).
+            d["response_elements"] = self.response_elements
         return d
 
 

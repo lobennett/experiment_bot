@@ -223,6 +223,82 @@ def test_fuzz_extreme_ssd_named_failure(tmp_path):
     assert any(f.startswith("fuzz:interrupt_extreme_ssd") for f in report.failures), report.failures
 
 
+# --- Wave B1: click response modality ---
+
+def _click_program(tmp_path, index_expr="0"):
+    prog = tmp_path / "clicker.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            if ctx.response_elements:\n"
+        f"                return ('click', {index_expr}, 300.0 + seed)\n"
+        "            return (ctx.correct_key, 300.0 + seed)\n"
+        "    return P()\n")
+    return prog
+
+
+def test_gate_passes_click_program_with_elements(tmp_path):
+    prog = _click_program(tmp_path, index_expr="ctx.trial_index % len(ctx.response_elements)")
+    report = run_gate(prog, conditions=["choice"], key_map={},
+                      has_interrupt=False, n_trials=50,
+                      response_elements={"choice": ["Left", "Right"]})
+    assert report.passed, report.failures
+
+
+def test_gate_fails_click_out_of_range_named_failure(tmp_path):
+    prog = _click_program(tmp_path, index_expr="2")  # only 2 elements: 0..1
+    report = run_gate(prog, conditions=["choice"], key_map={},
+                      has_interrupt=False, n_trials=10,
+                      response_elements={"choice": ["Left", "Right"]})
+    assert not report.passed
+    assert any("element_index" in f for f in report.failures), report.failures
+
+
+def test_gate_fails_click_without_configured_elements(tmp_path):
+    """A program clicking on a card that declares no response_elements is a
+    protocol violation, reported as a named trial failure."""
+    prog = tmp_path / "blind_clicker.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            return ('click', 0, 300.0 + seed)\n"
+        "    return P()\n")
+    report = run_gate(prog, conditions=["go"], key_map={"go": "z"},
+                      has_interrupt=False, n_trials=10)
+    assert not report.passed
+    assert any("response_elements" in f for f in report.failures), report.failures
+
+
+def test_gate_click_trace_distinct_across_seeds_and_deterministic(tmp_path):
+    """Click traces participate in the determinism/distinctness checks."""
+    prog = tmp_path / "same_click.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            return ('click', 0, 400.0)\n"  # identical across seeds
+        "    return P()\n")
+    report = run_gate(prog, conditions=["choice"], key_map={},
+                      has_interrupt=False, n_trials=10,
+                      response_elements={"choice": ["Left", "Right"]})
+    assert not report.passed
+    assert any("distinct" in f for f in report.failures), report.failures
+
+
+def test_fuzz_passes_for_click_program_with_elements(tmp_path):
+    """Fuzz cases present the same ctx shape as real trials: for a card with
+    response_elements the fuzz contexts carry a plausible elements tuple, so
+    a click program is not spuriously failed."""
+    prog = _click_program(tmp_path)
+    report = run_gate(prog, conditions=["choice"], key_map={},
+                      has_interrupt=False, n_trials=20,
+                      response_elements={"choice": ["Left", "Right"]})
+    assert report.passed, report.failures
+    assert not any(f.startswith("fuzz:") for f in report.failures)
+
+
 def test_fuzz_cases_pass_for_toy_program():
     """The reference toy program survives every fuzz case (gate still green)."""
     report = run_gate(TOY, conditions=CONDS, key_map=KEYS, has_interrupt=True,

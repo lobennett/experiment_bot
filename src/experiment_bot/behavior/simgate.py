@@ -7,7 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from experiment_bot.behavior.provider import (
-    BehaviorSession, ProtocolViolation, load_program, program_sha256,
+    BehaviorSession, ClickResponse, ProtocolViolation, load_program,
+    program_sha256,
 )
 
 ALLOWED_IMPORTS = frozenset({
@@ -59,8 +60,16 @@ def scan_imports(program_path: Path) -> list[str]:
 def _trace(program_path: Path, seed: int, conditions: list[str],
            key_map: dict[str, str], has_interrupt: bool, n_trials: int,
            report: GateReport, interrupt_condition: str | None = None,
-           condition_stream: list[str] | None = None) -> list[tuple]:
-    """One synthetic session; returns [(key, rt), ...]. Failures -> report.
+           condition_stream: list[str] | None = None,
+           response_elements: dict[str, list[str]] | None = None) -> list[tuple]:
+    """One synthetic session; returns [(key, rt), ...] — click responses
+    trace as ("click", element_index, rt). Failures -> report.
+
+    `response_elements` (Wave B1) maps condition -> clickable option labels
+    from the structural card; trials of those conditions carry the labels
+    in ctx.response_elements so click-returning programs are exercised. A
+    click whose index is out of range (or on a trial with no elements) is a
+    ProtocolViolation and fails the gate as a named trial failure.
 
     An interrupt trial is one whose condition == interrupt_condition (NOT
     conditions[-1] — a card's interrupt-detection condition need not be the
@@ -89,6 +98,7 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
     out = []
     for i in range(n_trials):
         cond = stream[i % len(stream)]
+        elems = tuple((response_elements or {}).get(cond, ()))
         is_interrupt_trial = has_interrupt and cond == interrupt_condition
         if is_interrupt_trial:
             correct = None
@@ -102,7 +112,7 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
             cond_idx = conditions.index(cond) if cond in conditions else 0
             correct = keys[cond_idx % len(keys)]
         try:
-            r = session.respond(cond, correct, i)
+            r = session.respond(cond, correct, i, response_elements=elems)
             interrupted = False
             if is_interrupt_trial:
                 # Deterministic synthetic SSD schedule: 100..400ms cycle.
@@ -110,9 +120,15 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
                 if d is not None:
                     r = d
                 interrupted = True
-            session.record_outcome(cond, correct=(r.key == correct),
-                                   rt_ms=r.rt_ms, interrupted=interrupted)
-            out.append((r.key, round(r.rt_ms, 6)))
+            if isinstance(r, ClickResponse):
+                resolved = elems[r.element_index]
+                session.record_outcome(cond, correct=(resolved == correct),
+                                       rt_ms=r.rt_ms, interrupted=interrupted)
+                out.append(("click", r.element_index, round(r.rt_ms, 6)))
+            else:
+                session.record_outcome(cond, correct=(r.key == correct),
+                                       rt_ms=r.rt_ms, interrupted=interrupted)
+                out.append((r.key, round(r.rt_ms, 6)))
         except Exception as e:  # noqa: BLE001 — the gate reports every failure mode
             report.fail(f"trial {i} ({cond}): {type(e).__name__}: {e}")
             return out
@@ -122,7 +138,8 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
 def _fuzz_protocol(program_path: Path, conditions: list[str],
                    key_map: dict[str, str], has_interrupt: bool,
                    report: GateReport, interrupt_condition: str | None = None,
-                   seed: int = 3) -> None:
+                   seed: int = 3,
+                   response_elements: dict[str, list[str]] | None = None) -> None:
     """Protocol fuzz cases (Wave A4b) — still purely mechanical.
 
     A live session can present contexts the round-robin trace never does:
@@ -132,6 +149,13 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
     crashing on any of these fails the gate with a named `fuzz:<case>`
     failure. No behavioral judgment — only "does not crash / stays within
     the protocol contract".
+
+    Fuzz contexts carry the same response_elements shape real trials do
+    (Wave B1): each known condition gets its configured labels, and the
+    unseen-condition case gets the first condition's labels as a plausible
+    stand-in. On cards with no response_elements every fuzz ctx has an
+    empty tuple, so a program that clicks anyway is rejected by the
+    boundary validator and fails the gate with a named fuzz failure.
     """
     if not conditions:
         return
@@ -148,30 +172,36 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
             return None
         return key_map.get(cond, keys[0])
 
+    def _elems_for(cond: str) -> tuple[str, ...]:
+        return tuple((response_elements or {}).get(cond, ()))
+
     cases: list[tuple[str, object]] = []
 
     def _first_trial(s):
         cond = conditions[0]
-        s.respond(cond, _correct_for(cond), 0)
+        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond))
     cases.append(("first_trial", _first_trial))
 
     def _unseen_condition(s):
-        s.respond(_FUZZ_UNSEEN_CONDITION, keys[0], 0)
+        s.respond(_FUZZ_UNSEEN_CONDITION, keys[0], 0,
+                  response_elements=_elems_for(conditions[0]))
     cases.append(("unseen_condition", _unseen_condition))
 
     def _empty_available_keys(s):
         cond = conditions[0]
-        s.respond(cond, _correct_for(cond), 0)
+        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond))
     cases.append(("empty_available_keys", _empty_available_keys))
 
     if has_interrupt and interrupt_condition is not None:
         def _extreme_ssd(s):
             for i, ssd in enumerate(_FUZZ_INTERRUPT_SSDS):
-                r = s.respond(interrupt_condition, None, i)
+                r = s.respond(interrupt_condition, None, i,
+                              response_elements=_elems_for(interrupt_condition))
                 d = s.on_interrupt(ssd_ms=ssd)
                 if d is not None:
                     r = d
-                s.record_outcome(interrupt_condition, correct=(r.key is None),
+                withheld = not isinstance(r, ClickResponse) and r.key is None
+                s.record_outcome(interrupt_condition, correct=withheld,
                                  rt_ms=r.rt_ms, interrupted=True)
         cases.append(("interrupt_extreme_ssd", _extreme_ssd))
 
@@ -187,7 +217,8 @@ def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
              has_interrupt: bool, n_trials: int = 1000,
              seeds: tuple[int, ...] = (1, 2),
              interrupt_condition: str | None = None,
-             condition_stream: list[str] | None = None) -> GateReport:
+             condition_stream: list[str] | None = None,
+             response_elements: dict[str, list[str]] | None = None) -> GateReport:
     report = GateReport(program_sha256=program_sha256(program_path))
     bad_imports = scan_imports(program_path)
     if bad_imports:
@@ -195,22 +226,26 @@ def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
         return report
     t1 = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
                 n_trials, report, interrupt_condition=interrupt_condition,
-                condition_stream=condition_stream)
+                condition_stream=condition_stream,
+                response_elements=response_elements)
     if not report.passed:
         return report
     t1_again = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
                       n_trials, report, interrupt_condition=interrupt_condition,
-                      condition_stream=condition_stream)
+                      condition_stream=condition_stream,
+                      response_elements=response_elements)
     if t1 != t1_again:
         report.fail("non-deterministic: same seed produced different traces")
     t2 = _trace(program_path, seeds[1], conditions, key_map, has_interrupt,
                 n_trials, report, interrupt_condition=interrupt_condition,
-                condition_stream=condition_stream)
+                condition_stream=condition_stream,
+                response_elements=response_elements)
     if report.passed and t1 == t2:
         report.fail("seeds not distinct: different seeds produced identical traces")
     if report.passed:
         _fuzz_protocol(program_path, conditions, key_map, has_interrupt,
-                       report, interrupt_condition=interrupt_condition)
+                       report, interrupt_condition=interrupt_condition,
+                       response_elements=response_elements)
     report.stats = {"n_trials": len(t1), "seeds": list(seeds),
                     "n_conditions": len(conditions),
                     "condition_stream_source": (

@@ -17,6 +17,26 @@ from experiment_bot.core.config import (
 )
 
 
+# --- Wave B2: form actions in navigation phases ---
+
+def test_navigation_phase_value_round_trips():
+    d = {"phase": "consent", "action": "fill", "target": "#age", "key": "",
+         "value": "anon", "duration_ms": 0, "steps": []}
+    p = NavigationPhase.from_dict(d)
+    assert p.value == "anon"
+    assert p.to_dict()["value"] == "anon"
+
+
+def test_navigation_phase_empty_value_omitted_from_to_dict():
+    """Hash stability: committed cards (no `value` field) must serialize
+    byte-identically, so an empty value is omitted like pre_js."""
+    p = NavigationPhase.from_dict(
+        {"phase": "x", "action": "click", "target": "#btn", "key": "",
+         "duration_ms": 0, "steps": []})
+    assert p.value == ""
+    assert "value" not in p.to_dict()
+
+
 def test_task_phase_enum():
     assert TaskPhase.LOADING.value == "loading"
     assert TaskPhase.INSTRUCTIONS.value == "instructions"

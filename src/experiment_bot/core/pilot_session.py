@@ -133,6 +133,27 @@ class PilotSession:
                     except PlaywrightError:
                         pass  # page context may be torn down by prior nav
                 await self.page.keyboard.press(phase.key)
+            elif phase.action == "fill":
+                # Wave B2: fill a text input/textarea (consent/demographic
+                # forms that gate the task behind required fields).
+                await self._inject_reading_delay()
+                loc = self.page.locator(phase.target).first
+                await loc.wait_for(state="visible", timeout=1500)
+                await loc.fill(phase.value)
+            elif phase.action == "select":
+                # Wave B2: pick a dropdown option by value, falling back to
+                # label. With an empty value, click the target instead
+                # (radio buttons / checkboxes).
+                await self._inject_reading_delay()
+                loc = self.page.locator(phase.target).first
+                await loc.wait_for(state="visible", timeout=1500)
+                if phase.value:
+                    try:
+                        await loc.select_option(value=phase.value, timeout=1500)
+                    except PlaywrightError:
+                        await loc.select_option(label=phase.value, timeout=1500)
+                else:
+                    await loc.click()
             elif phase.action == "wait":
                 await asyncio.sleep(phase.duration_ms / 1000.0)
             elif phase.action == "sequence":

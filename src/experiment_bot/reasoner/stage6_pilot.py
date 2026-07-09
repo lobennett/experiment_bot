@@ -104,7 +104,8 @@ the pilot's evidence does not bear on them.
 ## Navigation phase JSON schema (CRITICAL — get this right)
 
 The navigator consumes a FLAT phase shape. Top-level fields are `action`,
-`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+`target`, `key`, `value`, `duration_ms`, `steps`, plus an informational
+`phase` label.
 Do NOT nest under `action.type`/`action.selector` — that nested shape is
 silently ignored by the navigator and produces no behavior (a common failure
 mode that wastes refinement budget).
@@ -127,6 +128,22 @@ Supported `action` values and the fields each uses:
 - **wait** — uses `duration_ms` (integer milliseconds).
   ```json
   {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **fill** — uses `target` (CSS selector for a text input/textarea) and
+  `value` (the text to type into it). Use this when a form field blocks
+  progress (consent/demographic forms); for required form fields, propose
+  plausible neutral values.
+  ```json
+  {{"phase": "entry_form", "action": "fill", "target": "input[name='code']", "key": "", "value": "anon", "duration_ms": 0, "steps": []}}
+  ```
+
+- **select** — uses `target` (CSS selector) and `value` (the option's value
+  or visible label) to pick a dropdown option. With an EMPTY `value`, the
+  navigator clicks the target instead — use that form for radio buttons and
+  checkboxes.
+  ```json
+  {{"phase": "entry_form", "action": "select", "target": "select#choice", "key": "", "value": "Other", "duration_ms": 0, "steps": []}}
   ```
 
 - **sequence** — uses `steps` (array of nested flat phases). Useful when one
@@ -178,7 +195,8 @@ something else is blocking; switch to a different observation.
 ## Navigation phase JSON schema (CRITICAL — get this right)
 
 The navigator consumes a FLAT phase shape. Top-level fields are `action`,
-`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+`target`, `key`, `value`, `duration_ms`, `steps`, plus an informational
+`phase` label.
 Do NOT nest under `action.type`/`action.selector` — that nested shape is
 silently ignored by the navigator and produces no behavior (a common failure
 mode that wastes refinement budget).
@@ -201,6 +219,22 @@ Supported `action` values and the fields each uses:
 - **wait** — uses `duration_ms` (integer milliseconds).
   ```json
   {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **fill** — uses `target` (CSS selector for a text input/textarea) and
+  `value` (the text to type into it). Use this when a form field blocks
+  progress (consent/demographic forms); for required form fields, propose
+  plausible neutral values.
+  ```json
+  {{"phase": "entry_form", "action": "fill", "target": "input[name='code']", "key": "", "value": "anon", "duration_ms": 0, "steps": []}}
+  ```
+
+- **select** — uses `target` (CSS selector) and `value` (the option's value
+  or visible label) to pick a dropdown option. With an EMPTY `value`, the
+  navigator clicks the target instead — use that form for radio buttons and
+  checkboxes.
+  ```json
+  {{"phase": "entry_form", "action": "select", "target": "select#choice", "key": "", "value": "Other", "duration_ms": 0, "steps": []}}
   ```
 
 - **sequence** — uses `steps` (array of nested flat phases). Useful when one

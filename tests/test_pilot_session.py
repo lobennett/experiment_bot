@@ -15,6 +15,16 @@ FIXTURE_HTML = """<!DOCTYPE html>
 <button id="advance" onclick="document.body.dataset.state='advanced'">Advance</button>
 <button id="one-shot-btn" onclick="this.remove()">x</button>
 <div id="stim-target" style="display:none">stimulus</div>
+<form id="consent-form">
+  <input type="text" id="participant-id" name="pid">
+  <select id="country" onchange="document.body.dataset.country=this.value">
+    <option value="">--</option>
+    <option value="aa">Option AA</option>
+    <option value="bb">Option BB</option>
+  </select>
+  <input type="checkbox" id="agree-box"
+         onclick="document.body.dataset.agreed='yes'">
+</form>
 <script>
 document.body.dataset.state = 'initial';
 document.addEventListener('keydown', e => {
@@ -155,6 +165,78 @@ async def test_try_phase_unknown_action_records_to_run_trace(fixture_url):
         result = await s.try_phase(phase)
         assert result.success is False
         assert "unknown action" in (result.error or "").lower()
+
+
+# --- Wave B2: form actions (fill / select) ---
+
+@pytest.mark.asyncio
+async def test_try_phase_fill_text_input(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "fill", "target": "#participant-id",
+            "key": "", "value": "anon-1", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        val = await s.page.evaluate("document.querySelector('#participant-id').value")
+        assert val == "anon-1"
+
+
+@pytest.mark.asyncio
+async def test_try_phase_fill_missing_target_fails_gracefully(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "fill", "target": "#no-such-input",
+            "key": "", "value": "x", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is False
+        assert result.error
+        # Session remains usable
+        assert await s.dom_snapshot()
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_dropdown_by_value(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "demographics", "action": "select", "target": "#country",
+            "key": "", "value": "bb", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-country="bb"' in result.dom_after
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_dropdown_by_label(fixture_url):
+    """A value that matches no option value falls back to option label."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "demographics", "action": "select", "target": "#country",
+            "key": "", "value": "Option AA", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-country="aa"' in result.dom_after
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_empty_value_clicks_target(fixture_url):
+    """select with an empty value clicks the target — radio/checkbox path."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "select", "target": "#agree-box",
+            "key": "", "value": "", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-agreed="yes"' in result.dom_after
 
 
 @pytest.mark.asyncio

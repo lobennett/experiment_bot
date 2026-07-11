@@ -1,0 +1,109 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/1/"
+      },
+      "duration_s": 0.9923559579765424
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "fullscreen_prompt",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "welcome",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "practice_instructions",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "begin_practice",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 23.767476583016105
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.0002684589708223939
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 155,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "test": 22197,
+            "feedback": 7,
+            "attention_check": 3,
+            "complete": 1
+          },
+          "response_window_open": 0,
+          "response_window_closed": 0,
+          "identify_hits": {
+            "AX": 62,
+            "BX": 31,
+            "AY": 31,
+            "BY": 31
+          },
+          "identify_misses": 22049,
+          "advance_actions": 154,
+          "feedback_handled": 7,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 0
+        }
+      },
+      "duration_s": 950.7596637919778
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.024812249932438
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/ax_cpt_rdoc/2026-07-10_17-25-03-176200"
+      },
+      "duration_s": null
+    }
+  ]
+}

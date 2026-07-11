@@ -50,6 +50,14 @@ _ADAPTIVE_NAV_STUCK_DETECTIONS = 2
 # (found while adding A3 loop-diagnostics test coverage for that branch).
 _ADVANCE_MIN_SPACING_S = 2.0
 
+# Zero-progress watchdog: abort the trial loop if NO trial has completed
+# after this many seconds of session time. The miss-counter guard cannot
+# catch pages that never advance, because instructions/feedback handling
+# legitimately resets the counter — observed live as a survey page looping
+# indefinitely (never a trial, never an exit). Generous bound: slow
+# multi-screen tasks reach their first trial within a few minutes.
+_ZERO_TRIAL_WATCHDOG_S = 600.0
+
 
 def _taskcard_to_config(tc):
     """Project a TaskCard into a TaskConfig the executor knows how to drive.
@@ -769,6 +777,15 @@ class TaskExecutor:
         misc_stuck_count = 0
         while True:
             from experiment_bot.core import phase_detection as _pd
+            if (self._trial_count == 0
+                    and self._session_start > 0  # set by run(); unset in direct-loop tests
+                    and (time.monotonic() - self._session_start) > _ZERO_TRIAL_WATCHDOG_S):
+                logger.warning(
+                    "Zero-progress watchdog: no trial completed after %.0fs — aborting loop",
+                    _ZERO_TRIAL_WATCHDOG_S,
+                )
+                self._loop_exit_reason = "zero_progress_watchdog"
+                break
             phase = await detect_phase(page, self._config.runtime.phase_detection)
             self._loop_diagnostics.record_phase(phase.value)
             if phase == TaskPhase.COMPLETE:

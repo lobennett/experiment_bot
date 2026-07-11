@@ -35,8 +35,12 @@ def classify_outcome(
         if isinstance(exc, PlaywrightError):
             return "platform_error"
         if isinstance(exc, RuntimeError) and trial_count == 0:
-            return "nav_stall" if loop_exit_reason == "max_misses" else "zero_trials"
+            if loop_exit_reason in ("max_misses", "zero_progress_watchdog"):
+                return "nav_stall"
+            return "zero_trials"
         return "program_error"
     if trial_count > 0:
         return "completed"
-    return "nav_stall" if loop_exit_reason == "max_misses" else "zero_trials"
+    if loop_exit_reason in ("max_misses", "zero_progress_watchdog"):
+        return "nav_stall"
+    return "zero_trials"

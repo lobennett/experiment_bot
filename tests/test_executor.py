@@ -1516,3 +1516,13 @@ async def test_withhold_trial_routes_to_program_and_commission_fires():
     logged = ex._writer.log_trial.call_args.args[0]
     assert logged["response_key"] == "z"
     assert logged["behavior_provider"] is True
+
+
+def test_zero_progress_watchdog_classifies_nav_stall():
+    """risq-survey regression: a page that never advances loops forever
+    because instructions handling resets the miss counter. The watchdog
+    exit reason must classify as nav_stall."""
+    from experiment_bot.core.outcome import classify_outcome
+    assert classify_outcome("zero_progress_watchdog", 0, None) == "nav_stall"
+    err = RuntimeError("Executor captured 0 trials")
+    assert classify_outcome("zero_progress_watchdog", 0, err) == "nav_stall"

@@ -12,7 +12,9 @@ if TYPE_CHECKING:
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
-from experiment_bot.behavior.provider import ClickResponse, stim_response_elements
+from experiment_bot.behavior.provider import (
+    ClickResponse, SequenceResponse, stim_response_elements,
+)
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import PilotSession
@@ -458,6 +460,54 @@ class TaskExecutor:
             return mapped
 
         return None
+
+    async def _resolve_correct_sequence(
+        self, match: StimulusMatch, page: Page | None,
+        response_elements: tuple[tuple[str, str], ...],
+    ) -> tuple[int, ...] | None:
+        """Resolve THIS trial's target sequence from the card's
+        ``correct_sequence_js`` (per-stimulus or global task_specific),
+        mirroring how ``response_key_js`` resolves the correct key. The JS
+        may return ordered element indices OR ordered element labels;
+        labels are mapped to their index in ``response_elements``. Returns
+        None when the card exposes no correct_sequence_js (single-action
+        tasks are untouched) or when the page context is unavailable.
+        """
+        if page is None:
+            return None
+        stim_cfg = next(
+            (s for s in self._config.stimuli if s.id == match.stimulus_id), None)
+        js = ""
+        if stim_cfg is not None:
+            js = getattr(stim_cfg.response, "correct_sequence_js", "") or ""
+        if not js:
+            js = self._config.task_specific.get("correct_sequence_js", "") or ""
+        if not js:
+            return None
+        try:
+            raw = await page.evaluate(js)
+        except PlaywrightError as e:
+            logger.warning(f"correct_sequence_js failed for {match.stimulus_id}: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"[js_eval_error:correct_sequence_js] {match.stimulus_id}: {e}")
+            self._js_eval_errors["correct_sequence_js"] = (
+                self._js_eval_errors.get("correct_sequence_js", 0) + 1)
+            return None
+        if not isinstance(raw, (list, tuple)):
+            return None
+        labels = [lbl for lbl, _sel in response_elements]
+        out: list[int] = []
+        for entry in raw:
+            if isinstance(entry, bool):
+                return None
+            if isinstance(entry, int):
+                out.append(entry)
+            elif isinstance(entry, str) and entry in labels:
+                out.append(labels.index(entry))
+            else:
+                return None
+        return tuple(out)
 
     def _is_trial_stimulus(self, match: StimulusMatch) -> bool:
         """Whether a stimulus is a trial the behavior program should answer.
@@ -1199,10 +1249,23 @@ class TaskExecutor:
         stim_cfg = next(
             (s for s in self._config.stimuli if s.id == match.stimulus_id), None)
         response_elements = stim_response_elements(stim_cfg) if stim_cfg else ()
+        # Sequence-response capability: resolve THIS trial's target sequence
+        # (None on tasks without a correct_sequence_js — single-action path
+        # untouched).
+        correct_sequence = await self._resolve_correct_sequence(
+            match, page, response_elements)
         resp = provider.respond(condition, correct_key, self._trial_count,
                                 stimulus_text=stimulus_text,
                                 response_elements=tuple(
-                                    label for label, _sel in response_elements))
+                                    label for label, _sel in response_elements),
+                                correct_sequence=correct_sequence)
+
+        if isinstance(resp, SequenceResponse):
+            await self._deliver_sequence(page, match, resp, response_elements,
+                                         correct_sequence, condition, cue)
+            self._prev_interrupt_detected = False
+            return
+
         rt_ms = resp.rt_ms
 
         interrupt_detected = False
@@ -1337,6 +1400,58 @@ class TaskExecutor:
         provider.record_outcome(condition, correct=is_correct,
                                 rt_ms=resp.rt_ms, interrupted=False)
         self._prev_interrupt_detected = False
+
+    async def _deliver_sequence(self, page, match, resp: SequenceResponse,
+                                response_elements, correct_sequence, condition,
+                                cue) -> None:
+        """Sequence-response delivery: fire each action in order, sleeping
+        each action's rt_ms as the inter-action interval (first = onset→first
+        action; subsequent = gap before that action). Logs one trial record
+        with response_sequence. An empty sequence delivers nothing and logs a
+        withheld-style record."""
+        provider = self._behavior_provider
+        produced_indices: list[int] = []
+        action_log: list[dict] = []
+        for action in resp.actions:
+            await asyncio.sleep(action.rt_ms / 1000.0)
+            if isinstance(action, ClickResponse):
+                label, selector = response_elements[action.element_index]
+                delivery = await self._fire_response_click(page, selector)
+                produced_indices.append(action.element_index)
+                action_log.append({
+                    "type": "click", "element": label,
+                    "element_index": action.element_index,
+                    "rt": action.rt_ms, "delivery": delivery,
+                })
+            else:
+                delivery = await self._fire_response_key(page, action.key)
+                action_log.append({
+                    "type": "key", "key": action.key,
+                    "rt": action.rt_ms, "delivery": delivery,
+                })
+        # Correctness for a reproduction is an exact match of the produced
+        # click-index sequence to the target (only meaningful when a target
+        # was exposed and every action was a click).
+        target = list(correct_sequence) if correct_sequence is not None else None
+        is_correct = (target is not None and produced_indices == target)
+        total_rt = sum(a.rt_ms for a in resp.actions)
+        entry = {
+            "trial": self._trial_count,
+            "stimulus_id": match.stimulus_id,
+            "condition": condition,
+            "response_key": None,
+            "response_sequence": action_log,
+            "sampled_rt_ms": round(total_rt, 1) if resp.actions else 0.0,
+            "omission": False,
+            "behavior_provider": True,
+            "cue": cue,
+        }
+        if not resp.actions:
+            entry["withheld"] = True
+        self._writer.log_trial(entry)
+        provider.record_outcome(
+            condition, correct=is_correct,
+            rt_ms=(total_rt if resp.actions else None), interrupted=False)
 
     async def _handle_attention_check(self, page: Page) -> None:
         """Handle attention check using config-driven response logic.

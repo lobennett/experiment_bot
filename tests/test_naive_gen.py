@@ -342,6 +342,73 @@ def test_generate_passes_response_elements_to_gate(tmp_path, monkeypatch):
     assert captured["response_elements"] == {"choice": ["Left"]}
 
 
+def test_mechanical_facts_collects_correct_sequence():
+    """Sequence-response: a click-response stimulus that also exposes
+    correct_sequence_js contributes a plausible target index sequence
+    (0..N-1 over its options) so the gate can synthesize sequence trials."""
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {}}
+    tc.stimuli = [
+        {"response": {"condition": "recall", "key": None,
+                      "response_elements": [
+                          {"label": "A", "selector": "#a"},
+                          {"label": "B", "selector": "#b"},
+                          {"label": "C", "selector": "#c"}],
+                      "correct_sequence_js": "window.targetOrder"}},
+        {"response": {"condition": "choice", "key": None,
+                      "response_elements": [
+                          {"label": "L", "selector": "#l"}]}},
+    ]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["correct_sequence"] == {"recall": [0, 1, 2]}
+
+
+def test_mechanical_facts_global_correct_sequence_js():
+    """A global task_specific.correct_sequence_js flags every click-response
+    condition as a sequence trial."""
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {}, "correct_sequence_js": "window.order"}
+    tc.stimuli = [
+        {"response": {"condition": "recall", "key": None,
+                      "response_elements": [
+                          {"label": "A", "selector": "#a"},
+                          {"label": "B", "selector": "#b"}]}},
+    ]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["correct_sequence"] == {"recall": [0, 1]}
+
+
+def test_mechanical_facts_no_correct_sequence_by_default():
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {"go": "z"}}
+    tc.stimuli = [{"response": {"condition": "go", "key": "z"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    facts = mechanical_facts(tc)
+    assert facts["correct_sequence"] == {}
+
+
+def test_generate_passes_correct_sequence_to_gate(tmp_path, monkeypatch):
+    _fake_scrape(monkeypatch)
+    import experiment_bot.behavior.gen_cli as g
+    tc = MagicMock()
+    tc.task_specific = {"key_map": {}}
+    tc.stimuli = [{"response": {"condition": "recall", "key": None,
+                                "response_elements": [
+                                    {"label": "A", "selector": "#a"},
+                                    {"label": "B", "selector": "#b"}],
+                                "correct_sequence_js": "window.order"}}]
+    tc.runtime.trial_interrupt.detection_condition = None
+    tc.to_dict.return_value = {}
+    monkeypatch.setattr(g, "_load_structural_taskcard", MagicMock(return_value=tc))
+    captured = _capture_run_gate(monkeypatch)
+    client = _fake_client([f"```python\n{TOY_TEXT}```"])
+    asyncio.run(generate("http://x", "toy", client, out_root=tmp_path / "prog",
+                        taskcards_dir=str(tmp_path / "taskcards")))
+    assert captured["correct_sequence"] == {"recall": [0, 1]}
+
+
 def test_generate_condition_stream_none_without_sidecar(tmp_path, monkeypatch):
     _fake_scrape(monkeypatch); _fake_taskcard(monkeypatch)
     captured = _capture_run_gate(monkeypatch)

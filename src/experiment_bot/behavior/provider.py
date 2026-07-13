@@ -73,6 +73,18 @@ def stim_response_elements(stim) -> tuple[tuple[str, str], ...]:
     return tuple(out)
 
 
+def stim_correct_sequence_js(stim) -> str:
+    """The stimulus's per-response ``correct_sequence_js`` (sequence-response
+    capability), tolerant of dict and typed shapes. Empty string when absent
+    (single-action tasks)."""
+    resp = stim.get("response") if isinstance(stim, dict) else getattr(stim, "response", None)
+    if resp is None:
+        return ""
+    js = (resp.get("correct_sequence_js") if isinstance(resp, dict)
+          else getattr(resp, "correct_sequence_js", None))
+    return str(js) if js else ""
+
+
 class ProtocolViolation(Exception):
     """A generated program returned something outside the contract."""
 

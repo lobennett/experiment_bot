@@ -35,7 +35,10 @@ def respond(self, ctx):
     stimulus_text (str | None): the trial's visible context text
     when the task exposes one, else None,
     response_elements (tuple[str, ...]): labels of the trial's
-    clickable on-screen response options; empty for keyboard tasks.
+    clickable on-screen response options; empty for keyboard tasks,
+    correct_sequence (tuple[int, ...] | None): on trials that require
+    reproducing an ordered series of actions, the target order as
+    indices into response_elements; None otherwise.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the
@@ -46,6 +49,12 @@ def respond(self, ctx):
     pressing a key. On trials where ctx.response_elements is non-empty
     you may return ("click", index, rt_ms), where index selects the
     option to click from ctx.response_elements.
+
+    On trials where ctx.correct_sequence is not None the trial expects an
+    ordered SERIES of actions. Return a list of actions instead of one:
+    e.g. [("click", i, rt_ms), ("click", j, rt_ms), ...] or a mix of
+    clicks and (key, rt_ms) presses. Each action's rt_ms is the gap
+    before that action. An empty list [] means no response.
     """
 ```
 

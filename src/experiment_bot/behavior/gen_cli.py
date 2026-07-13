@@ -16,7 +16,8 @@ from pathlib import Path
 import click
 
 from experiment_bot.behavior.provider import (
-    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key, stim_response_elements,
+    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key, stim_correct_sequence_js,
+    stim_response_elements,
 )
 from experiment_bot.behavior.simgate import run_gate
 from experiment_bot.behavior.source_slim import DEFAULT_SOURCE_BUDGET, slim_bundle
@@ -101,6 +102,11 @@ def _pilot_condition_stream(taskcards_dir: str, label: str,
 def mechanical_facts(taskcard) -> dict:
     conditions: list[str] = []
     response_elements: dict[str, list[str]] = {}
+    correct_sequence: dict[str, list[int]] = {}
+    # A global correct_sequence_js flags every click-response condition as a
+    # sequence trial (a per-stimulus one flags just that condition).
+    global_seq_js = bool(
+        (taskcard.task_specific or {}).get("correct_sequence_js"))
     for stim in taskcard.stimuli or []:
         cond, _ = stim_condition_and_key(stim)
         if cond and cond not in conditions:
@@ -110,6 +116,13 @@ def mechanical_facts(taskcard) -> dict:
         labels = [label for label, _sel in stim_response_elements(stim)]
         if cond and labels and cond not in response_elements:
             response_elements[cond] = labels
+        # Sequence-response: a card that exposes correct_sequence_js (per
+        # stimulus or globally) reproduces an ordered series of clicks. The
+        # gate can't run the card's JS, so it synthesizes a plausible target
+        # (reproduce all options in order, 0..N-1).
+        if cond and labels and cond not in correct_sequence and (
+                global_seq_js or stim_correct_sequence_js(stim)):
+            correct_sequence[cond] = list(range(len(labels)))
     km = {k: v for k, v in ((taskcard.task_specific or {}).get("key_map") or {}).items()
           if isinstance(v, str) and v.lower() not in NON_LITERAL_KEY_SENTINELS}
     ti = getattr(taskcard.runtime, "trial_interrupt", None)
@@ -120,7 +133,8 @@ def mechanical_facts(taskcard) -> dict:
     has_interrupt = interrupt_condition is not None
     return {"conditions": conditions, "key_map": km, "has_interrupt": has_interrupt,
             "interrupt_condition": interrupt_condition,
-            "response_elements": response_elements}
+            "response_elements": response_elements,
+            "correct_sequence": correct_sequence}
 
 
 def _archive_path(out_dir: Path, sha: str, kind: str, attempt: int) -> Path:
@@ -180,7 +194,8 @@ async def _generate_one(client, prompt: str, facts: dict, condition_stream,
                           has_interrupt=facts["has_interrupt"],
                           interrupt_condition=facts["interrupt_condition"],
                           condition_stream=condition_stream,
-                          response_elements=facts["response_elements"])
+                          response_elements=facts["response_elements"],
+                          correct_sequence=facts["correct_sequence"])
         _archive_path(out_dir, sha, "simgate", attempt).write_text(
             json.dumps(report.to_dict(), indent=2))
         if report.passed:

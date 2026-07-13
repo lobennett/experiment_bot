@@ -66,6 +66,16 @@ def test_template_documents_click_contract_mechanically():
     assert '("click", index, rt_ms)' in text
 
 
+def test_template_documents_sequence_contract_mechanically():
+    """Sequence-response capability: the list-return wire form and
+    ctx.correct_sequence are documented in the contract section, mechanically
+    (like the click contract)."""
+    text = TEMPLATE.read_text()
+    assert "correct_sequence" in text
+    assert "list of actions" in text
+    assert '[("click", i, rt_ms), ("click", j, rt_ms), ...]' in text
+
+
 def test_no_banned_behavioral_terms():
     for name, text in ASSEMBLED_PROMPT_SOURCES:
         lowered = text.lower()

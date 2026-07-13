@@ -32,6 +32,18 @@ def test_no_paradigm_class_accuracy_priors():
         assert anchor not in PROMPT
 
 
+def test_sequence_response_section_present_and_mechanical():
+    """Sequence-response capability: Stage 1 is told to expose the trial's
+    target order via correct_sequence_js, and the instruction is mechanical
+    (no phenomenon names, no numeric priors)."""
+    assert "correct_sequence_js" in PROMPT
+    # No paradigm/phenomenon vocabulary leaked into the new guidance.
+    lowered = PROMPT.lower()
+    for banned in ("corsi", "digit span", "working memory", "serial recall",
+                   "span task"):
+        assert banned not in lowered
+
+
 
 
 

@@ -319,6 +319,120 @@ def test_stim_response_elements_empty_when_absent():
     assert stim_response_elements({}) == ()
 
 
+# --- Sequence-response capability (2026-07-12 spec) ---
+
+def test_context_correct_sequence_defaults_to_none():
+    s = _session()
+    assert s.build_context("recall", None, 0).correct_sequence is None
+
+
+def test_respond_threads_correct_sequence_to_program():
+    seen = {}
+
+    def _respond(ctx):
+        seen["correct_sequence"] = ctx.correct_sequence
+        return ("click", 0, 350.0)
+    s = BehaviorSession(_program(_respond), seed=1, available_keys=KEYS)
+    s.respond("recall", None, 0, response_elements=ELEMENTS,
+              correct_sequence=(1, 0))
+    assert seen["correct_sequence"] == (1, 0)
+    s.respond("recall", None, 1, response_elements=ELEMENTS)
+    assert seen["correct_sequence"] is None
+
+
+def test_list_of_clicks_returns_sequence_response():
+    from experiment_bot.behavior.provider import SequenceResponse
+    s = BehaviorSession(
+        _program(lambda ctx: [("click", 1, 500.0), ("click", 0, 400.0)]),
+        seed=1, available_keys=KEYS)
+    r = s.respond("recall", None, 0, response_elements=ELEMENTS,
+                  correct_sequence=(1, 0))
+    assert isinstance(r, SequenceResponse)
+    assert len(r.actions) == 2
+    assert all(isinstance(a, ClickResponse) for a in r.actions)
+    assert [a.element_index for a in r.actions] == [1, 0]
+    assert [a.rt_ms for a in r.actions] == [500.0, 400.0]
+
+
+def test_sequence_may_mix_keys_and_clicks():
+    from experiment_bot.behavior.provider import SequenceResponse
+    s = BehaviorSession(
+        _program(lambda ctx: [("f", 300.0), ("click", 0, 450.0)]),
+        seed=1, available_keys=KEYS)
+    r = s.respond("recall", None, 0, response_elements=ELEMENTS)
+    assert isinstance(r, SequenceResponse)
+    assert isinstance(r.actions[0], Response) and r.actions[0].key == "f"
+    assert isinstance(r.actions[1], ClickResponse)
+
+
+def test_empty_list_is_no_response_sequence():
+    from experiment_bot.behavior.provider import SequenceResponse
+    s = BehaviorSession(_program(lambda ctx: []), seed=1, available_keys=KEYS)
+    r = s.respond("recall", None, 0, response_elements=ELEMENTS)
+    assert isinstance(r, SequenceResponse)
+    assert r.actions == ()
+
+
+def test_bare_single_action_is_not_a_sequence():
+    """Backward compat: a bare tuple keeps the existing single-action path
+    even on trials that carry a correct_sequence."""
+    s = BehaviorSession(_program(lambda ctx: ("f", 400.0)), seed=1,
+                        available_keys=KEYS)
+    r = s.respond("recall", "f", 0, response_elements=ELEMENTS,
+                  correct_sequence=(0, 1))
+    assert isinstance(r, Response) and r.key == "f"
+    s2 = BehaviorSession(_program(lambda ctx: ("click", 1, 500.0)), seed=1,
+                         available_keys=KEYS)
+    r2 = s2.respond("recall", None, 0, response_elements=ELEMENTS,
+                    correct_sequence=(0,))
+    assert isinstance(r2, ClickResponse) and r2.element_index == 1
+
+
+def test_sequence_with_one_bad_action_raises():
+    s = BehaviorSession(
+        _program(lambda ctx: [("click", 0, 400.0), "not-a-tuple"]),
+        seed=1, available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="action 1"):
+        s.respond("recall", None, 0, response_elements=ELEMENTS)
+
+
+def test_sequence_out_of_range_click_raises():
+    s = BehaviorSession(
+        _program(lambda ctx: [("click", 0, 400.0), ("click", 2, 400.0)]),
+        seed=1, available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="element_index"):
+        s.respond("recall", None, 0, response_elements=ELEMENTS)
+
+
+def test_sequence_bad_rt_raises():
+    s = BehaviorSession(
+        _program(lambda ctx: [("click", 0, 400.0), ("click", 1, -1.0)]),
+        seed=1, available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="rt"):
+        s.respond("recall", None, 0, response_elements=ELEMENTS)
+
+
+def test_sequence_cumulative_rt_over_cap_raises():
+    """Over-long sequence: the per-action rt bound generalizes to the sum —
+    a sequence may not declare more total time than one action's 60s cap."""
+    actions = [("click", 0, 59_000.0), ("click", 1, 2_000.0)]
+    s = BehaviorSession(_program(lambda ctx: list(actions)), seed=1,
+                        available_keys=KEYS)
+    with pytest.raises(ProtocolViolation, match="total"):
+        s.respond("recall", None, 0, response_elements=ELEMENTS)
+
+
+def test_validate_sequence_returns_validated_action_list():
+    from experiment_bot.behavior.provider import _validate_sequence
+    out = _validate_sequence([("f", 300.0), ("click", 1, 400.0)],
+                             KEYS, "f", "respond(trial 0)",
+                             response_elements=ELEMENTS)
+    assert isinstance(out, list) and len(out) == 2
+    assert isinstance(out[0], Response) and isinstance(out[1], ClickResponse)
+    assert _validate_sequence([], KEYS, None, "respond(trial 0)",
+                              response_elements=ELEMENTS) == []
+
+
 def test_resolve_program_by_hash_prefix(tmp_path):
     d = tmp_path / "stroop"
     d.mkdir()

@@ -141,6 +141,30 @@ def resolve_program(spec_str: str, root: Path = Path("naive_programs")) -> Path:
     raise FileNotFoundError(f"no naive program matches {spec_str!r}")
 
 
+# Playwright key names that are legitimate multi-character response keys.
+# A program may press one of these even before it has been runtime-observed
+# on a dynamic-key card (spatial_task_switching regression). Single-character
+# keys are always pressable; anything else (prose, sentinels, garbage) is not.
+_KNOWN_KEY_NAMES = frozenset({
+    "Enter", "Space", "Tab", "Escape", "Backspace",
+    "ArrowLeft", "ArrowRight", "ArrowUp", "ArrowDown",
+})
+
+
+def _is_pressable_key(key) -> bool:
+    """Whether `key` is something the executor can actually deliver: a single
+    printable character, or a known Playwright key name. This is the real
+    contract — 'return a pressable key' — as opposed to the stricter
+    'return an already-observed key', which crashed sessions when a 2-AFC
+    program pressed its other (legitimate) choice before that key had been
+    resolved at runtime."""
+    if not isinstance(key, str) or not key:
+        return False
+    if len(key) == 1 and key.isprintable():
+        return True
+    return key in _KNOWN_KEY_NAMES
+
+
 def _validate_rt(rt, where: str) -> float:
     # Exact check the 2-tuple path has always applied (byte-identical
     # backward compatibility), factored out so clicks share it.
@@ -181,10 +205,11 @@ def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
             f"{where}: expected (key, rt_ms) or (\"click\", element_index, rt_ms) "
             f"tuple, got {raw!r}")
     key, rt = raw
-    if key is not None and key != correct_key and key not in available_keys:
+    if key is not None and key != correct_key and key not in available_keys \
+            and not _is_pressable_key(key):
         raise ProtocolViolation(
-            f"{where}: key {key!r} not in available_keys {available_keys} "
-            f"(correct_key={correct_key!r})")
+            f"{where}: key {key!r} is not pressable and not in available_keys "
+            f"{available_keys} (correct_key={correct_key!r})")
     return Response(key=key, rt_ms=_validate_rt(rt, where))
 
 

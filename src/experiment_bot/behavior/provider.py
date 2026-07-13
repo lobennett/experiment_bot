@@ -95,6 +95,18 @@ class ClickResponse:
 
 
 @dataclass(frozen=True)
+class SequenceResponse:
+    """A program's ordered multi-action response for one trial (sequence-
+    response capability). ``actions`` holds already-validated Response /
+    ClickResponse objects, delivered by the executor in order — each
+    action's rt_ms is the gap before that action fires. An empty tuple is
+    the no-response sentinel (the program returned ``[]``). Kept as a
+    separate frozen wrapper so single-action callers never see it: respond
+    returns it ONLY when the program returns a list."""
+    actions: tuple
+
+
+@dataclass(frozen=True)
 class TrialContext:
     condition: str
     correct_key: str | None
@@ -110,6 +122,10 @@ class TrialContext:
     # Wave B1: human-readable labels of the trial's clickable response
     # options; empty for keypress tasks.
     response_elements: tuple[str, ...] = ()
+    # Sequence-response capability: the ordered indices into
+    # response_elements that constitute THIS trial's correct reproduction
+    # (None for trials without a target sequence).
+    correct_sequence: tuple[int, ...] | None = None
 
 
 def program_sha256(path: Path) -> str:
@@ -213,6 +229,33 @@ def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
     return Response(key=key, rt_ms=_validate_rt(rt, where))
 
 
+def _validate_sequence(raw, available_keys: tuple[str, ...], correct_key: str | None,
+                       where: str,
+                       response_elements: tuple[str, ...] = ()) -> list:
+    """Validate a program's sequence return: a list/tuple OF actions, each
+    itself a single action validated by ``_validate`` (2-tuple keypress or
+    3-tuple click). Returns a list of Response/ClickResponse; an empty input
+    returns ``[]`` (the no-response sentinel). Nothing is silently coerced —
+    a bad action raises ProtocolViolation naming its position, and the
+    summed rt may not exceed one action's 60s cap (over-long sequences are
+    rejected the same way a single over-long rt is)."""
+    if not isinstance(raw, (list, tuple)):
+        raise ProtocolViolation(
+            f"{where}: expected a list of actions, got {raw!r}")
+    out: list = []
+    total_rt = 0.0
+    for i, action in enumerate(raw):
+        resp = _validate(action, available_keys, correct_key,
+                         f"{where} action {i}",
+                         response_elements=response_elements)
+        total_rt += resp.rt_ms
+        out.append(resp)
+    if total_rt > 60_000:
+        raise ProtocolViolation(
+            f"{where}: total sequence rt_ms {total_rt!r} exceeds 60000")
+    return out
+
+
 class BehaviorSession:
     """One participant (= one seed) executing one program."""
 
@@ -246,7 +289,8 @@ class BehaviorSession:
     def build_context(self, condition: str, correct_key: str | None,
                       trial_index: int,
                       stimulus_text: str | None = None,
-                      response_elements: tuple[str, ...] = ()) -> TrialContext:
+                      response_elements: tuple[str, ...] = (),
+                      correct_sequence: tuple[int, ...] | None = None) -> TrialContext:
         return TrialContext(
             condition=condition, correct_key=correct_key,
             available_keys=self.available_keys, trial_index=trial_index,
@@ -256,18 +300,33 @@ class BehaviorSession:
             prev_interrupted=self._prev.get("interrupted"),
             stimulus_text=stimulus_text,
             response_elements=tuple(response_elements),
+            correct_sequence=(tuple(correct_sequence)
+                              if correct_sequence is not None else None),
         )
 
     def respond(self, condition: str, correct_key: str | None,
                 trial_index: int,
                 stimulus_text: str | None = None,
-                response_elements: tuple[str, ...] = ()) -> Response | ClickResponse:
+                response_elements: tuple[str, ...] = (),
+                correct_sequence: tuple[int, ...] | None = None
+                ) -> Response | ClickResponse | SequenceResponse:
         ctx = self.build_context(condition, correct_key, trial_index,
                                  stimulus_text=stimulus_text,
-                                 response_elements=response_elements)
-        resp = _validate(self._participant.respond(ctx), ctx.available_keys, correct_key,
-                         f"respond(trial {trial_index})",
-                         response_elements=ctx.response_elements)
+                                 response_elements=response_elements,
+                                 correct_sequence=correct_sequence)
+        raw = self._participant.respond(ctx)
+        # A LIST return is a sequence; a bare tuple keeps the existing
+        # single-action path byte-unchanged (backward compat).
+        if isinstance(raw, list):
+            actions = _validate_sequence(raw, ctx.available_keys, correct_key,
+                                         f"respond(trial {trial_index})",
+                                         response_elements=ctx.response_elements)
+            resp: Response | ClickResponse | SequenceResponse = SequenceResponse(
+                actions=tuple(actions))
+        else:
+            resp = _validate(raw, ctx.available_keys, correct_key,
+                             f"respond(trial {trial_index})",
+                             response_elements=ctx.response_elements)
         self._last_ctx, self._last_response = ctx, resp
         return resp
 

@@ -299,6 +299,94 @@ def test_fuzz_passes_for_click_program_with_elements(tmp_path):
     assert not any(f.startswith("fuzz:") for f in report.failures)
 
 
+# --- Sequence-response capability ---
+
+def _sequence_program(tmp_path, body_line):
+    prog = tmp_path / "seq.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            if ctx.correct_sequence is not None:\n"
+        f"                {body_line}\n"
+        "            return (ctx.correct_key, 300.0 + seed)\n"
+        "    return P()\n")
+    return prog
+
+
+def test_gate_passes_valid_sequence_program(tmp_path):
+    prog = _sequence_program(
+        tmp_path,
+        "return [('click', i, 250.0 + seed) for i in ctx.correct_sequence]")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=50,
+                      response_elements={"recall": ["A", "B", "C"]},
+                      correct_sequence={"recall": [0, 1, 2]})
+    assert report.passed, report.failures
+
+
+def test_gate_synthesizes_sequence_when_only_flag_set(tmp_path):
+    """A plausible correct_sequence is carried into ctx so a program that
+    reproduces it passes; the gate never runs the card's JS."""
+    prog = _sequence_program(
+        tmp_path,
+        "return [('click', i, 250.0 + seed) for i in ctx.correct_sequence]")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=20,
+                      response_elements={"recall": ["A", "B"]},
+                      correct_sequence={"recall": [0, 1]})
+    assert report.passed, report.failures
+
+
+def test_gate_fails_empty_sequence_is_valid_withhold(tmp_path):
+    """An empty sequence is a valid no-response — the gate must NOT fail it
+    on the mechanical contract."""
+    prog = _sequence_program(tmp_path, "return []")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=20,
+                      response_elements={"recall": ["A", "B"]},
+                      correct_sequence={"recall": [0, 1]})
+    # Empty sequence every trial is deterministic and identical across seeds
+    # -> caught as "not distinct", proving the sequence trace participates in
+    # the determinism/distinctness checks.
+    assert not report.passed
+    assert any("distinct" in f for f in report.failures), report.failures
+
+
+def test_gate_fails_sequence_out_of_range_index(tmp_path):
+    prog = _sequence_program(
+        tmp_path, "return [('click', 5, 250.0 + seed)]")  # only 2 elements
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=10,
+                      response_elements={"recall": ["A", "B"]},
+                      correct_sequence={"recall": [0, 1]})
+    assert not report.passed
+    assert any("element_index" in f for f in report.failures), report.failures
+
+
+def test_gate_fails_over_long_sequence(tmp_path):
+    prog = _sequence_program(
+        tmp_path,
+        "return [('click', 0, 59000.0 + seed), ('click', 1, 2000.0)]")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=10,
+                      response_elements={"recall": ["A", "B"]},
+                      correct_sequence={"recall": [0, 1]})
+    assert not report.passed
+    assert any("total" in f for f in report.failures), report.failures
+
+
+def test_gate_fails_non_list_sequence_element(tmp_path):
+    prog = _sequence_program(
+        tmp_path, "return [('click', 0, 300.0), 'not-a-tuple']")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=10,
+                      response_elements={"recall": ["A", "B"]},
+                      correct_sequence={"recall": [0, 1]})
+    assert not report.passed
+    assert any("action 1" in f for f in report.failures), report.failures
+
+
 def test_fuzz_cases_pass_for_toy_program():
     """The reference toy program survives every fuzz case (gate still green)."""
     report = run_gate(TOY, conditions=CONDS, key_map=KEYS, has_interrupt=True,

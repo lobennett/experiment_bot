@@ -58,14 +58,38 @@ def test_on_interrupt_withhold_or_response():
     assert out is None or (isinstance(out, Response) and out.rt_ms > 0)
 
 
-def test_bad_key_raises_protocol_violation():
+def test_unpressable_key_raises_protocol_violation():
+    """A multi-char non-key string (prose / sentinel) is not pressable."""
     class _Bad:
         def respond(self, ctx):
-            return ("q", 400.0)  # not in available_keys
+            return ("dynamic", 400.0)  # not None, not a char, not a key name
     mod = type("M", (), {"make_participant": staticmethod(lambda seed: _Bad())})
     s = BehaviorSession(mod, seed=1, available_keys=KEYS)
     with pytest.raises(ProtocolViolation, match="key"):
         s.respond("go", "f", 0)
+
+
+def test_unobserved_pressable_key_accepted():
+    """spatial_task_switching regression: on a dynamic-key card only the
+    trial's correct_key is observed at trial 1, but a 2-AFC program
+    legitimately presses the OTHER choice as an error injection. A
+    syntactically-pressable key (single char, or a known key name) must be
+    accepted even when not yet in available_keys — the contract is 'return a
+    pressable key', not 'return an already-observed key'."""
+    class _Err:
+        def respond(self, ctx):
+            return (",", 400.0)  # single char, not observed, != correct_key
+    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _Err())})
+    s = BehaviorSession(mod, seed=1, available_keys=(".",))
+    r = s.respond("switch", ".", 0)
+    assert r.key == ","
+    # and a known multi-char key name is also pressable
+    class _Arrow:
+        def respond(self, ctx):
+            return ("ArrowLeft", 400.0)
+    s2 = BehaviorSession(type("M",(),{"make_participant":staticmethod(lambda s:_Arrow())}),
+                         seed=1, available_keys=("ArrowRight",))
+    assert s2.respond("c", "ArrowRight", 0).key == "ArrowLeft"
 
 
 def test_bad_rt_raises_protocol_violation():
@@ -110,14 +134,22 @@ def test_validate_accepts_correct_key_not_in_available_keys():
     assert r.key == "q"
 
 
-def test_validate_still_rejects_arbitrary_unknown_key():
-    class _PressUnknown:
-        def respond(self, ctx):
-            return ("z", 400.0)  # neither correct_key nor in available_keys
-    mod = type("M", (), {"make_participant": staticmethod(lambda seed: _PressUnknown())})
-    s = BehaviorSession(mod, seed=1, available_keys=KEYS)
-    with pytest.raises(ProtocolViolation, match="key"):
-        s.respond("go", "q", 0)
+def test_pressable_key_boundary():
+    """The corrected contract: a key is accepted if pressable (single
+    printable char OR a known key name) even when unobserved; non-pressable
+    values (multi-char non-names, empty, control chars) still raise."""
+    def press(val, avail=KEYS, correct="f"):
+        mod = type("M", (), {"make_participant":
+                             staticmethod(lambda seed: type("P", (), {
+                                 "respond": lambda self, ctx: (val, 400.0)})())})
+        return BehaviorSession(mod, seed=1, available_keys=avail).respond("go", correct, 0)
+    # accepted: unobserved single char, and a known multi-char key name
+    assert press("z").key == "z"
+    assert press("Enter").key == "Enter"
+    # rejected: multi-char non-key-name garbage and empty string
+    for bad in ("zz", "press z", "withhold", ""):
+        with pytest.raises(ProtocolViolation, match="key"):
+            press(bad)
 
 
 # --- Wave B3: stimulus_text in TrialContext ---

@@ -53,6 +53,13 @@ defaults.
   selector. Put the correct option's label in `response.key`. Omit the field
   entirely for keyboard-response stimuli.
 
+- `stimuli[].response.correct_sequence_js` (JS expression) OR
+  `task_specific.correct_sequence_js` — ONLY when the task requires
+  reproducing an ordered SERIES of actions within one trial: a JS expression
+  returning the ordered target element indices (0-based into
+  `response_elements`) or their labels, read from the experiment's runtime
+  state. Omit entirely for single-action tasks.
+
 ## REQUIRED task metadata
 
 - `task.paradigm_classes` (list of strings) — short descriptive tags for

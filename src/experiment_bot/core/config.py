@@ -65,6 +65,10 @@ class ResponseConfig:
     # choice grids) — a list of {label, selector} dicts. Empty for keypress
     # tasks.
     response_elements: list = field(default_factory=list)
+    # Sequence-response capability: JS expression returning THIS trial's
+    # ordered target element indices/labels (serial reproduction). Empty for
+    # single-action tasks.
+    correct_sequence_js: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> ResponseConfig:
@@ -73,6 +77,7 @@ class ResponseConfig:
             condition=d["condition"],
             response_key_js=d.get("response_key_js", ""),
             response_elements=d.get("response_elements") or [],
+            correct_sequence_js=d.get("correct_sequence_js", ""),
         )
 
     def to_dict(self) -> dict:
@@ -83,6 +88,8 @@ class ResponseConfig:
             # Emitted only when set: committed cards without the field must
             # keep serializing byte-identically (content-hash stability).
             d["response_elements"] = self.response_elements
+        if self.correct_sequence_js:
+            d["correct_sequence_js"] = self.correct_sequence_js
         return d
 
 

@@ -1407,6 +1407,138 @@ async def test_provider_interrupt_click_commission_delivers_click():
     assert logged["response_type"] == "click"
 
 
+# --- Sequence-response capability (executor delivery) ---
+
+def _seq_click_config():
+    """A click-response card that also exposes correct_sequence_js."""
+    import copy
+    d = copy.deepcopy(SAMPLE_CONFIG)
+    d["stimuli"][0]["response"] = {
+        "key": None, "condition": "recall",
+        "response_elements": [
+            {"label": "Cell A", "selector": "#cell-a"},
+            {"label": "Cell B", "selector": "#cell-b"},
+            {"label": "Cell C", "selector": "#cell-c"},
+        ],
+    }
+    d.setdefault("task_specific", {})["correct_sequence_js"] = (
+        "window.targetOrder")
+    return TaskConfig.from_dict(d)
+
+
+def _seq_session(action_list):
+    class _Seq:
+        def respond(self, ctx):
+            return list(action_list)
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Seq())})
+    return BehaviorSession(mod, seed=1, available_keys=("z",))
+
+
+@pytest.mark.asyncio
+async def test_provider_sequence_delivers_clicks_in_order():
+    """A 3-click sequence fires 3 clicks on the resolved selectors in order,
+    and logs a single record with response_sequence."""
+    session = _seq_session([("click", 2, 300.0), ("click", 0, 250.0),
+                            ("click", 1, 250.0)])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={"method": "locator_click"})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[2, 0, 1])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_not_awaited()
+    selectors = [c.args[1] for c in ex._fire_response_click.await_args_list]
+    assert selectors == ["#cell-c", "#cell-a", "#cell-b"]
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["behavior_provider"] is True
+    seq = logged["response_sequence"]
+    assert [a["type"] for a in seq] == ["click", "click", "click"]
+    assert [a["element"] for a in seq] == ["Cell C", "Cell A", "Cell B"]
+    assert [a["rt"] for a in seq] == [300.0, 250.0, 250.0]
+
+
+@pytest.mark.asyncio
+async def test_provider_sequence_correct_sequence_reaches_program():
+    """correct_sequence_js resolves to ctx.correct_sequence for the program."""
+    seen = {}
+
+    class _Seq:
+        def respond(self, ctx):
+            seen["cs"] = ctx.correct_sequence
+            return [("click", 0, 300.0)]
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Seq())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[1, 2, 0])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert seen["cs"] == (1, 2, 0)
+
+
+@pytest.mark.asyncio
+async def test_provider_empty_sequence_fires_nothing():
+    """An empty sequence delivers no action and logs a withheld-style record."""
+    session = _seq_session([])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_click.assert_not_awaited()
+    ex._fire_response_key.assert_not_awaited()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert logged["response_sequence"] == []
+    assert logged.get("withheld") is True
+    assert logged["behavior_provider"] is True
+
+
+@pytest.mark.asyncio
+async def test_single_action_path_unchanged_when_correct_sequence_js_absent():
+    """Regression: a single-action program on a card WITHOUT
+    correct_sequence_js keeps the exact existing keypress path (correct_sequence
+    resolves to None, no evaluate call for it)."""
+    class _Presser:
+        def respond(self, ctx):
+            assert ctx.correct_sequence is None
+            return ("z", 300.0)
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _Presser())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    config = TaskConfig.from_dict(SAMPLE_CONFIG)
+    ex = TaskExecutor(config, seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    match = StimulusMatch(stimulus_id="go_left", response_key="z", condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    ex._fire_response_key.assert_awaited_once()
+    logged = ex._writer.log_trial.call_args.args[0]
+    assert "response_sequence" not in logged
+    assert logged["response_key"] == "z"
+
+
 @pytest.mark.asyncio
 async def test_fire_response_click_success_and_failure_meta():
     ex = TaskExecutor(_click_config(), seed=42,

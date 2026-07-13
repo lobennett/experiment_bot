@@ -7,8 +7,8 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from experiment_bot.behavior.provider import (
-    BehaviorSession, ClickResponse, ProtocolViolation, load_program,
-    program_sha256,
+    BehaviorSession, ClickResponse, ProtocolViolation, SequenceResponse,
+    load_program, program_sha256,
 )
 
 ALLOWED_IMPORTS = frozenset({
@@ -61,7 +61,8 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
            key_map: dict[str, str], has_interrupt: bool, n_trials: int,
            report: GateReport, interrupt_condition: str | None = None,
            condition_stream: list[str] | None = None,
-           response_elements: dict[str, list[str]] | None = None) -> list[tuple]:
+           response_elements: dict[str, list[str]] | None = None,
+           correct_sequence: dict[str, list[int]] | None = None) -> list[tuple]:
     """One synthetic session; returns [(key, rt), ...] — click responses
     trace as ("click", element_index, rt). Failures -> report.
 
@@ -99,6 +100,8 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
     for i in range(n_trials):
         cond = stream[i % len(stream)]
         elems = tuple((response_elements or {}).get(cond, ()))
+        cseq = (correct_sequence or {}).get(cond)
+        cseq = tuple(cseq) if cseq is not None else None
         is_interrupt_trial = has_interrupt and cond == interrupt_condition
         if is_interrupt_trial:
             correct = None
@@ -112,7 +115,8 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
             cond_idx = conditions.index(cond) if cond in conditions else 0
             correct = keys[cond_idx % len(keys)]
         try:
-            r = session.respond(cond, correct, i, response_elements=elems)
+            r = session.respond(cond, correct, i, response_elements=elems,
+                                 correct_sequence=cseq)
             interrupted = False
             if is_interrupt_trial:
                 # Deterministic synthetic SSD schedule: 100..400ms cycle.
@@ -120,7 +124,23 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
                 if d is not None:
                     r = d
                 interrupted = True
-            if isinstance(r, ClickResponse):
+            if isinstance(r, SequenceResponse):
+                # A reproduction trace: the ordered action tuples plus total
+                # rt participate in the determinism/distinctness checks.
+                actions = tuple(
+                    ("click", a.element_index, round(a.rt_ms, 6))
+                    if isinstance(a, ClickResponse)
+                    else (a.key, round(a.rt_ms, 6))
+                    for a in r.actions)
+                produced = tuple(a.element_index for a in r.actions
+                                 if isinstance(a, ClickResponse))
+                total_rt = sum(a.rt_ms for a in r.actions)
+                session.record_outcome(
+                    cond, correct=(cseq is not None and produced == cseq),
+                    rt_ms=(total_rt if r.actions else None),
+                    interrupted=interrupted)
+                out.append(("sequence", actions))
+            elif isinstance(r, ClickResponse):
                 resolved = elems[r.element_index]
                 session.record_outcome(cond, correct=(resolved == correct),
                                        rt_ms=r.rt_ms, interrupted=interrupted)
@@ -139,7 +159,8 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
                    key_map: dict[str, str], has_interrupt: bool,
                    report: GateReport, interrupt_condition: str | None = None,
                    seed: int = 3,
-                   response_elements: dict[str, list[str]] | None = None) -> None:
+                   response_elements: dict[str, list[str]] | None = None,
+                   correct_sequence: dict[str, list[int]] | None = None) -> None:
     """Protocol fuzz cases (Wave A4b) — still purely mechanical.
 
     A live session can present contexts the round-robin trace never does:
@@ -175,21 +196,28 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
     def _elems_for(cond: str) -> tuple[str, ...]:
         return tuple((response_elements or {}).get(cond, ()))
 
+    def _cseq_for(cond: str) -> tuple[int, ...] | None:
+        seq = (correct_sequence or {}).get(cond)
+        return tuple(seq) if seq is not None else None
+
     cases: list[tuple[str, object]] = []
 
     def _first_trial(s):
         cond = conditions[0]
-        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond))
+        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond),
+                  correct_sequence=_cseq_for(cond))
     cases.append(("first_trial", _first_trial))
 
     def _unseen_condition(s):
         s.respond(_FUZZ_UNSEEN_CONDITION, keys[0], 0,
-                  response_elements=_elems_for(conditions[0]))
+                  response_elements=_elems_for(conditions[0]),
+                  correct_sequence=_cseq_for(conditions[0]))
     cases.append(("unseen_condition", _unseen_condition))
 
     def _empty_available_keys(s):
         cond = conditions[0]
-        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond))
+        s.respond(cond, _correct_for(cond), 0, response_elements=_elems_for(cond),
+                  correct_sequence=_cseq_for(cond))
     cases.append(("empty_available_keys", _empty_available_keys))
 
     if has_interrupt and interrupt_condition is not None:
@@ -218,7 +246,8 @@ def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
              seeds: tuple[int, ...] = (1, 2),
              interrupt_condition: str | None = None,
              condition_stream: list[str] | None = None,
-             response_elements: dict[str, list[str]] | None = None) -> GateReport:
+             response_elements: dict[str, list[str]] | None = None,
+             correct_sequence: dict[str, list[int]] | None = None) -> GateReport:
     report = GateReport(program_sha256=program_sha256(program_path))
     bad_imports = scan_imports(program_path)
     if bad_imports:
@@ -227,25 +256,29 @@ def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
     t1 = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
                 n_trials, report, interrupt_condition=interrupt_condition,
                 condition_stream=condition_stream,
-                response_elements=response_elements)
+                response_elements=response_elements,
+                correct_sequence=correct_sequence)
     if not report.passed:
         return report
     t1_again = _trace(program_path, seeds[0], conditions, key_map, has_interrupt,
                       n_trials, report, interrupt_condition=interrupt_condition,
                       condition_stream=condition_stream,
-                      response_elements=response_elements)
+                      response_elements=response_elements,
+                      correct_sequence=correct_sequence)
     if t1 != t1_again:
         report.fail("non-deterministic: same seed produced different traces")
     t2 = _trace(program_path, seeds[1], conditions, key_map, has_interrupt,
                 n_trials, report, interrupt_condition=interrupt_condition,
                 condition_stream=condition_stream,
-                response_elements=response_elements)
+                response_elements=response_elements,
+                correct_sequence=correct_sequence)
     if report.passed and t1 == t2:
         report.fail("seeds not distinct: different seeds produced identical traces")
     if report.passed:
         _fuzz_protocol(program_path, conditions, key_map, has_interrupt,
                        report, interrupt_condition=interrupt_condition,
-                       response_elements=response_elements)
+                       response_elements=response_elements,
+                       correct_sequence=correct_sequence)
     report.stats = {"n_trials": len(t1), "seeds": list(seeds),
                     "n_conditions": len(conditions),
                     "condition_stream_source": (

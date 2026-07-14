@@ -790,6 +790,13 @@ async def test_replay_navigation_clicks_feedback_selectors():
             async def press(k): pass
     session.page = _Page()
     session.press = AsyncMock()
+    # replay_navigation routes advance clicks through the session's
+    # click_advance_control (instructions-pager capability); bind the REAL
+    # implementation so the mocked page's locator clicks are exercised.
+    import types
+    from experiment_bot.core.pilot_session import PilotSession
+    session.click_advance_control = types.MethodType(
+        PilotSession.click_advance_control, session)
 
     async def _probe(_lookup):
         # advances only after two selector clicks (multi-page pager)

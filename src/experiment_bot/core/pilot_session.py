@@ -36,6 +36,17 @@ _TIMEOUT_S = 300
 # increments consecutive_misses, so the _NO_MATCH_EARLY_STOP guard cannot fire here).
 _INSTRUCTIONS_STUCK_LIMIT = 3
 
+# jsPsych's instructions plugin (a PLATFORM mechanic, not task knowledge —
+# cf. '#jspsych-fullscreen-btn' in the Stage-6 refinement prompts) renders
+# multi-page instruction viewers whose pages advance ONLY by clicking the
+# pager's Next control when key-advancing is disabled (allow_keys: false).
+# Any jsPsych task with such a viewer renders these controls, so the generic
+# advance path tries them AFTER the card's own advance selectors.
+INSTRUCTIONS_PAGER_SELECTORS: tuple[str, ...] = (
+    "#jspsych-instructions-next",
+    ".jspsych-instructions-nav button:last-of-type",
+)
+
 
 @dataclass
 class PhaseAttempt:
@@ -197,6 +208,28 @@ class PilotSession:
             error=None,
         )
 
+    async def click_advance_control(self, selectors: tuple[str, ...] = ()) -> bool:
+        """Click the first visible advance control among the card-provided
+        ``selectors`` followed by the built-in platform pager controls
+        (``INSTRUCTIONS_PAGER_SELECTORS``). Card selectors come first — the
+        card's knowledge of ITS screens wins over the platform default. The
+        click is paced by the session's human reading delay, injected only
+        when a control is actually visible so screens without one cost
+        nothing. Returns True iff a control was clicked; any error on one
+        selector falls through to the next.
+        """
+        for sel in (*selectors, *INSTRUCTIONS_PAGER_SELECTORS):
+            try:
+                loc = self.page.locator(sel).first
+                if not await loc.is_visible(timeout=200):
+                    continue
+                await self._inject_reading_delay()
+                await loc.click(timeout=1500)
+                return True
+            except Exception:
+                continue
+        return False
+
     async def probe_stimulus(self, lookup) -> StimulusProbe:
         """Single poll across all stimulus selectors. Returns match or None."""
         match = await lookup.identify(self.page)
@@ -279,7 +312,16 @@ class PilotSession:
                         )
                 _dom_after = await self.dom_snapshot(container_sel)
                 if _dom_after == _dom_before:
-                    # Configured nav did not move this instruction screen.
+                    # Configured nav did not move this screen. Before counting
+                    # it stuck, try the generic advance controls (card
+                    # feedback selectors + the platform's multi-page
+                    # instructions pager Next control).
+                    ab = config.runtime.advance_behavior
+                    if await self.click_advance_control(
+                            tuple(getattr(ab, "feedback_selectors", []) or [])):
+                        _dom_after = await self.dom_snapshot(container_sel)
+                if _dom_after == _dom_before:
+                    # Neither nav re-run nor advance controls moved the screen.
                     instructions_no_advance += 1
                     if instructions_no_advance >= _INSTRUCTIONS_STUCK_LIMIT:
                         anomalies.append(
@@ -332,6 +374,11 @@ class PilotSession:
                     ab = config.runtime.advance_behavior
                     for key in ab.advance_keys:
                         await self._page.keyboard.press(key)
+                    # Mirror the executor's miss-branch advance: also click
+                    # the first visible advance control (card feedback
+                    # selectors + platform instructions pager).
+                    await self.click_advance_control(
+                        tuple(getattr(ab, "feedback_selectors", []) or []))
                 await asyncio.sleep(poll_ms / 1000.0)
                 continue
 

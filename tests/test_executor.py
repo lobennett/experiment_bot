@@ -1464,6 +1464,51 @@ async def test_provider_sequence_delivers_clicks_in_order():
 
 
 @pytest.mark.asyncio
+async def test_provider_key_sequence_uses_intra_trial_fire_not_trial_start():
+    """REGRESSION (span recall): a KEY sequence (navigate + select, several
+    keys in ONE trial) must fire each key via the intra-trial path, never
+    _fire_response_key's per-trial protocol (which waits for the trial marker
+    to advance and would block every key until the trial ends — observed live
+    as only the first key landing in the response window)."""
+    session = _seq_session([("ArrowLeft", 300.0), ("ArrowUp", 150.0),
+                            (" ", 200.0)])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_key_intra_trial = AsyncMock(
+        return_value={"channel": "cdp_dispatchKeyEvent"})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[0, 1, 2])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    # Per-trial fire path never used for intra-trial sequence keys.
+    ex._fire_response_key.assert_not_awaited()
+    keys = [c.args[1] for c in ex._fire_response_key_intra_trial.await_args_list]
+    assert keys == ["ArrowLeft", "ArrowUp", " "]
+    logged = ex._writer.log_trial.call_args.args[0]
+    seq = logged["response_sequence"]
+    assert [a["type"] for a in seq] == ["key", "key", "key"]
+    assert [a["key"] for a in seq] == ["ArrowLeft", "ArrowUp", " "]
+
+
+@pytest.mark.asyncio
+async def test_intra_trial_fire_falls_back_to_keyboard_press_without_deliverer():
+    """With no CDP deliverer, the intra-trial fire uses page.keyboard.press
+    (the legacy path that never waited)."""
+    ex = TaskExecutor(_seq_click_config(), seed=42,
+                      behavior_provider=_seq_session([]))
+    ex._deliverer = None
+    page = AsyncMock()
+    meta = await ex._fire_response_key_intra_trial(page, "ArrowRight")
+    page.keyboard.press.assert_awaited_once_with("ArrowRight")
+    assert meta["channel"] == "page_keyboard_press"
+
+
+@pytest.mark.asyncio
 async def test_provider_sequence_correct_sequence_reaches_program():
     """correct_sequence_js resolves to ctx.correct_sequence for the program."""
     seen = {}

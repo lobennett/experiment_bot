@@ -347,6 +347,35 @@ class TaskExecutor:
             "skip_reason": rec.skip_reason,
         }
 
+    async def _fire_response_key_intra_trial(self, page: Page, key: str) -> dict:
+        """Fire ONE keypress that is part of a multi-action within-trial
+        sequence (serial reproduction). Unlike `_fire_response_key`, this
+        must NOT run the per-trial marker protocol (dwell + wait-for-advance)
+        — all actions share one trial, so waiting for the marker to advance
+        would block each key until the whole trial ends (observed live on
+        span recall: only the first key landed inside the response window,
+        the rest fired into the next screen). Uses the deliverer's
+        marker-free `fire_key` when available; otherwise the legacy
+        page.keyboard.press path (which never waited)."""
+        fire_key = getattr(self._deliverer, "fire_key", None)
+        if fire_key is None:
+            await page.keyboard.press(key)
+            self._delivery_channel_log["page_keyboard_press"] = (
+                self._delivery_channel_log.get("page_keyboard_press", 0) + 1
+            )
+            return {
+                "channel": "page_keyboard_press",
+                "trial_marker_at_fire": None,
+                "skipped": False,
+                "skip_reason": None,
+            }
+        meta = await fire_key(key)
+        channel = meta.get("channel", self._deliverer.DELIVERY_CHANNEL)
+        self._delivery_channel_log[channel] = (
+            self._delivery_channel_log.get(channel, 0) + 1
+        )
+        return meta
+
     async def _fire_response_click(self, page: Page, selector: str) -> dict:
         """Wave B1: deliver a click response on a response element's
         selector. Mirrors the feedback-selector click pattern (.first /
@@ -1449,7 +1478,7 @@ class TaskExecutor:
                     "rt": action.rt_ms, "delivery": delivery,
                 })
             else:
-                delivery = await self._fire_response_key(page, action.key)
+                delivery = await self._fire_response_key_intra_trial(page, action.key)
                 action_log.append({
                     "type": "key", "key": action.key,
                     "rt": action.rt_ms, "delivery": delivery,

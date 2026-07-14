@@ -17,7 +17,9 @@ from experiment_bot.behavior.provider import (
 )
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
-from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.pilot_session import (
+    INSTRUCTIONS_PAGER_SELECTORS, PilotSession,
+)
 from experiment_bot.core.loop_diagnostics import LoopDiagnostics
 from experiment_bot.core.outcome import classify_outcome
 from experiment_bot.navigation.stuck import StuckDetector
@@ -888,6 +890,25 @@ class TaskExecutor:
                         else:
                             instructions_stuck_fp = _fp
                             instructions_stuck_count = 0
+                        if instructions_stuck_count >= 1:
+                            # A multi-page instructions viewer advances by
+                            # clicking its pager control, which the card's
+                            # fixed nav phases may not cover. Try the generic
+                            # advance controls (card feedback selectors +
+                            # platform pager) before escalating to adaptive
+                            # nav. Guarded: test doubles may not implement
+                            # click_advance_control.
+                            ab = self._config.runtime.advance_behavior
+                            try:
+                                clicked = bool(await session.click_advance_control(
+                                    tuple(ab.feedback_selectors)))
+                            except Exception:
+                                clicked = False
+                            if clicked:
+                                _fp_after = await self._dom_fingerprint(page)
+                                if _fp_after and _fp_after != _fp:
+                                    instructions_stuck_fp = ""
+                                    instructions_stuck_count = 0
                         if (
                             instructions_stuck_count >= _ADAPTIVE_NAV_STUCK_DETECTIONS
                             and self._llm_client is not None
@@ -1014,7 +1035,11 @@ class TaskExecutor:
                     # Reasoner already wrote into the TaskCard — no paradigm-specific
                     # knowledge added here. Helps recover when navigation.phases is
                     # incomplete and the page expects clicks rather than keypresses.
-                    for selector in ab.feedback_selectors:
+                    # The platform's multi-page instructions pager controls
+                    # (jsPsych Next button — a platform mechanic) are tried
+                    # after the card's own selectors.
+                    for selector in (*ab.feedback_selectors,
+                                     *INSTRUCTIONS_PAGER_SELECTORS):
                         try:
                             locator = page.locator(selector).first
                             if await locator.is_visible(timeout=200):

@@ -349,18 +349,13 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                     await session.press(k)
                 # Mirror the executor's full advance behavior (executor.py
                 # instructions-screen handling): after the keys, click the
-                # first visible feedback/advance selector. Held-out flanker
-                # surfaced the gap — jsPsych's multi-page instructions pager
-                # advances by BUTTON, so a keys-only replay is stricter than
-                # the executor and rejects cards the executor can run.
-                for selector in feedback_selectors:
-                    try:
-                        locator = session.page.locator(selector).first
-                        if await locator.is_visible(timeout=200):
-                            await locator.click(timeout=500)
-                            break
-                    except Exception:
-                        continue
+                # first visible advance control — the card's feedback
+                # selectors, then the platform's multi-page instructions
+                # pager Next control. Held-out flanker surfaced the gap —
+                # jsPsych's multi-page instructions pager advances by
+                # BUTTON, so a keys-only replay is stricter than the
+                # executor and rejects cards the executor can run.
+                await session.click_advance_control(tuple(feedback_selectors))
             await asyncio.sleep(0.05)  # 50ms between polls, let DOM transition settle
         return False, await session.dom_snapshot()
 

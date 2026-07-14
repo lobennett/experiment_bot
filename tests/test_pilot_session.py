@@ -240,6 +240,57 @@ async def test_try_phase_select_empty_value_clicks_target(fixture_url):
 
 
 @pytest.mark.asyncio
+async def test_poll_stimuli_skips_non_pressable_resolved_key(monkeypatch):
+    """REGRESSION (span recall): a sequence-response stimulus resolves to a
+    non-pressable key (e.g. a card whose key_map placeholder is the literal
+    'sequence'). The executor never presses it (it routes to
+    _deliver_sequence); poll_stimuli must skip the press too, not crash with
+    Playwright's 'Unknown key' error. The display auto-advances on its own
+    timer, so skipping is correct."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    import experiment_bot.core.pilot_session as ps_mod
+    from experiment_bot.core.config import TaskPhase
+
+    async def _always_test(page, pd):
+        return TaskPhase.TEST
+    monkeypatch.setattr(ps_mod, "detect_phase", _always_test)
+
+    pd = SimpleNamespace(complete="", loading="", instructions="", attention_check="",
+                         feedback="", practice="", test="x")
+    ab = SimpleNamespace(advance_keys=[], advance_interval_polls=10,
+                         feedback_selectors=[])
+    runtime = SimpleNamespace(phase_detection=pd, advance_behavior=ab)
+    pilot = SimpleNamespace(target_conditions=["simple"],
+                            stimulus_container_selector="body", min_trials=1)
+    stim = SimpleNamespace(
+        id="simple",
+        detection=SimpleNamespace(method="js_eval", selector="true"))
+    nav = SimpleNamespace(phases=[])
+    config = SimpleNamespace(pilot=pilot, stimuli=[stim], runtime=runtime,
+                             navigation=nav,
+                             task_specific={"key_map": {"simple": "sequence"}})
+    match = SimpleNamespace(stimulus_id="simple", condition="simple",
+                            response_key="sequence")
+    lookup = SimpleNamespace(config=config, identify=AsyncMock(return_value=match))
+
+    session = PilotSession(headless=True)
+    page = MagicMock()
+    page.evaluate = AsyncMock(return_value=True)  # detection selector truthy
+    page.keyboard = MagicMock()
+    page.keyboard.press = AsyncMock()
+    session._page = page
+    session.dom_snapshot = AsyncMock(return_value="<div>recall</div>")
+
+    result = await session.poll_stimuli(lookup, max_polls=50)
+    assert result["trials_with_stimulus_match"] >= 1
+    assert result["conditions_observed"] == ["simple"]
+    # The non-pressable "sequence" key was NEVER pressed.
+    for call in page.keyboard.press.await_args_list:
+        assert call.args[0] != "sequence"
+
+
+@pytest.mark.asyncio
 async def test_poll_stimuli_breaks_early_when_instructions_never_advance(monkeypatch):
     """REGRESSION (held-out 300s spin): when the poll loop is stuck on an
     INSTRUCTIONS screen and re-running nav never changes the DOM, it must break

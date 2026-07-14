@@ -403,6 +403,7 @@ class PilotSession:
             })
 
             # Press response key (no RT timing). Filter withhold sentinels.
+            from experiment_bot.behavior.provider import _is_pressable_key
             from experiment_bot.core.executor import TaskExecutor
             key = match.response_key
             if TaskExecutor._is_withhold_sentinel(key) or key in ("dynamic", "dynamic_mapping"):
@@ -410,9 +411,18 @@ class PilotSession:
                 fallback = km.get(match.condition)
                 if fallback and fallback not in ("dynamic", "dynamic_mapping") \
                         and not TaskExecutor._is_withhold_sentinel(fallback):
-                    await self._page.keyboard.press(fallback)
-                # else: skip the keypress entirely (withhold trial)
-            else:
+                    key = fallback
+                else:
+                    key = None  # withhold — no keypress
+            # Only press keys Playwright can actually deliver. A stimulus the
+            # executor drives via a response SEQUENCE (correct_sequence_js) or
+            # a card that put a non-key placeholder in key_map (e.g. the
+            # literal "sequence") resolves to a non-pressable string here; the
+            # executor never presses it (sequence stimuli route to
+            # _deliver_sequence), and the pilot must not crash on it either.
+            # The recall display auto-advances on its own timer, so skipping
+            # the press is correct — the loop keeps flowing.
+            if key is not None and _is_pressable_key(key):
                 await self._page.keyboard.press(key)
 
             await asyncio.sleep(poll_ms / 1000.0)

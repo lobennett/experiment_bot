@@ -24,7 +24,9 @@ from experiment_bot.core.config import (
     SourceBundle, StimulusConfig, TaskConfig, TaskMetadata,
 )
 from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner, _NO_MATCH_EARLY_STOP
-from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.pilot_session import (
+    HUMAN_READING_DELAY_RANGE, PilotSession,
+)
 from experiment_bot.core.stimulus import StimulusLookup
 from experiment_bot.output.data_capture import ConfigDrivenCapture
 from experiment_bot.llm.protocol import LLMClient
@@ -306,7 +308,8 @@ _REPLAY_MAX_POLLS = 1200
 
 async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                             headless=True, viewport=None,
-                            max_polls=_REPLAY_MAX_POLLS) -> bool:
+                            max_polls=_REPLAY_MAX_POLLS,
+                            reading_delay_range=HUMAN_READING_DELAY_RANGE) -> bool:
     """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
     serially via the unified PilotSession engine (exactly as the executor's entry
     nav does), then poll for a trial stimulus WHILE pressing advance_keys
@@ -332,7 +335,8 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
     # instruction flows) that the executor never trips. Held-out flanker
     # surfaced this. Keep advance actions >= _REPLAY_ADVANCE_SPACING_S apart.
     last_advance = 0.0
-    async with PilotSession(headless=headless, viewport=viewport) as session:
+    async with PilotSession(headless=headless, viewport=viewport,
+                            reading_delay_range=reading_delay_range) as session:
         await session.goto(url)
         for phase in navigation.phases:
             await session.try_phase(phase)  # skip-on-fail, like the executor
@@ -783,7 +787,8 @@ async def run_stage6(
     nav_refinement_count = 0
     stim_refinement_count = 0
 
-    async with PilotSession(headless=headless, viewport=config.runtime.timing.viewport) as session:
+    async with PilotSession(headless=headless, viewport=config.runtime.timing.viewport,
+                            reading_delay_range=HUMAN_READING_DELAY_RANGE) as session:
         await session.goto(bundle.url)
         # Apply initial nav phases on the live session ONCE
         for phase_dict in accumulated_phases:

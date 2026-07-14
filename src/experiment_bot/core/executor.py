@@ -18,7 +18,7 @@ from experiment_bot.behavior.provider import (
 from experiment_bot.core.config import TaskConfig, TaskPhase
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
 from experiment_bot.core.pilot_session import (
-    INSTRUCTIONS_PAGER_SELECTORS, PilotSession,
+    HUMAN_READING_DELAY_RANGE, INSTRUCTIONS_PAGER_SELECTORS, PilotSession,
 )
 from experiment_bot.core.loop_diagnostics import LoopDiagnostics
 from experiment_bot.core.outcome import classify_outcome
@@ -552,7 +552,7 @@ class TaskExecutor:
         async with PilotSession(
             headless=self._headless,
             viewport=self._config.runtime.timing.viewport,
-            reading_delay_range=(3.0, 8.0),
+            reading_delay_range=HUMAN_READING_DELAY_RANGE,
         ) as session:
             page = session.page
             context = session.context

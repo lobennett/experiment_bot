@@ -47,6 +47,15 @@ INSTRUCTIONS_PAGER_SELECTORS: tuple[str, ...] = (
     ".jspsych-instructions-nav button:last-of-type",
 )
 
+# Human reading dwell before each nav click/keypress. jsPsych RDoC-style
+# instruction flows carry an anti-skim guard (a minimum total reading time;
+# paging faster loops back to a "read too quickly" screen). The executor
+# already dwells this long, so the Stage-6 pilot / replay must too — else a
+# card the executor can run is rejected because the fast-paced pilot trips a
+# guard the live run never trips. Task-agnostic: it is human reading pacing,
+# not a per-paradigm threshold.
+HUMAN_READING_DELAY_RANGE: tuple[float, float] = (3.0, 8.0)
+
 
 @dataclass
 class PhaseAttempt:

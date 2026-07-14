@@ -172,6 +172,7 @@ async def test_replay_navigation_pages_through_multipage_instructions(pager_url)
     reached, final_dom = await replay_navigation(
         pager_url, NavigationConfig.from_dict({"phases": []}), lookup,
         advance_behavior=ab, headless=True, max_polls=400,
+        reading_delay_range=(0.01, 0.02),  # keep the test fast
     )
     assert reached is True, f"replay never reached the stimulus: {final_dom[:400]}"
 

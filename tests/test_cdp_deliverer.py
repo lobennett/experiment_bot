@@ -158,6 +158,30 @@ def test_deliver_at_trial_start_fires_keydown_keyup_pair():
         assert params["code"] == "Comma"
 
 
+def test_fire_key_dispatches_pair_without_waiting_for_advance():
+    """Intra-trial sequence delivery: fire_key dispatches rawKeyDown+keyUp
+    and returns immediately — it must NOT poll for the trial marker to
+    advance (the marker never advances within a single multi-key trial, so
+    waiting would block each key until the trial ends). Marker stays 5
+    throughout; fire_key must still return promptly with skipped=False."""
+    cdp = _FakeCDP()
+    page = _FakePage(marker_sequence=[5], records=[])
+    deliverer = CDPDeliverer(page, cdp, default_dwell_ms=1.0)
+    meta = _run(deliverer.fire_key("ArrowLeft"))
+    assert meta["skipped"] is False
+    assert meta["channel"] == "cdp_dispatchKeyEvent"
+    types_sent = [p["type"] for (m, p) in cdp.calls if m == "Input.dispatchKeyEvent"]
+    assert types_sent == ["rawKeyDown", "keyUp"]
+    for _, params in cdp.calls:
+        assert params["code"] == "ArrowLeft"
+    # No advance-polling loop: the marker is read at most once (for logging),
+    # never in a wait loop (which would re-read many times on a static marker).
+    assert page.evaluate_log.count(
+        "() => (window.jsPsych && window.jsPsych.getProgress && "
+        "window.jsPsych.getProgress().current_trial_global) || null"
+    ) <= 1
+
+
 def test_deliver_at_trial_start_skips_if_no_trial_marker():
     """Step 1: if trial marker is None (pre-test-phase), skip and
     return skipped=True. The bot must not fire into a non-trial state."""

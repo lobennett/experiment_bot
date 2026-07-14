@@ -228,6 +228,30 @@ class CDPDeliverer(KeypressDeliverer):
         )
         return fields
 
+    async def fire_key(self, key: str) -> dict[str, Any]:
+        """Dispatch ONE keypress immediately, with no trial-marker protocol.
+
+        `deliver_at_trial_start` is a one-key-PER-trial design: it dwells,
+        verifies the trial hasn't advanced, fires, then WAITS for the trial
+        marker to advance (pairing one fire to one trial). That wait is wrong
+        for a multi-action response delivered WITHIN a single trial (e.g. a
+        serial reproduction: navigate + select, several keys, one trial): the
+        marker does not advance until the whole trial ends, so each intra-trial
+        key would block the ~trial_advance_timeout. This method just fires the
+        rawKeyDown+keyUp pair; inter-action timing is owned by the caller
+        (`TaskExecutor._deliver_sequence` sleeps each action's gap). Returns
+        the same metadata shape as `TaskExecutor._fire_response_key`.
+        """
+        marker = await self._read_trial_marker()
+        fields = await self._fire_cdp_pair(key)
+        return {
+            "channel": self.DELIVERY_CHANNEL,
+            "trial_marker_at_fire": marker,
+            "skipped": False,
+            "skip_reason": None,
+            "cdp_fields": fields,
+        }
+
     async def deliver_at_trial_start(
         self,
         key: str,

@@ -37,8 +37,10 @@ def respond(self, ctx):
     response_elements (tuple[str, ...]): labels of the trial's
     clickable on-screen response options; empty for keyboard tasks,
     correct_sequence (tuple[int, ...] | None): on trials that require
-    reproducing an ordered series of actions, the target order as
-    indices into response_elements; None otherwise.
+    reproducing an ordered series of actions, the ordered target
+    identifiers for this trial (indices into response_elements for
+    click tasks, or the position identifiers the task's source defines
+    for keyboard-navigated tasks); None otherwise.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the
@@ -54,7 +56,11 @@ def respond(self, ctx):
     ordered SERIES of actions. Return a list of actions instead of one:
     e.g. [("click", i, rt_ms), ("click", j, rt_ms), ...] or a mix of
     clicks and (key, rt_ms) presses. Each action's rt_ms is the gap
-    before that action. An empty list [] means no response.
+    before that action. An empty list [] means no response. When the task
+    is answered by navigating with keys rather than clicking, read the
+    task source to work out which key presses move from one target to the
+    next and which key confirms a target, then return that key path as the
+    action list.
     """
 ```
 

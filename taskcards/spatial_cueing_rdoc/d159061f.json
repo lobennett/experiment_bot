@@ -1,0 +1,322 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "5165229ca7f5fa66513096ae838e130760bd24ce88d89091ea74fda803255604",
+    "scraper_version": "1.0.0",
+    "source_sha256": "d30f0d50a2d46bfa2df1ed42cb9f658fb57ba15953425012554404385fc8326d",
+    "timestamp": "2026-07-11T20:40:54.849366+00:00",
+    "taskcard_sha256": "d159061f950008ab9ad63ad422e85db7c7dd8afae087f32e57cfa605719aabd3"
+  },
+  "task": {
+    "name": "spatial_cueing_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-alternative spatial localization",
+      "pre-stimulus spatial cueing manipulation",
+      "keyboard two-choice response"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "nocue",
+      "description": "Target star appears after a trial with no informative cue (neither box highlighted).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.star') && !!(window.currStim && window.currStim.data && window.currStim.data.condition === 'nocue')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "nocue",
+        "response_key_js": "(window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') ? window.currStim.data.correct_response : null"
+      }
+    },
+    {
+      "id": "doublecue",
+      "description": "Target star appears after a trial where both boxes were highlighted (non-spatial alerting cue).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.star') && !!(window.currStim && window.currStim.data && window.currStim.data.condition === 'doublecue')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "doublecue",
+        "response_key_js": "(window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') ? window.currStim.data.correct_response : null"
+      }
+    },
+    {
+      "id": "valid",
+      "description": "Target star appears in the same location that was cued (valid spatial cue).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.star') && !!(window.currStim && window.currStim.data && window.currStim.data.condition === 'valid')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "valid",
+        "response_key_js": "(window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') ? window.currStim.data.correct_response : null"
+      }
+    },
+    {
+      "id": "invalid",
+      "description": "Target star appears in the opposite location to the one cued (invalid spatial cue).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.star') && !!(window.currStim && window.currStim.data && window.currStim.data.condition === 'invalid')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "invalid",
+        "response_key_js": "(window.currStim && window.currStim.data && typeof window.currStim.data.correct_response !== 'undefined') ? window.currStim.data.correct_response : null"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 800
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 3000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || !!(document.body && document.body.innerText.indexOf('Experiment Complete') !== -1)",
+      "test": "(!!document.querySelector('#left_box') || !!document.querySelector('#right_box')) && !document.querySelector('.prompt_box') && !document.querySelector('#jspsych-attention-check-rdoc-stimulus')",
+      "loading": "!document.querySelector('.jspsych-content')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('#jspsych-fullscreen-btn')",
+      "practice": "!!document.querySelector('.prompt_box')",
+      "feedback": "!!document.querySelector('.fb_box') || !!(document.body && /begin practice|blocks of trials|read your feedback|to continue/.test(document.body.innerText))",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn",
+        "#next_experiment_button"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "window.jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "stim_location": {
+          "column": "stim_location"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "nocue": "dynamic",
+      "doublecue": "dynamic",
+      "valid": "dynamic",
+      "invalid": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "fixation_ms": 500,
+      "cue_stimulus_ms": 100,
+      "cue_trial_ms": 100,
+      "cti_ms": 400,
+      "iti_min_ms": 0,
+      "iti_max_ms": 5000,
+      "iti_mean_ms": 500
+    },
+    "response_keys": {
+      "left_box": ",",
+      "right_box": "."
+    },
+    "block_structure": {
+      "practice_len": 12,
+      "num_test_blocks": 3,
+      "num_trials_per_block": 72,
+      "condition_ratio_per_24": {
+        "nocue": 8,
+        "doublecue": 8,
+        "valid": 6,
+        "invalid": 2
+      }
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'spatial_cueing_rdoc' with 4 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed first attempt: 159 trials, conditions ['doublecue', 'invalid', 'nocue', 'valid'] all observed.",
+      "evidence_lines": [
+        "attempt_1: trials=159, conditions=['doublecue', 'invalid', 'nocue', 'valid'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=73"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

@@ -1,0 +1,208 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "37b2b0bd7e820ae0919be368c9afaaf4a7837b6d0c94b8be0c78705994cd63b1",
+    "scraper_version": "1.0.0",
+    "source_sha256": "3abcc88aa04cecf6b473e6570f80e87ba5f45ecd31015608dc81fecf24da1288",
+    "timestamp": "2026-07-13T19:31:03.275098+00:00",
+    "taskcard_sha256": "91356d463224322595275cc5a9aea3672bd670e2d875041039ad4842d158dec7"
+  },
+  "task": {
+    "name": "operation_span_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "complex working-memory span task",
+      "interleaved binary-judgment processing task",
+      "serial-order memory recall via keyboard-navigated selection"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "processing",
+      "description": "8x8 Chein symmetry grid shown as the interleaved processing display; participant judges whether the pattern is symmetric. PROVISIONAL: response key mapping not recoverable from the truncated source.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var c=document.querySelector('.distractor-box'); return c && c.offsetParent !== null;})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "processing",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) ? String(window.correctResponse) : null"
+      }
+    },
+    {
+      "id": "recall",
+      "description": "4x4 recall grid presented after each set; participant reproduces the encoded serial order by navigating cells with arrow keys and selecting with spacebar. PROVISIONAL: the recall interface is keyboard-driven (per style.css .response-active/.active-box/.spacebar-box), so per-selection keys and target order cannot be extracted from the truncated source and must be resolved in pilot.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var box=document.querySelector('.container .box'); return box && box.offsetParent !== null && !document.querySelector('.distractor-box');})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "recall",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) ? String(window.correctResponse) : null"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "instructions_advance",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || (document.body && document.body.innerText.indexOf('Experiment Complete') !== -1)",
+      "test": "!!document.querySelector('.distractor-box') || (!!document.querySelector('.container .box') && !document.querySelector('#jspsych-instructions-next'))",
+      "loading": "!document.getElementById('jspsych-content') || (!!document.querySelector('.lds-dual-ring') && !document.getElementById('finished_message'))",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "false",
+      "feedback": "!!document.querySelector('.memory_feedback') || !!document.querySelector('.fb_box')",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 400,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 8000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "ArrowRight",
+        " ",
+        "Enter"
+      ],
+      "exit_pager_key": "ArrowRight",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter",
+        " "
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "processing": "dynamic",
+      "recall": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": null
+    },
+    "notes": "Complex-span structure inferred from loaded plugins and style.css; the trial-construction section of experiment.js was truncated in the provided source. The recall response is entered via arrow-key navigation (.response-active/.active-box) plus spacebar selection (.spacebar-box), i.e. multiple keypresses per recall trial rather than a single (key, rt). Processing judgment (symmetric vs not) key assignment could not be extracted. Both must be confirmed against the live DOM in the Stage 6 pilot before behavioral generation."
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'operation_span_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 1 navigation refinement(s), 0 selector update(s): 39 trials, conditions ['processing', 'recall'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['processing', 'recall']",
+        "attempt_2: trials=0, conditions=[], missing=['processing', 'recall']",
+        "attempt_3: trials=39, conditions=['processing', 'recall'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=15"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

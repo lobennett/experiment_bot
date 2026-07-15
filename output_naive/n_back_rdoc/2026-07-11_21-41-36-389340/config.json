@@ -1,0 +1,230 @@
+{
+  "task": {
+    "name": "n_back_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-choice task",
+      "working-memory continuous matching task",
+      "delayed match-to-sample with variable memory load"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "match",
+      "description": "Letter image whose current-trial n-back condition is 'match' (current letter equals the letter shown `delay` trials ago, ignoring case).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\") && window.nbackCondition === 'match'",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "match",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? String(window.correctResponse) : null)"
+      }
+    },
+    {
+      "id": "mismatch",
+      "description": "Letter image whose current-trial n-back condition is 'mismatch' (current letter differs from the letter shown `delay` trials ago).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\") && window.nbackCondition === 'mismatch'",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "mismatch",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? String(window.correctResponse) : null)"
+      }
+    },
+    {
+      "id": "buffer",
+      "description": "Buffer/warm-up letter image at the start of each block (nbackCondition == 'N/A'); the first `delay` trials of every block. These require the 'mismatch' key per instructions and are excluded from analysis.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\") && window.nbackCondition === 'N/A'",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "buffer",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? String(window.correctResponse) : null)"
+      }
+    }
+  ],
+  "response_distributions": {},
+  "performance": {
+    "accuracy": {}
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "enter_fullscreen",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_next",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_instructions_next",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "match": "dynamic",
+      "mismatch": "dynamic",
+      "buffer": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index",
+      "default": 1,
+      "note": "group_index 0-4 => match=period '.', mismatch=comma ','; group_index 5-14 => match=comma ',', mismatch=period '.'. Correct per-trial key is exposed at runtime as window.correctResponse (Pattern A); read it rather than recomputing."
+    },
+    "response_keys": [
+      ",",
+      "."
+    ],
+    "block_structure": {
+      "practice_delay_1_len": 5,
+      "practice_delay_2_len": 5,
+      "num_test_blocks": 10,
+      "trials_per_test_block": 12,
+      "delays": [
+        1,
+        2
+      ],
+      "buffer_trials_per_block": "equal to the block delay (1 or 2), condition 'N/A'"
+    }
+  },
+  "pilot": {
+    "min_trials": 20,
+    "target_conditions": [],
+    "max_blocks": 3,
+    "stimulus_container_selector": "",
+    "rationale": ""
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || /Experiment Complete/i.test((document.body && document.body.textContent) || '')",
+      "test": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\") && !document.querySelector('.prompt_box')",
+      "loading": "document.readyState !== 'complete' || !document.querySelector('#jspsych-content')",
+      "instructions": "!!document.getElementById('jspsych-instructions-next')",
+      "practice": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\") && !!document.querySelector('.prompt_box')",
+      "feedback": "(() => { const c = document.querySelector('#jspsych-content'); if (!c) return false; if (document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\")) return false; const t = c.textContent || ''; return /press\\s+.?enter/i.test(t) || /You have completed/i.test(t) || /begin practice/i.test(t) || /read your feedback/i.test(t) || /Done with/i.test(t); })()",
+      "attention_check": "!!document.getElementById('jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 800,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 3000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector(\"#jspsych-html-keyboard-response-stimulus img[src*='n_back_rdoc/images']\")",
+      "trial_context_js": "'delay=' + (typeof window.delay !== 'undefined' ? window.delay : '?') + ';cond=' + (window.nbackCondition || '?')",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 7.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "Enter",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        },
+        "one_of": {
+          "condition": [
+            "match",
+            "mismatch"
+          ]
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "delay": {
+          "column": "delay",
+          "parse": "float"
+        }
+      }
+    }
+  }
+}

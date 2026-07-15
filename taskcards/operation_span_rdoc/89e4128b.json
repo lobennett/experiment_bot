@@ -1,0 +1,231 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "c3aa0399d2b7a57c12ea7f1df32e693844b1e89fcf90fe8ddc4c6ab50fc1e89e",
+    "scraper_version": "1.0.0",
+    "source_sha256": "3abcc88aa04cecf6b473e6570f80e87ba5f45ecd31015608dc81fecf24da1288",
+    "timestamp": "2026-07-14T04:51:42.682665+00:00",
+    "taskcard_sha256": "89e4128bcb71f93babc78d773d4d41bb2cf6ea11b9eaa665a418f5d9f030daef"
+  },
+  "task": {
+    "name": "operation_span_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "complex working-memory span task",
+      "ordered sequence reproduction via keyboard navigation",
+      "interleaved binary perceptual-judgment processing task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "symmetry_judgment",
+      "description": "Processing task: an 8x8 black/white pattern (distractor grid) requiring a binary symmetric/not-symmetric keyboard judgment.",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".distractor-box",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "symmetry_judgment",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? window.correctResponse : null)"
+      }
+    },
+    {
+      "id": "recall",
+      "description": "Reproduction phase: the 4x4 recall grid is interactive (arrow-key cursor shown via .response-active/.first-active). Participant navigates and confirms the remembered cell locations in presentation order.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(!!document.querySelector('.response-active') || !!document.querySelector('.first-active'))",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "recall",
+        "correct_sequence_js": "(() => { try { const rows = jsPsych.data.get().values(); const posOf = r => (r.spatial_location ?? r.square ?? r.position ?? r.location ?? r.stim_index); let lastRecall = -1; for (let i=0;i<rows.length;i++){ if(/recall|reproduc|response-grid/i.test(String(rows[i].trial_id||rows[i].trial_type||''))) lastRecall=i; } const block = rows.slice(lastRecall+1); const seq = block.filter(r => posOf(r)!==undefined && typeof posOf(r)!=='object').map(posOf); return seq.length ? seq : null; } catch(e){ return null; } })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "repeat",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "steps": [
+              {
+                "key": "ArrowRight",
+                "description": "Advance jsPsych instructions plugin pages (default key_forward = ArrowRight).",
+                "action": "keypress",
+                "phase": "",
+                "target": "",
+                "duration_ms": 0,
+                "steps": []
+              },
+              {
+                "duration_ms": 400,
+                "action": "wait",
+                "phase": "",
+                "target": "",
+                "key": "",
+                "steps": []
+              }
+            ],
+            "action": "sequence",
+            "phase": "",
+            "target": "",
+            "key": "",
+            "duration_ms": 0
+          }
+        ],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "(!!document.getElementById('finished_message') || (document.body && document.body.innerText.indexOf('Experiment Complete') !== -1))",
+      "test": "(!!document.querySelector('.distractor-box') || !!document.querySelector('.response-active'))",
+      "loading": "(!document.querySelector('#jspsych-content') && !document.querySelector('.display_stage'))",
+      "instructions": "(!!document.querySelector('.jspsych-instructions-nav') || !!document.querySelector('#jspsych-instructions-next'))",
+      "practice": "false",
+      "feedback": "(!!document.querySelector('.memory_feedback') || !!document.querySelector('.fb_box'))",
+      "attention_check": "(!!document.querySelector('#jspsych-attention-check-rdoc-stimulus'))"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 1500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 15000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "(() => { try { const c = document.querySelector('.cue-text, .prompt_box_simple, .prompt_box_operation, .prompt_box_response'); return c ? c.innerText.trim().slice(0,120) : ''; } catch(e){ return ''; } })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 3000,
+      "trial_end_timeout_s": 10.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "ArrowRight",
+        " "
+      ],
+      "exit_pager_key": "ArrowRight",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter",
+        " "
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "symmetry_judgment": "dynamic",
+      "recall": "dynamic"
+    },
+    "trial_timing": {},
+    "correct_sequence_js": "",
+    "notes": {
+      "recall_mechanic": "Keyboard-navigated reproduction: cursor moved with arrow keys across the 4x4 recall grid (.container > .box), each target confirmed with the select key (spacebar per style.css: .spacebar-box). No per-target clickable elements, so response_elements is intentionally omitted; the ordered targets are exposed via correct_sequence_js.",
+      "cdp_dwell_derivation": "No per-trial response window is readable from the (heavily truncated) experiment.js source, so cdp_dwell_ms falls back to the documented 200ms default.",
+      "source_limitations": "experiment.js is truncated after the OG_CHEIN_SYMM_GRIDS definitions; timeline construction, exact response-key handlers, and recorded data field names are not visible. response_key_js uses the multi-source window.correctResponse chain (Pattern A) to avoid guessing keys; correct_sequence_js reconstructs the target order defensively from recorded rows and returns null on error. Presentation-phase field names (spatial_location/square/position/location/stim_index) should be verified against a pilot export.",
+      "set_size": "Operation/symmetry span uses variable set sizes per block; whether set size is adaptive is not determinable from the available source."
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'operation_span_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 0 navigation refinement(s), 0 selector update(s): 154 trials, conditions ['recall', 'symmetry_judgment'].",
+      "evidence_lines": [
+        "attempt_1: trials=84, conditions=['recall'], missing=['symmetry_judgment']",
+        "attempt_2: trials=0, conditions=[], missing=['recall', 'symmetry_judgment']",
+        "attempt_3: trials=0, conditions=[], missing=['recall', 'symmetry_judgment']",
+        "attempt_4: trials=154, conditions=['recall', 'symmetry_judgment'], missing=[]",
+        "data_capture_gate: method=js_expression format=csv rows=124"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

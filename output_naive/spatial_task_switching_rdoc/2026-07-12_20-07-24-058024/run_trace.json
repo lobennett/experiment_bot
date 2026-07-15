@@ -1,0 +1,57 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/8/"
+      },
+      "duration_s": 1.387511165929027
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_next",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          },
+          {
+            "phase": "instructions_next_practice",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          }
+        ]
+      },
+      "duration_s": 18.18387754203286
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 8.783303201198578e-05
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/spatial_task_switching_rdoc/2026-07-12_20-07-24-058024"
+      },
+      "duration_s": null
+    }
+  ]
+}

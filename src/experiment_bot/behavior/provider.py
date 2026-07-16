@@ -138,6 +138,10 @@ class TrialContext:
     # response_elements that constitute THIS trial's correct reproduction
     # (None for trials without a target sequence).
     correct_sequence: tuple[int, ...] | None = None
+    # Text the task displayed to the participant since the previous trial
+    # (between-trial / between-block messages), else None. A mechanical
+    # fact channel — the harness never interprets it.
+    feedback_text: str | None = None
 
 
 def program_sha256(path: Path) -> str:
@@ -302,7 +306,8 @@ class BehaviorSession:
                       trial_index: int,
                       stimulus_text: str | None = None,
                       response_elements: tuple[str, ...] = (),
-                      correct_sequence: tuple[int, ...] | None = None) -> TrialContext:
+                      correct_sequence: tuple[int, ...] | None = None,
+                      feedback_text: str | None = None) -> TrialContext:
         return TrialContext(
             condition=condition, correct_key=correct_key,
             available_keys=self.available_keys, trial_index=trial_index,
@@ -314,18 +319,21 @@ class BehaviorSession:
             response_elements=tuple(response_elements),
             correct_sequence=(tuple(correct_sequence)
                               if correct_sequence is not None else None),
+            feedback_text=feedback_text,
         )
 
     def respond(self, condition: str, correct_key: str | None,
                 trial_index: int,
                 stimulus_text: str | None = None,
                 response_elements: tuple[str, ...] = (),
-                correct_sequence: tuple[int, ...] | None = None
+                correct_sequence: tuple[int, ...] | None = None,
+                feedback_text: str | None = None
                 ) -> Response | ClickResponse | SequenceResponse:
         ctx = self.build_context(condition, correct_key, trial_index,
                                  stimulus_text=stimulus_text,
                                  response_elements=response_elements,
-                                 correct_sequence=correct_sequence)
+                                 correct_sequence=correct_sequence,
+                                 feedback_text=feedback_text)
         raw = self._participant.respond(ctx)
         # A LIST return is a sequence; a bare tuple keeps the existing
         # single-action path byte-unchanged (backward compat).

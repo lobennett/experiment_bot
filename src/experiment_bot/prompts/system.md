@@ -181,6 +181,15 @@ How to extract the experiment's recorded data after completion:
 
 ### 8. Attention Checks
 
+Attention/comprehension checks are common in online behavioral
+experiments — actively look for them in the source (trial types that ask
+the participant to follow a one-off instruction rather than perform the
+task). When the experiment has them, emitting the FULL configuration
+below is required: `stimulus_conditions` alone only tells the bot which
+stimuli to route to attention-check handling — without
+`detection_selector`, `text_selector`, and `response_js` the bot detects
+the check but cannot answer it, and every check goes unanswered.
+
 If the experiment has attention checks:
 - `detection_selector`: CSS/JS selector that detects when an attention check is displayed
 - `text_selector`: CSS selector to read the attention check prompt text

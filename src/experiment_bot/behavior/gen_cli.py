@@ -1,6 +1,6 @@
-"""experiment-bot-naive-gen: SP21 naive-arm program generation.
+"""experiment-bot-naive-gen: naive-arm program generation.
 
-Pre-registered discipline: the first program that passes the mechanical
+Pre-specified discipline: the first program that passes the mechanical
 simulation gate IS the program. Retries (max 2) happen only on gate
 failure, every attempt is archived. Never regenerate on behavioral taste.
 """
@@ -82,7 +82,7 @@ def _pilot_condition_stream(taskcards_dir: str, label: str,
     absent/unreadable — the gate then falls back to round-robin. Labels
     outside the card's condition vocabulary (e.g. structural-only screens)
     are dropped so the gate only replays conditions the program was briefed
-    on. Wave A4a.
+    on.
     """
     path = Path(taskcards_dir) / label / "pilot_observations.json"
     if not path.exists():
@@ -111,7 +111,7 @@ def mechanical_facts(taskcard) -> dict:
         cond, _ = stim_condition_and_key(stim)
         if cond and cond not in conditions:
             conditions.append(cond)
-        # Wave B1: clickable option labels per condition, so the gate can
+        # Clickable option labels per condition, so the gate can
         # replay click-response trials with the same ctx shape as live runs.
         labels = [label for label, _sel in stim_response_elements(stim)]
         if cond and labels and cond not in response_elements:
@@ -143,7 +143,7 @@ def _archive_path(out_dir: Path, sha: str, kind: str, attempt: int) -> Path:
     Writing the same program content twice is idempotent for the .py file
     (same path), but every generation attempt — including byte-identical
     re-emissions across retries or across independent programs (C4) — must
-    get its own archived record (pre-registered rule: all attempts
+    get its own archived record (pre-specified rule: all attempts
     archived). Falls back to attempt-numbered / dup-numbered suffixes when
     the plain name is already taken."""
     path = out_dir / f"{sha}.{kind}.json"
@@ -214,7 +214,7 @@ async def generate_programs(url: str, label: str, client, *,
                             taskcard_sha256: str | None = None,
                             source_budget: int = DEFAULT_SOURCE_BUDGET,
                             ) -> tuple[list[Path], list[str]]:
-    """Wave C4: generate ``n_programs`` INDEPENDENT participant programs from
+    """Generate ``n_programs`` INDEPENDENT participant programs from
     one scrape + one prompt (variation comes from the LLM's own sampling).
     Each program gets its own attempt loop, transcripts, and gate records —
     all archived. Returns (passing program paths, per-slot failure messages).
@@ -226,7 +226,7 @@ async def generate_programs(url: str, label: str, client, *,
     facts = mechanical_facts(taskcard)
     condition_stream = _pilot_condition_stream(
         taskcards_dir, label, facts["conditions"])
-    # Wave C2: purely mechanical slimming of the page bundle (blob elision +
+    # Purely mechanical slimming of the page bundle (blob elision +
     # rank-by-size/minification/entry-reference under a char budget). The
     # manifest of everything elided is archived in each attempt's transcript.
     slimmed = slim_bundle(bundle, budget=source_budget)
@@ -266,7 +266,7 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
                    out_root: Path = Path("naive_programs"),
                    max_retries: int = 2, taskcard_sha256: str | None = None,
                    source_budget: int = DEFAULT_SOURCE_BUDGET) -> Path:
-    """Pre-registered single-program flow: the first program to pass the
+    """Pre-specified single-program flow: the first program to pass the
     mechanical gate IS the program."""
     passed, failures = await generate_programs(
         url, label, client, n_programs=1, taskcards_dir=taskcards_dir,
@@ -291,13 +291,13 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
                    "generation prompt (mechanical slimming; see "
                    "behavior/source_slim.py).")
 @click.option("--n-programs", default=1, show_default=True,
-              help="Wave C4: generate K independent programs (each its own "
+              help="Generate K independent programs (each its own "
                    "transcripts + gate records, all archived). Exits nonzero "
                    "if fewer than K distinct programs pass within per-program "
-                   "retry budgets. The pre-registered flow is the default K=1.")
+                   "retry budgets. The pre-specified flow is the default K=1.")
 def main(url: str, label: str, model: str, taskcards_dir: str,
          taskcard_sha256: str | None, source_budget: int, n_programs: int):
-    """Generate the SP21 naive-arm participant program(s) for LABEL."""
+    """Generate the naive-arm participant program(s) for LABEL."""
     client = build_default_client(model)
     passed, failures = asyncio.run(generate_programs(
         url, label, client, n_programs=n_programs, taskcards_dir=taskcards_dir,

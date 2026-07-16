@@ -61,7 +61,7 @@ class ResponseConfig:
     key: str | None
     condition: str
     response_key_js: str = ""  # JS expression returning the correct key at runtime
-    # Wave B1: clickable response options for click-response tasks (buttons,
+    # Clickable response options for click-response tasks (buttons,
     # choice grids) — a list of {label, selector} dicts. Empty for keypress
     # tasks.
     response_elements: list = field(default_factory=list)
@@ -201,7 +201,7 @@ class NavigationPhase:
     steps: list[dict] = field(default_factory=list)
     duration_ms: int = 0
     pre_js: str = ""
-    # Wave B2: form actions — the text to enter (action "fill") or the
+    # Form actions — the text to enter (action "fill") or the
     # dropdown option value/label to pick (action "select").
     value: str = ""
 
@@ -302,7 +302,7 @@ class TimingConfig:
     attention_check_delay_ms: int = 1500  # Pause before handling an attention check
     completion_settle_ms: int = 2000     # Brief settle time in _wait_for_completion
     trial_end_timeout_s: float = 5.0     # Max wait for response window to close after a trial
-    # SP11 Phase 5a — paradigm-configurable CDP delivery params.
+    # Paradigm-configurable CDP delivery params.
     cdp_dwell_ms: float = 200.0          # Bot dwell before firing key (four-step protocol step 2)
     trial_marker_js: str = ""            # JS arrow for trial-marker probe; empty = use jsPsych v7 default
     records_js: str = ""                 # JS arrow for platform records readback; empty = use jsPsych v7 default
@@ -399,15 +399,15 @@ class RuntimeConfig:
     # Defaults to "" (empty) — when empty, the executor falls back to the legacy
     # hardcoded value "navigation" so existing configs still work.
     navigation_stimulus_condition: str = ""
-    # SP11 Phase 5a: keypress delivery channel for response fires.
+    # Keypress delivery channel for response fires.
     # "cdp" (default) uses Chromium DevTools Input.dispatchKeyEvent;
     # "keyboard" falls back to Playwright's page.keyboard.press for
     # non-Chromium engines or diagnostic A/B. The four-step protocol
     # is identical across channels — only the fire mechanism differs.
-    # "none" preserves the legacy SP10-era page.keyboard.press path
-    # so SP10 archive sessions can be replayed unmodified.
+    # "none" preserves the legacy page.keyboard.press path
+    # so archived early sessions can be replayed unmodified.
     delivery_channel: str = "cdp"
-    # SP11 Phase 5b: number of calibration keypresses to fire during
+    # Number of calibration keypresses to fire during
     # the auto-invoked calibration pass at session startup. The pass
     # always runs when a deliverer is configured and the result is
     # always installed on the sampler.

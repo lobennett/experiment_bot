@@ -218,7 +218,7 @@ async def test_stage6_raises_after_max_retries_exhausted(tmp_path):
 async def test_stage6_stuck_detection_aborts_early(tmp_path):
     """When three consecutive failed attempts produce the same dom_fingerprint,
     Stage 6 raises PilotValidationError without consuming the rest of the
-    budget. SP15 raised the threshold from 2 to 3 so the LLM gets one chance
+    budget. A review raised the threshold from 2 to 3 so the LLM gets one chance
     after a no-op refinement to try a different action (some refinements
     succeed at session.try_phase but don't actually advance the DOM, e.g.,
     keypress Enter on a screen that ignores it)."""
@@ -367,7 +367,7 @@ async def test_refinement_prompt_uses_sequential_framing(tmp_path):
 
 @pytest.mark.asyncio
 async def test_refinement_prompt_includes_navigation_phase_schema(tmp_path):
-    """SP14: REFINEMENT_PROMPT must show the LLM the FLAT navigation-phase
+    """REFINEMENT_PROMPT must show the LLM the FLAT navigation-phase
     schema (action/target/key/duration_ms/steps), not the nested
     action.type/action.selector shape that the navigator silently ignores."""
     from experiment_bot.reasoner.stage6_pilot import REFINEMENT_PROMPT
@@ -418,7 +418,7 @@ async def test_navigation_refinement_prompt_has_schema_section():
 
 @pytest.mark.asyncio
 async def test_refinement_prompts_document_form_actions():
-    """Wave B2: both nav-refinement prompts must document the fill/select
+    """Both nav-refinement prompts must document the fill/select
     form actions (with the `value` field) so the walker/adaptive-nav LLM
     can propose form fills when a consent/demographic form blocks progress."""
     from experiment_bot.reasoner.stage6_pilot import (
@@ -435,7 +435,7 @@ async def test_refinement_prompts_document_form_actions():
 
 @pytest.mark.asyncio
 async def test_walker_navigation_refinement_splices_fill_phase(tmp_path):
-    """Wave B2: a proposed fill phase (form field blocking progress) is
+    """A proposed fill phase (form field blocking progress) is
     executed via try_phase and spliced into navigation.phases on success."""
     fake_client = AsyncMock()
     fill_phase_json = ('{"phase": "consent_form", "action": "fill", '
@@ -505,7 +505,7 @@ async def test_stage6_max_retries_override_respected(tmp_path):
             )
 
 
-# --- New SP15 walker-flow tests ---
+# --- New walker-flow tests ---
 
 @pytest.mark.asyncio
 async def test_walker_navigation_refinement_appends_phase(tmp_path):
@@ -821,7 +821,7 @@ async def test_replay_navigation_clicks_feedback_selectors():
     assert state["clicks"] >= 2, "replay must click feedback selectors like the executor"
 
 
-# --- Wave A4a: pilot-observed condition stream persisted as sidecar ---
+# --- pilot-observed condition stream persisted as sidecar ---
 
 @pytest.mark.asyncio
 async def test_stage6_persists_pilot_observed_condition_stream(tmp_path):
@@ -865,7 +865,7 @@ async def test_stage6_skips_sidecar_when_trial_log_empty(tmp_path):
     assert not (tmp_path / "fake_task" / "pilot_observations.json").exists()
 
 
-# --- Wave A1: data-capture gate ---
+# --- data-capture gate ---
 
 def _mock_capture_eval(session_mock, value):
     """Point the walker session's live page at a canned capture result."""
@@ -972,7 +972,7 @@ def test_capture_row_count_variants():
     assert _capture_row_count("a\tb\n1\t2", "tsv") == 1
 
 
-# --- Wave A2: phase-predicate validation against recorded DOM snapshots ---
+# --- phase-predicate validation against recorded DOM snapshots ---
 
 def _partial_with_predicates(complete_js: str, test_js: str = "", practice_js: str = "") -> dict:
     p = _stage5_partial()

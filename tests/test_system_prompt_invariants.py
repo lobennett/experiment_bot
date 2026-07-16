@@ -1,12 +1,12 @@
-"""SP20 invariants for prompts/system.md (review de-anchoring).
+"""Invariants for prompts/system.md (review de-anchoring).
 
 CLAUDE.md guardrail: prompts must not carry numerical priors from the
 cognitive-control literature or paradigm-named worked examples; numbers
 must be bot-mechanic values or bracketed placeholders. These negative
 assertions pin the de-anchored state. The registry-coverage check keeps
-the static temporal-effects section from going stale again (pre-SP20 it
-documented the deprecated pink_noise `hurst` field and omitted two
-registered mechanisms entirely).
+the static temporal-effects section from going stale again (an earlier
+revision documented the deprecated pink_noise `hurst` field and omitted
+two registered mechanisms entirely).
 """
 from pathlib import Path
 
@@ -14,12 +14,12 @@ PROMPT = Path("src/experiment_bot/prompts/system.md").read_text()
 
 
 def test_no_literature_citations_as_numeric_anchors():
-    # Whelan (2008) justified the rt_floor default pre-SP20.
+    # Whelan (2008) justified the rt_floor default in an earlier revision.
     assert "Whelan" not in PROMPT
 
 
 def test_no_paradigm_named_timing_examples():
-    # Pre-SP20 the cdp_dwell_ms knob carried worked examples naming
+    # An earlier revision of the cdp_dwell_ms knob carried worked examples naming
     # Stroop/Flanker/n-back/stop-signal with concrete window values.
     for anchor in ("Stroop/Flanker with 2000", "n-back with 1500",
                    "stop-signal with 250"):
@@ -27,7 +27,7 @@ def test_no_paradigm_named_timing_examples():
 
 
 def test_no_paradigm_class_accuracy_priors():
-    # Pre-SP20 clip-range guidance carried numeric per-class priors.
+    # An earlier revision of the clip-range guidance carried numeric per-class priors.
     for anchor in ("[0.50, 0.85]", "[0.70, 0.85]", "75%-correct"):
         assert anchor not in PROMPT
 

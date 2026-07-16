@@ -1,4 +1,4 @@
-"""SP21 neutrality guardrails: the naive generation prompt must contain no
+"""Neutrality guardrails: the naive generation prompt must contain no
 expert behavioral scaffolding. These invariants ARE the experiment's
 scientific core — a leak here invalidates the naive arm.
 
@@ -44,7 +44,7 @@ ASSEMBLED_PROMPT_SOURCES = [
     ("gen_cli._RETRY_PREFIX", _RETRY_PREFIX),
     ("gen_cli._EMPTY_KEY_MAP_NOTE", _EMPTY_KEY_MAP_NOTE),
     ("gen_cli._RETRY_SUFFIX", _RETRY_SUFFIX),
-    # Wave C2: the mechanical slimmer's markers are spliced into the live
+    # The mechanical slimmer's markers are spliced into the live
     # prompt's {PAGE_SOURCE}, so they face the same neutrality scans.
     ("source_slim.BLOB_MARKER", BLOB_MARKER),
     ("source_slim.EXCLUDED_SECTION_HEADER", EXCLUDED_SECTION_HEADER),
@@ -59,7 +59,7 @@ def test_template_exists_with_placeholders():
 
 
 def test_template_documents_click_contract_mechanically():
-    """Wave B1: the click wire form is documented in the contract section
+    """The click wire form is documented in the contract section
     (inside the protocol code block, like the rest of the ctx fields)."""
     text = TEMPLATE.read_text()
     assert "response_elements" in text

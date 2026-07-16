@@ -1,4 +1,4 @@
-"""SP11 Phase 4b — PlaywrightGateDismisser unit tests."""
+"""PlaywrightGateDismisser unit tests."""
 from __future__ import annotations
 
 import asyncio

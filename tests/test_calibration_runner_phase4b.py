@@ -1,4 +1,4 @@
-"""SP11 Phase 4b — CalibrationRun delivery.channel summary tests.
+"""CalibrationRun delivery.channel summary tests.
 
 Verifies the runner now captures the events list and per-channel
 counts, so Phase 5's bot_log writer can populate the per-trial

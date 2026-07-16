@@ -3,9 +3,11 @@
 _Matured draft, 2026-07-06 — supersedes the two-arm draft of 2026-07-05.
 Incorporates the standalone naive pipeline (this branch), the held-out
 flanker probe, and the harness hardening it forced. Provenance: the
-expert-pipeline comparison arm (code and dataset) lives on the `main`
-branch; this branch contains the complete naive system. Pre-registration:
-`docs/preregistration-naive.md` (committed before any generation call)._
+expert-pipeline comparison arm (code and dataset) is archived at the
+`expert-arm-final` git tag; this tree contains the complete naive system.
+Design freeze: the design/analysis plan was fixed in a document committed
+before any generation call (git `d75cd69`; an internal freeze — not an
+external-registry preregistration, and not claimed as one)._
 
 ## Abstract (working)
 
@@ -16,7 +18,7 @@ data matches human reference data. With no behavioral scaffolding (no
 distribution families, no named effects, no numeric priors; enforced by
 tested prompt invariants), one generation attempt per task, and no
 behavioral iteration, the model's programs matched a 522-worker human
-reference on 22 of 28 pre-registered measures across four task
+reference on 22 of 28 pre-specified measures across four task
 implementations, and were statistically indistinguishable from humans on
 per-subject stop-signal reaction time distributions (KS p ≈ 0.3) — a
 property the expert-parameterized comparison pipeline fails
@@ -61,7 +63,7 @@ Programs are stdlib+numpy, deterministic per seed, no I/O or clock.
 synthetic trials: no crashes, RTs finite and bounded, keys legal, same
 seed → identical trace, different seeds → distinct traces, imports
 whitelisted. The gate never evaluates whether behavior looks human. By
-pre-registered rule the **first gate-passing program is the program**;
+pre-specified rule the **first gate-passing program is the program**;
 regeneration is permitted only on mechanical failure (max 2 retries, all
 attempts archived with full transcripts).
 
@@ -81,7 +83,7 @@ al., 2019; N=522 workers).
 
 ### Datasets
 
-**Pre-registered comparison (dev-4):** two paradigms × two independent
+**Pre-specified comparison (dev-4):** two paradigms × two independent
 implementations (stop-signal: Experiment Factory RDoC, STOP-IT/jsPsych;
 Stroop: Experiment Factory RDoC, Cognition.run), N=30 seeded sessions
 each. Comparison arm: an expert-parameterized pipeline (LLM-tuned
@@ -91,7 +93,7 @@ modules) re-collected on the identical harness (N=30 × 4; assets on
 other. Confirmatory measure: cohort mean within 1 human SD; exploratory:
 between-subject SD ratio and two-sample KS.
 
-**Held-out probe (flanker):** after the pre-registered collection was
+**Held-out probe (flanker):** after the dev-4 collection was
 complete and the naive system frozen, we pointed the pipeline at a fifth
 implementation it had never encountered (Experiment Factory RDoC Eriksen
 flanker). The full pipeline ran as designed: structural card generated
@@ -99,11 +101,11 @@ and gate-validated, one program generation (first gate pass, no
 iteration), five seeded sessions. No trial-level human flanker reference
 exists in this repository, so the probe is evaluated mechanically and
 descriptively against the published literature, outside the
-pre-registered battery.
+pre-specified battery.
 
 ## Results
 
-### Pre-registered comparison
+### Pre-specified comparison
 
 **Data quality.** A platform data-capture stall class (single trials
 recorded at multi-second values) affected STOP-IT sessions in both arms

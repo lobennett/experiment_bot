@@ -1,4 +1,4 @@
-"""SP11 Phase 3.2 — KeypressDeliverer abstraction tests.
+"""KeypressDeliverer abstraction tests.
 
 The mock deliverer is the test harness for Phase 3.3-3.5 (estimator,
 bimodality, regression fallback). These tests verify the mock's

@@ -1,4 +1,4 @@
-"""SP11 Phase 3.6 — calibration runner.
+"""Calibration runner.
 
 Glue between the platform's pre-trial gate (welcome screen, click-to-
 start button), the :class:`KeypressDeliverer` abstraction, and the

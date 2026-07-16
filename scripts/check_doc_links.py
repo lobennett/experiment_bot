@@ -24,23 +24,21 @@ def find_dangling(sources: list[Path], repo: Path) -> list[tuple[str, str]]:
     for src in sources:
         if not src.exists():
             continue
-        for m in REF_RE.finditer(src.read_text()):
+        text = src.read_text()
+        for m in REF_RE.finditer(text):
             ref = m.group(1)
             if PLACEHOLDER_RE.search(ref):
                 continue  # illustrative example, not a real reference
+            if m.start() > 0 and text[m.start() - 1] == ":":
+                continue  # <rev>:path — a git-history reference, not the tree
             if not (repo / ref).exists():
                 bad.append((str(src.relative_to(repo)), ref))
     return bad
 
 
-# Frozen pre-registered docs are never edited post-hoc; they reference
-# expert-arm assets that live on the `main` branch, so they are exempt.
-FROZEN = {"preregistration-naive.md"}
-
-
 def _default_sources(repo: Path) -> list[Path]:
-    docs = [p for p in sorted((repo / "docs").glob("*.md")) if p.name not in FROZEN]
-    return [repo / "README.md", repo / "CLAUDE.md", *docs]
+    return [repo / "README.md", repo / "CLAUDE.md",
+            *sorted((repo / "docs").glob("*.md"))]
 
 
 def main() -> int:

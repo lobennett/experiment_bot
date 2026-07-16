@@ -44,7 +44,7 @@ class StimulusLookup:
             ))
 
     def update_selector(self, stim_id: str, new_selector: str, new_method: str = "dom_query") -> None:
-        """Mutate the detection selector for a stimulus in-place (SP15 stimulus refinement)."""
+        """Mutate the detection selector for a stimulus in-place."""
         for rule in self._rules:
             if rule.id == stim_id:
                 rule.selector = new_selector

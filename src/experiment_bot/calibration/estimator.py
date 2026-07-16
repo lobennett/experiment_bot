@@ -1,4 +1,4 @@
-"""SP11 Phase 3.3-3.5 — calibration offset estimator.
+"""Calibration offset estimator.
 
 Given a list of :class:`KeypressEvent` from the calibration phase,
 compute the offset model the executor will subtract from sampled RTs
@@ -37,7 +37,7 @@ from typing import Iterable, Literal
 from experiment_bot.calibration.deliverer import KeypressEvent
 
 
-# Thresholds per SP11 spec §4 Phase 3.
+# Thresholds per the calibration spec.
 _SD_FIXED_OFFSET_THRESHOLD_MS = 30.0
 _BIMODAL_SEPARATION_THRESHOLD_MS = 50.0
 _BIMODAL_MASS_THRESHOLD = 0.20
@@ -114,7 +114,7 @@ class CalibrationResult:
 def _filter_events(events: Iterable[KeypressEvent]) -> tuple[
     list[KeypressEvent], dict[str, int]
 ]:
-    """Apply the SP11 spec §4 Phase 3 calibration filter:
+    """Apply the calibration-spec filter:
        only correctly-recorded events (platform recorded the bot's key).
 
     Returns the filtered list plus a counts dict for the
@@ -136,7 +136,7 @@ def _filter_events(events: Iterable[KeypressEvent]) -> tuple[
 
 
 def _is_bimodal(offsets: list[float]) -> tuple[bool, tuple[float, float] | None, float | None]:
-    """Detect bimodality per the SP11 spec criterion:
+    """Detect bimodality per the calibration spec criterion:
        two cluster means separated by > 50 ms AND smaller cluster has
        ≥ 20% of mass.
 

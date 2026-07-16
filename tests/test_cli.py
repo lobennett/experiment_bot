@@ -187,7 +187,7 @@ def test_cli_missing_url():
     assert result.exit_code != 0  # Should fail without URL
 
 
-# --- SP21: --behavior-program wiring ---
+# --- --behavior-program wiring ---
 from experiment_bot.cli import _available_keys_from_taskcard
 
 

@@ -44,7 +44,7 @@ def test_normalize_keeps_existing_detection_method():
 
 
 def test_normalize_maps_detection_value_to_selector():
-    """LLM sometimes uses `value` instead of `selector` (observed in SP2 expfactory regen)."""
+    """LLM sometimes uses `value` instead of `selector` (observed during expfactory regen)."""
     p = {"stimuli": [{"id": "x", "detection": {"method": "dom_query", "value": "#stim"}, "response": {}}]}
     out = normalize_partial(p)
     det = out["stimuli"][0]["detection"]
@@ -54,7 +54,7 @@ def test_normalize_maps_detection_value_to_selector():
 
 
 def test_normalize_maps_detect_block_to_detection():
-    """LLM sometimes uses block name `detect` instead of `detection` (observed in SP2 expfactory_stroop regen)."""
+    """LLM sometimes uses block name `detect` instead of `detection` (observed during expfactory_stroop regen)."""
     p = {"stimuli": [{"id": "x", "detect": {"method": "js_eval", "value": "(function(){return true;})()"}, "response": {}}]}
     out = normalize_partial(p)
     stim = out["stimuli"][0]

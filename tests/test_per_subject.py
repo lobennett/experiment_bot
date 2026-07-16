@@ -132,7 +132,7 @@ def test_canon_cogrun_correctness_from_colour(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
-# Wave C3a: declarative export mapping (runtime.platform_export DSL)
+# Declarative export mapping (runtime.platform_export DSL)
 # --------------------------------------------------------------------------- #
 
 def test_canon_from_export_mapping_csv_row_filter_and_fields():
@@ -206,7 +206,7 @@ def test_canon_from_export_mapping_missing_column_raises():
 
 
 # --------------------------------------------------------------------------- #
-# Wave C3b: generic per-subject metrics for unknown paradigms
+# Generic per-subject metrics for unknown paradigms
 # --------------------------------------------------------------------------- #
 
 def test_generic_metrics_per_condition_and_temporal():
@@ -245,7 +245,7 @@ def test_generic_metrics_without_correct_column_uses_responded_rts():
 
 
 # --------------------------------------------------------------------------- #
-# Wave C3: card-declared mapping drives collect_bot_per_subject for labels
+# Card-declared mapping drives collect_bot_per_subject for labels
 # with no hand-written loader
 # --------------------------------------------------------------------------- #
 
@@ -350,7 +350,7 @@ def test_comparison_rows_z_math():
     assert r["within_1sd"] is False  # |710-600|=110 > sd(100)
 
 
-# --- SP20: exploratory distribution-level fields (pre-reg planned) ---
+# --- exploratory distribution-level fields (pre-reg planned) ---
 
 def test_comparison_rows_sd_ratio_and_ks():
     rng = __import__("numpy").random.default_rng(7)

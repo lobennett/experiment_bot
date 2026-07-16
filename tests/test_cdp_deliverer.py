@@ -1,4 +1,4 @@
-"""SP11 Phase 4b — CDPDeliverer unit tests.
+"""CDPDeliverer unit tests.
 
 Tests the four-step per-trial protocol and the CDP field map. Uses
 mocked Playwright Page + CDP session — no live browser. Live-browser

@@ -1,4 +1,4 @@
-"""Wave C3: per-subject CLI accepts unknown labels via the card-declared
+"""Per-subject CLI accepts unknown labels via the card-declared
 export mapping + generic metrics (clearly marked; no human comparison)."""
 import json
 import shutil

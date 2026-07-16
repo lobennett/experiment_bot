@@ -1,4 +1,4 @@
-"""SP21 mechanical simulation gate. Purely mechanical checks — it never
+"""Mechanical simulation gate. Purely mechanical checks — it never
 evaluates whether the behavior looks human (pre-specified rule)."""
 from __future__ import annotations
 
@@ -22,7 +22,7 @@ ALLOWED_IMPORTS = frozenset({
 # different key" behavior even when no static key_map exists.
 DYNAMIC_KEY_FALLBACK = ("f", "j")
 
-# Protocol-fuzz constants (Wave A4b). The label is deliberately synthetic —
+# Protocol-fuzz constants. The label is deliberately synthetic —
 # it must never collide with a real card's condition vocabulary.
 _FUZZ_UNSEEN_CONDITION = "__gate_fuzz_unseen_condition__"
 # Extreme interrupt latencies a live session can legitimately produce
@@ -66,7 +66,7 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
     """One synthetic session; returns [(key, rt), ...] — click responses
     trace as ("click", element_index, rt). Failures -> report.
 
-    `response_elements` (Wave B1) maps condition -> clickable option labels
+    `response_elements` maps condition -> clickable option labels
     from the structural card; trials of those conditions carry the labels
     in ctx.response_elements so click-returning programs are exercised. A
     click whose index is out of range (or on a trial with no elements) is a
@@ -171,7 +171,7 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
                    seed: int = 3,
                    response_elements: dict[str, list[str]] | None = None,
                    correct_sequence: dict[str, list[int]] | None = None) -> None:
-    """Protocol fuzz cases (Wave A4b) — still purely mechanical.
+    """Protocol fuzz cases — still purely mechanical.
 
     A live session can present contexts the round-robin trace never does:
     the very first trial (all prev_* None), a condition label the card
@@ -181,8 +181,8 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
     failure. No behavioral judgment — only "does not crash / stays within
     the protocol contract".
 
-    Fuzz contexts carry the same response_elements shape real trials do
-    (Wave B1): each known condition gets its configured labels, and the
+    Fuzz contexts carry the same response_elements shape real trials do:
+    each known condition gets its configured labels, and the
     unseen-condition case gets the first condition's labels as a plausible
     stand-in. On cards with no response_elements every fuzz ctx has an
     empty tuple, so a program that clicks anyway is rejected by the

@@ -131,7 +131,7 @@ class PilotRunner:
     async def run(self, config: TaskConfig, url: str, headless: bool = False) -> PilotDiagnostics:
         """Backward-compatible facade. Constructs a PilotSession, runs all
         nav phases serially, polls stimuli with the configured criteria, and
-        returns a PilotDiagnostics. Equivalent behavior to the pre-SP15
+        returns a PilotDiagnostics. Equivalent behavior to the prior
         implementation but uses one persistent browser instance throughout.
         """
         lookup = StimulusLookup(config)

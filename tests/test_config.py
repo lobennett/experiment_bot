@@ -17,7 +17,7 @@ from experiment_bot.core.config import (
 )
 
 
-# --- Wave B2: form actions in navigation phases ---
+# --- form actions in navigation phases ---
 
 def test_navigation_phase_value_round_trips():
     d = {"phase": "consent", "action": "fill", "target": "#age", "key": "",
@@ -37,7 +37,7 @@ def test_navigation_phase_empty_value_omitted_from_to_dict():
     assert "value" not in p.to_dict()
 
 
-# --- Wave B1: response_elements on stimulus response config ---
+# --- response_elements on stimulus response config ---
 
 def test_response_config_response_elements_round_trips():
     d = {"key": None, "condition": "choice",

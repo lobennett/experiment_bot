@@ -1,4 +1,4 @@
-"""SP11 Phase 5b — calibration auto-invocation behavior.
+"""Calibration auto-invocation behavior.
 
 Tests the executor's _run_calibration_pass: it runs whenever a
 deliverer is configured and records the result for run_metadata;

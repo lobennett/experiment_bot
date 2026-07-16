@@ -176,7 +176,7 @@ def stroop_metrics(trials: pd.DataFrame) -> dict:
 
 
 # --------------------------------------------------------------------------- #
-# Wave C3a: declarative export mapping (TaskCard runtime.platform_export DSL,
+# Declarative export mapping (TaskCard runtime.platform_export DSL,
 # documented in prompts/system.md §"Platform-export mapping")
 # --------------------------------------------------------------------------- #
 
@@ -246,7 +246,7 @@ def canon_from_export_mapping(df: pd.DataFrame, mapping: dict) -> pd.DataFrame:
 
 
 # --------------------------------------------------------------------------- #
-# Wave C3b: generic per-subject metrics (no paradigm-specific metric fn)
+# Generic per-subject metrics (no paradigm-specific metric fn)
 # --------------------------------------------------------------------------- #
 
 def generic_metrics(trials: pd.DataFrame) -> dict:
@@ -390,7 +390,7 @@ def collect_bot_per_subject(output_dir: Path, label: str,
     KEPT (transparency) and flagged via ``complete``; the legacy notebook
     silently dropped them.
 
-    Wave C3: when ``label`` has no hand-written loader, sessions are read
+    When ``label`` has no hand-written loader, sessions are read
     through the card-declared ``runtime.platform_export`` mapping (the card
     is resolved from each session's run_metadata ``taskcard_sha256``) and
     scored with :func:`generic_metrics`."""

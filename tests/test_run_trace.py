@@ -1,4 +1,4 @@
-"""SP12 Phase 2 — run_trace.json writer test."""
+"""run_trace.json writer test."""
 from __future__ import annotations
 
 import json

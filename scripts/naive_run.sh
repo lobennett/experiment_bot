@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# SP21 naive-arm collection: generate (once, gated, hash-pinned) + N seeded
+# Naive-arm collection: generate (once, gated, hash-pinned) + N seeded
 # sessions per paradigm. Idempotent by seed: a re-run keeps complete sessions
 # whose seed is in the target set, deletes partials/out-of-set extras, and
 # collects only the missing seeds. Frozen design: see docs/how-it-works.md §2

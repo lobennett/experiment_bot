@@ -52,9 +52,9 @@ class KeypressEvent:
         """True iff the platform recorded a key AND the recorded key
         matches what the bot intended.
 
-        The SP7 layer-d finding showed 44% of bot keypresses register
+        An earlier finding showed 44% of bot keypresses register
         as a different key in the platform. The calibration estimator
-        MUST filter on this property — pre-SP11 work that estimated
+        MUST filter on this property — earlier work that estimated
         offset across all keypresses included the mis-recorded ones,
         polluting the offset and inflating its SD.
         """
@@ -122,8 +122,8 @@ class MockDeliverer(KeypressDeliverer):
       - ``drop_rate``: probability the platform fails to record a
         keypress at all (sets platform fields to None).
       - ``misrecording_rate``: probability the platform records a
-        DIFFERENT key for a given fire (a non-bot key). Models the
-        SP7 layer-d finding (~56% mis-recording on Flanker).
+        DIFFERENT key for a given fire (a non-bot key). Models an
+        earlier finding (~56% mis-recording on Flanker).
       - ``bimodal_second_mode``: when set to a tuple
         ``(second_offset_mean_ms, second_mode_prob)``, the platform
         offset is drawn from a mixture — useful for testing the

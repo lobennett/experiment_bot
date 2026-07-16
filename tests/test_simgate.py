@@ -1,4 +1,4 @@
-"""SP21 Task 4: mechanical simulation gate."""
+"""Mechanical simulation gate."""
 from pathlib import Path
 
 import pytest
@@ -103,7 +103,7 @@ def test_gate_fails_on_seed_clones(tmp_path):
     assert any("distinct" in f for f in report.failures)
 
 
-# --- Wave A4a: explicit condition streams ---
+# --- explicit condition streams ---
 
 def _crash_on_condition_program(tmp_path, bad_condition: str) -> Path:
     prog = tmp_path / "cond_crash.py"
@@ -150,7 +150,7 @@ def test_gate_condition_stream_cycles_to_n_trials(tmp_path):
     assert report.stats["n_trials"] == 50
 
 
-# --- Wave A4b: protocol fuzz cases ---
+# --- protocol fuzz cases ---
 
 def test_fuzz_first_trial_none_history_named_failure(tmp_path):
     """A program assuming prev_* history exists crashes on the fuzz first-trial
@@ -223,7 +223,7 @@ def test_fuzz_extreme_ssd_named_failure(tmp_path):
     assert any(f.startswith("fuzz:interrupt_extreme_ssd") for f in report.failures), report.failures
 
 
-# --- Wave B1: click response modality ---
+# --- click response modality ---
 
 def _click_program(tmp_path, index_expr="0"):
     prog = tmp_path / "clicker.py"

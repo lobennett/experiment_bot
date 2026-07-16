@@ -1,6 +1,6 @@
 """Hand-written reference participant program for tests.
 
-Follows the SP21 naive-program contract exactly: stdlib+numpy only,
+Follows the naive-program contract exactly: stdlib+numpy only,
 deterministic per seed, returns plain (key, rt_ms) tuples.
 """
 import numpy as np

@@ -1,4 +1,4 @@
-"""Wave C4: pure seed -> program assignment helper."""
+"""Pure seed -> program assignment helper."""
 from collections import Counter
 
 import pytest

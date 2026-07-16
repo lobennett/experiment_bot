@@ -69,7 +69,7 @@ def _write_report(out: Path, label: str, kind: str, bot_df, human_df, human_csv:
         "",
         "## Exploratory: distribution-level comparison",
         "",
-        "_Pre-registered as exploratory (docs/preregistration.md §Analysis), not part of "
+        "_Pre-specified as exploratory in the frozen design document, not part of "
         "the confirmatory mean-location design above. SD ratio = bot between-subject SD / "
         "human between-subject SD (1.0 = human-like dispersion); KS = two-sample "
         "Kolmogorov–Smirnov test of the per-subject distributions. A cohort can pass the "
@@ -94,7 +94,7 @@ def _write_report(out: Path, label: str, kind: str, bot_df, human_df, human_csv:
 
 
 def _write_generic_report(out: Path, label: str, bot_df) -> Path:
-    """Wave C3: cohort summary for a label with no hand-written loader —
+    """Cohort summary for a label with no hand-written loader —
     GENERIC metrics from the card-declared export mapping, no human-reference
     comparison (none supplied)."""
     ts = datetime.now(timezone.utc).strftime("%Y-%m-%d")
@@ -179,7 +179,7 @@ def main(label, output_dir, human_stop, human_stroop, out_dir, taskcards_dir, ve
                         format="%(asctime)s [%(levelname)s] %(name)s: %(message)s")
     labels = list(ps.PARADIGMS) if label == "all" else [label]
     if label != "all" and label not in ps.PARADIGMS:
-        # Wave C3: unknown label -> generic metrics through the card-declared
+        # Unknown label -> generic metrics through the card-declared
         # export mapping. Clearly marked; no human-reference comparison.
         bot_df, bp, rep = _run_one_generic(label, output_dir, out_dir, taskcards_dir)
         click.echo(f"[{label}] GENERIC metrics (no hand-written loader; "

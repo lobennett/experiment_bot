@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-# SP21 naive-arm collection: generate (once, gated, hash-pinned) + N seeded
+# Naive-arm collection: generate (once, gated, hash-pinned) + N seeded
 # sessions per paradigm. Idempotent by seed: a re-run keeps complete sessions
 # whose seed is in the target set, deletes partials/out-of-set extras, and
-# collects only the missing seeds. Pre-registration: docs/preregistration-naive.md
+# collects only the missing seeds. Frozen design: see docs/how-it-works.md §2
 set -uo pipefail
 cd "$(dirname "$0")/.."
 N="${1:-30}"
@@ -11,7 +11,7 @@ mkdir -p "$EXPERIMENT_BOT_OUTPUT_DIR"
 SEED_BASE=730000
 # C4: optionally generate/run K independent gate-passed programs, splitting
 # the seed list evenly across them (deterministic: seed index mod K over the
-# FULL target list). Default 1 = the pre-registered single-program flow.
+# FULL target list). Default 1 = the pre-specified single-program flow.
 # Note: generation is skipped when programs already exist; to raise
 # N_PROGRAMS after a previous run, clear naive_programs/<label>/ first.
 N_PROGRAMS="${N_PROGRAMS:-1}"
@@ -78,7 +78,7 @@ run_stream() {  # label url structural_hash
   fi
   # C4: deterministic seed->program map (seed index mod K over the FULL
   # target list). K=1 assigns every seed the first gate-passed program,
-  # matching the pre-registered single-program flow. Which program served
+  # matching the pre-specified single-program flow. Which program served
   # which seed lands in each session's run_metadata via the program sha.
   local mapfile="/tmp/naive_${label}.progmap"
   uv run python - "$label" "${progs[@]}" > "$mapfile" <<'PY'

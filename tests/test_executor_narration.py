@@ -1,4 +1,4 @@
-"""SP12 Phase 2 — narrated stdout test."""
+"""Narrated stdout test."""
 from __future__ import annotations
 
 from unittest.mock import MagicMock

@@ -1,4 +1,4 @@
-"""Wave C2: mechanical source slimming for generation prompts.
+"""Mechanical source slimming for generation prompts.
 
 The slimmer is PURELY mechanical — blob elision by size, file ranking by
 size/minification/entry-point reference — never semantic (no keyword-based

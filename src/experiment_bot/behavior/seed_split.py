@@ -1,4 +1,4 @@
-"""Wave C4: deterministic seed -> program assignment for K-program runs.
+"""Deterministic seed -> program assignment for K-program runs.
 
 Pure function, no I/O. ``scripts/naive_run.sh`` calls it (via a python -c
 one-liner) with the FULL ordered target seed list — never the residual
@@ -18,7 +18,7 @@ def split_seeds(seeds: Sequence[int], programs: Sequence[T]) -> dict[int, T]:
 
     ``seeds`` must be the full ordered target list; ``programs`` must be in
     a stable order (naive_run.sh sorts gate-passed program paths). K=1
-    degenerates to the pre-registered single-program flow.
+    degenerates to the pre-specified single-program flow.
     """
     if not programs:
         raise ValueError("split_seeds requires at least one program")

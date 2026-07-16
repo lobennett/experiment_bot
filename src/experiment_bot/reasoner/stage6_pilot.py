@@ -449,7 +449,7 @@ def _partial_to_pilot_config(partial: dict) -> TaskConfig:
 
 
 def _capture_row_count(data: str, fmt: str) -> int:
-    """Count trial rows in a captured export string (Wave A1).
+    """Count trial rows in a captured export string.
 
     - ``json``: a list counts its elements; a dict counts its longest
       list-valued entry (wrapper objects like ``{"trials": [...]}``);
@@ -477,7 +477,7 @@ def _capture_row_count(data: str, fmt: str) -> int:
 
 async def _validate_data_capture(session: PilotSession, capture_cfg,
                                  evidence: list[str]) -> None:
-    """Data-capture gate (Wave A1): a platform can pass selector/nav
+    """Data-capture gate: a platform can pass selector/nav
     validation yet produce an EMPTY experiment_data export, failing only
     after a full live session.
 
@@ -706,7 +706,7 @@ def _save_pilot_observations(
     order) as a SIDECAR next to pilot.md. A sidecar — not a card field — so
     the canonical content hashes of already-committed cards stay stable.
     The mechanical gate (behavior/simgate.py) replays this stream instead
-    of a round-robin when it's available (Wave A4a). Skipped when the pilot
+    of a round-robin when it's available. Skipped when the pilot
     logged no trials.
     """
     stream = [
@@ -938,7 +938,7 @@ async def run_stage6(
                         f"replay_refine_{replay_round + 1}: appended phase "
                         f"{new_phase.get('phase', '?')!r} ({new_phase.get('action', '?')})"
                     )
-                # Wave A1: data-capture gate — after the replay gate passes,
+                # Data-capture gate — after the replay gate passes,
                 # exercise the card's capture config on the walker's live
                 # session (which has completed pilot trials). See
                 # _validate_data_capture for the mid-pilot variant rationale.
@@ -956,7 +956,7 @@ async def run_stage6(
             logger.warning("Pilot attempt %d failed: %s", attempt + 1, "; ".join(reasons))
 
             # Stuck-detection: 3 consecutive identical non-empty fingerprints.
-            # SP15 raised the threshold from 2 to 3: under the persistent-session
+            # A review raised the threshold from 2 to 3: under the persistent-session
             # walker, the LLM's first refinement after a stuck-DOM may "succeed"
             # at session.try_phase (no Playwright error) but not actually advance
             # the DOM (e.g., keypress Enter on a screen with a Next button — the

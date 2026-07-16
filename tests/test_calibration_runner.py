@@ -1,4 +1,4 @@
-"""SP11 Phase 3.6 — calibration runner tests.
+"""Calibration runner tests.
 
 Runner orchestrates gate dismissal → key fire → estimate. Delivery-
 channel-agnostic; tested with mock deliverer + mock gate dismisser.

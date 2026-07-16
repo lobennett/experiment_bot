@@ -1,10 +1,10 @@
-"""Unit tests for executor trial-end fallback helpers (SP6).
+"""Unit tests for executor trial-end fallback helpers.
 
 `_wait_for_trial_end` previously skipped the wait entirely when
-`response_window_js` was None. SP6 adds a `fallback_js` parameter so
+`response_window_js` was None. A later change adds a `fallback_js` parameter so
 the executor can poll the stimulus's own detection JS until it stops
 matching. This prevents the polling loop from re-detecting the same
-stimulus and double-firing the trial handler — the SP5-observed
+stimulus and double-firing the trial handler — a previously observed
 over-firing bug.
 """
 from __future__ import annotations

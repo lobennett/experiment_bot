@@ -14,9 +14,9 @@ DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent.parent.parent / "output"
 
 
 def _resolved_default_output_dir() -> Path:
-    """Honor EXPERIMENT_BOT_OUTPUT_DIR env var when set (SP11 Phase 7
-    sweep wrapper uses this to redirect each arm's sessions into its
-    own subtree). Falls back to the repo-relative default."""
+    """Honor EXPERIMENT_BOT_OUTPUT_DIR env var when set (a sweep wrapper
+    uses this to redirect each arm's sessions into its own subtree).
+    Falls back to the repo-relative default."""
     env_dir = os.environ.get("EXPERIMENT_BOT_OUTPUT_DIR")
     if env_dir:
         return Path(env_dir)
@@ -30,7 +30,7 @@ class OutputWriter:
         self._base_dir = base_dir
         self._run_dir: Path | None = None
         self._trials: list[dict] = []
-        # SP12 Phase 2: structured per-stage trace, written to
+        # Structured per-stage trace, written to
         # run_trace.json beside bot_log.json in finalize().
         self._trace_stages: list[dict] = []
 
@@ -56,7 +56,7 @@ class OutputWriter:
         data: dict,
         duration_s: float | None = None,
     ) -> None:
-        """SP12 Phase 2: append a structured stage entry to the run trace.
+        """Append a structured stage entry to the run trace.
 
         Entries are written to ``run_trace.json`` in ``finalize()``.
         Each entry captures ``stage`` (e.g. navigate, calibration,
@@ -99,7 +99,7 @@ class OutputWriter:
             log_path = self._run_dir / "bot_log.json"
             log_path.write_text(json.dumps(self._trials, indent=2))
             logger.info(f"Saved {len(self._trials)} trial logs to {log_path}")
-            # SP12 Phase 2: structured per-stage trace beside bot_log.json
+            # Structured per-stage trace beside bot_log.json
             trace_path = self._run_dir / "run_trace.json"
             trace_path.write_text(
                 json.dumps({"stages": self._trace_stages}, indent=2)

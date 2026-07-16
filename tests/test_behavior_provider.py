@@ -1,4 +1,4 @@
-"""SP21 Task 1: provider contract, program loading, session validation."""
+"""Provider contract, program loading, session validation."""
 import hashlib
 from pathlib import Path
 
@@ -152,7 +152,7 @@ def test_pressable_key_boundary():
             press(bad)
 
 
-# --- Wave B3: stimulus_text in TrialContext ---
+# --- stimulus_text in TrialContext ---
 
 def test_context_stimulus_text_defaults_to_none():
     s = _session()
@@ -192,7 +192,7 @@ def test_on_interrupt_sees_same_ctx_with_stimulus_text():
     assert seen["stimulus_text"] == "cue-text"
 
 
-# --- Wave B1: click response modality ---
+# --- click response modality ---
 
 def _program(respond_fn, on_interrupt_fn=None):
     attrs = {"respond": lambda self, ctx: respond_fn(ctx)}

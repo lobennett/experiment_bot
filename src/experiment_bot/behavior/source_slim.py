@@ -1,4 +1,4 @@
-"""Mechanical source slimming for naive program generation (Wave C2).
+"""Mechanical source slimming for naive program generation.
 
 Heavy platforms (bundled SPAs, vendored jsPsych) can blow the generation
 prompt's context or bury the task logic under vendor code. This module

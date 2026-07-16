@@ -1,4 +1,4 @@
-"""SP21 Task 6: generation CLI — archival, extraction, retry-on-gate-fail."""
+"""Generation CLI — archival, extraction, retry-on-gate-fail."""
 import asyncio
 import json
 from pathlib import Path
@@ -58,7 +58,7 @@ def test_mechanical_facts_excludes_dynamic_sentinel():
 
 
 def test_mechanical_facts_collects_response_elements():
-    """Wave B1: click-response stimuli contribute condition -> option-label
+    """Click-response stimuli contribute condition -> option-label
     lists so the gate can replay clickable trials."""
     tc = MagicMock()
     tc.task_specific = {"key_map": {}}
@@ -145,7 +145,7 @@ def test_generate_retries_on_gate_failure_then_fails(tmp_path, monkeypatch):
     assert len(list((tmp_path / "toy").glob("*.transcript.json"))) == 3
 
 
-# --- Wave C2: mechanical source slimming wired into generation ---
+# --- mechanical source slimming wired into generation ---
 
 def test_generate_records_slimming_manifest_in_transcript(tmp_path, monkeypatch):
     """Every attempt's transcript archives the slimming manifest (what was
@@ -184,7 +184,7 @@ def test_generate_source_budget_excludes_oversized_file(tmp_path, monkeypatch):
     assert by_name["task.js"]["included"] is True
 
 
-# --- Wave C4: K-program generation ---
+# --- K-program generation ---
 
 def test_generate_programs_k2_archives_two_transcripts_and_gates(tmp_path, monkeypatch):
     """K=2 with distinct replies: two passing programs, each with its own
@@ -292,7 +292,7 @@ def test_available_keys_real_cards():
     assert {"b", "g", "r", "y"}.issubset(set(_available_keys_from_taskcard(cog)))
 
 
-# --- Wave A4a: gen_cli replays the pilot-observed condition stream ---
+# --- gen_cli replays the pilot-observed condition stream ---
 
 def _capture_run_gate(monkeypatch):
     import experiment_bot.behavior.gen_cli as g
@@ -324,7 +324,7 @@ def test_generate_passes_pilot_condition_stream_to_gate(tmp_path, monkeypatch):
 
 
 def test_generate_passes_response_elements_to_gate(tmp_path, monkeypatch):
-    """Wave B1: the card's click-response option labels reach run_gate."""
+    """The card's click-response option labels reach run_gate."""
     _fake_scrape(monkeypatch)
     import experiment_bot.behavior.gen_cli as g
     tc = MagicMock()

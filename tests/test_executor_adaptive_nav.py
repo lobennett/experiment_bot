@@ -1,4 +1,4 @@
-"""Tests for SP16 adaptive nav step in TaskExecutor's trial loop."""
+"""Tests for the adaptive nav step in TaskExecutor's trial loop."""
 from __future__ import annotations
 from unittest.mock import AsyncMock, MagicMock, patch
 
@@ -147,13 +147,13 @@ async def test_adaptive_nav_step_llm_failure_counted_against_budget(make_executo
 
 @pytest.mark.asyncio
 async def test_taskexecutor_constants_match_spec():
-    """SP16 budget constants match the spec values."""
+    """Adaptive nav budget constants match the spec values."""
     assert _ADAPTIVE_NAV_STUCK_POLLS == 20
     assert _ADAPTIVE_NAV_BUDGET == 10
 
 
 # ---------------------------------------------------------------------------
-# Wave C1: stuck non-trial DOM triggers the nav re-run + adaptive nav path
+# Stuck non-trial DOM triggers the nav re-run + adaptive nav path
 # regardless of phase label (not only INSTRUCTIONS).
 # ---------------------------------------------------------------------------
 

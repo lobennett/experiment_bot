@@ -1,4 +1,4 @@
-"""Stage 1 has both parse-retry (new in SP4b) and validation-retry
+"""Stage 1 has both parse-retry (added later) and validation-retry
 (pre-existing). This test verifies the two retry concerns are
 independent: a parse failure on attempt N does not consume a
 validation-retry budget slot."""

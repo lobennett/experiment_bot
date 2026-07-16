@@ -31,7 +31,10 @@ program is the program):
   multi-action trials driven by a card-exposed target sequence, delivered
   as arrow-key navigation + spacebar selections. The capability is generic
   (no grid geometry in library code); both spans then collected real recall
-  data first-shot.
+  data first-shot. Caveat: the Stage-1 prompt's target-reconstruction
+  guidance was iteratively refined against these two span implementations,
+  and its generality has not been exercised on a serial-reproduction task
+  outside this battery.
 
 **Deliverable:** `data/bot/rdoc/<task>.csv` — 12/12 tasks at exact column
 parity with `data/human/rdoc`, produced by the lab's own preprocessing

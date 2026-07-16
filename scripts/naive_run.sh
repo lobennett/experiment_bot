@@ -66,7 +66,8 @@ run_stream() {  # label url structural_hash
   : > "$log"
   # Gate-passed programs, sorted by hash for a stable assignment order.
   local progs=() f sha
-  for f in $(ls "naive_programs/$label/"*.py 2>/dev/null | sort); do
+  for f in "naive_programs/$label/"*.py; do
+    [ -e "$f" ] || continue
     sha="$(basename "$f" .py)"
     if grep -q '"passed": true' "naive_programs/$label/$sha.simgate.json" 2>/dev/null; then
       progs+=("$f")

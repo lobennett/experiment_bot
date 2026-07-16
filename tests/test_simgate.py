@@ -393,3 +393,25 @@ def test_fuzz_cases_pass_for_toy_program():
                       n_trials=50, interrupt_condition="stop")
     assert report.passed, report.failures
     assert not any(f.startswith("fuzz:") for f in report.failures)
+
+
+def test_gate_key_sequence_prev_correct_is_unknown(tmp_path):
+    """SEQUENCE OUTCOME HONESTY (gate mirror): key-delivered reproductions
+    are unscoreable, so the synthetic session must feed prev_correct=None —
+    a program observing False on every trial would be seeing a fabricated
+    outcome the live harness never measured."""
+    prog = tmp_path / "key_seq.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            if ctx.trial_index > 0 and ctx.prev_correct is False:\n"
+        "                raise RuntimeError('fabricated False outcome')\n"
+        "            rt = 200.0 + seed + ctx.trial_index\n"
+        "            return [('ArrowLeft', rt), (' ', rt)]\n"
+        "    return P()\n")
+    report = run_gate(prog, conditions=["recall"], key_map={},
+                      has_interrupt=False, n_trials=20,
+                      response_elements={"recall": ["A", "B", "C"]},
+                      correct_sequence={"recall": [0, 2]})
+    assert report.passed, report.failures

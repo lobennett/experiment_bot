@@ -444,3 +444,22 @@ def test_resolve_program_by_hash_prefix(tmp_path):
     assert resolve_program(f"stroop/{sha[:8]}", root=tmp_path) == p2
     with pytest.raises(FileNotFoundError):
         resolve_program("stroop/ffffffff", root=tmp_path)
+
+
+def test_on_interrupt_after_sequence_is_protocol_violation():
+    """An interrupt landing on a sequence trial is unsupported — the session
+    must raise ProtocolViolation (named, gate-legible), not AttributeError
+    from poking .key on a SequenceResponse."""
+    class P:
+        def respond(self, ctx):
+            return [("ArrowLeft", 200.0), (" ", 150.0)]
+
+        def on_interrupt(self, ctx, ssd_ms, intended):
+            return None
+
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: P())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    session.respond("recall", None, 0,
+                    response_elements=("A", "B"), correct_sequence=(0, 1))
+    with pytest.raises(ProtocolViolation, match="sequence"):
+        session.on_interrupt(ssd_ms=250.0)

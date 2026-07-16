@@ -135,8 +135,18 @@ def _trace(program_path: Path, seed: int, conditions: list[str],
                 produced = tuple(a.element_index for a in r.actions
                                  if isinstance(a, ClickResponse))
                 total_rt = sum(a.rt_ms for a in r.actions)
+                # Mirror executor scoring: exact click-index match against
+                # the target, scoreable only when a target exists AND every
+                # action is a click; otherwise unknown (None), never a
+                # fabricated False.
+                all_clicks = all(isinstance(a, ClickResponse)
+                                 for a in r.actions)
+                if cseq is None or not all_clicks:
+                    seq_correct = None
+                else:
+                    seq_correct = (produced == cseq)
                 session.record_outcome(
-                    cond, correct=(cseq is not None and produced == cseq),
+                    cond, correct=seq_correct,
                     rt_ms=(total_rt if r.actions else None),
                     interrupted=interrupted)
                 out.append(("sequence", actions))

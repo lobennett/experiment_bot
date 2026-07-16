@@ -348,6 +348,9 @@ class BehaviorSession:
         fn = getattr(self._participant, "on_interrupt", None)
         if fn is None:
             raise ProtocolViolation("program lacks on_interrupt for an interrupt task")
+        if isinstance(self._last_response, SequenceResponse):
+            raise ProtocolViolation(
+                "on_interrupt during a sequence trial is unsupported")
         if isinstance(self._last_response, ClickResponse):
             intended = ("click", self._last_response.element_index,
                         self._last_response.rt_ms)
@@ -360,7 +363,7 @@ class BehaviorSession:
                          "on_interrupt",
                          response_elements=self._last_ctx.response_elements)
 
-    def record_outcome(self, condition: str, correct: bool, rt_ms: float | None,
-                       interrupted: bool) -> None:
+    def record_outcome(self, condition: str, correct: bool | None,
+                       rt_ms: float | None, interrupted: bool) -> None:
         self._prev = {"condition": condition, "correct": correct,
                       "rt_ms": rt_ms, "interrupted": interrupted}

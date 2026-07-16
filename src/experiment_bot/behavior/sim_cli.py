@@ -1,4 +1,4 @@
-"""experiment-bot-naive-sim: run the SP21 mechanical gate on a program."""
+"""experiment-bot-naive-sim: run the mechanical gate on a program."""
 from __future__ import annotations
 
 import json

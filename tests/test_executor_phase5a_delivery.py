@@ -1,4 +1,4 @@
-"""SP11 Phase 5a — TaskExecutor keypress delivery wiring tests.
+"""TaskExecutor keypress delivery wiring tests.
 
 Tests the new `_fire_response_key` helper and the delivery_channel
 config field. Pure-mock; no live browser.
@@ -139,7 +139,7 @@ def test_runtime_config_delivery_channel_round_trip():
 
 
 def test_runtime_config_delivery_channel_none_legacy():
-    """delivery_channel='none' preserves the legacy SP10-era flow."""
+    """delivery_channel='none' preserves the legacy flow."""
     rc = RuntimeConfig.from_dict({"delivery_channel": "none"})
     assert rc.delivery_channel == "none"
 

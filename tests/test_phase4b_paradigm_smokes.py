@@ -1,6 +1,6 @@
-"""SP11 Phase 4b — per-paradigm CDP delivery smoke tests.
+"""Per-paradigm CDP delivery smoke tests.
 
-Smoke level (Phase 4b user note 4), not kill-switch. Each test:
+Smoke level, not kill-switch. Each test:
 
   1. Launches headless Chromium.
   2. Navigates to the paradigm's live URL.

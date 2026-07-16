@@ -1,4 +1,4 @@
-"""Wave C4: deterministic seed -> program assignment for K-program runs.
+"""Deterministic seed -> program assignment for K-program runs.
 
 Pure function, no I/O. ``scripts/naive_run.sh`` calls it (via a python -c
 one-liner) with the FULL ordered target seed list — never the residual

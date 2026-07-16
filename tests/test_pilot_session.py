@@ -1,4 +1,4 @@
-"""Tests for PilotSession (SP15 Part B substrate).
+"""Tests for PilotSession.
 
 Uses a local HTML fixture rather than mocking Playwright — the test isolates
 session-lifecycle behavior, not Playwright internals.
@@ -121,7 +121,7 @@ async def test_pilot_session_context_manager_cleans_up_on_exception(fixture_url)
 
 @pytest.mark.asyncio
 async def test_pilot_session_exposes_context(fixture_url):
-    """SP16 prerequisite: PilotSession.context returns the BrowserContext
+    """PilotSession.context returns the BrowserContext
     so callers (TaskExecutor) can create CDP sessions on it."""
     async with PilotSession(headless=True) as session:
         await session.goto(fixture_url)
@@ -167,7 +167,7 @@ async def test_try_phase_unknown_action_records_to_run_trace(fixture_url):
         assert "unknown action" in (result.error or "").lower()
 
 
-# --- Wave B2: form actions (fill / select) ---
+# --- form actions (fill / select) ---
 
 @pytest.mark.asyncio
 async def test_try_phase_fill_text_input(fixture_url):

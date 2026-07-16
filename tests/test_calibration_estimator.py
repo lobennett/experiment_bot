@@ -1,4 +1,4 @@
-"""SP11 Phase 3.3-3.5 — calibration estimator tests.
+"""Calibration estimator tests.
 
 Covers:
 - Filter-to-correctly-recorded: pre-filter misrecorded and dropped
@@ -84,7 +84,7 @@ def test_fixed_offset_with_drop_filter_excludes_dropped():
 
 def test_fixed_offset_with_misrecording_filter_excludes_misrec():
     """Mis-recorded events (platform recorded wrong key) excluded
-    from the offset estimate per SP7 layer-d discipline."""
+    from the offset estimate per the mis-recording filter discipline."""
     events = _calibration_events(mean=15.0, sd=2.0, misrec=0.4, n=100)
     result = estimate_calibration(events)
     assert result.model == "fixed_offset"
@@ -171,7 +171,7 @@ def test_too_few_events_escalates():
 
 
 def test_too_few_events_when_all_misrecorded():
-    """All keypresses mis-recorded (extreme SP7 layer-d case) →
+    """All keypresses mis-recorded (an extreme mis-recording case) →
     too_few_events."""
     events = _calibration_events(n=20, misrec=1.0)
     result = estimate_calibration(events)

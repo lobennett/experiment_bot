@@ -71,7 +71,7 @@ KEY_TO_CDP_FIELDS: dict[str, dict[str, Any]] = {
     "Backspace":  {"key": "Backspace",  "code": "Backspace",  "windowsVirtualKeyCode": 8},
 }
 
-# Default jsPsych probes — three out of four SP11 dev paradigms use
+# Default jsPsych probes — three of the four dev paradigms use
 # jsPsych 7.3.1 + cognition.run uses the same engine (Phase 3.1 finding).
 # stopit uses jsPsych 6.0.5 but exposes the same getProgress() API.
 DEFAULT_TRIAL_MARKER_JS = (

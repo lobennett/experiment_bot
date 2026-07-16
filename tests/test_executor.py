@@ -60,7 +60,7 @@ def test_executor_init():
 
 
 def test_calibrate_flag_default_and_override():
-    """SP19: calibration is skippable. Default on (backward-compatible); the
+    """Calibration is skippable. Default on (backward-compatible); the
     executor stores the flag so run() can guard the ~27s inert pass that
     corrupts trial-1 RT on no-idle-window platforms (cognition.run)."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
@@ -1088,7 +1088,7 @@ def test_executor_persists_session_seed_to_metadata():
     assert saved["session_seed"] == 12345
 
 
-# SP16: TaskExecutor accepts llm_client kwarg
+# TaskExecutor accepts llm_client kwarg
 def test_taskexecutor_accepts_llm_client_kwarg():
     """TaskExecutor.llm_client defaults to None; accepts an AsyncMock client."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
@@ -1106,9 +1106,9 @@ def test_taskexecutor_accepts_llm_client_kwarg():
     assert e2._llm_client is fake
 
 
-# --- SP20: between-subject jitter wiring (review root-cause fix) ---
-# The Reasoner has emitted a populated between_subject_jitter block since the
-# SP-era cards, but the executor never called jitter_distributions() — the
+# --- Between-subject jitter wiring (review root-cause fix) ---
+# The Reasoner has emitted a populated between_subject_jitter block since
+# earlier cards, but the executor never called jitter_distributions() — the
 # frozen N=30 cohort's between-subject SDs came out 5-10x below human as a
 # result. These tests pin the wiring contract.
 
@@ -1122,7 +1122,7 @@ def test_zero_jitter_config_unchanged():
 
 
 
-# --- SP21: behavior-provider bypass ---
+# --- behavior-provider bypass ---
 from pathlib import Path as _Path
 from experiment_bot.behavior.provider import BehaviorSession, load_program
 
@@ -1142,7 +1142,7 @@ def test_executor_accepts_behavior_provider():
 
 def test_provider_skips_between_subject_jitter():
     """Provider path bypasses the behavioral layer entirely — including
-    the SP20 jitter (config params stay untouched)."""
+    the between-subject jitter (config params stay untouched)."""
     d = dict(SAMPLE_CONFIG)
     d["between_subject_jitter"] = {"rt_mean_sd_ms": 60.0}
     ex = TaskExecutor(TaskConfig.from_dict(d), seed=42,
@@ -1261,7 +1261,7 @@ async def test_provider_interrupt_none_key_decision_withholds():
 
 @pytest.mark.asyncio
 async def test_provider_trial_threads_cue_as_stimulus_text():
-    """Wave B3: the trial's logged cue text reaches the program as
+    """The trial's logged cue text reaches the program as
     ctx.stimulus_text (None when the task exposes no trial context)."""
     config = TaskConfig.from_dict(SAMPLE_CONFIG)
     seen = {}
@@ -1287,7 +1287,7 @@ async def test_provider_trial_threads_cue_as_stimulus_text():
     assert seen["stimulus_text"] is None
 
 
-# --- Wave B1: click response modality (executor delivery) ---
+# --- click response modality (executor delivery) ---
 
 def _click_config():
     """SAMPLE_CONFIG variant whose go stimulus is answered by clicking."""

@@ -1,9 +1,9 @@
-"""SP21 naive-builder behavior provider.
+"""Behavior provider: the participant-program protocol.
 
 A *program* is a Python file exposing ``make_participant(seed) ->
 participant`` where ``participant.respond(ctx)`` returns a plain
 ``(key_or_None, rt_ms)`` tuple — or, on trials whose ctx carries
-``response_elements``, ``("click", element_index, rt_ms)`` (Wave B1) — and
+``response_elements``, ``("click", element_index, rt_ms)`` — and
 (for interrupt-capable tasks) ``participant.on_interrupt(ctx, ssd_ms,
 intended)`` returns ``None`` (withhold) or a tuple. Programs are
 stdlib+numpy only and cannot import this package — hence the tuple wire
@@ -51,8 +51,8 @@ def stim_condition_and_key(stim) -> tuple[str | None, str | None]:
 
 
 def stim_response_elements(stim) -> tuple[tuple[str, str], ...]:
-    """(label, selector) pairs of a stimulus's clickable response options
-    (Wave B1), tolerant of the same shapes as stim_condition_and_key: raw
+    """(label, selector) pairs of a stimulus's clickable response options,
+    tolerant of the same shapes as stim_condition_and_key: raw
     dicts and typed StimulusConfig/ResponseConfig objects. Each entry may
     itself be a {label, selector} dict or an object with those attributes;
     entries without a label are dropped. Returns () when the stimulus
@@ -97,7 +97,7 @@ class Response:
 
 @dataclass(frozen=True)
 class ClickResponse:
-    """Wave B1: a program's click on an on-screen response option. The
+    """A program's click on an on-screen response option. The
     index selects into the trial context's response_elements labels; the
     executor resolves the matching selector and clicks it. Kept as a
     separate frozen dataclass (not a field on Response) so the existing
@@ -128,10 +128,10 @@ class TrialContext:
     prev_correct: bool | None = None
     prev_rt_ms: float | None = None
     prev_interrupted: bool | None = None
-    # Wave B3: the trial's visible context text (the executor's
+    # the trial's visible context text (the executor's
     # trial_context_js/cue value) when the task exposes one, else None.
     stimulus_text: str | None = None
-    # Wave B1: human-readable labels of the trial's clickable response
+    # human-readable labels of the trial's clickable response
     # options; empty for keypress tasks.
     response_elements: tuple[str, ...] = ()
     # Sequence-response capability: the ordered indices into
@@ -213,7 +213,7 @@ def _validate(raw, available_keys: tuple[str, ...], correct_key: str | None,
     THIS trial's correct key up front. A program that presses ctx.correct_key
     must never be rejected merely because that key hasn't been observed yet.
 
-    Wave B1: a program may instead return ("click", element_index, rt_ms) —
+    a program may instead return ("click", element_index, rt_ms) —
     valid only when the trial has response_elements and the index is in
     range. Nothing is silently coerced, same as the keypress path.
     """

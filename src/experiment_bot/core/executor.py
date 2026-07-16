@@ -30,10 +30,10 @@ from experiment_bot.output.data_quality import compute_stall_flags, DEFAULT_CEIL
 
 logger = logging.getLogger(__name__)
 
-# SP16: adaptive nav constants
+# Adaptive nav constants
 _ADAPTIVE_NAV_STUCK_POLLS = 20
 _ADAPTIVE_NAV_BUDGET = 10
-# SP16 (generalized in Wave C1): adaptive nav fires only when a non-trial
+# Adaptive nav fires only when a non-trial
 # screen survives this many consecutive stuck detections without its DOM
 # changing. For INSTRUCTIONS-phase screens a "detection" is one standard nav
 # re-run; for any other phase label (the LLM-written phase predicates are
@@ -97,10 +97,10 @@ class TaskExecutor:
         *,
         seed: int | None = None,
         headless: bool = False,
-        llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
+        llm_client: "LLMClient | None" = None,  # enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
         calibrate: bool = True,  # run the startup keypress-latency calibration pass
-        behavior_provider=None,  # SP21: BehaviorSession — the behavioral layer (required)
+        behavior_provider=None,  # BehaviorSession — the behavioral layer (required)
     ):
         # The naive behavior program IS the behavioral layer; the executor
         # supplies only navigation, detection, delivery, and capture.
@@ -124,7 +124,7 @@ class TaskExecutor:
         self._calibrate = calibrate
         # Persisted to run_metadata.json for provenance. The seed selects the
         # behavior program's participant; the realized nav path of sessions
-        # that invoke SP16 adaptive nav is recorded per-session in
+        # that invoke adaptive nav is recorded per-session in
         # bot_log.json (type:'adaptive_nav') for audit.
         self._session_seed = seed
 
@@ -152,14 +152,14 @@ class TaskExecutor:
             config.runtime.attention_check.stimulus_conditions
         ) or {"attention_check", "attention_check_response"}
 
-        # SP11 Phase 5a: CDP-channel keypress delivery (instantiated in .run())
+        # CDP-channel keypress delivery (instantiated in .run())
         self._cdp_session = None
         self._deliverer = None
         self._calibration_run = None  # set if calibration pass runs
         self._delivery_channel_log: dict[str, int] = {}  # tally by channel
         self._fire_skip_log: list[dict] = []  # per-trial skip metadata
 
-        # SP16: adaptive nav state
+        # Adaptive nav state
         self._llm_client = llm_client
         self._adaptive_nav_uses = 0
         self._adaptive_nav_diffs: list[str] = []
@@ -206,11 +206,11 @@ class TaskExecutor:
 
     @property
     def _bot_log(self) -> list[dict]:
-        """SP16: expose the writer's trial list for adaptive_nav logging + test access."""
+        """Expose the writer's trial list for adaptive_nav logging + test access."""
         return self._writer._trials
 
     def _narrate(self, stage: str, detail: str) -> None:
-        """SP12 Phase 2: narrate one stage transition to stdout.
+        """Narrate one stage transition to stdout.
 
         Emits a single line per major stage. The full 5-line readout
         is: navigate, calibration, trial_loop, wait_completion, save.
@@ -223,7 +223,7 @@ class TaskExecutor:
     async def _run_calibration_pass(
         self, page: Page, n_keys: int | None = None,
     ) -> None:
-        """SP11 Phase 5a/5b: run a calibration sequence using the
+        """Run a calibration sequence using the
         configured deliverer; record the CalibrationResult in
         run_metadata for latency audit.
 
@@ -268,7 +268,7 @@ class TaskExecutor:
             self._calibration_run = None
 
     async def _setup_keypress_deliverer(self, page: Page, context) -> None:
-        """SP11 Phase 5a: instantiate the configured KeypressDeliverer
+        """Instantiate the configured KeypressDeliverer
         for response fires. Falls through quietly to the legacy
         page.keyboard.press path when channel='none' or when CDP isn't
         available (Firefox, WebKit, mocked tests)."""
@@ -306,7 +306,7 @@ class TaskExecutor:
         )
 
     async def _fire_response_key(self, page: Page, key: str) -> dict:
-        """SP11 Phase 5a: fire a response keypress via the configured
+        """Fire a response keypress via the configured
         deliverer (CDP/keyboard) with trial-marker verify; falls back
         to page.keyboard.press when no deliverer is configured.
 
@@ -377,7 +377,7 @@ class TaskExecutor:
         return meta
 
     async def _fire_response_click(self, page: Page, selector: str) -> dict:
-        """Wave B1: deliver a click response on a response element's
+        """Deliver a click response on a response element's
         selector. Mirrors the feedback-selector click pattern (.first /
         visibility wait / click, bounded timeouts). A delivery failure is
         recorded in the metadata, never raised — the trial still logs.
@@ -596,7 +596,7 @@ class TaskExecutor:
                     duration_s=time.monotonic() - _t0,
                 )
 
-                # SP11 Phase 5a: open CDP session + construct deliverer
+                # Open CDP session + construct deliverer
                 await self._setup_keypress_deliverer(page, context)
 
                 # Phase 1: Navigate instructions (per-phase with skip-on-fail)
@@ -624,14 +624,14 @@ class TaskExecutor:
                     duration_s=time.monotonic() - _t1,
                 )
 
-                # SP11 Phase 5b: calibration pass (auto-invoked when a
+                # Calibration pass (auto-invoked when a
                 # deliverer is configured). Result is always applied to
                 # the sampler.
                 #
-                # SP19: skippable. The pass is behaviorally inert on every
+                # Skippable. The pass is behaviorally inert on every
                 # supported platform (it reports `too_few_events` because the
-                # page never records its probe keypresses — SP7 layer-d /
-                # scope L21 — so the applied adjustment is identity). On
+                # page never records its probe keypresses — a known platform
+                # recording gap (scope L21) — so the applied adjustment is identity). On
                 # platforms with no pre-trial idle window (cognition.run,
                 # whose first test trial is live immediately) the pass's
                 # ~27 s runtime is timestamped by the platform as the first
@@ -729,7 +729,7 @@ class TaskExecutor:
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
-                # SP11 Phase 5a: persist delivery-channel + skip diagnostics
+                # Persist delivery-channel + skip diagnostics
                 metadata["delivery"] = {
                     "configured_channel": self._config.runtime.delivery_channel,
                     "channel_counts": dict(self._delivery_channel_log),
@@ -748,7 +748,7 @@ class TaskExecutor:
                             self._calibration_run.delivery_channel_counts
                         ),
                     }
-                # SP16: adaptive nav summary — aggregated counts for analysis scripts
+                # Adaptive nav summary — aggregated counts for analysis scripts
                 metadata["adaptive_nav"] = self._compute_adaptive_nav_summary()
                 # Task 2: completeness signals — a nonzero partial session is no
                 # longer indistinguishable from a whole one.  The ==0 hard-fail
@@ -849,7 +849,7 @@ class TaskExecutor:
         consecutive_misses = 0
         instructions_stuck_fp = ""
         instructions_stuck_count = 0
-        # Wave C1: stuck-DOM tracking for NON-instructions phase labels (the
+        # Stuck-DOM tracking for NON-instructions phase labels (the
         # phase predicates are LLM-written and advisory — a stuck screen can
         # be misclassified as test/practice/loading). Sampled only at
         # throttled advance instants so normal between-trial gaps (changing
@@ -907,7 +907,7 @@ class TaskExecutor:
                         # In-trial nav re-run via the unified engine (skip-on-fail,
                         # same semantics as entry nav).
                         await self._nav_rerun(session)
-                        # SP16: if the standard nav re-run left us on the SAME
+                        # If the standard nav re-run left us on the SAME
                         # instruction DOM across consecutive detections, the
                         # TaskCard's fixed nav can't advance this screen — fire
                         # adaptive nav. Gated on a stuck INSTRUCTIONS DOM (not on
@@ -1016,7 +1016,7 @@ class TaskExecutor:
                         and (time.monotonic() - self._last_advance_action) >= _ADVANCE_MIN_SPACING_S):
                     self._last_advance_action = time.monotonic()
                     self._loop_diagnostics.record_advance()
-                    # Wave C1: a stable non-trial DOM across consecutive
+                    # A stable non-trial DOM across consecutive
                     # throttled advance attempts means the standard advance
                     # keys can't move this screen, whatever the (advisory)
                     # phase predicates labeled it — fire the same nav re-run
@@ -1152,7 +1152,7 @@ class TaskExecutor:
             # the wrong trial. Prefer the paradigm's response_window_js when
             # extracted by Stage 1; fall back to the matched stimulus's own
             # detection JS so paradigms without a response_window_js still avoid
-            # over-firing (SP5 root-caused this gap for Flanker, n-back, stroop).
+            # over-firing (an earlier root-cause fix addressed this gap for Flanker, n-back, stroop).
             stim_cfg = next(
                 (s for s in self._config.stimuli if s.id == match.stimulus_id),
                 None,
@@ -1280,7 +1280,7 @@ class TaskExecutor:
         }
 
     async def _execute_trial(self, page, match, cue=None) -> None:
-        """SP21 naive arm: the behavior program supplies (key, rt); the
+        """Naive arm: the behavior program supplies (key, rt); the
         executor supplies navigation, detection, delivery, and logging.
         No omission draw, no accuracy draw, no sampler, no temporal
         effects — a program expresses omission by returning key=None."""
@@ -1294,10 +1294,10 @@ class TaskExecutor:
 
         correct_key = await self._resolve_response_key(match, page)
         provider.observe_key(correct_key)
-        # Wave B3: the already-computed trial context text (the logged `cue`)
+        # The already-computed trial context text (the logged `cue`)
         # is exposed to the program as ctx.stimulus_text.
         stimulus_text = str(cue) if cue is not None else None
-        # Wave B1: clickable response options declared on the matched
+        # Clickable response options declared on the matched
         # stimulus — (label, selector) pairs; labels go to the program,
         # selectors resolve a returned click by index.
         stim_cfg = next(
@@ -1392,7 +1392,7 @@ class TaskExecutor:
         actual_rt = (time.monotonic() - trial_start) * 1000
 
         if isinstance(resp, ClickResponse):
-            # Wave B1: click delivery — resolve the element's selector by
+            # Click delivery — resolve the element's selector by
             # index and click it. Correctness mirrors the keypress rule:
             # the clicked option's label is compared to the resolved
             # correct key (the structural card carries the correct option's
@@ -1655,7 +1655,7 @@ class TaskExecutor:
         return advanced
 
     def _compute_adaptive_nav_summary(self) -> dict:
-        """SP16: summarise per-session adaptive nav usage for run_metadata.json.
+        """Summarise per-session adaptive nav usage for run_metadata.json.
 
         Filters bot_log entries by type=='adaptive_nav' to aggregate counts.
         Called from run() finalization so analysis scripts don't need to

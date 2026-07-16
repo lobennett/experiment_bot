@@ -1,5 +1,5 @@
 """Invariant tests for the Stage 1 system prompt's
-'Multi-source response_key_js extraction' section (SP8).
+'Multi-source response_key_js extraction' section.
 
 The section instructs Stage 1 to emit response_key_js as a multi-
 source fallback chain: try the page's authoritative runtime variable
@@ -9,7 +9,7 @@ mappings only when the runtime variable is undefined.
 Tests verify structural presence and basic JS-syntax sanity without
 prescribing exact wording. The actual quality of Stage 1's output
 across paradigms is verified empirically by the cross-paradigm
-re-run in Task 6 of SP8's plan.
+re-run performed as part of that validation work.
 
 No paradigm names appear in this test file (per user-feedback
 constraint memorized at
@@ -43,7 +43,7 @@ def test_prompt_contains_multi_source_section():
     """The new section's canonical header must be present."""
     text = PROMPT_PATH.read_text()
     assert "Multi-source response_key_js extraction" in text, (
-        "Stage 1 prompt missing the SP8 multi-source section header"
+        "Stage 1 prompt missing the multi-source section header"
     )
 
 
@@ -94,7 +94,7 @@ def test_prompt_has_static_keymap_explanation():
 
 def test_prompt_has_anti_example():
     """At least one anti-example block exists showing the fragile
-    static-only-without-fallback pattern that SP7 quantified."""
+    static-only-without-fallback pattern that an earlier audit quantified."""
     blocks = _blocks()
     anti = [body for kind, label, body in blocks if kind == "response-key-anti-example"]
     assert anti, "Missing response-key-anti-example block"

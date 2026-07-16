@@ -51,7 +51,7 @@ registry, oracle/norms validation) and its dataset are archived at the
 
 ## Operational rules
 
-- **No behavioral iteration (pre-registered).** The first program per
+- **No behavioral iteration (pre-specified).** The first program per
   task to pass the mechanical gate is the program. Regeneration only on
   gate failure (max 2 retries, all attempts archived). Never regenerate,
   edit, or select programs based on how their behavior looks.
@@ -59,8 +59,11 @@ registry, oracle/norms validation) and its dataset are archived at the
   into it must name no phenomena, no distribution families, and no
   numeric behavioral priors. The invariant tests are the experiment's
   integrity guarantee — never weaken them to make a change pass.
-- **Never modify `docs/preregistration-naive.md` post-hoc.** It was
-  committed before any generation call; that ordering is the evidence.
+- **Design freeze, not preregistration.** The dev-4 design/analysis plan
+  was frozen in a document committed before any generation call (git
+  `d75cd69`; removed from HEAD because its name overclaimed — no external
+  registry holds it). Never call anything in this project "pre-registered";
+  never rewrite history that carries the ordering evidence.
 - **Hermetic provenance.** Sessions pin the structural card by content
   hash (`--taskcard-sha256`), the program by content hash
   (`--behavior-program <label>/<hash>`), and the participant by
@@ -88,9 +91,6 @@ registry, oracle/norms validation) and its dataset are archived at the
 
 - `docs/how-it-works.md` — the whole system, start to finish (question,
   integrity design, stages, evidence, limitations). Read this first.
-- `docs/preregistration-naive.md` — the frozen pre-registration
-  (committed before any generation call). Expert-arm assets it
-  references are archived at the `expert-arm-final` tag.
 - `docs/paper-draft-v2-naive-participant.md` — the paper draft for the
   two-arm experiment (this branch holds the naive arm).
 - `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery

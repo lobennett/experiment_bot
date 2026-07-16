@@ -1,8 +1,9 @@
 # RDoC Battery Results — 12 Tasks, N=5 (Exploratory)
 
 _Collected 2026-07-12 → 2026-07-16. **Exploratory/descriptive — outside the
-pre-registered scope of `docs/preregistration-naive.md`** (which covers the
-dev-4 stroop/stop-signal comparison at N=30). Same framing as the flanker
+frozen dev-4 design** (the stroop/stop-signal comparison at N=30, fixed in
+a design document committed before any generation call; see
+`docs/how-it-works.md` §2). Same framing as the flanker
 held-out probe in the paper draft: the pipeline pointed at URLs, no
 task-specific code, results reported as observed._
 
@@ -23,7 +24,7 @@ program is the program):
 
 - **11 of 12 task programs passed the mechanical gate on the first
   attempt.** `cued_task_switching` required 2 regenerations, both triggered
-  by mechanical gate failures — within the pre-registered max-2-retries
+  by mechanical gate failures — within the pre-specified max-2-retries
   rule; all attempts archived under `naive_programs/expfactory_cued_ts/`.
 - `operation_span` and `simple_span` are grid-recall (serial-reproduction)
   tasks and required the **sequence-response capability**
@@ -75,7 +76,7 @@ does answer them, it answers perfectly. This is a Stage-1 card-classification
 variance, a framework finding, not a property of the generated programs.
 
 **2. RT location runs slow — the known calibration pattern.** The same
-uniform miss as the pre-registered battery (paper draft, Results): RTs are
+uniform miss as the dev-4 comparison (paper draft, Results): RTs are
 directionally correct but shifted slow (spatial_cueing +2.4 to +3.0 z;
 spatial_task_switching / cued_task_switching stay-RTs +2.2 to +3.9 z;
 stroop congruent +2.1 z; visual_search conjunction +2.1 z). Internal effect
@@ -83,7 +84,7 @@ structure survives the shift — e.g., Stroop incongruent > congruent,
 AX-CPT AY > AX, visual-search conjunction > feature, valid < invalid cueing.
 
 **3. Inhibition again strongest.** stop_signal is the only task with every
-metric in range (12/12), consistent with the pre-registered headline
+metric in range (12/12), consistent with the dev-4 headline
 (race-model programs converge the SSD staircase). flanker misses only the
 attention check.
 

@@ -1,6 +1,6 @@
 """experiment-bot-naive-gen: SP21 naive-arm program generation.
 
-Pre-registered discipline: the first program that passes the mechanical
+Pre-specified discipline: the first program that passes the mechanical
 simulation gate IS the program. Retries (max 2) happen only on gate
 failure, every attempt is archived. Never regenerate on behavioral taste.
 """
@@ -143,7 +143,7 @@ def _archive_path(out_dir: Path, sha: str, kind: str, attempt: int) -> Path:
     Writing the same program content twice is idempotent for the .py file
     (same path), but every generation attempt — including byte-identical
     re-emissions across retries or across independent programs (C4) — must
-    get its own archived record (pre-registered rule: all attempts
+    get its own archived record (pre-specified rule: all attempts
     archived). Falls back to attempt-numbered / dup-numbered suffixes when
     the plain name is already taken."""
     path = out_dir / f"{sha}.{kind}.json"
@@ -266,7 +266,7 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
                    out_root: Path = Path("naive_programs"),
                    max_retries: int = 2, taskcard_sha256: str | None = None,
                    source_budget: int = DEFAULT_SOURCE_BUDGET) -> Path:
-    """Pre-registered single-program flow: the first program to pass the
+    """Pre-specified single-program flow: the first program to pass the
     mechanical gate IS the program."""
     passed, failures = await generate_programs(
         url, label, client, n_programs=1, taskcards_dir=taskcards_dir,
@@ -294,7 +294,7 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
               help="Wave C4: generate K independent programs (each its own "
                    "transcripts + gate records, all archived). Exits nonzero "
                    "if fewer than K distinct programs pass within per-program "
-                   "retry budgets. The pre-registered flow is the default K=1.")
+                   "retry budgets. The pre-specified flow is the default K=1.")
 def main(url: str, label: str, model: str, taskcards_dir: str,
          taskcard_sha256: str | None, source_budget: int, n_programs: int):
     """Generate the SP21 naive-arm participant program(s) for LABEL."""

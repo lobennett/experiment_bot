@@ -30,3 +30,13 @@ def test_illustrative_placeholders_are_skipped(tmp_path):
     src = repo / "CLAUDE.md"
     src.write_text("Never create docs/clean-run-DATE.md or docs/spNN-results.md or docs/<paradigm>-test.md")
     assert find_dangling([src], repo) == []
+
+
+def test_rev_qualified_historical_refs_are_skipped(tmp_path):
+    """`<rev>:path` references point into git history (e.g. `git show
+    d75cd69:docs/frozen.md` for a deliberately deleted file) — they are not
+    claims about the working tree and must not be flagged."""
+    repo = _repo(tmp_path)
+    src = repo / "README.md"
+    src.write_text("Retrieve it with `git show d75cd69:docs/frozen.md`.")
+    assert find_dangling([src], repo) == []

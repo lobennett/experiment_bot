@@ -3,8 +3,8 @@
 _Matured draft, 2026-07-06 — supersedes the two-arm draft of 2026-07-05.
 Incorporates the standalone naive pipeline (this branch), the held-out
 flanker probe, and the harness hardening it forced. Provenance: the
-expert-pipeline comparison arm (code and dataset) lives on the `main`
-branch; this branch contains the complete naive system. Pre-registration:
+expert-pipeline comparison arm (code and dataset) is archived at the
+`expert-arm-final` git tag; this tree contains the complete naive system. Pre-registration:
 `docs/preregistration-naive.md` (committed before any generation call)._
 
 ## Abstract (working)

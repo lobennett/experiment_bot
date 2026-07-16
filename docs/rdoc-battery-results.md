@@ -27,7 +27,7 @@ program is the program):
   rule; all attempts archived under `naive_programs/expfactory_cued_ts/`.
 - `operation_span` and `simple_span` are grid-recall (serial-reproduction)
   tasks and required the **sequence-response capability**
-  (`docs/superpowers/specs/2026-07-12-sequence-response-capability.md`):
+  (`docs/how-it-works.md` §4):
   multi-action trials driven by a card-exposed target sequence, delivered
   as arrow-key navigation + spacebar selections. The capability is generic
   (no grid geometry in library code); both spans then collected real recall

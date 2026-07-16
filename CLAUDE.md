@@ -1,9 +1,9 @@
-# CLAUDE.md — Project Goals and Guardrails (naive-only branch)
+# CLAUDE.md — Project Goals and Guardrails
 
-Standing guidance for any Claude session working on this branch of
-`experiment-bot`. Read this before making non-trivial changes.
+Standing guidance for any Claude session working on `experiment-bot`.
+Read this before making non-trivial changes.
 
-## What this branch is
+## What this is
 
 The **naive-participant system**: given only a web experiment's URL, a
 frontier LLM authors a *generative participant program* — a small Python
@@ -15,8 +15,8 @@ numeric priors. Everything behavioral is written by the model inside
 the program.
 
 The comparison-arm (expert pipeline: Reasoner stages 2–5, effects
-registry, oracle/norms validation) and its dataset live on the `main`
-branch. This branch contains the naive system only.
+registry, oracle/norms validation) and its dataset are archived at the
+`expert-arm-final` git tag. This tree contains the naive system only.
 
 ## Components
 
@@ -86,14 +86,16 @@ branch. This branch contains the naive system only.
 
 ## Documents
 
+- `docs/how-it-works.md` — the whole system, start to finish (question,
+  integrity design, stages, evidence, limitations). Read this first.
 - `docs/preregistration-naive.md` — the frozen pre-registration
   (committed before any generation call). Expert-arm assets it
-  references live on `main`.
+  references are archived at the `expert-arm-final` tag.
 - `docs/paper-draft-v2-naive-participant.md` — the paper draft for the
   two-arm experiment (this branch holds the naive arm).
 - `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery
   (collection + gate record, behavioral comparison vs the lab's human
   matrices). Registry: `data/rdoc_task_urls.tsv`; matrices:
   `data/bot/rdoc/` vs `data/human/rdoc/` (gitignored + placeholders).
-- `README.md` — pipeline walkthrough + the five CLIs.
+- `README.md` — front door: quickstart, the five CLIs, evidence summary.
 - `data/human/README.md` — human reference data download + integrity.

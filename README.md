@@ -120,12 +120,18 @@ template and every injected constant against a banned-terms list.
 ```python
 make_participant(seed)                    # same seed => identical behavior
 participant.respond(ctx)                  # per trial -> (key_or_None, rt_ms)
+                                          #   or ("click", element_idx, rt_ms)
+                                          #   or a LIST of actions (sequence)
 participant.on_interrupt(ctx, ssd_ms, intended)  # interrupt tasks only ->
                                           # None (withhold) or (key, rt_ms)
 ```
 
 `ctx` carries condition, correct key, keys seen so far, trial index, and the
-previous trial's outcome. Programs are stdlib+numpy only, deterministic per
+previous trial's outcome; on tasks with clickable response elements it adds
+`response_elements`, and on serial-reproduction trials `correct_sequence`
+(the ordered target indices the card exposes — the program reproduces it
+under its own noise model). See
+`docs/superpowers/specs/2026-07-12-sequence-response-capability.md`. Programs are stdlib+numpy only, deterministic per
 seed, with no file/network/clock access; return values are validated at the
 boundary (no silent coercion).
 
@@ -191,8 +197,8 @@ bash scripts/naive_run.sh 30
 
 `scripts/naive_run.sh` pins one program per task (content hash recorded),
 pins the structural TaskCard by content hash, assigns explicit seeds, and
-runs the four dev paradigms as parallel streams (sequential within a stream).
-Sessions land under `output_naive/`.
+runs its configured paradigms as parallel streams (sequential within a
+stream). Sessions land under `output_naive/`.
 
 ## Provenance and Reproducibility
 
@@ -242,6 +248,9 @@ experiment-bot/
 ├── taskcards/                  # Content-addressed structural TaskCards per experiment
 ├── naive_programs/             # Content-hashed participant programs + gate reports + transcripts
 ├── data/human/                 # Human reference data (Eisenberg; fetched, see its README)
+│   └── rdoc/                   # RDoC battery human matrices (gitignored) + committed placeholders
+├── data/bot/rdoc/              # Bot metric matrices, human schema (see its README for provenance)
+├── data/rdoc_task_urls.tsv     # RDoC battery label -> URL -> human-data registry
 ├── scripts/
 │   ├── naive_run.sh            # Seeded collection (4 parallel streams)
 │   └── check_doc_links.py      # CI: dead intra-repo doc references
@@ -253,12 +262,23 @@ experiment-bot/
 
 ## Validated Experiments
 
+**Pre-registered dev battery** (N=30; `docs/preregistration-naive.md`):
+
 | Label | Task | Platform |
 |-------|------|----------|
 | `expfactory_stop_signal` | Stop Signal | [ExpFactory](https://deploy.expfactory.org/preview/9/) |
 | `expfactory_stroop` | Stroop | [ExpFactory](https://deploy.expfactory.org/preview/10/) |
 | `stopit_stop_signal` | Stop Signal | [STOP-IT](https://kywch.github.io/STOP-IT/jsPsych_version/experiment-transformed-first.html) |
 | `cognitionrun_stroop` | Stroop | [Cognition.run](https://strooptest.cognition.run/) |
+
+**RDoC battery** (exploratory, N=5 per task): all 12 RDoC Experiment
+Factory tasks — ax_cpt, cued_task_switching, flanker, go_nogo, n_back,
+spatial_cueing, spatial_task_switching, stop_signal, stroop, visual_search,
+operation_span, simple_span. URL registry: `data/rdoc_task_urls.tsv`.
+Results and honest miss patterns: **`docs/rdoc-battery-results.md`**.
+Session-level metric matrices in the lab's human schema:
+`data/bot/rdoc/` (bot) vs `data/human/rdoc/` (human reference; gitignored,
+committed placeholders carry the schema).
 
 ## Tests
 
@@ -270,4 +290,5 @@ uv run pytest -q
 
 - **[`docs/pipeline.md`](docs/pipeline.md)** — how the whole pipeline works, start to finish (URL → structural card → program → gate → sessions → analysis).
 - **[`docs/preregistration-naive.md`](docs/preregistration-naive.md)** — the frozen pre-registration (committed before any generation call).
+- **[`docs/rdoc-battery-results.md`](docs/rdoc-battery-results.md)** — the exploratory 12-task RDoC battery: collection record, gate record, and behavioral comparison against the lab's human matrices.
 - **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The comparison-arm (expert pipeline) code and dataset live on the `main` branch.

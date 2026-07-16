@@ -64,7 +64,13 @@ when the task exposes one), and, for tasks answered by clicking an
 on-screen option, the options' labels (`ctx.response_elements`; the program
 may then return `("click", index, rt_ms)` instead of a keypress) — and, for
 interrupt tasks, `on_interrupt(ctx, ssd_ms, intended)` returning `None`
-(withhold) or a commission response. Programs are stdlib+numpy only,
+(withhold) or a commission response. On serial-reproduction trials the card
+additionally exposes the trial's target order (`ctx.correct_sequence`,
+ordered indices into `response_elements`, resolved per trial from the
+card's `correct_sequence_js` exactly as `correct_key` is resolved), and
+`respond` may return a **list** of actions — keypresses and/or clicks, each
+with its own inter-action `rt_ms` — which the executor delivers in order
+(spec: `docs/superpowers/specs/2026-07-12-sequence-response-capability.md`). Programs are stdlib+numpy only,
 deterministic per seed, no I/O/network/clock. Every return value is
 validated at the boundary; nothing is silently coerced.
 

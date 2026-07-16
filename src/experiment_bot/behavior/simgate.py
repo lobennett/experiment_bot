@@ -230,6 +230,17 @@ def _fuzz_protocol(program_path: Path, conditions: list[str],
                   correct_sequence=_cseq_for(cond))
     cases.append(("empty_available_keys", _empty_available_keys))
 
+    def _feedback_text_present(s):
+        # A live session can hand the program the text a feedback screen
+        # displayed (ctx.feedback_text). Purely mechanical: the program
+        # must not crash when the field is a string rather than None.
+        cond = conditions[0]
+        s.respond(cond, _correct_for(cond), 0,
+                  response_elements=_elems_for(cond),
+                  correct_sequence=_cseq_for(cond),
+                  feedback_text="__gate_fuzz_feedback_text__")
+    cases.append(("feedback_text_present", _feedback_text_present))
+
     if has_interrupt and interrupt_condition is not None:
         def _extreme_ssd(s):
             for i, ssd in enumerate(_FUZZ_INTERRUPT_SSDS):

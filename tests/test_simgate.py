@@ -415,3 +415,22 @@ def test_gate_key_sequence_prev_correct_is_unknown(tmp_path):
                       response_elements={"recall": ["A", "B", "C"]},
                       correct_sequence={"recall": [0, 2]})
     assert report.passed, report.failures
+
+
+def test_fuzz_program_crashing_on_feedback_text_fails_named(tmp_path):
+    """A program that assumes ctx.feedback_text is always None crashes in
+    the fuzz pass with a named failure — live sessions hand it real text."""
+    prog = tmp_path / "feedback_fragile.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            if ctx.feedback_text is not None:\n"
+        "                raise RuntimeError('unexpected feedback text')\n"
+        "            return ('z', 300.0 + seed)\n"
+        "    return P()\n")
+    report = run_gate(prog, conditions=["go"], key_map={"go": "z"},
+                      has_interrupt=False, n_trials=10)
+    assert not report.passed
+    assert any("fuzz:feedback_text_present" in f for f in report.failures), \
+        report.failures

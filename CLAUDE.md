@@ -1,482 +1,99 @@
-# CLAUDE.md — Project Goals and Guardrails
+# CLAUDE.md — Project Goals and Guardrails (naive-only branch)
 
-This document is the standing guidance for any Claude session working on
+Standing guidance for any Claude session working on this branch of
 `experiment-bot`. Read this before making non-trivial changes.
 
-## What this project is
+## What this branch is
 
-A general-purpose Task Turing Bot that completes web-based cognitive
-experiments with human-like behavior. Three layers:
+The **naive-participant system**: given only a web experiment's URL, a
+frontier LLM authors a *generative participant program* — a small Python
+program that decides every response (key, RT) trial by trial — and a
+timing-faithful Playwright harness executes it against the live page.
+No behavioral scaffolding exists anywhere in the codebase: no
+distribution families, no effect vocabulary, no race structure, no
+numeric priors. Everything behavioral is written by the model inside
+the program.
 
-1. **Reasoner** — reads source code + literature, emits a versioned
-   `TaskCard` (JSON) with stimulus/response rules, navigation, behavioral
-   parameters, and citations.
-2. **Executor** — drives the live URL via Playwright using the TaskCard,
-   sampling RTs and producing platform-native data + a bot log.
-3. **Oracle** — scores the resulting sessions against canonical
-   meta-analytic norms.
+The comparison-arm (expert pipeline: Reasoner stages 2–5, effects
+registry, oracle/norms validation) and its dataset live on the `main`
+branch. This branch contains the naive system only.
 
-The user's role is cognitive-control researcher, with a current dataset
-share-out goal for four development paradigms (two Stroop, two
-stop-signal).
+## Components
 
-## Core Goals (in priority order)
-
-### G1. Generalizability beyond the dev paradigms
-
-The bot's code must NOT bake in paradigm-specific knowledge.
-"Generalizable" means: pointing the bot at a novel paradigm's URL
-(e.g., n-back, Flanker, random-dot motion, Wisconsin Card Sorting)
-should work *without code changes* to the bot's library.
-
-The four development paradigms are a testbed for iteration, not the
-universe. Held-out paradigms (n-back so far) verify generalization
-empirically. Reviewers must be able to see that the framework is not
-overfit to the four dev paradigms.
-
-### G2. The Reasoner does the thinking; the bot does the mechanics
-
-The bot's library is a small set of *generic mechanisms*
-(autocorrelation, linear drift, lag-1 pair modulation, post-event
-slowing, etc.). The Reasoner translates the literature for each task
-into mechanism *configurations* in the TaskCard. The bot's code does
-not name CSE, post-error slowing, post-inhibition slowing, or any
-paradigm-specific phenomenon.
-
-The user wants Claude to infer effects, magnitudes, and temporal
-patterns from the literature scrape — not pre-load knowledge into the
-bot's vocabulary. "Even if Claude said this paradigm has CSE, the bot
-shouldn't have CSE in its vocabulary; it should configure a generic
-2-back mechanism."
-
-### G3. No effects on tasks that don't have them
-
-Temporal effects, cues, and other modulations must NOT appear for
-tasks where the literature doesn't document them. The Reasoner enables
-mechanisms only when supported by the literature for the *specific*
-paradigm class. A mechanism left disabled in the TaskCard contributes
-nothing at runtime.
-
-### G4. Scientific defensibility — reviewer-facing
-
-The framework must withstand reviewer scrutiny on:
-
-- **Anti-circularity**: the bot's parameter-setting Reasoner cites
-  primary studies; the validation oracle gates on meta-analytic norms.
-  These are different evidence tiers.
-- **Pre-registration**: norms files committed *before* sessions
-  reference them. Validation thresholds don't move based on results.
-- **Verifiability**: every TaskCard parameter has a real, DOI-verified
-  citation (existence + year + author + TITLE checked against OpenAlex)
-  OR an explicit `no_citation_reason` marking it a model-prior estimate,
-  plus a rationale and reasoning chain. **Honesty caveat (2026-05):** an
-  investigation (`docs/stage3-citation-history.md`) found that
-  the prior Stage 3 fabricated citations — invented DOIs and real DOIs
-  paired with quotes/page-numbers the papers do not contain — because the
-  prompt demanded verbatim quotes an LLM cannot truthfully produce. Stage 3
-  has been changed to ask only for verifiable DOIs + a prose rationale
-  (no fabricated quotes/pages) and to abstain honestly; DOI verification now
-  includes a title check. **Citation quotes/pages in already-committed
-  TaskCards (and the LLM-asserted ranges in `norms/*.json`) are NOT
-  trustworthy and must be re-generated/re-extracted before the citation
-  trail can be presented as a defensibility surface.** Until then,
-  behavioral parameters should be regarded as model-prior estimates, and
-  defensibility rests on the oracle's gating arithmetic, not the quotes.
-  Pilot validation against live DOM is recorded in `pilot.md`.
-- **Authoritative data sources**: the oracle reads the platform's own
-  data export (`experiment_data.{csv,json}`), not the bot's polling
-  log (`bot_log.json`). Adapters per paradigm in
-  `validation/platform_adapters.py`.
-- **Hard-fail on broken state**: zero-trial sessions raise a clear
-  error. Pilot failures are logged.
-
-### G5. Iteration discipline
-
-- Don't add features beyond what the immediate task requires.
-- Don't introduce abstractions for hypothetical future requirements.
-- Don't remove paradigm-named code by adding paradigm-named
-  alternatives. Generic mechanisms only.
-- When making a change, audit for backward implications across all
-  stages of the pipeline (Reasoner Stages 1–6, Executor, Oracle,
-  TaskCard schema, norms files, prompts, tests). Fix all of them in
-  the same pass; don't leave half-migrated state.
-
-## Specific guardrails for code changes
-
-### When adding to the effect library
-
-A new mechanism is justified only if at least two paradigms with
-distinct paradigm-class memberships would use it. If only one paradigm
-needs it, it's a configuration of an existing mechanism.
-
-Mechanisms must:
-- Be named in mechanism vocabulary (`lag1_pair_modulation`,
-  `post_event_slowing`, `linear_drift`), not paradigm vocabulary
-  (`congruency_sequence`, `post_error_slowing`).
-- Be applicable in principle to any speeded-decision task.
-- Read all paradigm-specific data (condition labels, magnitudes,
-  thresholds) from the cfg argument — never hardcode.
-- Have a default that contributes zero when the cfg is empty/disabled.
-
-### When editing prompts
-
-Stage 1 / Stage 2 / Stage 3 / Stage 5 / norms-extractor prompts must
-not name paradigm-specific values. If a number or label appears in
-the prompt, it must be either:
-- A bot-mechanic value (e.g., `[" "]` for jsPsych's space-advance),
-  or
-- A clearly bracketed placeholder (`<low>`, `<sd_value>`).
-
-Numerical priors from cognitive-control literature ("0.85 is typical
-for stop-signal tasks") are forbidden in prompts. The Reasoner
-derives values from the literature scrape, not from prompt anchors.
-
-### When editing the validation oracle
-
-The oracle's `METRIC_REGISTRY` is data-driven from the norms file. New
-metrics are registered in the dispatch with a compute function. The
-metric NAME in the norms file may use paradigm-conventional language
-(e.g., `cse_magnitude` for conflict tasks) — that's a metric *name*,
-not bot-library vocabulary. The compute function is a thin wrapper
-around the generic `lag1_pair_contrast` (or similar generic).
-
-### When updating tests
-
-Negative assertions are valuable: tests that explicitly check
-paradigm-named items are *absent* from the bot's library help prevent
-regression. Example:
-```python
-assert "congruency_sequence" not in EFFECT_REGISTRY
-assert "post_error_slowing" not in EFFECT_REGISTRY
-```
-
-## Sub-project history
-
-- **SP1**: Replace v1 cache config with versioned TaskCard format
-  produced by 5-stage Reasoner. ✓ Complete.
-- **SP1.5**: Stage 1 validator gate + reasoning-chain accumulation.
-  ✓ Complete.
-- **SP2**: Behavioral fidelity — effect-type registry, generic-
-  mechanism refactor, norms extractor, validation oracle (incl. SSRT),
-  Stage 2 jsonschema gate with self-correcting refinement, Stage 6
-  pilot-refinement persistence, executor lag-1 PES contract, and
-  format-agnostic platform adapters. ✓ Complete; bot-behavior gaps
-  surfaced in SP2-E3 (sampler RT inflation, accuracy underperformance,
-  decay_weights aspirational, sparse run_metadata) tracked for SP3 work.
-- **SP2.5**: Post-SP2 hardening — navigator click-timeout fast-fail
-  (took bot go-trial accuracy from 77.5% to 95% on dev paradigms),
-  run-metadata instrumentation (session_seed, session_params,
-  taskcard_sha256). Tag `sp2.5-complete` at `577f685`. ✓ Complete.
-- **SP3**: Held-out generalization test (Flanker + n-back). Both
-  held-out paradigms failed at Stage 2 schema validation; no TaskCards
-  produced, no sessions run. Generalizability claim (G1) empirically
-  falsified for both paradigms tested. Failure modes documented at the
-  time; SP4 backlog captured prioritized generalizable improvements. Tag
-  `sp3-complete` on the report-landing commit. ✓ Complete (the
-  deliverable is the report and SP4 backlog, not a passing test).
-- **SP4a**: Stage 2 robustness Tier 1 — refinement-loop slot
-  preservation, schema-derived prompt examples with invariant test,
-  performance.* envelope contradiction resolved. Internal CI gate:
-  PASS (4 documented failure modes have fixture-based test coverage,
-  +24 new tests, suite at 492). External evidence: held-out re-run
-  closed all four Tier 1 failure modes in both Flanker and n-back at
-  Stage 2; new failure modes surfaced downstream (Stage 3 in Flanker,
-  Stage 6 pilot in n-back). Tag
-  `sp4a-complete`. ✓ Complete.
-- **SP4b**: parse-retry class fix — single shared `parse_with_retry`
-  helper applied to Stages 1, 3, 5, 6 (pilot refinement) and the
-  norms_extractor; Stage 2 unchanged. Internal CI: 501 passed (was
-  492); +9 tests covering helper, per-stage integration, and Stage 1
-  parse/validation-retry independence. External: Flanker held-out
-  re-run produces a TaskCard for the first time under any framework
-  version (parse_with_retry did not fire — SP4a's Stage 3 failure was
-  likely transient LLM noise). Tag `sp4b-complete`. ✓ Complete.
-- **SP4** (continuing backlog): residual gaps remained after SP4b.
-  Tier 2/3 items (canonicalization layer, two-pass
-  Stage 2 split, schema-as-canonical autogeneration) and the
-  `_extract_json` ownership cleanup. Each its own brainstorm/spec/
-  plan cycle when prioritized.
-- **SP5**: Held-out behavioral measurement — completed the SP3-original
-  deliverable. 5 sessions × Flanker + 5 sessions × n-back, with
-  paradigm adapters (`read_expfactory_flanker`, `read_expfactory_n_back`
-  with N/A warmup-trial filter), validated against `norms/conflict.json`
-  and `norms/working_memory.json`. **Flanker rt_distribution falls
-  fully within published conflict-class meta-analytic ranges** on a
-  paradigm never tuned against — strongest empirical generalization
-  evidence yet. n-back metrics literature-typical. One real fidelity
-  gap: Flanker post_error_slowing -7.23ms (facilitation) vs expected
-  +10-50ms (n-back's PES correct at +16.30ms in same framework, so
-  paradigm-specific). Tag `sp5-complete`. ✓ Complete.
-- **SP6**: Executor trial-end fallback. SP5's "Flanker PES sign-flip"
-  finding root-caused to a deeper bug: `runtime.timing.response_window_js`
-  was None for Flanker / n-back / stroop, causing the executor's
-  polling loop to re-detect the same stimulus and double-fire trial
-  handlers (2-3× over-firing). Single-file fix in core/executor.py:
-  `_wait_for_trial_end` accepts a `fallback_js` kwarg; new
-  `_stimulus_detection_js` helper builds the fallback from the matched
-  stimulus's detection config with per-stim.id caching; post-trial
-  call site passes the fallback. Internal: 517 passed (was 505); +12
-  tests. External: Flanker over-firing 2.05× → 1.02× aggregate; PES
-  −7.23ms → +35.43ms (squarely in configured 25-55ms range). Tag
-  `sp6-complete`. ✓ Complete.
-- **SP7**: Keypress diagnostic (investigation-only). Added
-  paradigm-agnostic page-level keydown listener (capture phase) at
-  session start, per-trial drain, and two new bot_log fields
-  (`resolved_key_pre_error`, `page_received_keys`). Generic alignment
-  audit (now `scripts/audit_alignment.py`) uses `PLATFORM_ADAPTERS` dispatch.
-  Internal: 524 passed (was 517); +7 tests. External: 4-way audit
-  across 5 Flanker sessions (600 trials) named two compounding
-  layers — (a) bot's `response_key_js` extraction ~50% match to
-  platform_expected (essentially random in 2-key paradigm); (d)
-  page_received vs platform_recorded only 44% (platform reads from a
-  non-keydown source). Aggregate accuracy still ~93% by coincidence
-  of 2-key choice + valid-key filter. Tag
-  `sp7-complete`. ✓ Complete.
-- **SP8**: Stage 1 multi-source `response_key_js` prompt. Per the
-  user's redirection during SP8 brainstorm (the original SP7 Option B
-  was rejected as paradigm-overfitting), the scope shifted to a
-  Stage 1 prompt edit: append a `## Multi-source response_key_js
-  extraction` section to `src/experiment_bot/prompts/system.md`
-  instructing Stage 1 to emit a fallback chain (runtime variable
-  first, DOM-derived computation second, static keymap third).
-  Internal: 530 passed (was 524); +6 invariant tests. External:
-  regenerated 4/6 paradigm TaskCards (Flanker failed on Stage 4
-  openalex.py list/string crash; cognitionrun_stroop failed on
-  Stage 6 pilot exhausted). All 4 successful TaskCards follow
-  Pattern B with window.correctResponse check FIRST. Per-trial
-  alignment: **n-back 49.8% → 72.1%** (clear win, page exposes
-  window.correctResponse); stroop/stop_signal_expfactory/stop-it
-  stayed at chance (DOM-derived fallback still unreliable for
-  paradigms without window.correctResponse). Tag `sp8-complete`. ✓ Complete.
-- **SP9a**: Session-time runtime LLM for key-mapping resolution. New
-  `src/experiment_bot/agent/` package — `SessionAgent.resolve_key_mapping`
-  runs once per session after navigation completes, probes the live page
-  (DOM + window globals + screenshot), and asks `claude-haiku-4-5` to
-  produce a `KeyMappingDirective`. Executor caches the directive's
-  mapping into `_runtime_key_mapping`; `_resolve_response_key` checks it
-  before the existing static / per-stim JS / global JS fallback chain.
-  Per-trial cost: synchronous dict lookup. Internal: 563 passed (was
-  530); +33 tests across LLM-Protocol multimodal, agent module,
-  RuntimeConfig flag, executor integration, cli.py wiring, plus
-  defensive layers (dynamic-sentinel fall-through, English-word key
-  normalization). **External: behavioral hypothesis NOT supported.**
-  n-back smoke 68.1% (vs SP8 72.1%, within variance), stroop x3 32.2%
-  (vs SP8 28.9%, no improvement — "one key per condition" abstraction
-  is structurally inadequate when correct key depends on stim_color),
-  stop_signal x1 59.4% (SessionAgent's directive used stimulus IDs vs
-  executor's condition labels; runtime branch silently never fired).
-  Infrastructure is reusable for future SP candidates; the negative
-  empirical result honestly informs scope.
-  Tag `sp9a-complete`. ✓ Complete.
-- **SP9b**: Stage 4 `openalex.verify_doi` defensive fix. 1-line
-  normalization: `expected_authors` may be `str` or `list`; list →
-  space-joined string before `.split()`. Unblocks expfactory_flanker
-  regeneration (SP8 Stage 4 crash). Plus +1 test (564 passed total).
-  Tag `sp9b-complete`. ✓ Complete.
-- **SP9** (continuing backlog): the SP9a empirical run surfaced two
-  pre-existing higher-leverage issues than SessionAgent itself:
-  (1) **Platform-recording gap (SP7 layer d)** — user-observed during
-  SP9a runs: jsPsych keyboard-response-plugin doesn't read from raw
-  document keydown events, so platform CSV `response` column drops
-  from ~93% (bot→page) to ~48% (page→platform). Affects ALL paradigms.
-  Next SP candidate (will be SP9c). (2) **TaskCard `task_specific.key_map`
-  schema variation** — stop-signal uses stimulus IDs, stroop/n-back
-  use condition labels. Executor's `_resolve_response_key` assumes one
-  shape; runtime branch silently fails when shape doesn't match.
-  (3) Also outstanding from SP8: Stage 6 pilot timing fragility.
-  (4) Also outstanding: commit SP8-regenerated TaskCards to sp8
-  branch (done in b06122e, but not on a new tag — sp8-complete still
-  references the docs commit).
-- **SP12**: Codebase simplification + antagonistic audit + runtime
-  visibility + post-cleanup re-measurement. Top-down walk-and-prune
-  from CLI entry through every module exercised in a production run.
-  Removed: 14 one-shot SP-era scripts, 14 SP11 phase deliverable docs
-  (consolidated to sp11-complete.md), SessionAgent path entirely
-  (SP9a hypothesis empirically not supported), SP7 keypress diagnostic
-  (zero production readers), 2 unused CLI flags, drop_from_scope/
-  keyboard_deliverer/focus calibration modules, eisenberg validation
-  module, v1-legacy TaskCard wrappers. Net src/experiment_bot/ shrink:
-  -1,068 LOC across 21 commits (from SP12 baseline `2436289`; 26
-  commits from the design-spec commit `19b809b`). Added: a pipeline-flow
-  walkthrough (since absorbed into README's pipeline section), [sp12] stdout
-  narration (5 lines/session), run_trace.json (structured per-stage
-  trace), and a hardcoded-findings audit of paradigm-specific
-  assumptions surfaced during the walk. Post-cleanup re-measurement
-  on 4 SP11 paradigms × 5 sessions shows 3/4 paradigms behaviorally
-  stable vs Phase 7 N=5 baseline; one notable shift on
-  expfactory_stop_signal SSRT (178→353 ms, within baseline's wide SD)
-  attributable to diagnostic-noise reduction. Tag `sp12-complete`.
-  ✓ Complete.
-- **SP13**: Iterative pilot refinement. Stage 6's one-shot refiner replaced
-  with a sequential walker that advances one DOM state per attempt.
-  `PilotDiagnostics.dom_fingerprint` enables stuck-detection (2 consecutive
-  identical fingerprints → early `PilotValidationError`). `REFINEMENT_PROMPT`
-  rewritten to "propose the smallest next advance"; prior-attempt diffs are
-  forwarded so the LLM doesn't undo earlier progress. Budget bumped 3 → 12
-  total attempts. Mid-SP13 fix: `PilotRunner.run` captures the page DOM on
-  Playwright crashes so stuck-detection fires regardless of failure mode
-  (was a real gap surfaced by the dev-4 regression run). Internal CI: 683
-  passed (was 676); +7 tests across fingerprint, prompt invariants,
-  prior_diffs rendering, stuck-detection, budget override. External:
-  held-out paradigm `stop_signal_with_integrated_memory` STUCK-DOM FAIL at
-  attempt 2 (stuck-detection correctly aborted; LLM proposed a navigation
-  phase in nested-action JSON shape rather than the navigator's flat shape
-  — surfaces "REFINEMENT_PROMPT lacks navigation-phase schema knowledge" as
-  the next gap, motivating SP14). Dev-4 paradigms pass Stage 6 with the
-  same refinement counts as pre-SP13 (3 on attempt 1, stopit_stop_signal
-  needed 1 refinement same as before — backward-compatible). Tag `sp13-complete`.
-  ✓ Complete.
-- **SP14**: Refinement-prompt schema knowledge. Two surgical additions to
-  `REFINEMENT_PROMPT`: (a) explicit "Navigation phase JSON schema" section
-  with concrete examples for each supported action (click, keypress, wait,
-  sequence) and warning against the nested `action.type/selector` shape
-  the navigator silently ignores; (b) APPEND-only ordering rule —
-  navigation phases run in array order matching screen-encounter order, so
-  new phases append to the end, never prepend or replace. Surfaced by SP13
-  held-out test's two refinement bugs (replace + prepend). Internal: 683
-  passing; +3 invariant tests. External: SP14 held-out re-test advanced
-  past fullscreen but new gap surfaced (wasteful per-attempt re-launches +
-  paradigm-specific instruction flow beyond canonical expfactory), motivating
-  SP15. Tag `sp14-complete` (rolled into SP15 commit history at `cc8a886`).
-  ✓ Complete.
-- **SP15**: Platform-aware Stage 1 + persistent-session pilot walker.
-  Part A: new `reasoner/platform_defaults.py` registry backfills canonical
-  navigation phases for expfactory.org, cognition.run, kywch.github.io when
-  the LLM emits empty or under-specified `navigation.phases`. Derived
-  verbatim from committed dev TaskCards (infrastructure recognition, not
-  paradigm overfitting). Part B: new `core/pilot_session.py` async context
-  manager owns one Playwright session for the entire Stage 6 walker loop;
-  `PilotRunner.run` reimplemented as a thin facade (backward-compat);
-  `REFINEMENT_PROMPT` split into `NAVIGATION_REFINEMENT_PROMPT` (single
-  phase delta) + `STIMULUS_REFINEMENT_PROMPT` (single selector update);
-  `run_stage6` rewritten as persistent-session walker that accumulates
-  phases + selector overrides in-memory, splices into partial only on
-  success; stuck-detection threshold relaxed 2 → 3 to allow one no-op
-  refinement before abort. Internal: 702 passing (was 683); +19 tests
-  across platform-defaults (8), pilot-session (6), walker-flow (2),
-  prompt-invariants (3). External: held-out paradigm
-  `stop_signal_with_integrated_memory` Stage 6 PASS after 7 nav
-  refinements, 6 trials captured, one browser tab. **However: the
-  walker's TaskCard cannot be replayed by the executor** because the
-  walker accumulates trial-response keypresses as nav phases (the page
-  state changes after each press, so the walker treats them as advances)
-  — the executor's fresh-browser nav-then-trial-loop pipeline can't
-  apply them. This is an architectural limit of the executor, not an SP15
-  defect; it's the precisely-articulated next gap that motivates SP16.
-  Behavioral session data on the held-out paradigm is therefore deferred
-  to SP16. Tag
-  `sp15-complete`. ✓ Complete.
-- **SP16**: TaskExecutor refactor with adaptive nav. `TaskExecutor.run`
-  browser lifecycle migrated to `PilotSession` (one tab/session; CDP on
-  `session.context`). Entry nav switched to per-phase `session.try_phase`
-  (skip-on-fail; recorded in run_trace under `entry_navigation`). New
-  constructor kwarg `llm_client: LLMClient | None`; CLI builds via
-  `build_default_client()` with `--no-llm-client` opt-out. New
-  `_adaptive_nav_step`: when a trial-loop INSTRUCTIONS screen survives
-  `_ADAPTIVE_NAV_INSTRUCTIONS_STUCK=2` consecutive nav re-runs without DOM
-  change, the LLM proposes ONE nav phase (`_propose_next_phase`, shared
-  with Stage 6's walker), applied via `session.try_phase`, logged to
-  bot_log as `type:"adaptive_nav"`. Budget 10/session;
-  `run_metadata.adaptive_nav` summary. Two fixes during validation: (1)
-  initial adaptive-nav trigger lived in the stimulus-poll-miss branch and
-  false-fired on dev paradigms during normal between-trial gaps (skipped
-  real trials, 61 vs 124 on stroop) — moved to the INSTRUCTIONS-phase
-  branch gated on a stuck DOM; (2) the INSTRUCTIONS-branch
-  `_navigator.execute_all` re-run could RAISE mid-sequence (re-clicking an
-  already-dismissed fullscreen button) and crash the session — wrapped so
-  it falls through to adaptive nav. Internal CI: 710 passing (+7 tests).
-  External: dev-4 all backward-compatible (adaptive_nav_uses==0, trial
-  counts restored). **Held-out `stop_signal_with_integrated_memory` × 1
-  session: 666 trials, all 5 conditions, calibrated humanlike RTs, 10
-  adaptive-nav steps navigated the between-block instruction flow — the
-  framework's first behavioral dataset on this held-out paradigm.**
-  Race-model ordering holds (stop-fail 505ms < go 826ms), inhibition rate
-  0.516; SSRT 458ms ABOVE the 180-280ms norm (dual-task memory load + the
-  bot's systemic SSRT-high pattern from SP12). ×5 statistical run
-  deferred; the held-out behavioral result now lives in
-  `docs/scope-of-validity.md` §6 + `docs/validation-results.md`. Tag
-  `sp16-complete`. ✓ Complete.
-- **SP17**: Adversarial-review hardening. A multi-agent research review
-  (`docs/research-review.md`) scrutinized the codebase (generalizability,
-  analysis-code correctness, scientific software design) against the
-  "complete the task from only a URL" thesis and external literature
-  (104 findings → 16 verified, 15 survived 3-vote verification). Addressed
-  the in-scope findings: (1) **SSRT validity abstention** —
-  `oracle.py::_compute_ssrt` returns NaN (non-gating) + logs a warning
-  outside the Verbruggen-2019 integration-method bounds
-  (`SSRT_MIN_STOP_TRIALS=50`, `SSRT_PRESPOND_RANGE=(0.25,0.75)`); applied
-  at the pooled-cohort level (caveat in scope L23), so dev verdicts are
-  unchanged (stop_signal_rdoc SSRT still 257.9). (2) **Hermetic replay** —
-  new `taskcard.loader.load_by_hash` (recomputed canonical-content-hash
-  match, full or unambiguous prefix) wired into the run CLI as
-  `--taskcard-sha256` to reproduce the exact card a past session recorded
-  in `run_metadata`; default load stays newest-by-mtime. (3) **Reviewer-doc
-  reframe** — scope-of-validity L22–L26 (gate is a descriptive screen with
-  no multiplicity control; thesis precision + non-URL scaffolding; SSRT
-  abstention + pooled-vs-per-subject caveat; pooled ex-Gaussian power;
-  opt-in hermetic replay). Internal CI: 808 passing (was 797); +11 tests.
-  Dev-4 re-validation unchanged (2/4; SSRT 257.9 / 281.6 held). Deferred
-  (with reasons): norms re-extraction (operational rule — own cycle),
-  covariance/structure gating (new feature), held-out N=5 (live
-  measurement run). ✓ Complete (merged to main; tag deferred).
-- **Reviewer-1 charter**: `docs/reviewer-1-charter.md` (added in SP8)
-  documents adversarial review instructions for a fresh Claude session
-  to interrogate the abstract's central claim. Update on every
-  SP-complete tag.
-- **SP-HPC** (deferred): Sherlock/SLURM batch deployment for unattended
-  overnight runs.
-
-## Documents to read before starting
-
-- `docs/scope-of-validity.md` — what the framework claims and does not
-  claim. The reviewer-facing spec.
-- `docs/validation-results.md` — current results, baselines, and
-  provenance for the current shareable dataset.
-- `README.md` — start-to-finish pipeline + onboarding.
-- `docs/reviewer-1-charter.md` — adversarial review instructions.
-- `docs/research-review.md` — adversarial research review (generalizability,
-  analysis-code correctness, scientific software design) with prioritized
-  recommendations; benchmarked against external literature.
-- `docs/stage3-citation-history.md` — citation provenance and the
-  Stage-3 fabrication history.
+- **Structural Reasoner** (`src/experiment_bot/reasoner/`,
+  `experiment-bot-reason`) — Stage 1 parses page source into a
+  *structural* TaskCard (stimulus detection, navigation, keys, runtime
+  knobs — no behavioral parameters); Stage 6 pilots it against the live
+  URL with a sequential refinement walker. Cards are content-addressed
+  under `taskcards/{label}/{sha}.json`.
+- **Behavior package** (`src/experiment_bot/behavior/`) —
+  `experiment-bot-naive-gen` renders one neutral prompt (page source +
+  mechanical facts + the protocol contract) and archives the generated
+  program, content-hashed with its full transcript, under
+  `naive_programs/{label}/`. `experiment-bot-naive-sim` is the purely
+  mechanical gate (no crashes over ~1,000 synthetic trials, seed
+  determinism, distinct seeds differ, import whitelist). Prompt
+  neutrality is enforced by invariant tests
+  (`tests/test_naive_prompt_invariants.py`) scanning the template and
+  every injected constant against a banned-terms list.
+- **Executor** (`src/experiment_bot/core/`, `experiment-bot`) —
+  REQUIRES `--behavior-program`. The program IS the behavioral layer:
+  the harness calls `make_participant(seed)` once, then `respond(ctx)`
+  per trial, and on interrupt-capable tasks polls during the intended
+  RT and hands the program `on_interrupt(ctx, ssd_ms, intended)`.
+  Programs return plain `(key, rt_ms)` tuples (stdlib+numpy only,
+  deterministic per seed, no I/O/clock; see `behavior/provider.py`).
+- **Analysis** (`src/experiment_bot/analysis/`,
+  `experiment-bot-per-subject`) — per-subject measures from the
+  platform's own data export (never the bot's self-log), compared
+  against trial-level human reference data (Eisenberg et al. 2019)
+  with identical estimators for both cohorts.
 
 ## Operational rules
 
-- Never modify norms files after sessions reference them. Re-extract
-  with new citations to make a new norms-file version.
-- Never tune effect magnitudes after seeing validation results.
-  Magnitudes come from the Reasoner's literature scrape; if validation
-  fails, the fix is at the Reasoner level (better citations, better
-  prompt), not at the magnitude level.
-- The held-out paradigm's prompts/configs are NEVER iterated against.
-  If a held-out paradigm fails, document the limitation; do not change
-  prompt text to make it pass.
-- Validation against published ranges is point-estimate-within-range.
-  Don't introduce alternative gating without an explicit scope-of-
-  validity update.
+- **No behavioral iteration (pre-registered).** The first program per
+  task to pass the mechanical gate is the program. Regeneration only on
+  gate failure (max 2 retries, all attempts archived). Never regenerate,
+  edit, or select programs based on how their behavior looks.
+- **Prompt neutrality.** The generation prompt and every value injected
+  into it must name no phenomena, no distribution families, and no
+  numeric behavioral priors. The invariant tests are the experiment's
+  integrity guarantee — never weaken them to make a change pass.
+- **Never modify `docs/preregistration-naive.md` post-hoc.** It was
+  committed before any generation call; that ordering is the evidence.
+- **Hermetic provenance.** Sessions pin the structural card by content
+  hash (`--taskcard-sha256`), the program by content hash
+  (`--behavior-program <label>/<hash>`), and the participant by
+  `--seed`. All three are recorded in each session's
+  `run_metadata.json`; `scripts/naive_run.sh` pins them explicitly.
+- **Generalizability (G1).** No paradigm-specific knowledge in library
+  code. Structural facts (condition labels, key maps, interrupt
+  presence) flow from the TaskCard/CLI into generic mechanics — never
+  hardcode them.
+- **Authoritative data.** Analysis reads the platform's export
+  (`experiment_data.{csv,json}`), not `bot_log.json`.
 
-### Doc-workflow rules
+## Style
 
-- **R-1 One results file:** new measurement batches UPDATE
-  `docs/validation-results.md` (overwrite the Current-baselines row,
-  prepend one Run-log entry, drop superseded). Never create
-  `docs/clean-run-DATE.md` / `docs/spNN-results.md` /
-  `docs/<paradigm>-test.md`.
-- **R-2 Numbers in one place:** a measured value lives in
-  `docs/validation-results.md` (prose) or `docs/results-data/` (raw
-  JSON), not in scope-of-validity, CLAUDE.md, or README — those cite it.
-- **R-3 History note, not history file:** when a gap is later closed,
-  edit ONE line in scope §6 + the relevant L-item ("surfaced DATE,
-  closed by SPxx, see Lk") and delete the standalone trip-report.
+- Inline TDD for small changes; subagent-driven development for larger
+  plans. Keep the suite green (`uv run pytest -q`).
+- Aggressive simplification bar: "necessary for current production
+  runs," not "exists and works." Delete over refactor.
+- Commit incrementally; tight, focused messages; end commits with:
+  `Co-Authored-By: Claude Fable 5 <noreply@anthropic.com>`
+- Avoid narration in user-facing replies; state results, propose next
+  steps.
 
-## Style preferences
+## Documents
 
-- Inline TDD when changes are small. Subagent-driven development for
-  larger plans (see `superpowers:subagent-driven-development`).
-- Commit incrementally with a co-author trailer for Claude.
-- Tight, focused commit messages — describe what changed and why,
-  reference docs/audit findings where relevant.
-- Don't write multi-paragraph docstrings or planning docs unless
-  explicitly asked.
-- Avoid "we did X, then Y, then Z" narration in user-facing replies.
-  State results, propose next steps.
+- `docs/preregistration-naive.md` — the frozen pre-registration
+  (committed before any generation call). Expert-arm assets it
+  references live on `main`.
+- `docs/paper-draft-v2-naive-participant.md` — the paper draft for the
+  two-arm experiment (this branch holds the naive arm).
+- `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery
+  (collection + gate record, behavioral comparison vs the lab's human
+  matrices). Registry: `data/rdoc_task_urls.tsv`; matrices:
+  `data/bot/rdoc/` vs `data/human/rdoc/` (gitignored + placeholders).
+- `README.md` — pipeline walkthrough + the five CLIs.
+- `data/human/README.md` — human reference data download + integrity.

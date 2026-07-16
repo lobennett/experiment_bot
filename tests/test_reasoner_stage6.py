@@ -118,6 +118,10 @@ def _make_session_mock(poll_side_effect=None, dom_snapshot_html="<div>test</div>
     session.probe_stimulus = AsyncMock(
         return_value=StimulusProbe(match=_sentinel_match, dom_at_probe=dom_snapshot_html)
     )
+    # Live-page eval returns one parseable trial row so the Wave-A1
+    # data-capture gate passes by default (tests override to exercise it).
+    session.page = AsyncMock()
+    session.page.evaluate = AsyncMock(return_value='[{"trial": 1}]')
     if poll_side_effect is not None:
         session.poll_stimuli = AsyncMock(side_effect=poll_side_effect)
     else:
@@ -413,6 +417,58 @@ async def test_navigation_refinement_prompt_has_schema_section():
 
 
 @pytest.mark.asyncio
+async def test_refinement_prompts_document_form_actions():
+    """Wave B2: both nav-refinement prompts must document the fill/select
+    form actions (with the `value` field) so the walker/adaptive-nav LLM
+    can propose form fills when a consent/demographic form blocks progress."""
+    from experiment_bot.reasoner.stage6_pilot import (
+        NAVIGATION_REFINEMENT_PROMPT, REFINEMENT_PROMPT,
+    )
+    for prompt in (REFINEMENT_PROMPT, NAVIGATION_REFINEMENT_PROMPT):
+        for action_name in ("fill", "select"):
+            assert f'"action": "{action_name}"' in prompt, \
+                f"prompt must include a concrete example of action={action_name}"
+        assert "`value`" in prompt, "prompt must document the value field"
+        assert "plausible neutral values" in prompt, \
+            "prompt must tell the LLM to propose plausible neutral form values"
+
+
+@pytest.mark.asyncio
+async def test_walker_navigation_refinement_splices_fill_phase(tmp_path):
+    """Wave B2: a proposed fill phase (form field blocking progress) is
+    executed via try_phase and spliced into navigation.phases on success."""
+    fake_client = AsyncMock()
+    fill_phase_json = ('{"phase": "consent_form", "action": "fill", '
+                       '"target": "#participant-age", "key": "", '
+                       '"value": "anon", "duration_ms": 0, "steps": []}')
+    fake_client.complete = AsyncMock(return_value=LLMResponse(text=fill_phase_json))
+
+    partial = _stage5_partial()
+    session_mock = _make_session_mock(
+        poll_side_effect=[_failing_dict("<form>consent</form>"), _passing_dict()],
+    )
+    session_mock.try_phase = AsyncMock(return_value=PhaseAttempt(
+        success=True, dom_after="<div>instructions</div>", error=None,
+    ))
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=2,
+        )
+
+    phases = out["navigation"]["phases"]
+    assert len(phases) == 1, f"expected 1 nav phase appended, got {phases}"
+    assert phases[0]["action"] == "fill"
+    assert phases[0]["target"] == "#participant-age"
+    assert phases[0]["value"] == "anon"
+    # try_phase received the typed phase with the value threaded through
+    tried = session_mock.try_phase.await_args_list[-1].args[0]
+    assert tried.action == "fill" and tried.value == "anon"
+
+
+@pytest.mark.asyncio
 async def test_stimulus_refinement_prompt_has_expected_fields():
     from experiment_bot.reasoner.stage6_pilot import STIMULUS_REFINEMENT_PROMPT
     assert "stim_id" in STIMULUS_REFINEMENT_PROMPT
@@ -585,7 +641,7 @@ async def test_stage6_fails_when_replay_cannot_reach_trials(tmp_path, monkeypatc
     import experiment_bot.reasoner.stage6_pilot as s6
 
     async def _replay_fail(*a, **k):
-        return False
+        return False, "<div>stuck interstitial</div>"
 
     monkeypatch.setattr(s6, "replay_navigation", _replay_fail)
 
@@ -608,7 +664,7 @@ async def test_stage6_passes_when_replay_succeeds(tmp_path, monkeypatch):
     import experiment_bot.reasoner.stage6_pilot as s6
 
     async def _replay_pass(*a, **k):
-        return True
+        return True, ""
 
     monkeypatch.setattr(s6, "replay_navigation", _replay_pass)
 
@@ -658,9 +714,411 @@ async def test_replay_navigation_presses_advance_keys_to_reach_trials():
         phases = []
 
     with _patch_pilot_session(session):
-        reached = await s6.replay_navigation(
+        reached, final_dom = await s6.replay_navigation(
             "http://x", _Nav(), object(), advance_behavior=_AB(),
             headless=True, max_polls=50,
         )
     assert reached is True
+    assert final_dom == ""
     assert "Enter" in pressed, "replay must press advance_keys to clear the interstitial"
+
+
+@pytest.mark.asyncio
+async def test_replay_gate_failure_heals_via_proposed_phase(tmp_path, monkeypatch):
+    """Held-out flanker regression: live pilot passes but the replay stalls
+    on a final interstitial. One replay-refine round (proposed phase from
+    the stuck DOM) must heal the gate rather than hard-failing."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    calls = {"n": 0}
+
+    async def _replay(*a, **k):
+        calls["n"] += 1
+        if calls["n"] == 1:
+            return False, "<p>Press enter to begin practice.</p>"
+        return True, ""
+
+    async def _propose(client, dom, phases, diffs):
+        assert "Press enter" in dom
+        return {"phase": "begin_practice", "action": "keypress",
+                "target": "", "key": "Enter", "duration_ms": 0, "steps": []}
+
+    monkeypatch.setattr(s6, "replay_navigation", _replay)
+    monkeypatch.setattr(s6, "_propose_next_phase", _propose)
+
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        result, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert calls["n"] == 2
+    phases = result["navigation"]["phases"]
+    assert any(p.get("phase") == "begin_practice" and p.get("key") == "Enter"
+               for p in phases)
+    assert (tmp_path / "fake_task" / "pilot_replay_refinement_1.diff").exists()
+
+
+@pytest.mark.asyncio
+async def test_replay_navigation_clicks_feedback_selectors():
+    """Held-out flanker regression: an instructions PAGER advances by button
+    click, not keypress. The replay must mirror the executor's full advance
+    behavior (keys + first visible feedback selector) or it is stricter than
+    the executor and rejects runnable cards."""
+    import experiment_bot.reasoner.stage6_pilot as s6
+
+    state = {"clicks": 0}
+    session = _make_session_mock()
+
+    class _Locator:
+        @property
+        def first(self):
+            return self
+        async def is_visible(self, timeout=None):
+            return True
+        async def click(self, timeout=None):
+            state["clicks"] += 1
+
+    class _Page:
+        def locator(self, sel):
+            return _Locator()
+        class keyboard:
+            @staticmethod
+            async def press(k): pass
+    session.page = _Page()
+    session.press = AsyncMock()
+    # replay_navigation routes advance clicks through the session's
+    # click_advance_control (instructions-pager capability); bind the REAL
+    # implementation so the mocked page's locator clicks are exercised.
+    import types
+    from experiment_bot.core.pilot_session import PilotSession
+    session.click_advance_control = types.MethodType(
+        PilotSession.click_advance_control, session)
+
+    async def _probe(_lookup):
+        # advances only after two selector clicks (multi-page pager)
+        return StimulusProbe(match=(object() if state["clicks"] >= 2 else None),
+                             dom_at_probe="")
+    session.probe_stimulus = AsyncMock(side_effect=_probe)
+
+    class _AB:
+        advance_keys = ["Enter"]
+        feedback_selectors = ["#jspsych-instructions-next"]
+        advance_interval_polls = 5
+
+    class _Nav:
+        phases = []
+
+    with _patch_pilot_session(session):
+        reached, _ = await s6.replay_navigation(
+            "http://x", _Nav(), object(), advance_behavior=_AB(),
+            headless=True, max_polls=50,
+        )
+    assert reached is True
+    assert state["clicks"] >= 2, "replay must click feedback selectors like the executor"
+
+
+# --- Wave A4a: pilot-observed condition stream persisted as sidecar ---
+
+@pytest.mark.asyncio
+async def test_stage6_persists_pilot_observed_condition_stream(tmp_path):
+    """A passing pilot writes pilot_observations.json (sidecar — NOT a card
+    field, so committed card hashes stay stable) with the observed per-trial
+    condition sequence in encounter order."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    passing = _passing_dict()
+    passing["trial_log"] = [
+        {"trial": 1, "stimulus_id": "go", "condition": "go", "response_key": "f"},
+        {"trial": 2, "stimulus_id": "go", "condition": "go", "response_key": "f"},
+        {"trial": 3, "stimulus_id": "go", "condition": "other", "response_key": "j"},
+    ]
+    session_mock = _make_session_mock(poll_side_effect=[passing])
+    with _patch_pilot_session(session_mock):
+        await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    import json as _json
+    sidecar = tmp_path / "fake_task" / "pilot_observations.json"
+    assert sidecar.exists()
+    obs = _json.loads(sidecar.read_text())
+    assert obs["condition_stream"] == ["go", "go", "other"]
+
+
+@pytest.mark.asyncio
+async def test_stage6_skips_sidecar_when_trial_log_empty(tmp_path):
+    """No observed trials in the log -> no sidecar (nothing to replay)."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()  # _passing_dict has trial_log=[]
+    with _patch_pilot_session(session_mock):
+        await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert not (tmp_path / "fake_task" / "pilot_observations.json").exists()
+
+
+# --- Wave A1: data-capture gate ---
+
+def _mock_capture_eval(session_mock, value):
+    """Point the walker session's live page at a canned capture result."""
+    session_mock.page = AsyncMock()
+    session_mock.page.evaluate = AsyncMock(return_value=value)
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_passes_on_parseable_rows(tmp_path):
+    """Pilot + replay pass and the capture expression returns >=1 parseable
+    trial row: stage 6 passes and records the gate in the evidence."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, '[{"trial": 1}, {"trial": 2}]')
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("data_capture_gate" in e for e in step.evidence_lines)
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_empty_output(tmp_path):
+    """Capture method configured but returns nothing: hard fail naming the
+    method and that the output was empty."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="js_expression") as exc:
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+    assert "empty" in str(exc.value).lower()
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_unparseable_output(tmp_path):
+    fake_client = AsyncMock()
+    partial = _stage5_partial()  # data_capture.format == "json"
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "this is not json {")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="unparseable"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_fails_on_zero_rows(tmp_path):
+    """A parseable but EMPTY export (e.g. '[]') is the exact silent-failure
+    mode this gate exists for."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    session_mock = _make_session_mock()
+    _mock_capture_eval(session_mock, "[]")
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="0 trial rows"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_capture_gate_skips_when_no_method_configured(tmp_path):
+    """No capture method on the card == platform saves server-side; the
+    executor treats that as expected, so the gate must not fail it."""
+    fake_client = AsyncMock()
+    partial = _stage5_partial()
+    partial["runtime"]["data_capture"] = {}
+    session_mock = _make_session_mock()
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("data_capture_gate: skipped" in e for e in step.evidence_lines)
+
+
+def test_capture_row_count_variants():
+    from experiment_bot.reasoner.stage6_pilot import _capture_row_count
+    # JSON list / wrapper dict / scalar
+    assert _capture_row_count('[{"a": 1}, {"a": 2}]', "json") == 2
+    assert _capture_row_count('{"trials": [1, 2, 3], "meta": "x"}', "json") == 3
+    assert _capture_row_count('"just a string"', "json") == 0
+    with pytest.raises(ValueError, match="unparseable"):
+        _capture_row_count("not json {", "json")
+    # Delimited: header line assumed
+    assert _capture_row_count("rt,correct\n512,1\n498,1\n", "csv") == 2
+    assert _capture_row_count("rt,correct\n", "csv") == 0
+    assert _capture_row_count("", "csv") == 0
+    assert _capture_row_count("a\tb\n1\t2", "tsv") == 1
+
+
+# --- Wave A2: phase-predicate validation against recorded DOM snapshots ---
+
+def _partial_with_predicates(complete_js: str, test_js: str = "", practice_js: str = "") -> dict:
+    p = _stage5_partial()
+    p["runtime"]["phase_detection"] = {
+        "complete": complete_js, "test": test_js, "practice": practice_js,
+    }
+    return p
+
+
+def _throwaway_page(session_mock, evaluate_fn):
+    """Wire session.context.new_page() to a throwaway page mock whose
+    evaluate() runs evaluate_fn(wrapped_expr)."""
+    page = AsyncMock()
+    page.set_content = AsyncMock()
+    page.evaluate = AsyncMock(side_effect=evaluate_fn)
+    page.close = AsyncMock()
+    session_mock.context = MagicMock()
+    session_mock.context.new_page = AsyncMock(return_value=page)
+    return page
+
+
+@pytest.mark.asyncio
+async def test_complete_predicate_true_on_trial_dom_hard_fails(tmp_path):
+    """A 'complete' predicate that fires on the trial DOM would end live
+    sessions mid-task — hard failure, not a warning."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="document.querySelector('#stim') !== null",  # true during trials!
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return "#stim" in expr  # complete-predicate truthy, others false
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        with pytest.raises(PilotValidationError, match="complete"):
+            await run_stage6(
+                fake_client, partial, _bundle(),
+                label="fake_task", taskcards_dir=tmp_path,
+                headless=True, max_retries=1,
+            )
+
+
+@pytest.mark.asyncio
+async def test_complete_true_on_after_nav_dom_is_warning(tmp_path):
+    """'complete' TRUE on the after-navigation DOM (but false on trial DOM)
+    is a WARNING in evidence + pilot.md, not a failure."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+    # _passing_dict trial snapshot html is '<div>trial</div>'; after-nav DOM
+    # comes from dom_snapshot() = '<div>test</div>'. Key the eval off the
+    # set_content'ed html instead of the expr.
+    state = {"html": ""}
+
+    async def _set_content(html):
+        state["html"] = html
+
+    async def _eval(expr):
+        if "finished" in expr:
+            return "test" in state["html"]  # true only on the after-nav DOM
+        if "phase" in expr:
+            return "trial" in state["html"]  # trial predicate ok on trial DOM
+        return False
+
+    page = _throwaway_page(session_mock, _eval)
+    page.set_content = AsyncMock(side_effect=_set_content)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    warnings = [e for e in step.evidence_lines if "phase_predicate_warning" in e]
+    assert any("complete" in w and "after" in w.lower() for w in warnings), warnings
+    assert "phase_predicate_warning" in (tmp_path / "fake_task" / "pilot.md").read_text()
+
+
+@pytest.mark.asyncio
+async def test_no_trialish_predicate_true_on_trial_dom_is_warning(tmp_path):
+    """Neither 'test' nor 'practice' fires on the recorded trial DOM (the
+    observed live failure): WARNING, since trial-ness no longer depends on
+    the predicates."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="document.querySelector('#never-there') !== null",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return False  # nothing fires anywhere
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    warnings = [e for e in step.evidence_lines if "phase_predicate_warning" in e]
+    assert any("trial DOM" in w for w in warnings), warnings
+
+
+@pytest.mark.asyncio
+async def test_predicates_all_consistent_no_warnings(tmp_path):
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(
+        complete_js="window.finished === true",
+        test_js="window.phase === 'test'",
+    )
+    session_mock = _make_session_mock()
+
+    async def _eval(expr):
+        return "phase" in expr  # trial-ish true, complete false
+    _throwaway_page(session_mock, _eval)
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert not any("phase_predicate_warning" in e for e in step.evidence_lines)
+
+
+@pytest.mark.asyncio
+async def test_predicate_validation_degrades_to_warning_on_page_error(tmp_path):
+    """If the throwaway page can't be built, the check degrades to a warning
+    (advisory) rather than failing an otherwise-passing pilot."""
+    fake_client = AsyncMock()
+    partial = _partial_with_predicates(complete_js="window.finished === true")
+    session_mock = _make_session_mock()
+    session_mock.context = MagicMock()
+    session_mock.context.new_page = AsyncMock(side_effect=RuntimeError("no context"))
+
+    with _patch_pilot_session(session_mock):
+        out, step = await run_stage6(
+            fake_client, partial, _bundle(),
+            label="fake_task", taskcards_dir=tmp_path,
+            headless=True, max_retries=1,
+        )
+    assert any("phase_predicate" in e and "skipped" in e for e in step.evidence_lines)

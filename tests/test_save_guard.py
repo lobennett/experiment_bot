@@ -1,10 +1,8 @@
 """Save-path guard: a failure while persisting session outputs must leave a
-visible `.incomplete` marker instead of a silently partial run directory, and
-the oracle must refuse to score marked sessions (audit finding: the
-save_metadata→finalize sequence in the executor's finally block was unguarded,
-so a mid-save exception produced a plausible-looking but partial session)."""
-import json
-from pathlib import Path
+visible `.incomplete` marker instead of a silently partial run directory
+(audit finding: the save_metadata→finalize sequence in the executor's finally
+block was unguarded, so a mid-save exception produced a plausible-looking but
+partial session)."""
 from unittest.mock import MagicMock
 
 import pytest
@@ -12,7 +10,19 @@ import pytest
 from experiment_bot.core.config import TaskConfig
 from experiment_bot.core.executor import TaskExecutor
 from experiment_bot.output.writer import OutputWriter
-from experiment_bot.validation.oracle import validate_session_set
+
+
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
 
 MINIMAL_CONFIG = {
     "task": {"name": "Stroop", "platform": "expfactory", "constructs": [], "reference_literature": []},
@@ -35,7 +45,7 @@ MINIMAL_CONFIG = {
 
 
 def _executor():
-    return TaskExecutor(TaskConfig.from_dict(MINIMAL_CONFIG))
+    return TaskExecutor(TaskConfig.from_dict(MINIMAL_CONFIG), behavior_provider=_bp_stub())
 
 
 def _writer_with_run(tmp_path):
@@ -90,27 +100,3 @@ def test_save_outputs_success_writes_all_files_no_marker(tmp_path):
     assert (run_dir / "bot_log.json").exists()
     assert (run_dir / "run_trace.json").exists()
     assert not (run_dir / ".incomplete").exists()
-
-
-def _make_session(tmp_path, name, trials=10, marker=False):
-    d = tmp_path / name
-    d.mkdir(parents=True)
-    (d / "run_metadata.json").write_text(json.dumps({"total_trials": trials}))
-    if marker:
-        (d / ".incomplete").write_text("save failed: disk full")
-    return d
-
-
-def test_oracle_excludes_incomplete_save_sessions(tmp_path):
-    good = _make_session(tmp_path, "s1", trials=10)
-    bad = _make_session(tmp_path, "s2", trials=10, marker=True)
-
-    def loader(session_dir: Path) -> list[dict]:
-        return [{"condition": "congruent", "rt": 500.0, "correct": True, "omission": False}] * 10
-
-    norms = {"paradigm_class": "conflict", "metrics": {}}
-    report = validate_session_set("conflict", [good, bad], norms, trial_loader=loader)
-    assert report.n_used == 1
-    assert len(report.excluded_sessions) == 1
-    assert report.excluded_sessions[0]["session"] == "s2"
-    assert "incomplete_save" in report.excluded_sessions[0]["reason"]

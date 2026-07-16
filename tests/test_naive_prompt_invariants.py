@@ -16,6 +16,9 @@ from pathlib import Path
 from experiment_bot.behavior.gen_cli import (
     _EMPTY_KEY_MAP_NOTE, _INTERRUPT_NOTE, _RETRY_PREFIX, _RETRY_SUFFIX,
 )
+from experiment_bot.behavior.source_slim import (
+    BLOB_MARKER, EXCLUDED_LINE, EXCLUDED_SECTION_HEADER,
+)
 
 TEMPLATE = Path("src/experiment_bot/behavior/prompts/naive_gen.md")
 
@@ -41,6 +44,11 @@ ASSEMBLED_PROMPT_SOURCES = [
     ("gen_cli._RETRY_PREFIX", _RETRY_PREFIX),
     ("gen_cli._EMPTY_KEY_MAP_NOTE", _EMPTY_KEY_MAP_NOTE),
     ("gen_cli._RETRY_SUFFIX", _RETRY_SUFFIX),
+    # Wave C2: the mechanical slimmer's markers are spliced into the live
+    # prompt's {PAGE_SOURCE}, so they face the same neutrality scans.
+    ("source_slim.BLOB_MARKER", BLOB_MARKER),
+    ("source_slim.EXCLUDED_SECTION_HEADER", EXCLUDED_SECTION_HEADER),
+    ("source_slim.EXCLUDED_LINE", EXCLUDED_LINE),
 ]
 
 
@@ -50,6 +58,24 @@ def test_template_exists_with_placeholders():
         assert ph in text
 
 
+def test_template_documents_click_contract_mechanically():
+    """Wave B1: the click wire form is documented in the contract section
+    (inside the protocol code block, like the rest of the ctx fields)."""
+    text = TEMPLATE.read_text()
+    assert "response_elements" in text
+    assert '("click", index, rt_ms)' in text
+
+
+def test_template_documents_sequence_contract_mechanically():
+    """Sequence-response capability: the list-return wire form and
+    ctx.correct_sequence are documented in the contract section, mechanically
+    (like the click contract)."""
+    text = TEMPLATE.read_text()
+    assert "correct_sequence" in text
+    assert "list of actions" in text
+    assert '[("click", i, rt_ms), ("click", j, rt_ms), ...]' in text
+
+
 def test_no_banned_behavioral_terms():
     for name, text in ASSEMBLED_PROMPT_SOURCES:
         lowered = text.lower()
@@ -57,13 +83,21 @@ def test_no_banned_behavioral_terms():
             assert term not in lowered, f"banned term in {name}: {term!r}"
 
 
+# Frozen vocabulary of the deleted expert-arm effect registry: the naive
+# prompt must never name the old mechanism library either.
+_LEGACY_MECHANISM_NAMES = (
+    "autocorrelation", "fatigue_drift", "condition_repetition",
+    "lag1_pair_modulation", "post_event_slowing", "linear_drift",
+    "practice_effect", "vigilance_decrement", "pink_noise",
+)
+
+
 def test_no_registry_mechanism_names():
-    from experiment_bot.effects.registry import EFFECT_REGISTRY
     for name, text in ASSEMBLED_PROMPT_SOURCES:
         lowered = text.lower()
-        for mech_name in EFFECT_REGISTRY:
+        for mech_name in _LEGACY_MECHANISM_NAMES:
             assert mech_name.lower() not in lowered, (
-                f"registry mechanism name {mech_name!r} leaked into {name}")
+                f"mechanism name {mech_name!r} leaked into {name}")
 
 
 def test_no_numeric_behavioral_priors():

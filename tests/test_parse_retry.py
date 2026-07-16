@@ -1,9 +1,5 @@
-"""Unit tests for parse_with_retry helper. The helper generalizes
-Stage 2's existing inline parse-retry pattern into a reusable function
-applied to Stages 1, 3, 5, 6 (pilot refinement), and the norms_extractor.
-
-Stub LLM client mirrors the _StubClient pattern in
-tests/test_stage2_refinement_locks.py."""
+"""Unit tests for parse_with_retry helper, applied to Stages 1 and 6
+(pilot refinement)."""
 from __future__ import annotations
 import json
 

@@ -1,0 +1,229 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "8969f00f17ade938ad6753d68c027802962145854b7f7b4fbe7579af56ca31e1",
+    "scraper_version": "1.0.0",
+    "source_sha256": "3abcc88aa04cecf6b473e6570f80e87ba5f45ecd31015608dc81fecf24da1288",
+    "timestamp": "2026-07-14T18:15:42.682908+00:00",
+    "taskcard_sha256": "a5db7f62a1a935bf5e72eb2cef83212aa4cc97702254a213ecd965084d8524f9"
+  },
+  "task": {
+    "name": "operation_span_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "expfactory-deploy",
+    "paradigm_classes": [
+      "a complex working-memory span task",
+      "a task that alternates a processing judgment with a to-be-remembered item",
+      "a serial-order reproduction task performed by keyboard navigation"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "recall",
+      "description": "Spatial-location reproduction phase: an empty 4x4 grid is shown with a keyboard-navigable cursor (arrow keys move the cursor, spacebar selects). The participant reproduces the ordered sequence of highlighted locations from the current set.",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".response-active",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "recall",
+        "correct_sequence_js": "(() => { try { var d = jsPsych.data.get().values(); var stim = d.filter(function(r){ return r && (r.trial_id === 'test_stim' || r.trial_id === 'practice_stim'); }); var n = (typeof window.currentSetSize === 'number') ? window.currentSetSize : (window.efVars && typeof window.efVars.currentSetSize === 'number') ? window.efVars.currentSetSize : null; if (n === null) { var c = 0; for (var i = d.length - 1; i >= 0; i--) { var t = d[i] && d[i].trial_id; if (t === 'test_stim' || t === 'practice_stim') { c++; } else if (t && /recall|response/.test(t)) { break; } } n = c; } if (!n) return null; return stim.slice(-n).map(function(r){ return r.spatial_location; }); } catch (e) { return null; } })()"
+      }
+    },
+    {
+      "id": "processing",
+      "description": "Processing/operation judgment shown before each memory item (the equation/operation the participant must evaluate before the next to-be-remembered location). Two-choice keyboard judgment; the page's runtime correct-response variable is the authoritative key when present. (Response mode inferred; confirm at pilot whether this is keyboard or on-screen buttons.)",
+      "detection": {
+        "method": "dom_query",
+        "selector": ".prompt_box_operation",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "processing",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' ? window.correctResponse : (typeof window.correct_response !== 'undefined' ? window.correct_response : null))"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "repeat",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "key": "ArrowRight",
+            "description": "Advance through the instructions plugin pages (key_forward default is ArrowRight).",
+            "action": "keypress",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          }
+        ],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "test": "true"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "ArrowRight",
+        " ",
+        "Enter"
+      ],
+      "exit_pager_key": "ArrowRight",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        ".jspsych-btn",
+        "#jspsych-instructions-next"
+      ],
+      "feedback_fallback_keys": [
+        "Enter",
+        " "
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "processing": "dynamic",
+      "recall": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": null
+    },
+    "grid": {
+      "rows": 4,
+      "columns": 4,
+      "position_field": "spatial_location",
+      "presentation_trial_id_test": "test_stim",
+      "presentation_trial_id_practice": "practice_stim",
+      "note": "Memory item positions are recorded one-per-row on the single-item presentation trials; the recall target is the last-N presentation rows for the current set (see recall.correct_sequence_js). Grid dimensions inferred from style.css (.box flex-basis 25%)."
+    },
+    "recall_navigation": {
+      "move_keys": [
+        "ArrowUp",
+        "ArrowDown",
+        "ArrowLeft",
+        "ArrowRight"
+      ],
+      "select_key": " ",
+      "note": "Keyboard-navigated reproduction: cursor moves with arrow keys, spacebar confirms each target. Inferred from .response-active / .active-box / .spacebar-box CSS classes."
+    },
+    "adaptive": null
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'operation_span_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 0 navigation refinement(s), 0 selector update(s): 221 trials, conditions ['processing', 'recall'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['processing', 'recall']",
+        "attempt_2: trials=221, conditions=['processing', 'recall'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=40"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

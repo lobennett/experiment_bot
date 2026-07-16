@@ -1,0 +1,91 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/8/"
+      },
+      "duration_s": 1.361947917030193
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_next",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          },
+          {
+            "phase": "instructions_next_practice",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          }
+        ]
+      },
+      "duration_s": 16.6979682079982
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 8.670799434185028e-05
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 205,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "feedback": 7,
+            "instructions": 1,
+            "test": 7915,
+            "attention_check": 3,
+            "complete": 1
+          },
+          "response_window_open": 205,
+          "response_window_closed": 7710,
+          "identify_hits": {
+            "task_switch_trial": 205
+          },
+          "identify_misses": 8,
+          "advance_actions": 0,
+          "feedback_handled": 7,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 1
+        }
+      },
+      "duration_s": 573.296021749964
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.0239058749284595
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/spatial_task_switching_rdoc/2026-07-12_22-08-10-395181"
+      },
+      "duration_s": null
+    }
+  ]
+}

@@ -1,0 +1,239 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "5165229ca7f5fa66513096ae838e130760bd24ce88d89091ea74fda803255604",
+    "scraper_version": "1.0.0",
+    "source_sha256": "35517c335356c1647b10a91d09e35f12be9919965630523ad852e1408419a21a",
+    "timestamp": "2026-07-12T03:54:42.162513+00:00",
+    "taskcard_sha256": "1c9ed2fd2ff8f5e9a97260cc9d1cc1b910019c25554923c181cff7f6b91d5741"
+  },
+  "task": {
+    "name": "simple_span_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "spatial short-term memory span task",
+      "serial-order recall task",
+      "grid-based navigation-and-selection response task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "simple",
+      "description": "Blank 4x4 response grid on which the participant navigates with arrow keys and selects remembered black-cell locations in order using the spacebar; the currently focused cell carries the class 'response-active'.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.container .box.response-active')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "simple"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "spatial_span_encoding",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2500
+      },
+      {
+        "phase": "spatial_span_encoding_present",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 6000
+      },
+      {
+        "phase": "spatial_span_encoding_complete",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 10000
+      },
+      {
+        "phase": "attention_check",
+        "action": "keypress",
+        "target": "",
+        "key": "q",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || (function(){var e=document.querySelector('#jspsych-content')||document.querySelector('.jspsych-content');return !!e && /Experiment Complete|Thanks for completing this task/i.test(e.textContent||'');})()",
+      "test": "(function(){try{return jsPsych.data.get().last(1).values()[0].exp_stage==='test';}catch(e){return false;}})()",
+      "loading": "!document.querySelector('#jspsych-content') || !!document.querySelector('.lds-dual-ring')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next')",
+      "practice": "(function(){try{return jsPsych.data.get().last(1).values()[0].exp_stage==='practice';}catch(e){return false;}})()",
+      "feedback": "(function(){var e=document.querySelector('#jspsych-content')||document.querySelector('.jspsych-content');if(!e)return false;var t=e.textContent||'';return /Press\\s*(<i>)?enter(<\\/i>)?\\s*to (continue|begin)/i.test(t) && !document.querySelector('.container .box');})()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 400,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 6000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('.container .box.response-active')",
+      "trial_context_js": "(function(){try{var v=jsPsych.data.get().last(1).values()[0];return (v.exp_stage||'')+':block'+(v.block_num!=null?v.block_num:'');}catch(e){return '';}})()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 25.0,
+      "cdp_dwell_ms": 1050.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().csv()",
+      "format": "csv",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "simple": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 7000
+    },
+    "response_grid_controls": {
+      "navigation_keys": [
+        "ArrowLeft",
+        "ArrowRight",
+        "ArrowUp",
+        "ArrowDown"
+      ],
+      "selection_key": " ",
+      "grid_size": 16,
+      "grid_dimensions": "4x4",
+      "selections_per_trial": 4,
+      "note": "The response is a serial-order spatial sequence, not a single keypress: the participant starts on a random focused cell (class 'response-active'), moves with the four arrow keys, and commits each remembered location with the spacebar (up to 4 selections). Memorization grids appear one black cell at a time (class 'active-box') for 1000 ms each across four presentations and require no response (choices NO_KEYS)."
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index",
+      "default": 1,
+      "note": "group_index parity only reorders the (unused-in-this-simple-arm) processing-choice key list; it does not change the arrow/spacebar span response mapping."
+    },
+    "block_structure": {
+      "practice_iterations": 1,
+      "stimuli_per_trial": 4,
+      "test_blocks": 3,
+      "trials_per_test_block": 8,
+      "attention_check_before_each_test_block": true
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'simple_span_rdoc' with 1 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 4 navigation refinement(s), 0 selector update(s): 2 trials, conditions ['simple'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['simple']",
+        "attempt_2: trials=0, conditions=[], missing=['simple']",
+        "attempt_3: trials=0, conditions=[], missing=['simple']",
+        "attempt_4: trials=0, conditions=[], missing=['simple']",
+        "attempt_5: trials=2, conditions=['simple'], missing=[]",
+        "phase_predicate_warning: neither 'test' nor 'practice' fires on the recorded trial DOM",
+        "data_capture_gate: method=js_expression format=csv rows=114"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

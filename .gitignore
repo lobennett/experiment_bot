@@ -34,3 +34,8 @@ validation/smoke_*/
 .variance_study/work*/
 .variance_study/*_pilot_run/
 .variance_study/*_pilot_work/
+
+# Real RDoC human-subject behavioral matrices (PII: real sub_ids) — never commit.
+# Committed placeholders document the schema.
+data/human/rdoc/*.csv
+!data/human/rdoc/*.placeholder.csv

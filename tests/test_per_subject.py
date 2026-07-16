@@ -132,6 +132,186 @@ def test_canon_cogrun_correctness_from_colour(tmp_path):
 
 
 # --------------------------------------------------------------------------- #
+# Wave C3a: declarative export mapping (runtime.platform_export DSL)
+# --------------------------------------------------------------------------- #
+
+def test_canon_from_export_mapping_csv_row_filter_and_fields():
+    df = pd.DataFrame({
+        "trial_id": ["test_trial", "test_trial", "fixation", "test_trial"],
+        "condition": ["congruent", "incongruent", "congruent", "incongruent"],
+        "rt": ["500", "600", "1", ""],
+        "correct_trial": ["1", "0", "1", "0"],
+    })
+    mapping = {
+        "row_filter": {"equals": {"trial_id": "test_trial"}},
+        "fields": {
+            "condition": {"column": "condition"},
+            "rt": {"column": "rt", "parse": "float"},
+            "correct": {"column": "correct_trial", "parse": "truthy"},
+        },
+    }
+    canon = ps.canon_from_export_mapping(df, mapping)
+    assert len(canon) == 3  # fixation row dropped
+    assert list(canon["condition"]) == ["congruent", "incongruent", "incongruent"]
+    assert canon["rt"].tolist()[:2] == [500.0, 600.0]
+    # omission derived from missing rt, never mapped directly
+    assert np.isnan(canon["rt"].iloc[2]) and bool(canon["omission"].iloc[2])
+    assert not canon["omission"].iloc[0]
+    assert canon["correct"].tolist()[:2] == [1.0, 0.0]
+    assert list(canon["order"]) == [0, 1, 2]
+
+
+def test_canon_from_export_mapping_json_value_map_one_of_and_passthrough(tmp_path):
+    rows = [
+        {"phase": "test", "signal": "no", "rt": 450, "acc": True, "delay": None},
+        {"phase": "test", "signal": "yes", "rt": None, "acc": True, "delay": 200},
+        {"phase": "practice", "signal": "no", "rt": 400, "acc": True, "delay": None},
+        {"phase": "test", "signal": "noise", "rt": 999, "acc": False, "delay": None},
+    ]
+    (tmp_path / "experiment_data.json").write_text(json.dumps(rows))
+    df = ps.load_experiment_df(tmp_path)
+    mapping = {
+        "row_filter": {"equals": {"phase": "test"},
+                       "one_of": {"signal": ["no", "yes"]}},
+        "fields": {
+            "condition": {"column": "signal",
+                          "value_map": {"no": "go", "yes": "stop"}},
+            "rt": {"column": "rt", "parse": "float"},
+            "correct": {"column": "acc", "parse": "truthy"},
+            "ssd": {"column": "delay", "parse": "float"},
+        },
+    }
+    canon = ps.canon_from_export_mapping(df, mapping)
+    assert len(canon) == 2  # practice + out-of-one_of rows dropped
+    assert list(canon["condition"]) == ["go", "stop"]
+    assert canon["correct"].tolist() == [1.0, 1.0]
+    # extra numeric column passes through under the chosen field name
+    assert np.isnan(canon["ssd"].iloc[0]) and canon["ssd"].iloc[1] == 200.0
+
+
+def test_canon_from_export_mapping_requires_condition_and_rt():
+    df = pd.DataFrame({"rt": [1.0]})
+    with pytest.raises(ValueError, match="condition"):
+        ps.canon_from_export_mapping(df, {"fields": {"rt": {"column": "rt"}}})
+    with pytest.raises(ValueError, match="rt"):
+        ps.canon_from_export_mapping(df, {"fields": {"condition": {"column": "rt"}}})
+
+
+def test_canon_from_export_mapping_missing_column_raises():
+    df = pd.DataFrame({"cond": ["a"], "rt": [1.0]})
+    mapping = {"fields": {"condition": {"column": "nope"},
+                          "rt": {"column": "rt", "parse": "float"}}}
+    with pytest.raises(ValueError, match="nope"):
+        ps.canon_from_export_mapping(df, mapping)
+
+
+# --------------------------------------------------------------------------- #
+# Wave C3b: generic per-subject metrics for unknown paradigms
+# --------------------------------------------------------------------------- #
+
+def test_generic_metrics_per_condition_and_temporal():
+    # Same RT/correct series as test_post_error_slowing_and_lag1_within_block,
+    # so the temporal estimator expectations carry over verbatim.
+    trials = pd.DataFrame({
+        "order": range(5),
+        "condition": ["a", "a", "b", "a", "b"],
+        "rt":       [500.0, 510.0, 490.0, 560.0, 520.0],
+        "correct":  [1,     1,     0,     1,     1],
+        "omission": [False] * 5,
+    })
+    m = ps.generic_metrics(trials)
+    assert m["n_trials"] == 5
+    assert m["n_a"] == 3 and m["n_b"] == 2
+    assert m["a_rt"] == pytest.approx((500 + 510 + 560) / 3)  # correct-trial RTs
+    assert m["b_rt"] == pytest.approx(520.0)                  # the correct b trial
+    assert m["a_accuracy"] == pytest.approx(1.0)
+    assert m["b_accuracy"] == pytest.approx(0.5)
+    assert m["a_omission_rate"] == pytest.approx(0.0)
+    assert m["post_error_slowing_ms"] == pytest.approx(53.333, abs=0.01)
+    assert not np.isnan(m["lag1_autocorr"])
+
+
+def test_generic_metrics_without_correct_column_uses_responded_rts():
+    trials = pd.DataFrame({
+        "order": range(3), "condition": ["a"] * 3,
+        "rt": [500.0, np.nan, 520.0],
+        "correct": [np.nan] * 3,
+        "omission": [False, True, False],
+    })
+    m = ps.generic_metrics(trials)
+    assert m["a_rt"] == pytest.approx(510.0)  # all responded RTs
+    assert np.isnan(m["a_accuracy"])
+    assert m["a_omission_rate"] == pytest.approx(1 / 3)
+
+
+# --------------------------------------------------------------------------- #
+# Wave C3: card-declared mapping drives collect_bot_per_subject for labels
+# with no hand-written loader
+# --------------------------------------------------------------------------- #
+
+_FLANKER_CARD = REPO / "taskcards" / "expfactory_flanker" / "41e68e61.json"
+
+
+@pytest.mark.skipif(not _FLANKER_CARD.exists(), reason="committed flanker card absent")
+def test_collect_bot_generic_resolves_card_and_computes_generic_metrics(tmp_path):
+    import shutil
+    from experiment_bot.taskcard.hashing import taskcard_sha256
+    tdir = tmp_path / "taskcards" / "expfactory_flanker"
+    tdir.mkdir(parents=True)
+    shutil.copy(_FLANKER_CARD, tdir / "41e68e61.json")
+    full_hash = taskcard_sha256(json.loads(_FLANKER_CARD.read_text()))
+
+    sd = tmp_path / "out" / "flanker_rdoc" / "2026-01-01_00-00-00"
+    sd.mkdir(parents=True)
+    pd.DataFrame({
+        "trial_id": ["test_trial"] * 4 + ["fixation"],
+        "condition": ["congruent", "congruent", "incongruent", "incongruent", "congruent"],
+        "rt": [400.0, 420.0, 500.0, np.nan, 1.0],
+        "correct_trial": [1, 1, 1, 0, 1],
+    }).to_csv(sd / "experiment_data.csv", index=False)
+    (sd / "run_metadata.json").write_text(json.dumps({"taskcard_sha256": full_hash}))
+
+    # decoy session whose card hash does NOT resolve under this label
+    decoy = tmp_path / "out" / "other_task" / "2026-01-01_00-00-01"
+    decoy.mkdir(parents=True)
+    (decoy / "experiment_data.csv").write_text("x\n1\n")
+    (decoy / "run_metadata.json").write_text(json.dumps({"taskcard_sha256": "ff" * 32}))
+
+    df = ps.collect_bot_per_subject(tmp_path / "out", "expfactory_flanker",
+                                    taskcards_dir=tmp_path / "taskcards")
+    assert len(df) == 1
+    row = df.iloc[0]
+    assert row["metrics"] == "generic"
+    assert row["n_trials"] == 4  # fixation filtered by the card's row_filter
+    assert row["congruent_rt"] == pytest.approx(410.0)
+    assert row["incongruent_rt"] == pytest.approx(500.0)
+    assert row["incongruent_omission_rate"] == pytest.approx(0.5)
+
+
+def test_collect_bot_generic_records_error_when_card_lacks_mapping(tmp_path):
+    """A resolvable card WITHOUT platform_export yields an error row, not a
+    crash (graceful fallback)."""
+    import shutil
+    from experiment_bot.taskcard.hashing import taskcard_sha256
+    payload = json.loads(_FLANKER_CARD.read_text())
+    payload["runtime"].pop("platform_export", None)
+    tdir = tmp_path / "taskcards" / "mylabel"
+    tdir.mkdir(parents=True)
+    (tdir / "card.json").write_text(json.dumps(payload))
+    full_hash = taskcard_sha256(payload)
+
+    sd = tmp_path / "out" / "flanker_rdoc" / "2026-01-01_00-00-00"
+    sd.mkdir(parents=True)
+    (sd / "experiment_data.csv").write_text("a,b\n1,2\n")
+    (sd / "run_metadata.json").write_text(json.dumps({"taskcard_sha256": full_hash}))
+
+    df = ps.collect_bot_per_subject(tmp_path / "out", "mylabel",
+                                    taskcards_dir=tmp_path / "taskcards")
+    assert len(df) == 1
+    assert "platform_export" in df.iloc[0]["error"]
+
+
+# --------------------------------------------------------------------------- #
 # END-TO-END reproduction: human Stroop must match the abstract (672/795/123)
 # --------------------------------------------------------------------------- #
 

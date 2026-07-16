@@ -7,6 +7,19 @@ from experiment_bot.core.config import TaskConfig
 from experiment_bot.core.executor import TaskExecutor
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
+
 FULL_CONFIG = {
     "task": {
         "name": "Stop Signal Task",
@@ -58,12 +71,12 @@ def test_full_config_parses():
 
 def test_executor_constructs_from_config():
     config = TaskConfig.from_dict(FULL_CONFIG)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     # Verify the lookup has all stimulus rules
     assert len(executor._lookup._rules) == 3
-    # Verify sampler has all distributions
-    assert "go_correct" in executor._sampler._samplers
-    assert "stop_failure" in executor._sampler._samplers
+    # Structural projection retains distribution keys (trial-condition identity)
+    assert "go_correct" in executor._config.response_distributions
+    assert "stop_failure" in executor._config.response_distributions
 
 
 def test_executor_works_with_runtime_config_only():
@@ -116,7 +129,7 @@ def test_executor_works_with_runtime_config_only():
         },
     }
     config = TaskConfig.from_dict(config_dict)
-    executor = TaskExecutor(config, seed=42)
+    executor = TaskExecutor(config, seed=42, behavior_provider=_bp_stub())
     # Verify all runtime config values are accessible
     assert executor._config.runtime.timing.max_no_stimulus_polls == 100
     assert executor._config.runtime.timing.completion_wait_ms == 1000
@@ -125,6 +138,3 @@ def test_executor_works_with_runtime_config_only():
     assert executor._config.runtime.trial_interrupt.detection_condition == ""
     # Verify key_map works
     assert executor._key_map == {"go": "a"}
-    # Verify sampler is functional
-    rt = executor._sampler.sample_rt_with_fallback("go_correct")
-    assert 150 < rt < 2000

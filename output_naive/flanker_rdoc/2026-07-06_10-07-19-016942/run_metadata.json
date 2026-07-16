@@ -1,0 +1,36 @@
+{
+  "task_name": "flanker_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/3/",
+  "total_trials": 126,
+  "headless": true,
+  "session_seed": 739002,
+  "behavior_program": {
+    "sha256": "577a96b2f4f83af313976662944806edda780e81618a7771f33013bb61e7fff3",
+    "path": "naive_programs/expfactory_flanker/577a96b2f4f83af313976662944806edda780e81618a7771f33013bb61e7fff3.py",
+    "seed": 739002
+  },
+  "taskcard_sha256": "41e68e61c1f5b4cefda6353a12288a5ac33a16ef593f273af5b011408df2c511",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 125
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "js_eval_errors_by_source": {},
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

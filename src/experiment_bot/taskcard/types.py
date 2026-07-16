@@ -45,13 +45,14 @@ class ParameterValue:
       - A single string: "high" / "medium" / "low" / "unknown" — applies to
         the parameter as a whole.
       - A dict keyed by sub-parameter name: e.g. {"mu": "high", "sigma": "medium"}
-        — used when Stage 5 of the Reasoner tags individual sub-parameters
-        (mu/sigma/tau) at different sensitivity levels.
+        — written by the expert pipeline (main branch) when it tagged
+        individual sub-parameters at different sensitivity levels.
 
-    The `distribution` field names the RT sampler family the Reasoner chose
-    for this condition. Defaults to "ex_gaussian" for backward compatibility
-    with existing TaskCards that predate this field. The executor honors it
-    via _taskcard_to_config → DistributionConfig; see core/distributions.py.
+    The `distribution` field is retained for compatibility with committed
+    TaskCards (it named the expert arm's RT sampler family). The naive
+    executor path projects response_distributions structurally — only the
+    condition KEYS are read (trial-condition identity); behavioral content
+    comes from the generated participant program.
     """
     value: dict
     literature_range: dict | None = None
@@ -130,7 +131,7 @@ class ProducedBy:
 
 from experiment_bot.core.config import (
     TaskMetadata, StimulusConfig, NavigationConfig, RuntimeConfig,
-    PerformanceConfig, BetweenSubjectJitterConfig,
+    PerformanceConfig,
 )
 
 
@@ -146,7 +147,7 @@ class TaskCard:
     performance: PerformanceConfig
     response_distributions: dict[str, ParameterValue]
     temporal_effects: dict[str, ParameterValue]
-    between_subject_jitter: BetweenSubjectJitterConfig | dict
+    between_subject_jitter: dict
     reasoning_chain: list[ReasoningStep]
     pilot_validation: dict
 
@@ -186,11 +187,7 @@ class TaskCard:
             "performance": self.performance.to_dict(),
             "response_distributions": {k: v.to_dict() for k, v in self.response_distributions.items()},
             "temporal_effects": {k: v.to_dict() for k, v in self.temporal_effects.items()},
-            "between_subject_jitter": (
-                self.between_subject_jitter.to_dict()
-                if hasattr(self.between_subject_jitter, "to_dict")
-                else self.between_subject_jitter
-            ),
+            "between_subject_jitter": self.between_subject_jitter,
             "reasoning_chain": [s.to_dict() for s in self.reasoning_chain],
             "pilot_validation": self.pilot_validation,
         }

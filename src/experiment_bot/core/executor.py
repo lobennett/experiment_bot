@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import asyncio
 import logging
-import random
 import sys
 import time
 from typing import TYPE_CHECKING
@@ -10,50 +9,70 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from experiment_bot.llm.protocol import LLMClient
 
-import numpy as np
 from playwright.async_api import Error as PlaywrightError
 from playwright.async_api import Page
 
+from experiment_bot.behavior.provider import (
+    ClickResponse, SequenceResponse, stim_response_elements,
+)
 from experiment_bot.core.config import TaskConfig, TaskPhase
-from experiment_bot.core.distributions import ResponseSampler, jitter_distributions
 from experiment_bot.core.stimulus import StimulusLookup, StimulusMatch
-from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.pilot_session import (
+    HUMAN_READING_DELAY_RANGE, INSTRUCTIONS_PAGER_SELECTORS, PilotSession,
+)
+from experiment_bot.core.loop_diagnostics import LoopDiagnostics
+from experiment_bot.core.outcome import classify_outcome
 from experiment_bot.navigation.stuck import StuckDetector
 from experiment_bot.output.writer import OutputWriter
 from experiment_bot.core.phase_detection import detect_phase
 from experiment_bot.output.data_capture import ConfigDrivenCapture
+from experiment_bot.output.data_quality import compute_stall_flags, DEFAULT_CEILING_MS
 
 logger = logging.getLogger(__name__)
 
 # SP16: adaptive nav constants
 _ADAPTIVE_NAV_STUCK_POLLS = 20
 _ADAPTIVE_NAV_BUDGET = 10
-# SP16: adaptive nav fires only when an INSTRUCTIONS-phase screen survives this
-# many consecutive standard nav re-runs without its DOM changing. Gating on a
-# stuck INSTRUCTIONS DOM (not on stimulus-polling misses) prevents false-firing
-# during normal between-trial gaps (fixation, ITI, response-window-closed),
-# which would otherwise press keys that skip real trials.
-_ADAPTIVE_NAV_INSTRUCTIONS_STUCK = 2
+# SP16 (generalized in Wave C1): adaptive nav fires only when a non-trial
+# screen survives this many consecutive stuck detections without its DOM
+# changing. For INSTRUCTIONS-phase screens a "detection" is one standard nav
+# re-run; for any other phase label (the LLM-written phase predicates are
+# advisory and can misclassify) a "detection" is one throttled advance
+# attempt (>= _ADVANCE_MIN_SPACING_S apart) with no stimulus identify hit.
+# Gating on a stuck DOM — never on raw stimulus-polling misses — prevents
+# false-firing during normal between-trial gaps (fixation, ITI,
+# response-window-closed), which would otherwise press keys that skip real
+# trials.
+_ADAPTIVE_NAV_STUCK_DETECTIONS = 2
 
+# Human-paced advance throttle: minimum spacing (seconds) between two
+# "press advance keys" actions on a no-stimulus screen. Documented in the
+# commit that introduced this gate (af8cf4d, "human-paced advance throttle
+# (_ADVANCE_MIN_SPACING_S=2.0)") but the constant itself was never actually
+# defined, leaving a NameError latent in the "no stimulus match" miss branch
+# whenever consecutive_misses landed on an advance_interval_polls multiple
+# (found while adding A3 loop-diagnostics test coverage for that branch).
+_ADVANCE_MIN_SPACING_S = 2.0
 
-# Dedicated seed-stream tag for the between-subject jitter draw, so wiring it
-# in does not shift the trial-level RNG sequences of an unchanged seed.
-_BSJ_SEED_STREAM = 202607
+# Zero-progress watchdog: abort the trial loop if NO trial has completed
+# after this many seconds of session time. The miss-counter guard cannot
+# catch pages that never advance, because instructions/feedback handling
+# legitimately resets the counter — observed live as a survey page looping
+# indefinitely (never a trial, never an exit). Generous bound: slow
+# multi-screen tasks reach their first trial within a few minutes.
+_ZERO_TRIAL_WATCHDOG_S = 600.0
 
 
 def _taskcard_to_config(tc):
     """Project a TaskCard into a TaskConfig the executor knows how to drive.
 
     Reads: tc.task, tc.stimuli, tc.navigation, tc.runtime, tc.task_specific,
-    tc.performance. Behavioral fields are projected from ParameterValue.value.
+    tc.performance. response_distributions are projected structurally (their
+    KEYS identify trial-level conditions in _is_trial_stimulus); the naive
+    behavior program supplies all behavioral content.
     """
-    from experiment_bot.core.config import (
-        TaskConfig,
-        DistributionConfig,
-        TemporalEffectsConfig,
-        BetweenSubjectJitterConfig,
-    )
-    cfg = TaskConfig(
+    from experiment_bot.core.config import TaskConfig, DistributionConfig
+    return TaskConfig(
         task=tc.task,
         stimuli=tc.stimuli,
         response_distributions={
@@ -67,17 +86,6 @@ def _taskcard_to_config(tc):
         task_specific=tc.task_specific,
         runtime=tc.runtime,
     )
-    te_dict = {k: v.value for k, v in tc.temporal_effects.items()}
-    cfg.temporal_effects = TemporalEffectsConfig.from_dict(te_dict)
-    bsj = tc.between_subject_jitter
-    if isinstance(bsj, dict):
-        bsj_value = bsj.get("value", {})
-    else:
-        # already a BetweenSubjectJitterConfig
-        cfg.between_subject_jitter = bsj
-        return cfg
-    cfg.between_subject_jitter = BetweenSubjectJitterConfig.from_dict(bsj_value)
-    return cfg
 
 
 class TaskExecutor:
@@ -89,12 +97,20 @@ class TaskExecutor:
         *,
         seed: int | None = None,
         headless: bool = False,
-        session_params: dict | None = None,
         llm_client: "LLMClient | None" = None,  # SP16: enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
         calibrate: bool = True,  # run the startup keypress-latency calibration pass
-        behavior_provider=None,  # SP21: BehaviorSession replacing the behavioral layer
+        behavior_provider=None,  # SP21: BehaviorSession — the behavioral layer (required)
     ):
+        # The naive behavior program IS the behavioral layer; the executor
+        # supplies only navigation, detection, delivery, and capture.
+        if behavior_provider is None:
+            raise ValueError(
+                "TaskExecutor requires a behavior_provider (BehaviorSession "
+                "wrapping a generated participant program). Run with "
+                "--behavior-program <path-or-label/hash>."
+            )
+        self._behavior_provider = behavior_provider
         # If a TaskCard was passed, project to a TaskConfig view the executor knows.
         from experiment_bot.taskcard.types import TaskCard
         if isinstance(config, TaskCard):
@@ -102,61 +118,22 @@ class TaskExecutor:
             config = _taskcard_to_config(config)
         else:
             self._taskcard = None
-        # Apply the TaskCard's declared between-subject variance before any
-        # sampler is built. A dedicated seed stream keeps trial-level RNGs
-        # (self._rng / ResponseSampler) draw-identical for zero-jitter
-        # configs; jitter_distributions returns the config unchanged (no rng
-        # draws) when the block is zero/absent.
-        self._behavior_provider = behavior_provider
-        if behavior_provider is None:
-            jitter_rng = np.random.default_rng(
-                None if seed is None else [seed, _BSJ_SEED_STREAM]
-            )
-            config = jitter_distributions(config, jitter_rng)
-        bsj = config.between_subject_jitter
-        self._jitter_realized = {
-            "configured": bool(bsj.rt_mean_sd_ms or bsj.accuracy_sd),
-            "response_distributions": {
-                k: dict(v.params) for k, v in config.response_distributions.items()
-            },
-            "accuracy": dict(config.performance.accuracy),
-            "omission_rate": dict(config.performance.omission_rate),
-        }
         self._config = config
         self._headless = headless
         self._keep_open = keep_open
         self._calibrate = calibrate
-        # Persisted to run_metadata.json so a session is exactly reproducible
-        # (same seed + same TaskCard hash = same output) for runs WITHOUT
-        # adaptive nav (--no-llm-client). Sessions that invoke SP16 adaptive
-        # nav are NOT bit-reproducible from the seed alone — the navigation
-        # path is a nondeterministic session-time LLM decision; only RT/accuracy
-        # sampling is seeded. The realized nav path is recorded per-session in
-        # bot_log.json (type:'adaptive_nav') for audit. Per-session sampled
-        # values are auditable post-hoc.
+        # Persisted to run_metadata.json for provenance. The seed selects the
+        # behavior program's participant; the realized nav path of sessions
+        # that invoke SP16 adaptive nav is recorded per-session in
+        # bot_log.json (type:'adaptive_nav') for audit.
         self._session_seed = seed
-        self._session_params = session_params or {}
-        self._rng = np.random.default_rng(seed)
-        self._py_rng = random.Random(seed)
 
         self._lookup = StimulusLookup(config)
-        self._sampler = ResponseSampler(
-            config.response_distributions,
-            temporal_effects=config.temporal_effects,
-            floor_ms=config.runtime.timing.rt_floor_ms,
-            seed=seed,
-            paradigm_classes=getattr(config.task, "paradigm_classes", None) or [],
-        )
         self._writer = OutputWriter()
         self._trial_count = 0
-        # Rolling window of recent error flags (most recent first / appendleft).
-        # Default 1-trial window. Future generic mechanisms that need a
-        # longer history can read this state field; today the
-        # post_event_slowing handler only consults the most recent trial.
-        from collections import deque
-        self._recent_errors: deque[bool] = deque(maxlen=8)
         self._prev_interrupt_detected: bool = False
         self._response_window_confirmed: bool = False  # Set by trial loop to skip redundant check
+        self._last_advance_action: float = 0.0  # human-paced advance throttle (monotonic)
         self._seen_response_keys: set[str] = set()  # Track dynamically resolved keys
 
         # Resolve static key mappings from task_specific
@@ -202,18 +179,22 @@ class TaskExecutor:
         # Keys: "response_key_js", "response_window_js"
         self._js_eval_errors: dict[str, int] = {}
 
-        # Task 4 (robust-003): count trials where error injection was requested but
-        # unrealizable because no genuinely-wrong key exists (single-real-key paradigms).
-        # When unrealizable, the call site presses the correct key and logs is_error=False
-        # so bot_log matches the key actually pressed.
-        self._error_injection_unrealizable: int = 0
-
         # Task 6 (platform-004): data-capture visibility — populated by
         # _wait_for_completion so the run() finally block can write them into
         # run_metadata without needing a return value from the method.
         self._data_capture_written: bool = False
         self._data_capture_method: str = ""
         self._data_capture_failed: bool = False
+
+        # A3: per-poll trial-loop diagnostics — accumulated at the trial
+        # loop's existing branch points; written into both run_trace's
+        # trial_loop stage and run_metadata.loop_diagnostics.
+        self._loop_diagnostics = LoopDiagnostics()
+
+        # A5b: capture-time stall flags — populated by _wait_for_completion
+        # after a successful data capture; default explains why it's absent
+        # (no capture attempted / capture failed) when never overwritten.
+        self._data_quality: dict = {"stall_trials": None, "note": "no data captured"}
 
     @staticmethod
     def _resolve_key_mapping(config: TaskConfig) -> dict[str, str]:
@@ -243,8 +224,8 @@ class TaskExecutor:
         self, page: Page, n_keys: int | None = None,
     ) -> None:
         """SP11 Phase 5a/5b: run a calibration sequence using the
-        configured deliverer; install the resulting CalibrationResult
-        on the sampler.
+        configured deliverer; record the CalibrationResult in
+        run_metadata for latency audit.
 
         No-op if no deliverer is configured (delivery_channel='none').
         Should be called after navigation completes (so the bot is
@@ -275,13 +256,12 @@ class TaskExecutor:
                 keys=keys,
                 target_intervals_ms=intervals,
             )
-            self._sampler.set_calibration_result(self._calibration_run.result)
             logger.info(
                 f"Calibration pass complete: model="
                 f"{self._calibration_run.result.model}, "
                 f"n_correctly_recorded="
                 f"{self._calibration_run.result.n_events_correctly_recorded}/"
-                f"{n_keys}, applied to sampler"
+                f"{n_keys}"
             )
         except Exception as e:
             logger.warning(f"Calibration pass failed: {e}; continuing un-calibrated.")
@@ -366,6 +346,51 @@ class TaskExecutor:
             "skipped": rec.skipped,
             "skip_reason": rec.skip_reason,
         }
+
+    async def _fire_response_key_intra_trial(self, page: Page, key: str) -> dict:
+        """Fire ONE keypress that is part of a multi-action within-trial
+        sequence (serial reproduction). Unlike `_fire_response_key`, this
+        must NOT run the per-trial marker protocol (dwell + wait-for-advance)
+        — all actions share one trial, so waiting for the marker to advance
+        would block each key until the whole trial ends (observed live on
+        span recall: only the first key landed inside the response window,
+        the rest fired into the next screen). Uses the deliverer's
+        marker-free `fire_key` when available; otherwise the legacy
+        page.keyboard.press path (which never waited)."""
+        fire_key = getattr(self._deliverer, "fire_key", None)
+        if fire_key is None:
+            await page.keyboard.press(key)
+            self._delivery_channel_log["page_keyboard_press"] = (
+                self._delivery_channel_log.get("page_keyboard_press", 0) + 1
+            )
+            return {
+                "channel": "page_keyboard_press",
+                "trial_marker_at_fire": None,
+                "skipped": False,
+                "skip_reason": None,
+            }
+        meta = await fire_key(key)
+        channel = meta.get("channel", self._deliverer.DELIVERY_CHANNEL)
+        self._delivery_channel_log[channel] = (
+            self._delivery_channel_log.get(channel, 0) + 1
+        )
+        return meta
+
+    async def _fire_response_click(self, page: Page, selector: str) -> dict:
+        """Wave B1: deliver a click response on a response element's
+        selector. Mirrors the feedback-selector click pattern (.first /
+        visibility wait / click, bounded timeouts). A delivery failure is
+        recorded in the metadata, never raised — the trial still logs.
+        """
+        meta: dict = {"method": "locator_click", "selector": selector}
+        try:
+            btn = page.locator(selector).first
+            await btn.wait_for(state="visible", timeout=1500)
+            await btn.click(timeout=1500)
+        except Exception as e:
+            logger.warning(f"Click delivery failed for {selector!r}: {e}")
+            meta["error"] = str(e)
+        return meta
 
     # Sentinel values returned by response_key_js that indicate "withhold / no response".
     # Case-insensitive comparison is used — see _is_withhold_sentinel().
@@ -467,73 +492,84 @@ class TaskExecutor:
 
         return None
 
+    async def _resolve_correct_sequence(
+        self, match: StimulusMatch, page: Page | None,
+        response_elements: tuple[tuple[str, str], ...],
+    ) -> tuple[int, ...] | None:
+        """Resolve THIS trial's target sequence from the card's
+        ``correct_sequence_js`` (per-stimulus or global task_specific),
+        mirroring how ``response_key_js`` resolves the correct key. The JS
+        may return ordered element indices OR ordered element labels;
+        labels are mapped to their index in ``response_elements``. Returns
+        None when the card exposes no correct_sequence_js (single-action
+        tasks are untouched) or when the page context is unavailable.
+        """
+        if page is None:
+            return None
+        stim_cfg = next(
+            (s for s in self._config.stimuli if s.id == match.stimulus_id), None)
+        js = ""
+        if stim_cfg is not None:
+            js = getattr(stim_cfg.response, "correct_sequence_js", "") or ""
+        if not js:
+            js = self._config.task_specific.get("correct_sequence_js", "") or ""
+        if not js:
+            return None
+        try:
+            raw = await page.evaluate(js)
+        except PlaywrightError as e:
+            logger.warning(f"correct_sequence_js failed for {match.stimulus_id}: {e}")
+            return None
+        except Exception as e:
+            logger.warning(f"[js_eval_error:correct_sequence_js] {match.stimulus_id}: {e}")
+            self._js_eval_errors["correct_sequence_js"] = (
+                self._js_eval_errors.get("correct_sequence_js", 0) + 1)
+            return None
+        if not isinstance(raw, (list, tuple)):
+            return None
+        labels = [lbl for lbl, _sel in response_elements]
+        out: list[int] = []
+        for entry in raw:
+            if isinstance(entry, bool):
+                return None
+            if isinstance(entry, int):
+                out.append(entry)
+            elif isinstance(entry, str) and entry in labels:
+                out.append(labels.index(entry))
+            else:
+                return None
+        return tuple(out)
+
     def _is_trial_stimulus(self, match: StimulusMatch) -> bool:
-        """Whether a stimulus represents a trial requiring RT-distributed response.
+        """Whether a stimulus is a trial the behavior program should answer.
 
-        Derived from config: a condition is trial-level if it maps to an RT distribution.
+        A stimulus is trial-level unless it plays a structural role: the
+        navigation condition, an attention-check condition, or the
+        mid-trial interrupt signal (detected inside a trial, never
+        trial-initiating). Legacy expert-era cards inferred trial-ness
+        from response_distributions; structural-only cards carry an empty
+        dict there, which made every stimulus non-trial and silently
+        produced 0-trial sessions (held-out flanker, 2026-07-06).
         """
-        dists = self._config.response_distributions
         condition = match.condition
-        # Direct match or correct/error variant exists
-        if condition in dists or f"{condition}_correct" in dists or f"{condition}_error" in dists:
-            return True
-        # Has distributions and stimulus has a response key → likely a trial
-        return bool(dists) and match.response_key is not None
-
-    def _should_respond_correctly(self, condition: str) -> bool:
-        """Decide whether to give the correct response based on accuracy targets."""
-        return self._py_rng.random() < self._config.performance.get_accuracy(condition)
-
-    def _should_omit(self, condition: str = "") -> bool:
-        return self._py_rng.random() < self._config.performance.get_omission_rate(condition)
-
-    def _pick_wrong_key(self, correct_key: str) -> str | None:
-        """Return a random incorrect key from known response keys, or None if unrealizable.
-
-        Returns None when no genuinely-wrong key exists (single-real-key paradigm).
-        The call site must treat None as "cannot inject error; press correct key honestly"
-        and set is_error=False so bot_log matches what was actually pressed.
-        """
-        # Use static key_map when all values are real keys; exclude sentinel values
-        static_keys = {
-            v for v in self._key_map.values()
-            if v not in ("dynamic", "dynamic_mapping")
-            and not self._is_withhold_sentinel(v)
-        }
-        all_keys = list(static_keys or self._seen_response_keys)
-        wrong_keys = [k for k in all_keys if k != correct_key and not self._is_withhold_sentinel(k)]
-        if not wrong_keys:
-            return None  # Unrealizable: no genuinely-wrong key available
-        return self._py_rng.choice(wrong_keys)
-
-    def _resolve_rt_distribution_key(self, condition: str, is_correct: bool) -> str:
-        """Determine which RT distribution to sample from.
-
-        Resolution order:
-        1. {condition}_correct / {condition}_error variants
-        2. Direct condition name match
-        3. Fallback to first available distribution
-        """
-        dists = self._config.response_distributions
-
-        # Try condition-specific correct/error variants
-        if not is_correct:
-            error_key = f"{condition}_error"
-            if error_key in dists:
-                return error_key
-        else:
-            correct_key = f"{condition}_correct"
-            if correct_key in dists:
-                return correct_key
-
-        # Direct match: condition name is itself a distribution key
-        if condition in dists:
-            return condition
-
-        # Fallback to first available distribution
-        if dists:
-            return next(iter(dists))
-        return condition
+        if condition == self._navigation_condition_name:
+            return False
+        if condition in self._attention_check_conditions:
+            return False
+        interrupt_cond = getattr(
+            self._config.runtime.trial_interrupt, "detection_condition", None
+        )
+        if interrupt_cond and condition == interrupt_cond:
+            return False
+        # Any other declared stimulus is a trial. In particular, key=None is
+        # the DOCUMENTED withhold channel ("key name or null to withhold",
+        # prompts/system.md) — go/nogo-style withhold trials are real trials
+        # the behavior program must decide (respond = commission error).
+        # The earlier response-channel requirement silently excluded them:
+        # observed live as a 0.000 false-alarm rate because no-go trials
+        # never reached the program. Passive displays (fixation, ITI) must
+        # not be declared as stimuli at all (see prompts/system.md §1).
+        return True
 
     async def run(self, task_url: str) -> None:
         """Execute the full task."""
@@ -545,7 +581,7 @@ class TaskExecutor:
         async with PilotSession(
             headless=self._headless,
             viewport=self._config.runtime.timing.viewport,
-            reading_delay_range=(3.0, 8.0),
+            reading_delay_range=HUMAN_READING_DELAY_RANGE,
         ) as session:
             page = session.page
             context = session.context
@@ -637,6 +673,7 @@ class TaskExecutor:
                     "trial_loop", {
                         "trials": self._trial_count,
                         "loop_exit_reason": self._loop_exit_reason,
+                        "loop_diagnostics": self._loop_diagnostics.as_dict(),
                     },
                     duration_s=time.monotonic() - _t0,
                 )
@@ -677,18 +714,18 @@ class TaskExecutor:
                 self._writer.save_screenshot(screenshot, "error.png")
                 raise
             finally:
+                # A5a: captured here (not inside _save_outputs) so it reflects
+                # the exception that triggered this finally block, not a
+                # later save-time error.
+                _in_flight_exc = sys.exc_info()[1]
                 metadata = {
                     "task_name": task_name,
                     "task_url": task_url,
                     "total_trials": self._trial_count,
                     "headless": self._headless,
                     "session_seed": self._session_seed,
-                    "session_params": self._session_params,
-                    "between_subject_jitter": self._jitter_realized,
                 }
-                bp_metadata = self._behavior_program_metadata()
-                if bp_metadata is not None:
-                    metadata["behavior_program"] = bp_metadata
+                metadata["behavior_program"] = self._behavior_program_metadata()
                 if self._taskcard is not None:
                     pb = getattr(self._taskcard, "produced_by", None)
                     metadata["taskcard_sha256"] = getattr(pb, "taskcard_sha256", "") if pb else ""
@@ -716,11 +753,22 @@ class TaskExecutor:
                 # Task 2: completeness signals — a nonzero partial session is no
                 # longer indistinguishable from a whole one.  The ==0 hard-fail
                 # above remains unchanged; these fields are ADDITIONAL signals so
-                # downstream analysis (oracle, reviewer) can filter/flag partial
+                # downstream analysis can filter/flag partial
                 # sessions without aborting.  Do NOT raise on early break —
                 # held-out paradigms legitimately end early.
                 metadata["loop_exit_reason"] = self._loop_exit_reason
                 metadata["incomplete"] = self._loop_exit_reason != "complete"
+                # A5a: outcome taxonomy — completed/zero_trials/nav_stall/
+                # program_error/platform_error. See core/outcome.py for the
+                # classification rules.
+                metadata["outcome"] = classify_outcome(
+                    self._loop_exit_reason, self._trial_count, _in_flight_exc,
+                )
+                # A3: per-poll trial-loop diagnostics (phase/window/identify/
+                # advance/feedback/attention-check/nav-rerun counters).
+                metadata["loop_diagnostics"] = self._loop_diagnostics.as_dict()
+                # A5b: capture-time stall flags (see _wait_for_completion).
+                metadata["data_quality"] = self._data_quality
                 # robust-008: flag sessions where adaptive nav ran but the loop
                 # didn't complete naturally — adaptive nav may have navigated
                 # past trials, inflating/deflating the trial count.
@@ -729,11 +777,6 @@ class TaskExecutor:
                 # Task 3: surface JS-eval errors so a malformed Reasoner-emitted JS
                 # expression is visible to the reviewer instead of silently degrading.
                 metadata["js_eval_errors_by_source"] = dict(self._js_eval_errors)
-                # Task 4 (robust-003): surface unrealizable error-injection count so
-                # single-real-key paradigms are visible in run_metadata.
-                metadata["error_injection"] = {
-                    "unrealizable_count": self._error_injection_unrealizable,
-                }
                 # Task 6 (platform-004): data-capture status so a silent export
                 # failure is visible to the reviewer. failed=True means the method
                 # was configured but raised an exception (vs. no-method-configured
@@ -767,7 +810,8 @@ class TaskExecutor:
         Runs in `run()`'s finally block. Unguarded, a mid-save failure left a
         plausible-looking but partial session directory (run_metadata present,
         bot_log/run_trace missing). Any save failure now writes a best-effort
-        `.incomplete` marker — which the oracle excludes as incomplete_save —
+        `.incomplete` marker — which downstream analysis and the collection
+        script exclude as incomplete —
         and the save error is re-raised only when no task exception is already
         propagating (raising inside a finally block would mask the original).
         """
@@ -805,9 +849,26 @@ class TaskExecutor:
         consecutive_misses = 0
         instructions_stuck_fp = ""
         instructions_stuck_count = 0
+        # Wave C1: stuck-DOM tracking for NON-instructions phase labels (the
+        # phase predicates are LLM-written and advisory — a stuck screen can
+        # be misclassified as test/practice/loading). Sampled only at
+        # throttled advance instants so normal between-trial gaps (changing
+        # DOM, or shorter than the advance spacing) never accumulate.
+        misc_stuck_fp = ""
+        misc_stuck_count = 0
         while True:
             from experiment_bot.core import phase_detection as _pd
+            if (self._trial_count == 0
+                    and self._session_start > 0  # set by run(); unset in direct-loop tests
+                    and (time.monotonic() - self._session_start) > _ZERO_TRIAL_WATCHDOG_S):
+                logger.warning(
+                    "Zero-progress watchdog: no trial completed after %.0fs — aborting loop",
+                    _ZERO_TRIAL_WATCHDOG_S,
+                )
+                self._loop_exit_reason = "zero_progress_watchdog"
+                break
             phase = await detect_phase(page, self._config.runtime.phase_detection)
+            self._loop_diagnostics.record_phase(phase.value)
             if phase == TaskPhase.COMPLETE:
                 # Capture the page state that triggered completion so post-hoc
                 # diagnosis can tell genuine completion from a false-positive
@@ -833,46 +894,52 @@ class TaskExecutor:
             if phase == TaskPhase.ATTENTION_CHECK:
                 await self._handle_attention_check(page)
                 consecutive_misses = 0
+                misc_stuck_fp, misc_stuck_count = "", 0
                 continue
 
             if phase in (TaskPhase.FEEDBACK, TaskPhase.INSTRUCTIONS):
                 probe = await self._lookup.identify(page)
+                self._loop_diagnostics.record_identify(probe.condition if probe else None)
                 if probe is None or not self._is_trial_stimulus(probe):
                     if phase == TaskPhase.FEEDBACK:
                         await self._handle_feedback(page)
                     else:
                         # In-trial nav re-run via the unified engine (skip-on-fail,
-                        # same semantics as entry nav). Each phase is attempted
-                        # independently so one already-dismissed button can't crash
-                        # the whole re-run.
-                        for _nav_phase in self._config.navigation.phases:
-                            _attempt = await session.try_phase(_nav_phase)
-                            if not _attempt.success:
-                                logger.info(
-                                    "In-trial nav re-run phase %r skipped: %s",
-                                    _nav_phase.phase or "<unnamed>", _attempt.error,
-                                )
+                        # same semantics as entry nav).
+                        await self._nav_rerun(session)
                         # SP16: if the standard nav re-run left us on the SAME
                         # instruction DOM across consecutive detections, the
                         # TaskCard's fixed nav can't advance this screen — fire
                         # adaptive nav. Gated on a stuck INSTRUCTIONS DOM (not on
                         # stimulus-poll misses) so normal between-trial gaps never
                         # trigger it.
-                        import hashlib as _hashlib
-                        try:
-                            _dom = await page.evaluate(
-                                "document.body ? document.body.outerHTML.slice(0,4000) : ''"
-                            )
-                        except Exception:
-                            _dom = ""
-                        _fp = _hashlib.sha256(_dom.encode()).hexdigest()[:16] if _dom else ""
+                        _fp = await self._dom_fingerprint(page)
                         if _fp and _fp == instructions_stuck_fp:
                             instructions_stuck_count += 1
                         else:
                             instructions_stuck_fp = _fp
                             instructions_stuck_count = 0
+                        if instructions_stuck_count >= 1:
+                            # A multi-page instructions viewer advances by
+                            # clicking its pager control, which the card's
+                            # fixed nav phases may not cover. Try the generic
+                            # advance controls (card feedback selectors +
+                            # platform pager) before escalating to adaptive
+                            # nav. Guarded: test doubles may not implement
+                            # click_advance_control.
+                            ab = self._config.runtime.advance_behavior
+                            try:
+                                clicked = bool(await session.click_advance_control(
+                                    tuple(ab.feedback_selectors)))
+                            except Exception:
+                                clicked = False
+                            if clicked:
+                                _fp_after = await self._dom_fingerprint(page)
+                                if _fp_after and _fp_after != _fp:
+                                    instructions_stuck_fp = ""
+                                    instructions_stuck_count = 0
                         if (
-                            instructions_stuck_count >= _ADAPTIVE_NAV_INSTRUCTIONS_STUCK
+                            instructions_stuck_count >= _ADAPTIVE_NAV_STUCK_DETECTIONS
                             and self._llm_client is not None
                             and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
                         ):
@@ -880,6 +947,7 @@ class TaskExecutor:
                             instructions_stuck_count = 0
                             instructions_stuck_fp = ""
                     consecutive_misses = 0
+                    misc_stuck_fp, misc_stuck_count = "", 0
                     continue
                 logger.debug("Trial stimulus %s overrides %s phase", probe.stimulus_id, phase.value)
 
@@ -892,9 +960,11 @@ class TaskExecutor:
                 try:
                     ready = await page.evaluate(timing.response_window_js)
                     if not ready:
+                        self._loop_diagnostics.record_window_closed()
                         consecutive_misses += 1
                         ab = self._config.runtime.advance_behavior
                         if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                            self._loop_diagnostics.record_advance()
                             logger.info(f"Response window closed for {consecutive_misses} polls, pressing advance keys")
                             if ab.pre_keypress_js:
                                 try:
@@ -911,7 +981,9 @@ class TaskExecutor:
                         await asyncio.sleep(timing.poll_interval_ms / 1000.0)
                         continue
                     self._response_window_confirmed = True
+                    self._loop_diagnostics.record_window_open()
                     consecutive_misses = 0
+                    misc_stuck_fp, misc_stuck_count = "", 0
                 except PlaywrightError:
                     # Benign: page context torn down by navigation — treat as window open
                     pass
@@ -925,15 +997,59 @@ class TaskExecutor:
                 match = probe
             else:
                 match = await self._lookup.identify(page)
+                self._loop_diagnostics.record_identify(match.condition if match else None)
             if match is None:
                 consecutive_misses += 1
                 if consecutive_misses > max_no_stimulus_polls:
                     logger.warning("Too many consecutive misses, stopping trial loop")
                     self._loop_exit_reason = "max_misses"
                     break
-                # Try pressing advance keys periodically to advance between-block screens
+                # Try pressing advance keys periodically to advance between-block screens.
+                # Human-paced: advance actions are spaced >= _ADVANCE_MIN_SPACING_S apart.
+                # Poll-cadence advancing trips anti-skim guards ('read the instructions
+                # too quickly' re-read loops, seen live on the RDoC flanker flow) that a
+                # human — and therefore the Stage-6 replay gate, which models this same
+                # pacing — never trips.
                 ab = self._config.runtime.advance_behavior
-                if consecutive_misses % ab.advance_interval_polls == 0 and consecutive_misses < max_no_stimulus_polls:
+                if (consecutive_misses % ab.advance_interval_polls == 0
+                        and consecutive_misses < max_no_stimulus_polls
+                        and (time.monotonic() - self._last_advance_action) >= _ADVANCE_MIN_SPACING_S):
+                    self._last_advance_action = time.monotonic()
+                    self._loop_diagnostics.record_advance()
+                    # Wave C1: a stable non-trial DOM across consecutive
+                    # throttled advance attempts means the standard advance
+                    # keys can't move this screen, whatever the (advisory)
+                    # phase predicates labeled it — fire the same nav re-run
+                    # + adaptive-nav path the INSTRUCTIONS branch uses.
+                    # Never reached during an in-flight trial or when
+                    # identify is matching (this is the match-is-None branch).
+                    _fp = await self._dom_fingerprint(page)
+                    if _fp and _fp == misc_stuck_fp:
+                        misc_stuck_count += 1
+                    else:
+                        misc_stuck_fp = _fp
+                        misc_stuck_count = 0
+                    if misc_stuck_count >= _ADAPTIVE_NAV_STUCK_DETECTIONS:
+                        logger.info(
+                            "Stuck non-trial DOM (phase=%s) after %d advance attempts; "
+                            "running nav re-run + adaptive nav",
+                            phase.value, misc_stuck_count + 1,
+                        )
+                        await self._nav_rerun(session)
+                        if (
+                            self._llm_client is not None
+                            and self._adaptive_nav_uses < _ADAPTIVE_NAV_BUDGET
+                        ):
+                            await self._adaptive_nav_step(session, page)
+                        stuck_fp_before = misc_stuck_fp
+                        misc_stuck_fp, misc_stuck_count = "", 0
+                        # If the recovery actually changed the DOM, restart the
+                        # miss accounting so the loop keeps polling the new
+                        # screen instead of breaking on max_misses.
+                        if await self._dom_fingerprint(page) != stuck_fp_before:
+                            consecutive_misses = 0
+                        await asyncio.sleep(timing.poll_interval_ms / 1000.0)
+                        continue
                     logger.info(f"No stimulus for {consecutive_misses} polls, pressing advance keys")
                     if ab.pre_keypress_js:
                         try:
@@ -948,7 +1064,11 @@ class TaskExecutor:
                     # Reasoner already wrote into the TaskCard — no paradigm-specific
                     # knowledge added here. Helps recover when navigation.phases is
                     # incomplete and the page expects clicks rather than keypresses.
-                    for selector in ab.feedback_selectors:
+                    # The platform's multi-page instructions pager controls
+                    # (jsPsych Next button — a platform mechanic) are tried
+                    # after the card's own selectors.
+                    for selector in (*ab.feedback_selectors,
+                                     *INSTRUCTIONS_PAGER_SELECTORS):
                         try:
                             locator = page.locator(selector).first
                             if await locator.is_visible(timeout=200):
@@ -986,6 +1106,7 @@ class TaskExecutor:
                 continue
 
             consecutive_misses = 0
+            misc_stuck_fp, misc_stuck_count = "", 0
             stuck_detector.heartbeat()
 
             # Handle navigation stimuli (press Enter on feedback screens).
@@ -1148,20 +1269,17 @@ class TaskExecutor:
             await asyncio.sleep(poll_s)
         logger.warning("Response window poll timed out after 5s, proceeding anyway")
 
-    def _behavior_program_metadata(self) -> dict | None:
-        """run_metadata fragment identifying the wired behavior program, or
-        None when no provider is set. Factored out of run()'s finally block
-        so it's unit-testable without invoking the full (browser-dependent)
-        run()."""
-        if self._behavior_provider is None:
-            return None
+    def _behavior_program_metadata(self) -> dict:
+        """run_metadata fragment identifying the wired behavior program.
+        Factored out of run()'s finally block so it's unit-testable without
+        invoking the full (browser-dependent) run()."""
         return {
             "sha256": self._behavior_provider.program_sha256,
             "path": self._behavior_provider.program_path,
             "seed": self._behavior_provider.seed,
         }
 
-    async def _execute_trial_via_provider(self, page, match, cue=None) -> None:
+    async def _execute_trial(self, page, match, cue=None) -> None:
         """SP21 naive arm: the behavior program supplies (key, rt); the
         executor supplies navigation, detection, delivery, and logging.
         No omission draw, no accuracy draw, no sampler, no temporal
@@ -1176,7 +1294,32 @@ class TaskExecutor:
 
         correct_key = await self._resolve_response_key(match, page)
         provider.observe_key(correct_key)
-        resp = provider.respond(condition, correct_key, self._trial_count)
+        # Wave B3: the already-computed trial context text (the logged `cue`)
+        # is exposed to the program as ctx.stimulus_text.
+        stimulus_text = str(cue) if cue is not None else None
+        # Wave B1: clickable response options declared on the matched
+        # stimulus — (label, selector) pairs; labels go to the program,
+        # selectors resolve a returned click by index.
+        stim_cfg = next(
+            (s for s in self._config.stimuli if s.id == match.stimulus_id), None)
+        response_elements = stim_response_elements(stim_cfg) if stim_cfg else ()
+        # Sequence-response capability: resolve THIS trial's target sequence
+        # (None on tasks without a correct_sequence_js — single-action path
+        # untouched).
+        correct_sequence = await self._resolve_correct_sequence(
+            match, page, response_elements)
+        resp = provider.respond(condition, correct_key, self._trial_count,
+                                stimulus_text=stimulus_text,
+                                response_elements=tuple(
+                                    label for label, _sel in response_elements),
+                                correct_sequence=correct_sequence)
+
+        if isinstance(resp, SequenceResponse):
+            await self._deliver_sequence(page, match, resp, response_elements,
+                                         correct_sequence, condition, cue)
+            self._prev_interrupt_detected = False
+            return
+
         rt_ms = resp.rt_ms
 
         interrupt_detected = False
@@ -1195,8 +1338,10 @@ class TaskExecutor:
             # A program may withhold explicitly (decision is None) or commit to
             # respond but with no key (decision.key is None) — both mean "no
             # keypress fires"; treat them as the single withhold path so a
-            # None key can never reach _fire_response_key.
-            if decision is None or decision.key is None:
+            # None key can never reach _fire_response_key. A ClickResponse
+            # decision is always a commission (its index is validated).
+            if decision is None or (not isinstance(decision, ClickResponse)
+                                    and decision.key is None):
                 self._writer.log_trial({
                     "trial": self._trial_count,
                     "stimulus_id": match.stimulus_id,
@@ -1209,7 +1354,6 @@ class TaskExecutor:
                 })
                 provider.record_outcome(condition, correct=True, rt_ms=None,
                                         interrupted=True)
-                self._recent_errors.appendleft(False)
                 self._prev_interrupt_detected = True
                 await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
                 return
@@ -1217,21 +1361,28 @@ class TaskExecutor:
             if remaining_s > 0:
                 await asyncio.sleep(remaining_s)
             actual_rt = (time.monotonic() - trial_start) * 1000
-            delivery_meta = await self._fire_response_key(page, decision.key)
-            self._writer.log_trial({
+            entry = {
                 "trial": self._trial_count,
                 "stimulus_id": match.stimulus_id,
                 "condition": f"{interrupt_cfg.detection_condition}_responded",
-                "response_key": decision.key,
                 "sampled_rt_ms": round(decision.rt_ms, 1),
                 "actual_rt_ms": round(actual_rt, 1),
                 "omission": False,
-                "delivery": delivery_meta,
                 "behavior_provider": True,
-            })
+            }
+            if isinstance(decision, ClickResponse):
+                label, selector = response_elements[decision.element_index]
+                entry["delivery"] = await self._fire_response_click(page, selector)
+                entry["response_type"] = "click"
+                entry["response_element"] = label
+                entry["response_element_index"] = decision.element_index
+                entry["response_key"] = None
+            else:
+                entry["delivery"] = await self._fire_response_key(page, decision.key)
+                entry["response_key"] = decision.key
+            self._writer.log_trial(entry)
             provider.record_outcome(condition, correct=False,
                                     rt_ms=decision.rt_ms, interrupted=True)
-            self._recent_errors.appendleft(True)
             self._prev_interrupt_detected = True
             return
 
@@ -1239,6 +1390,35 @@ class TaskExecutor:
         if remaining > 0:
             await asyncio.sleep(remaining)
         actual_rt = (time.monotonic() - trial_start) * 1000
+
+        if isinstance(resp, ClickResponse):
+            # Wave B1: click delivery — resolve the element's selector by
+            # index and click it. Correctness mirrors the keypress rule:
+            # the clicked option's label is compared to the resolved
+            # correct key (the structural card carries the correct option's
+            # label there for click-response tasks).
+            label, selector = response_elements[resp.element_index]
+            delivery_meta = await self._fire_response_click(page, selector)
+            is_correct = (correct_key is not None and label == correct_key)
+            self._writer.log_trial({
+                "trial": self._trial_count,
+                "stimulus_id": match.stimulus_id,
+                "condition": condition,
+                "response_type": "click",
+                "response_element": label,
+                "response_element_index": resp.element_index,
+                "response_key": None,
+                "sampled_rt_ms": round(rt_ms, 1),
+                "actual_rt_ms": round(actual_rt, 1),
+                "omission": False,
+                "delivery": delivery_meta,
+                "behavior_provider": True,
+                "cue": cue,
+            })
+            provider.record_outcome(condition, correct=is_correct,
+                                    rt_ms=resp.rt_ms, interrupted=False)
+            self._prev_interrupt_detected = False
+            return
 
         if resp.key is None:
             self._writer.log_trial({
@@ -1254,7 +1434,6 @@ class TaskExecutor:
             })
             provider.record_outcome(condition, correct=(correct_key is None),
                                     rt_ms=None, interrupted=False)
-            self._recent_errors.appendleft(correct_key is not None)
             self._prev_interrupt_detected = False
             return
 
@@ -1274,224 +1453,65 @@ class TaskExecutor:
         })
         provider.record_outcome(condition, correct=is_correct,
                                 rt_ms=resp.rt_ms, interrupted=False)
-        self._recent_errors.appendleft(not is_correct)
         self._prev_interrupt_detected = False
 
-    async def _execute_trial(self, page: Page, match: StimulusMatch, cue: str | None = None) -> None:
-        """Execute a single trial with probabilistic interrupt handling.
-
-        For tasks with a configured `runtime.trial_interrupt`, polls for the
-        interrupt stimulus during the RT wait. If detected, uses configured
-        accuracy to decide inhibition success/failure probabilistically,
-        producing race-model-valid behavior.
-        """
-        trial_start = time.monotonic()
-        condition = match.condition
-
-        if self._behavior_provider is not None:
-            await self._execute_trial_via_provider(page, match, cue)
-            return
-
-        if self._should_omit(condition):
-            self._writer.log_trial({
-                "trial": self._trial_count,
-                "stimulus_id": match.stimulus_id,
-                "condition": condition,
-                "response_key": None,
-                "sampled_rt_ms": None,
-                "actual_rt_ms": None,
-                "omission": True,
-            })
-            self._recent_errors.appendleft(True)
-            self._prev_interrupt_detected = False
-            await asyncio.sleep(self._config.runtime.timing.omission_wait_ms / 1000.0)
-            return
-
-        # Synchronize with platform's response window when the trial loop hasn't
-        # already confirmed it (e.g., PsyToolkit where the gate isn't in the loop)
-        timing = self._config.runtime.timing
-        if timing.response_window_js and not self._response_window_confirmed:
-            await self._wait_for_response_window(page, timing.response_window_js)
-        trial_start = time.monotonic()
-
-        # Sample go RT — track whether this is an intentional error trial
-        is_correct = self._should_respond_correctly(condition)
-        rt_condition = self._resolve_rt_distribution_key(condition, is_correct)
-        is_error = not is_correct
-        te = self._config.temporal_effects
-        # Suppress condition_repetition on the trial after an interrupt, but
-        # only when the post_event_slowing config has an "interrupt" trigger
-        # (suggesting the literature for this paradigm couples post-interrupt
-        # slowing with reset of the condition-repetition prior).
-        _pe_cfg = te.post_event_slowing
-        _has_interrupt_trigger = any(
-            (t.get("event") if isinstance(t, dict) else getattr(t, "event", None)) == "interrupt"
-            for t in (
-                _pe_cfg.triggers if hasattr(_pe_cfg, "triggers")
-                else (_pe_cfg.get("triggers", []) if isinstance(_pe_cfg, dict) else [])
-            )
-        )
-        skip_cond_rep = self._prev_interrupt_detected and _has_interrupt_trigger
-        rt_ms = self._sampler.sample_rt_with_fallback(rt_condition, skip_condition_repetition=skip_cond_rep)
-
-        # Post-event slowing (generic mechanism). Trigger priority is
-        # encoded in the TaskCard's `triggers` list — the executor
-        # invokes the handler with the current SamplerState and lets
-        # the trigger ordering decide the magnitude.
-        from experiment_bot.effects.handlers import (
-            apply_post_event_slowing, SamplerState as _SS,
-        )
-        # Lag-1 PES contract: only the IMMEDIATELY preceding trial counts.
-        # Earlier code used `any(self._recent_errors)` over an 8-trial window,
-        # which made `prev_error=True` on almost every trial in stop-signal
-        # (commission-error rate ≈ 12% × window 8 ≈ 64% of trials always
-        # have a recent error). PES then fired on most trials regardless of
-        # immediate recency and the standard lag-1 post-error vs post-correct
-        # contrast collapsed toward zero. The deque is kept (maxlen=8) for
-        # any future multi-trial decay mechanism, but the executor passes
-        # only the most-recent flag through to the handler.
-        prev_error = bool(self._recent_errors and self._recent_errors[0])
-        post_event_state = _SS(
-            mu=0.0, sigma=0.0, tau=0.0, expected_rt=0.0,
-            prev_rt=None, prev_condition=None, trial_index=self._trial_count,
-            prev_error=prev_error,
-            prev_interrupt_detected=self._prev_interrupt_detected,
-            condition=condition, pink_buffer=None,
-        )
-        rt_ms += apply_post_event_slowing(
-            post_event_state, te.post_event_slowing, self._rng
-        )
-
-        # Cap RT at the task's max response window (prevents late keypresses)
-        max_response_ms = self._config.task_specific.get(
-            "trial_timing", {}
-        ).get("max_response_time_ms") or 0
-        if max_response_ms > 0:
-            rt_ms = min(rt_ms, max_response_ms * self._config.runtime.timing.rt_cap_fraction)
-
-        interrupt_detected = False
-
-        if self._interrupt_js:
-            # Poll for interrupt stimulus during RT wait
-            poll_interval = self._config.runtime.timing.poll_interval_ms / 1000.0
-            while (time.monotonic() - trial_start) < rt_ms / 1000.0:
-                if await self._check_interrupt(page, self._interrupt_js):
-                    interrupt_detected = True
-                    break
-                await asyncio.sleep(poll_interval)
-        else:
-            await asyncio.sleep(rt_ms / 1000.0)
-
-        interrupt_cfg = self._config.runtime.trial_interrupt
-        if interrupt_detected:
-            # Decide inhibition outcome probabilistically based on configured accuracy
-            if self._should_respond_correctly(interrupt_cfg.detection_condition):
-                # Successful inhibition — withhold response
-                self._writer.log_trial({
-                    "trial": self._trial_count,
-                    "stimulus_id": match.stimulus_id,
-                    "condition": f"{interrupt_cfg.detection_condition}_withheld",
-                    "response_key": None,
-                    "sampled_rt_ms": round(rt_ms, 1),
-                    "actual_rt_ms": None,
-                    "omission": False,
+    async def _deliver_sequence(self, page, match, resp: SequenceResponse,
+                                response_elements, correct_sequence, condition,
+                                cue) -> None:
+        """Sequence-response delivery: fire each action in order, sleeping
+        each action's rt_ms as the inter-action interval (first = onset→first
+        action; subsequent = gap before that action). Logs one trial record
+        with response_sequence. An empty sequence delivers nothing and logs a
+        withheld-style record."""
+        provider = self._behavior_provider
+        produced_indices: list[int] = []
+        action_log: list[dict] = []
+        for action in resp.actions:
+            await asyncio.sleep(action.rt_ms / 1000.0)
+            if isinstance(action, ClickResponse):
+                label, selector = response_elements[action.element_index]
+                delivery = await self._fire_response_click(page, selector)
+                produced_indices.append(action.element_index)
+                action_log.append({
+                    "type": "click", "element": label,
+                    "element_index": action.element_index,
+                    "rt": action.rt_ms, "delivery": delivery,
                 })
-                self._recent_errors.appendleft(False)
-                self._prev_interrupt_detected = True
-                await asyncio.sleep(interrupt_cfg.inhibit_wait_ms / 1000.0)
-                return
             else:
-                # Failed inhibition — sample from failure RT distribution
-                # (faster than go RTs, satisfying independent race model)
-                sf_rt_ms = self._sampler.sample_rt_with_fallback(interrupt_cfg.failure_rt_key)
-                if max_response_ms > 0:
-                    sf_rt_ms = min(sf_rt_ms, max_response_ms * interrupt_cfg.failure_rt_cap_fraction)
-
-                # Wait until failure RT has elapsed from trial start
-                elapsed_s = time.monotonic() - trial_start
-                remaining_s = (sf_rt_ms / 1000.0) - elapsed_s
-                if remaining_s > 0:
-                    await asyncio.sleep(remaining_s)
-
-                actual_rt = (time.monotonic() - trial_start) * 1000
-                resolved_key = await self._resolve_response_key(match, page)
-                delivery_meta: dict = {}
-                if resolved_key:
-                    delivery_meta = await self._fire_response_key(page, resolved_key)
-                self._writer.log_trial({
-                    "trial": self._trial_count,
-                    "stimulus_id": match.stimulus_id,
-                    "condition": f"{interrupt_cfg.detection_condition}_responded",
-                    "response_key": resolved_key,
-                    "sampled_rt_ms": round(sf_rt_ms, 1),
-                    "actual_rt_ms": round(actual_rt, 1),
-                    "omission": False,
-                    "delivery": delivery_meta,
+                delivery = await self._fire_response_key_intra_trial(page, action.key)
+                action_log.append({
+                    "type": "key", "key": action.key,
+                    "rt": action.rt_ms, "delivery": delivery,
                 })
-                self._recent_errors.appendleft(True)
-                self._prev_interrupt_detected = True
-                return
-
-        # No interrupt — normal trial response
-        if not self._interrupt_js:
-            actual_rt = (time.monotonic() - trial_start) * 1000
+        # Correctness for a reproduction is an exact match of the produced
+        # click-index sequence to the target — scoreable only when a target
+        # was exposed AND every action was a click. Keyboard-delivered
+        # reproductions (or trials without a target) are unscoreable here:
+        # feed the program None (unknown), never a fabricated False.
+        target = list(correct_sequence) if correct_sequence is not None else None
+        all_clicks = all(isinstance(a, ClickResponse) for a in resp.actions)
+        if target is None or not all_clicks:
+            is_correct: bool | None = None
         else:
-            # Wait remaining RT time if we were polling
-            remaining = (rt_ms / 1000.0) - (time.monotonic() - trial_start)
-            if remaining > 0:
-                await asyncio.sleep(remaining)
-            actual_rt = (time.monotonic() - trial_start) * 1000
-
-        resolved_key = await self._resolve_response_key(match, page)
-
-        # A None resolved_key here means the config's response_key_js returned a
-        # withhold sentinel ("", "none", "null").  This is a config-authored
-        # withhold instruction — not a random omission.  Log it distinctly and
-        # skip the keyboard press.
-        if resolved_key is None:
-            self._writer.log_trial({
-                "trial": self._trial_count,
-                "stimulus_id": match.stimulus_id,
-                "condition": condition,
-                "response_key": None,
-                "sampled_rt_ms": round(rt_ms, 1),
-                "actual_rt_ms": None,
-                "omission": False,
-                "withheld": True,
-                "rt_distribution": rt_condition,
-                "cue": cue,
-            })
-            self._recent_errors.appendleft(False)
-            self._prev_interrupt_detected = False
-            return
-
-        if is_error:
-            wrong = self._pick_wrong_key(resolved_key)
-            if wrong is None:
-                # Cannot inject a wrong key (single-real-key paradigm); press
-                # the correct key honestly and record is_error=False so bot_log
-                # matches the key actually pressed (robust-003).
-                is_error = False
-                self._error_injection_unrealizable += 1
-            else:
-                resolved_key = wrong
-        delivery_meta = await self._fire_response_key(page, resolved_key)
-
-        self._writer.log_trial({
+            is_correct = (produced_indices == target)
+        total_rt = sum(a.rt_ms for a in resp.actions)
+        entry = {
             "trial": self._trial_count,
             "stimulus_id": match.stimulus_id,
             "condition": condition,
-            "response_key": resolved_key,
-            "sampled_rt_ms": round(rt_ms, 1),
-            "actual_rt_ms": round(actual_rt, 1),
+            "response_key": None,
+            "response_sequence": action_log,
+            "sampled_rt_ms": round(total_rt, 1) if resp.actions else 0.0,
             "omission": False,
-            "intended_error": is_error,
-            "rt_distribution": rt_condition,
+            "behavior_provider": True,
             "cue": cue,
-            "delivery": delivery_meta,
-        })
-        self._recent_errors.appendleft(is_error)
-        self._prev_interrupt_detected = False
+        }
+        if not resp.actions:
+            entry["withheld"] = True
+        self._writer.log_trial(entry)
+        provider.record_outcome(
+            condition, correct=is_correct,
+            rt_ms=(total_rt if resp.actions else None), interrupted=False)
 
     async def _handle_attention_check(self, page: Page) -> None:
         """Handle attention check using config-driven response logic.
@@ -1499,6 +1519,7 @@ class TaskExecutor:
         Claude must provide response_js in the attention_check config —
         the executor has no built-in knowledge of attention check formats.
         """
+        self._loop_diagnostics.record_attention_check()
         await asyncio.sleep(
             self._config.runtime.timing.attention_check_delay_ms / 1000.0
         )
@@ -1519,6 +1540,7 @@ class TaskExecutor:
 
     async def _handle_feedback(self, page: Page) -> None:
         """Handle inter-block feedback screens."""
+        self._loop_diagnostics.record_feedback()
         logger.info("Handling feedback screen")
         ab = self._config.runtime.advance_behavior
         await asyncio.sleep(self._config.runtime.timing.feedback_delay_ms / 1000.0)
@@ -1536,6 +1558,37 @@ class TaskExecutor:
         for key in ab.feedback_fallback_keys:
             await page.keyboard.press(key)
             await asyncio.sleep(0.5)
+
+    async def _dom_fingerprint(self, page) -> str:
+        """Short fingerprint of the current DOM head for stuck detection.
+
+        Empty string when the page is unavailable (fingerprint comparisons
+        treat "" as never-stuck, so a torn-down context can't trigger
+        adaptive nav).
+        """
+        import hashlib
+        try:
+            dom = await page.evaluate(
+                "document.body ? document.body.outerHTML.slice(0,4000) : ''"
+            )
+        except Exception:
+            dom = ""
+        if not isinstance(dom, str):
+            dom = ""
+        return hashlib.sha256(dom.encode()).hexdigest()[:16] if dom else ""
+
+    async def _nav_rerun(self, session) -> None:
+        """In-trial nav re-run via the unified engine (skip-on-fail, same
+        semantics as entry nav). Each phase is attempted independently so one
+        already-dismissed button can't crash the whole re-run."""
+        self._loop_diagnostics.record_nav_rerun()
+        for _nav_phase in self._config.navigation.phases:
+            _attempt = await session.try_phase(_nav_phase)
+            if not _attempt.success:
+                logger.info(
+                    "In-trial nav re-run phase %r skipped: %s",
+                    _nav_phase.phase or "<unnamed>", _attempt.error,
+                )
 
     async def _adaptive_nav_step(self, session, page) -> bool:
         """LLM-driven one-step adaptive nav. Returns True if the bot's DOM
@@ -1617,6 +1670,26 @@ class TaskExecutor:
             "llm_disabled": self._llm_client is None,
         }
 
+    def _stall_ceiling_ms(self) -> float:
+        """A5b: the mechanical ceiling used to flag stalled rt values.
+
+        4x the card's configured max response window when derivable from
+        ``task_specific.trial_timing.max_response_time_ms`` (Stage 1's
+        conventional location for it); otherwise a fixed 10s. This is a
+        deliberately loose multiple — it exists to catch a hung poll or
+        broken export recorded as a multi-second "response", not to gate on
+        anything resembling a real human RT.
+        """
+        trial_timing = (self._config.task_specific or {}).get("trial_timing") or {}
+        max_rw = trial_timing.get("max_response_time_ms") if isinstance(trial_timing, dict) else None
+        try:
+            max_rw = float(max_rw) if max_rw is not None else None
+        except (TypeError, ValueError):
+            max_rw = None
+        if max_rw and max_rw > 0:
+            return max_rw * 4.0
+        return DEFAULT_CEILING_MS
+
     async def _wait_for_completion(self, page: Page) -> None:
         """Wait for task completion and capture experiment data."""
         await asyncio.sleep(
@@ -1633,6 +1706,12 @@ class TaskExecutor:
             ext = self._config.runtime.data_capture.format or "csv"
             self._writer.save_task_data(capture_result.data, f"experiment_data.{ext}")
             logger.info("Experiment data saved")
+            # A5b: flag (never exclude) trials whose captured rt exceeds a
+            # mechanical ceiling — signals a hung poll or bad export, not a
+            # real human RT.
+            self._data_quality = compute_stall_flags(
+                capture_result.data, ext, self._stall_ceiling_ms(),
+            )
         else:
             if capture_result.failed:
                 logger.warning(

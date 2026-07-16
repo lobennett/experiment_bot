@@ -1,39 +1,18 @@
-You are a cognitive psychology expert and web developer analyzing the source code of a web-based behavioral experiment.
+You are an expert web developer analyzing the source code of a web-based behavioral experiment.
 
 ## Your Task
 
-Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON configuration that enables an automated bot to complete the task with human-like behavior. You must infer everything from the source code — the experiment could be built with any framework (jsPsych, PsyToolkit, lab.js, Gorilla, custom HTML, etc.).
+Given the HTML/JavaScript source code of a cognitive experiment, produce a JSON configuration that enables an automated harness to navigate the task, detect stimuli, and deliver responses supplied by an external participant program. You must infer everything from the source code — the experiment could be built with any framework (jsPsych, PsyToolkit, lab.js, Gorilla, custom HTML, etc.).
 
 ---
 
 ## Paradigm classes
 
-Each task you analyze has a `task.paradigm_classes` field — a list of strings
-naming the abstract paradigm families this task belongs to. The vocabulary is
-**open-ended**: choose whatever short class names best describe the cognitive
-operations the task taxes, drawing from your knowledge of the cognitive
-psychology / neuroscience literature. Classes you choose should:
-
-- Group tasks that share canonical sequential, distributional, or
-  contingency effects in the meta-analytic literature for that class.
-- Be specific enough to be useful (a class shared by all speeded tasks
-  isn't informative) but general enough to span paradigms across labs.
-  Use the abstract class name from review articles or meta-analyses,
-  not the specific paradigm name (e.g. avoid `stroop_task`,
-  `stop_signal_task`).
-- Always include `"speeded_choice"` for any task involving timed
-  decisions, in addition to one or more specific classes.
-
-The class names you choose should be those used in review articles or
-meta-analyses for grouping paradigms with shared effect signatures.
-Do not invent new class names when an established one applies. Propose
-a new class name only when the literature for this paradigm does not
-fit any established grouping; in that case, the framework will look
-for `norms/<class_name>.json` and the user can extract norms via
-`experiment-bot-extract-norms --paradigm-class <class_name>`.
-
-The classes are used to look up the canonical norms file for validation
-(`norms/<class_name>.json`).
+Each task has a `task.paradigm_classes` field — a short list of descriptive
+tags for the task family (e.g. a speeded two-choice task, a task with a
+mid-trial withhold signal). These are metadata only: no runtime component
+reads them. Choose brief, generic descriptors of what the task requires the
+participant to do; do not use lab-specific task names.
 
 ---
 
@@ -41,12 +20,14 @@ The classes are used to look up the canonical norms file for validation
 
 ### 1. Stimulus-Response Mappings
 
-For each possible stimulus, determine:
+Only declare stimuli that constitute TRIAL EVENTS — displays the participant must respond to, or must explicitly withhold a response to. Do not declare passive displays (fixation crosses, inter-trial screens, cues with no response) as stimuli.
+
+For each such stimulus, determine:
 - How to detect it (JavaScript expression or CSS selector)
 - What the correct keyboard response is (key name or null to withhold)
 - A unique condition label for the stimulus
 
-**Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis. Name your `response_distributions` keys to match these condition labels.
+**Condition labeling**: Label conditions by the **experimental condition** the trial belongs to, not by low-level stimulus features. The condition label should reflect the independent variable being manipulated (e.g., the factor that distinguishes trial types in the experiment's design), as these labels are used for analysis.
 
 Each stimulus entry MUST have this exact JSON shape (key names matter — the executor reads `detection.selector` and the validator rejects empty selectors):
 
@@ -67,6 +48,43 @@ Each stimulus entry MUST have this exact JSON shape (key names matter — the ex
 ```
 
 Do NOT use alternate key names like `detect`, `value`, `expression`, or `type` — use exactly `detection`, `selector`, `method`. The validator will reject any stimulus whose `detection.selector` is empty.
+
+**Click-response tasks** (on-screen buttons, choice grids): when the participant answers a stimulus by clicking an on-screen option instead of pressing a key, add `response_elements` to that stimulus's `response` block — one entry per clickable option, each with the option's visible label and a CSS selector for it:
+
+```json
+"response": {
+  "condition": "<condition label>",
+  "key": "<the correct option's visible label, or null>",
+  "response_elements": [
+    {"label": "<visible option label>", "selector": "<CSS selector for that option>"}
+  ]
+}
+```
+
+For these stimuli, put the correct option's visible label in `response.key` (and in `task_specific.key_map`) so correctness is resolved the same way as for keys. Omit `response_elements` entirely for keyboard-response tasks.
+
+**Sequence-response tasks** (the participant reproduces an ordered series of actions within ONE trial, in a required order): whenever a trial requires more than one ordered response, expose the trial's target order via `correct_sequence_js` — a JS expression that returns the ordered list of target identifiers for THIS trial. This covers BOTH response styles:
+- **Click reproduction** (the participant clicks several on-screen options in order): also emit `response_elements`, and have `correct_sequence_js` return the ordered element indices (0-based into `response_elements`) or their visible labels.
+- **Keyboard-navigated reproduction** (the participant moves a cursor/selection with navigation keys and confirms each target with a select key — no per-target clickable element): omit `response_elements` and have `correct_sequence_js` return the ordered target position identifiers the source uses (e.g. the numeric positions the experiment records for each target). The participant program computes the key path from the current position to each target and confirms it; you only need to expose the ordered targets.
+
+To find the target order, look for the experiment's runtime state that holds THIS trial's sequence: a dedicated per-trial variable (e.g. a `window.*` or module-level array the source assigns the targets to) is preferred. If the source declares such a variable but never populates it (dead/vestigial), or if the authoritative source is the platform's own recorded per-stimulus data, derive the ordered targets from that recorded data instead — check the runtime variable FIRST and fall back to the recorded data, the same multi-source discipline used for `response_key_js`.
+
+A common structure: the task presents the to-be-reproduced items ONE AT A TIME before the reproduction phase, recording each presented item's position/identifier in its OWN per-item trial-data row (look for the trial that renders a single item and the field its `on_finish` writes the position to). When no live variable holds the full sequence, reconstruct it from the platform's recorded data as follows, and MATCH how the source itself scores the reproduction:
+1. Filter the recorded rows to ONLY the single-item presentation trials, by their exact `trial_id` (find the string the source assigns — often `<stage>_stim`, e.g. `practice_stim` / `test_stim`).
+2. Take the LAST N of those filtered rows (`.slice(-N)`), where N is the sequence length. If the source fixes the sequence length as a constant (a set-size variable such as `numStimuli`/`setSize` assigned a literal), use that literal N directly — do NOT try to infer N by scanning for a reproduction-trial boundary (that is where the reproduction-relative slice below goes wrong). Only compute N dynamically if the source genuinely varies it per set.
+3. Map each to its recorded position field (e.g. `spatial_location`).
+
+Do NOT slice the recorded rows relative to the reproduction/recall trial (e.g. "all rows after the last recall row"): the tasks repeat the reproduction over many sets, so a reproduction-relative slice returns EVERY item ever presented and grows each set — it must be the last N PRESENTATION rows, filtered by presentation `trial_id`, regardless of how many sets came before. This mirrors the source's own scoring (it filters the presentation trials and takes the final N). Verify against the source which `trial_id` marks the presentation trials and which field holds the position. Wrap the whole expression so it returns `null` on error rather than throwing. Put it on the stimulus's `response` block, or in `task_specific.correct_sequence_js` if one expression covers the whole task:
+
+```json
+"response": {
+  "condition": "<condition label>",
+  "key": null,
+  "correct_sequence_js": "<JS expression returning the ordered target identifiers for this trial, or null>"
+}
+```
+
+Omit `correct_sequence_js` entirely for single-action tasks (one response per trial).
 
 Detection methods:
 - `dom_query`: `selector` is a CSS selector — truthy if element exists (e.g., `img[src*='circle']`)
@@ -137,7 +155,7 @@ Analyze the source code to determine:
 Optional behavioral timing knobs (override defaults only when the task requires it):
 - `navigation_delay_ms` (default 1000): Pause before pressing a navigation-stimulus key. Increase if the page needs longer to register the keypress.
 - `attention_check_delay_ms` (default 1500): Pause before handling an attention check. Simulates reading time.
-- `rt_floor_ms` (default 150.0): Lower bound on sampled RTs in milliseconds — RTs faster than this are clipped up. The default is the runtime's fallback only. **Derive the appropriate floor for THIS paradigm class from the literature** (the fast-guess / anticipatory-response cutoff reported for this class of task) and cite the paradigm-specific basis; do not treat the default as a recommended value.
+- `rt_floor_ms` (default 150.0): Lower bound (ms) the harness will accept for a delivered response time; kept as a mechanical guard against sub-physiological delivery timing.
 - `completion_settle_ms` (default 2000): Pause after the trial loop ends, before data capture. Increase for tasks with long post-trial animations.
 - `trial_end_timeout_s` (default 5.0): Maximum seconds to wait for the response window to close between trials. Increase for tasks with unusually long inter-trial intervals.
 - `cdp_dwell_ms` (default 200.0): Bot dwell in ms before firing each response keypress. **Derive this value from the paradigm's response-window timing rather than picking a fixed number.** The heuristic is `cdp_dwell_ms = min(response_window_ms) × 0.15`, where `min(response_window_ms)` is the shortest response window any trial type can present as read from THIS task's source (e.g. `<shortest_window_ms> × 0.15 → <dwell_ms>`). The 0.15 fraction is a bot-delivery mechanic: it leaves most of the response window free for the sampled RT to land. Clip the result to a floor of 50 ms so the CDP keypress + Playwright round-trip does not dominate. If the task's source documents no response window, fall back to the 200 ms default. Show the computation in the reasoning chain so reviewers can verify the value is reproducible from source.
@@ -174,66 +192,12 @@ If the experiment has attention checks:
 ### 9. Trial Interrupt (response suppression trials)
 
 If the task has trials where a signal requires the participant to withhold or cancel their response, configure `runtime.trial_interrupt`:
-- `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression.
-- `failure_rt_key`: The distribution key to use when the bot fails to inhibit (i.e., makes a commission error). Must match one of your `response_distributions` keys.
-- `failure_rt_cap_fraction`: **Required when `detection_condition` is set.** Fraction of the maximum response time at which to cap commission-error RTs (0–1). Derive this fraction from (a) the task's own definition of the response window or signal-delay schedule in the source code, and (b) primary-source literature on where commission-error RTs fall within the response window for this specific paradigm. Cite the source for your chosen value in `rationale`. Do not leave at the 0.0 default if the task has commission-error data — the executor will produce unrealistic commission-error RTs if left unset.
+- `detection_condition`: The stimulus condition name (from your stimulus definitions) that represents the interrupt signal. The executor combines all stimuli matching this condition into a single JS detection expression. On detection, the executor hands the interrupt (with its onset delay) to the generated participant program, which decides whether the response is withheld.
 - `inhibit_wait_ms`: **Required when `detection_condition` is set.** Milliseconds to wait after a successful inhibition before the next trial begins. This represents the duration of the post-signal waiting period as defined by the task. Read the source code for the task's signal-delay schedule or response window; do not leave this at 0 or inhibition trials will proceed immediately.
 
-**Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on the participant's performance (e.g., a parameter increases after correct responses and decreases after errors, converging on a target performance level), set the corresponding accuracy target to match the staircase's convergence point. The adaptive algorithm controls difficulty dynamically — the bot's response times and the staircase together determine the actual performance. Setting accuracy far from the staircase's target will produce unrealistic parameter trajectories.
+**Adaptive procedures:** If the experiment uses an adaptive staircase or tracking procedure that adjusts task difficulty based on performance, document it in `task_specific` (parameter name, step size, bounds) so the configuration records the task's closed-loop structure. The participant program, not this configuration, determines the behavior the staircase reacts to.
 
-### 10. Temporal Effects Schema (generic mechanisms)
-
-The `temporal_effects` object controls sequential dependencies in RT across trials. The bot's library contains **generic mechanisms only** — no paradigm-specific effects. Each is a *configuration* you supply per task from the literature for THIS paradigm. Each sub-object has an `enabled` boolean, mechanism-specific parameters, and a `rationale` string. Leave a mechanism disabled when the literature for the paradigm does not document it.
-
-**`autocorrelation`** — AR(1) serial dependency: each trial's RT is pulled toward the previous trial's RT. The deviation of the previous RT from the condition mean is multiplied by `phi` and added to the current RT.
-- `phi`: AR(1) coefficient (0–1). 0 = no carry-over; 1 = current RT fully determined by previous deviation.
-
-**`fatigue_drift`** — Linear monotonic drift in RT across trials. `drift_per_trial_ms` × trial index is added to each sampled RT.
-- `drift_per_trial_ms`: ms added per trial (cumulative).
-
-**`condition_repetition`** — Same-vs-different binary condition transition. If current condition matches previous, subtract `facilitation_ms`; otherwise add `cost_ms`.
-- `facilitation_ms`: RT reduction when condition repeats.
-- `cost_ms`: RT increase when condition switches.
-
-**`pink_noise`** — Long-range 1/f^alpha temporal correlations. A pre-generated spectral-synthesis noise buffer indexed by trial number, scaled by `sd_ms`.
-- `sd_ms`: SD of the noise contribution (ms).
-- `alpha`: Spectral slope (must be > 0 when enabled). alpha=1 is canonical "pink" noise; values toward 0 approach white noise; alpha=2 is Brownian. (Do NOT emit the pre-SP11 `hurst` field — it is deprecated.)
-
-**`lag1_pair_modulation`** — Generic lag-1 condition-pair RT modulation. The mechanism applies an RT delta whenever the (previous_condition, current_condition) pair matches an entry in `modulation_table`. Configure ONE entry per literature-documented transition; leave the table empty if no 2-back interaction is documented.
-- `modulation_table` (list of dicts): each entry has `prev` (str: previous condition label), `curr` (str: current condition label), and either `delta_ms` (fixed RT delta in ms, can be negative for facilitation) or `delta_ms_min` + `delta_ms_max` (uniform-random delta sampled per trial). First matching entry wins.
-- `skip_after_error` (bool, default true): if true, no modulation on the trial after an error.
-
-  Schema example (abstract labels — the bot's code does not assume any specific condition vocabulary):
-  `[{prev: "<high_label>", curr: "<high_label>", delta_ms: <facilitation_ms>}, {prev: "<low_label>", curr: "<high_label>", delta_ms: <cost_ms>}]`. Use the actual condition labels from this task's `response_distributions`, and use signs and magnitudes drawn from the literature for THIS paradigm class.
-
-**`post_event_slowing`** — Generic post-event RT slowing. The mechanism applies a uniform-random RT delta whenever a configured triggering event was detected on the previous trial. Configure one entry per literature-documented event type; list them in priority order so the first match wins.
-- `triggers` (list of dicts): each entry has `event` (str — one of `"error"` or `"interrupt"`, matching the runtime sources `prev_error` and `prev_interrupt_detected`), `slowing_ms_min`, `slowing_ms_max` (uniform-random RT addition in ms), and `exclusive_with_prior_triggers` (bool, default true).
-
-  Schema example: `[{event: "<event_type>", slowing_ms_min: <min_ms>, slowing_ms_max: <max_ms>, exclusive_with_prior_triggers: true}, ...]`. Configure as many entries as the literature for this paradigm class documents; leave the list empty otherwise.
-
-**`practice_effect`** — Block-wise RT reduction across the early session, decaying exponentially to zero. RT delta at a block is `+initial_offset_ms × exp(−decay_rate × block_idx)`, capped at 0 once `block_idx >= asymptote_block`; `block_idx = trial_index // trials_per_block`.
-- `initial_offset_ms`: RT elevation (ms) at the start of the session.
-- `decay_rate`: exponential decay rate per block.
-- `asymptote_block`: block index at and beyond which the delta is 0.
-- `trials_per_block`: trials per block for the internal block counter.
-
-**`vigilance_decrement`** — RT-variance inflation over session length: a zero-mean Gaussian perturbation whose SD grows linearly with trial index. Mean RT is unchanged; variance grows.
-- `sd_per_100_trials_ms`: SD (ms) the perturbation reaches per 100 trials elapsed.
-
-### 11. Between-Subject Jitter Schema (mechanical descriptions)
-
-The `between_subject_jitter` object controls session-level parameter variation applied once per run to simulate individual differences across participants. All jitter is sampled at session start and held constant throughout the session.
-
-- `rt_mean_sd_ms`: Standard deviation (ms) of a shared Gaussian shift applied identically to the `mu` parameter of ALL condition distributions. A single draw is shared across conditions, preserving inter-condition differences (e.g., switch costs) while shifting the overall speed level. Set to 0 to disable global speed jitter.
-- `rt_condition_sd_ms`: Standard deviation (ms) of an independent per-condition Gaussian shift applied to `mu` for each distribution separately (in addition to the shared shift). This allows conditions to vary slightly relative to each other across sessions.
-- `sigma_tau_range`: A two-element list `[lo, hi]` defining a uniform distribution. Each session, `sigma` and `tau` for every distribution are independently multiplied by a draw from `Uniform(lo, hi)`. Set to `[1.0, 1.0]` to disable shape jitter.
-- `accuracy_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's accuracy target.
-- `accuracy_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered accuracy values are clipped to. The runtime default is a fallback only. **Derive the range for THIS paradigm class from the literature** (e.g. `[<floor>, <ceiling>]` — a chance-level floor for threshold tasks, a staircase's convergence target where one exists) and cite the paradigm-specific basis.
-- `omission_sd`: Standard deviation of a Gaussian perturbation applied independently to each condition's omission rate.
-- `omission_clip_range`: Two-element list `[low, high]` defining the plausible range that jittered omission rates are clipped to. The runtime default is a fallback only. **Derive the ceiling for THIS paradigm class from the literature** (`[0.0, <ceiling>]` — pacing and response-deadline structure determine how high omissions plausibly run) and cite the paradigm-specific basis.
-- `rationale`: Free-text field for recording the basis for chosen jitter parameters.
-
-### 12. Pilot Configuration
+### 10. Pilot Configuration
 
 Specify parameters for a validation pilot run. The executor runs a short pilot session before the full experiment to test your selectors and detection logic against the live DOM. Based on the experiment's trial structure (block sizes, condition ratios, practice/test phases), specify:
 - `min_trials`: Minimum trials needed to observe all conditions at least once
@@ -244,26 +208,9 @@ Specify parameters for a validation pilot run. The executor runs a short pilot s
 
 ---
 
-## Section B — Behavioral Instructions
-
-You are analyzing a cognitive experiment. Based on the task source code and your knowledge of the cognitive psychology literature:
-
-1. Identify the cognitive constructs being measured and the relevant literature
-2. Determine appropriate response time distributions for each condition — choosing among the runtime's supported distribution families based on what the literature fits for this paradigm — informed by published findings
-3. Set per-condition accuracy and omission rate targets consistent with the literature
-4. Decide which temporal effects to enable and parameterize, with rationale citing relevant studies
-5. If the task involves any form of response suppression or signal-based interruption, configure the trial_interrupt parameters based on the relevant theoretical framework, citing your reasoning
-6. Configure between-subject jitter parameters based on known individual differences in the literature
-
-Your behavioral parameters should reflect what a typical healthy adult participant would produce. Cite your reasoning in the rationale fields.
-
-The human behavioral literature you reference may come from laboratory settings. The experiments you are configuring run online in a web browser. Use your judgment about whether to adjust parameters, but do not apply blanket inflation — many online samples produce RTs comparable to laboratory norms.
-
----
-
 ## Response Format
 
-Return ONLY valid JSON conforming to the provided schema. No markdown, no explanation, just the JSON object.
+Return ONLY valid JSON with the fields described above. No markdown, no explanation, just the JSON object.
 
 ## Analysis Strategy
 
@@ -394,7 +341,7 @@ Rules:
   choose.
 - `value_map` is optional: use it when the export encodes the condition
   indirectly (a flag column) rather than as the label itself. The canonical
-  labels must match the `response_distributions` condition keys.
+  labels must match the stimulus `response.condition` labels.
 - An omitted response is whatever leaves the rt column empty/NaN; do NOT map
   omissions yourself — validation derives `omission` from a missing rt.
 - Derived conditions that require comparing two columns cannot be expressed

@@ -1,0 +1,105 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/3/"
+      },
+      "duration_s": 1.3685009999899194
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "fullscreen_prompt",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "task_instructions",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          },
+          {
+            "phase": "welcome_begin",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_reread_continue",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_too_quick_continue",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "practice_instructions_next",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_too_quick_final_continue",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_too_quick_wait_then_continue",
+            "action": "sequence",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 42.90339950006455
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.0002501660492271185
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 0,
+        "loop_exit_reason": "complete"
+      },
+      "duration_s": 356.9450500420062
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/flanker_rdoc/2026-07-06_09-12-45-691436"
+      },
+      "duration_s": null
+    }
+  ]
+}

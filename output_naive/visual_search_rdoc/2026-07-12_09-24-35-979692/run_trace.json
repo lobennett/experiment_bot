@@ -1,0 +1,120 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/28/"
+      },
+      "duration_s": 1.1132348329992965
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "repeat",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "instructions_clickable_nav",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          },
+          {
+            "phase": "instructions_clickable_nav",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": false,
+            "error": "Locator.wait_for: Timeout 1500ms exceeded.\nCall log:\n  - waiting for locator(\"#jspsych-instructions-next\").first to be visible\n"
+          }
+        ]
+      },
+      "duration_s": 49.626525999978185
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00013229192700237036
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 196,
+        "loop_exit_reason": "max_misses",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "test": 8525
+          },
+          "response_window_open": 0,
+          "response_window_closed": 0,
+          "identify_hits": {
+            "feature": 98,
+            "conjunction": 98
+          },
+          "identify_misses": 8329,
+          "advance_actions": 14,
+          "feedback_handled": 0,
+          "attention_checks_handled": 0,
+          "in_trial_nav_reruns": 2
+        }
+      },
+      "duration_s": 758.2252810000209
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.0359157089842483
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/visual_search_rdoc/2026-07-12_09-24-35-979692"
+      },
+      "duration_s": null
+    }
+  ]
+}

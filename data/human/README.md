@@ -1,26 +1,8 @@
 # Human Reference Data
 
-Reference datasets the bot's behavior is compared against
-(`experiment-bot-compare`). Two tiers:
-
-## Session-level summaries (committed)
-
-- `stroop_rdoc.csv` — 2,510 rows; per-session congruent/incongruent RT,
-  accuracy, omission rate.
-- `stop_signal_rdoc.csv` — 2,510 rows; per-session go RT, go/stop accuracy,
-  omission rate, SSD summaries (min/mean/max/final), stop-failure RT.
-
-Provenance: RDoC behavioral battery session-level summaries. Each row is one
-human session and carries three exclusion flags (`Session-Level`,
-`Task-Level`, `Subject-Level Exclusions`). **Filtering to rows where all
-three equal `Include` yields N=2,478 (Stroop) and N=2,412 (stop-signal) —
-exactly the reference Ns reported in `Task Turing Bot Abstract.md`.** The
-comparison CLI applies this filter automatically.
-
-Human SSRT is derivable from these summaries only via the **mean method**
-(`go_rt − mean_SSD`); trial-level data would be required for the integration
-method. The comparison tool computes the bot-side SSRT the same way and
-labels it `ssrt_mean_method` so the estimators match.
+Trial-level human reference data the bot cohort is compared against
+(`experiment-bot-per-subject`). Bot and human pass through identical
+estimators (see `src/experiment_bot/analysis/per_subject.py`).
 
 ## Trial-level Eisenberg data (fetched, not committed — 142 MB / 16 MB)
 
@@ -38,12 +20,7 @@ shasum -a 256 -c <<'EOF'
 EOF
 ```
 
-## Comparison maps
-
-`comparison_maps/*.json` declare, per reference CSV, which human column maps
-to which bot-side computation (generic kinds: `rt_mean`, `accuracy`,
-`omission_rate`, `field_mean`, `subtract`). Paradigm-conventional knowledge
-lives in these data files, not in bot-library code (goal G2).
+Pass the paths to the analysis CLI via `--human-stop` / `--human-stroop`.
 
 ## Reference
 

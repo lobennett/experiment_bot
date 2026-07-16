@@ -47,16 +47,26 @@ defaults.
 - `runtime.data_capture.format` (string: "csv" | "tsv" | "json") — required
   alongside `method` when `method != ""`.
 
+- `stimuli[].response.response_elements` (list of {label, selector}) — ONLY
+  for stimuli answered by clicking an on-screen option (buttons, choice
+  grids): one entry per clickable option with its visible label and a CSS
+  selector. Put the correct option's label in `response.key`. Omit the field
+  entirely for keyboard-response stimuli.
+
+- `stimuli[].response.correct_sequence_js` (JS expression) OR
+  `task_specific.correct_sequence_js` — ONLY when the task requires
+  reproducing an ordered SERIES of actions within one trial: a JS expression
+  returning the ordered target element indices (0-based into
+  `response_elements`) or their labels, read from the experiment's runtime
+  state. Omit entirely for single-action tasks.
+
 ## REQUIRED task metadata
 
-- `task.paradigm_classes` (list of strings) — abstract classes the paradigm
-  belongs to. **Open-ended vocabulary**: choose the abstract class names from
-  the literature that best describe the cognitive operations the task taxes.
-  Used to filter which paradigm-specific sequential effects apply and to look
-  up the canonical-norms file for validation. Always include
-  `"speeded_choice"` for any timed-decision task, plus one or more specific
-  classes drawn from review-article terminology. See system.md "Paradigm
-  classes" for examples and guidance on picking class names.
+- `task.paradigm_classes` (list of strings) — short descriptive tags for
+  the task family (metadata only; no runtime component reads them). Use
+  brief, generic descriptors of what the task requires (e.g. a speeded
+  two-choice task, a task with a mid-trial withhold signal); do not use
+  lab-specific task names. See system.md "Paradigm classes".
 """
 
 
@@ -87,7 +97,8 @@ def _build_stage1_prompt(bundle: SourceBundle) -> str:
         "(with key_map and trial_timing if applicable), performance.accuracy/"
         "omission, and a pilot_validation_config block. Do NOT produce "
         "response_distributions, temporal_effects, or any behavioral parameters "
-        "yet — those come in stage 2. Return JSON only."
+        "— the behavioral layer is supplied at run time by a generated "
+        "participant program, not by this card. Return JSON only."
     )
     return "\n\n".join(parts)
 

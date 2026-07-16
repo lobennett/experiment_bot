@@ -4,20 +4,29 @@ from pathlib import Path
 from experiment_bot.core.config import SourceBundle
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.stage1_structural import run_stage1
-from experiment_bot.reasoner.stage2_behavioral import run_stage2
-from experiment_bot.reasoner.stage3_citations import run_stage3
-from experiment_bot.reasoner.stage4_doi_verify import run_stage4
-from experiment_bot.reasoner.stage5_sensitivity import run_stage5
 from experiment_bot.reasoner.stage6_pilot import run_stage6
 
 
-class ReasonerPipeline:
-    """Runs stages 1-6, persisting partial state after each so --resume works.
+def _scrub_behavioral_fields(partial: dict) -> None:
+    """The structural pipeline owns no behavioral fields; Stage 1's LLM
+    occasionally emits stray ones in non-canonical shapes (observed live:
+    performance.accuracy as a bare float), which crash downstream consumers
+    expecting per-condition dicts. Drop them — the run CLI re-emits
+    canonical empties when the card is written."""
+    for key in ("performance", "response_distributions", "temporal_effects",
+                "between_subject_jitter"):
+        partial.pop(key, None)
 
-    Stages 1-5 produce the TaskCard's structural and behavioral fields.
-    Stage 6 runs a live-DOM pilot against the experiment URL via Playwright
-    and either passes (saving pilot diagnostic) or refines the structural
-    fields and re-pilots (up to `pilot_max_retries`).
+
+class ReasonerPipeline:
+    """Runs the structural stages (1 and 6), persisting partial state after
+    each so --resume works.
+
+    Stage 1 produces the TaskCard's structural fields (task, stimuli,
+    navigation, runtime, task_specific, performance). Stage 6 runs a
+    live-DOM pilot against the experiment URL via Playwright and either
+    passes (saving pilot diagnostic) or refines the structural fields and
+    re-pilots (up to `pilot_max_retries`).
 
     Accumulates a reasoning_chain across stages, stored under the partial's
     `_reasoning_chain` key (preserved on disk for --resume). The CLI later
@@ -51,10 +60,9 @@ class ReasonerPipeline:
         path.write_text(json.dumps(partial, indent=2))
 
     def _resume_from(self, label: str) -> tuple[int, dict] | None:
-        for n in (5, 4, 3, 2, 1):
-            p = self._stage_path(label, n)
-            if p.exists():
-                return n, json.loads(p.read_text())
+        p = self._stage_path(label, 1)
+        if p.exists():
+            return 1, json.loads(p.read_text())
         return None
 
     async def run(self, bundle: SourceBundle, label: str, resume: bool = False) -> dict:
@@ -72,24 +80,11 @@ class ReasonerPipeline:
         if start_after < 1:
             partial, step = await run_stage1(self._client, bundle)
             partial.setdefault("_reasoning_chain", []).append(step.to_dict())
+            _scrub_behavioral_fields(partial)
             self._save(label, 1, partial)
-        if start_after < 2:
-            partial, step = await run_stage2(self._client, partial)
-            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
-            self._save(label, 2, partial)
-        if start_after < 3:
-            partial, step = await run_stage3(self._client, partial)
-            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
-            self._save(label, 3, partial)
-        if start_after < 4:
-            partial, step = await run_stage4(partial)
-            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
-            self._save(label, 4, partial)
-        if start_after < 5:
-            partial, step = await run_stage5(self._client, partial)
-            partial.setdefault("_reasoning_chain", []).append(step.to_dict())
-            self._save(label, 5, partial)
-        if self._run_pilot and start_after < 6:
+        else:
+            _scrub_behavioral_fields(partial)
+        if self._run_pilot:
             # Persist refinements back to the resume point so a Stage 6
             # hard-fail can be picked up by --resume from the refined
             # state rather than re-walking refinements from scratch.
@@ -99,7 +94,7 @@ class ReasonerPipeline:
                 taskcards_dir=self._taskcards_dir,
                 headless=self._pilot_headless,
                 max_retries=self._pilot_max_retries,
-                save_partial=lambda p: self._save(label, 5, p),
+                save_partial=lambda p: self._save(label, 1, p),
             )
             partial.setdefault("_reasoning_chain", []).append(step.to_dict())
             self._save(label, 6, partial)

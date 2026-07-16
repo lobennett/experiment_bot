@@ -1,0 +1,257 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "5165229ca7f5fa66513096ae838e130760bd24ce88d89091ea74fda803255604",
+    "scraper_version": "1.0.0",
+    "source_sha256": "50e180d9905f835bc604526e238ea6f80266156c4bec278770c2ca2f3961974c",
+    "timestamp": "2026-07-09T21:37:09.850987+00:00",
+    "taskcard_sha256": "2d53f4e9f9780dd6c13907d4eff0f1b3564d6e2b8003393a2dbfb755a0a16650"
+  },
+  "task": {
+    "name": "cued_task_switching_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-choice classification task",
+      "task-switching with explicit pre-trial cues",
+      "keyboard-response task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "task_switch_trial",
+      "description": "A digit presented as an image inside the response frame; the participant classifies it by the currently cued rule (parity or magnitude) with the comma or period key.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "task_switch_trial",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? window.correctResponse : null)"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1200
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 600
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 600
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 600
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || (!!document.body && document.body.textContent.indexOf('Experiment Complete') !== -1)",
+      "test": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center') && !document.querySelector('.prompt_box')",
+      "loading": "typeof jsPsych === 'undefined' || !document.querySelector('#jspsych-content')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('#jspsych-fullscreen-btn')",
+      "practice": "!!document.querySelector('.prompt_box')",
+      "feedback": "(() => { const el = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if (!el) return false; const t = el.textContent.toLowerCase(); return t.indexOf('press') !== -1 && t.indexOf('enter') !== -1 && !document.querySelector('#jspsych-html-keyboard-response-stimulus img.center'); })()",
+      "attention_check": "!!document.getElementById('jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 800,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center')",
+      "trial_context_js": "(() => { const cueEl = document.querySelector('#jspsych-html-keyboard-response-stimulus .center-text'); const img = document.querySelector('#jspsych-html-keyboard-response-stimulus img.center'); const cue = cueEl ? cueEl.textContent.trim() : ''; const num = img ? ((img.src.match(/(\\d+)\\.png/) || [])[1] || '') : ''; return 'cue=' + cue + ';stim=' + num; })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "task_switch_trial": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500,
+      "stimulus_duration_ms": 1000,
+      "fixation_duration_ms": 500,
+      "cue_target_interval_ms": 150
+    },
+    "response_notes": "Two response keys: ',' (comma) and '.' (period). The stimulus-response mapping is counterbalanced by window.efVars.group_index (default 1) via getResponseMappings(): groups 0-4 map both odd and higher-than-5 to ','; groups 5-9 map higher-than-5 to ',' but even to ','; groups 10-14 flip both. The page computes the trial's correct key into the global window.correctResponse at trial setup (setStims), so response_key_js reads that authoritative variable rather than recomputing the mapping.",
+    "condition_notes": "The experimental manipulation is the task-switch and cue-switch condition (combinedCondition = 'task_<task_switch>_cue_<cue_switch>', values include task_stay_cue_stay, task_stay_cue_switch, task_switch_cue_switch, and the transitional task_na_cue_na for the first trial of each block). These conditions are not distinguishable from the trial DOM (each trial shows only a cue word and a digit image), so a single detection stimulus is declared and the per-condition breakdown is recovered from the platform export's 'condition' column via runtime.platform_export.",
+    "structure": {
+      "practice_trials_per_block": 4,
+      "test_trials_per_block": 64,
+      "num_test_blocks": 3,
+      "attention_checks_between_test_blocks": true
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'cued_task_switching_rdoc' with 1 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-call-function.js, plugin-attenti.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed first attempt: 6 trials, conditions ['task_switch_trial'] all observed.",
+      "evidence_lines": [
+        "attempt_1: trials=6, conditions=['task_switch_trial'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=38"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

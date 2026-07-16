@@ -1,16 +1,9 @@
 """Defensive JSON-parse helper for Reasoner stages.
 
-Stage 2 has had an inline parse-retry loop since SP1.5 — when the LLM
-returns malformed/empty JSON, Stage 2 appends the parser's error to
-the user prompt and asks the LLM to regenerate. This module
-generalizes that pattern for application to Stages 1, 3, 5, 6 (pilot
-refinement) and the norms_extractor — all of which currently do
-``json.loads(_extract_json(resp.text))`` with no retry path and so
-fail hard on transient LLM noise.
-
-Stage 2 is left untouched in SP4b; this helper is the model
-implementation a future SP can consolidate Stage 2 onto if priorities
-shift.
+When the LLM returns malformed/empty JSON, the caller's user prompt is
+re-sent with the parser's error appended so the LLM can regenerate.
+Applied to Stage 1 and Stage 6 (pilot refinement), which would
+otherwise fail hard on transient LLM noise.
 """
 from __future__ import annotations
 import json

@@ -6,9 +6,9 @@ condition coverage), and on failure either refines the partial via Claude
 or hard-fails — depending on `max_retries`.
 
 The pilot exercises only structural fields (stimuli, navigation,
-runtime). It does not sample RTs or check temporal effects. Pilot runs
-between Stage 5 (sensitivity) and TaskCard finalization, so refinements
-target the same fields Stage 1 produced.
+runtime). It does not sample RTs or model behavior. Pilot runs after
+Stage 1 and before TaskCard finalization, so refinements target the
+same fields Stage 1 produced.
 """
 from __future__ import annotations
 
@@ -24,8 +24,11 @@ from experiment_bot.core.config import (
     SourceBundle, StimulusConfig, TaskConfig, TaskMetadata,
 )
 from experiment_bot.core.pilot import PilotDiagnostics, PilotRunner, _NO_MATCH_EARLY_STOP
-from experiment_bot.core.pilot_session import PilotSession
+from experiment_bot.core.pilot_session import (
+    HUMAN_READING_DELAY_RANGE, PilotSession,
+)
 from experiment_bot.core.stimulus import StimulusLookup
+from experiment_bot.output.data_capture import ConfigDrivenCapture
 from experiment_bot.llm.protocol import LLMClient
 from experiment_bot.reasoner.normalize import normalize_partial
 from experiment_bot.reasoner.parse_retry import parse_with_retry
@@ -97,13 +100,14 @@ existing phase already advanced the bot past its target screen.
 Fix ONLY structural fields: `stimuli`, `navigation`, `runtime.advance_behavior`,
 `runtime.phase_detection`, `runtime.data_capture`, `task_specific`. Do NOT modify
 `response_distributions`, `temporal_effects`, `between_subject_jitter`, or
-`performance.accuracy/omission_rate` — those are set by other Reasoner stages
-and the pilot's evidence does not bear on them.
+`performance.accuracy/omission_rate` — those fields are not structural and
+the pilot's evidence does not bear on them.
 
 ## Navigation phase JSON schema (CRITICAL — get this right)
 
 The navigator consumes a FLAT phase shape. Top-level fields are `action`,
-`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+`target`, `key`, `value`, `duration_ms`, `steps`, plus an informational
+`phase` label.
 Do NOT nest under `action.type`/`action.selector` — that nested shape is
 silently ignored by the navigator and produces no behavior (a common failure
 mode that wastes refinement budget).
@@ -126,6 +130,22 @@ Supported `action` values and the fields each uses:
 - **wait** — uses `duration_ms` (integer milliseconds).
   ```json
   {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **fill** — uses `target` (CSS selector for a text input/textarea) and
+  `value` (the text to type into it). Use this when a form field blocks
+  progress (consent/demographic forms); for required form fields, propose
+  plausible neutral values.
+  ```json
+  {{"phase": "entry_form", "action": "fill", "target": "input[name='code']", "key": "", "value": "anon", "duration_ms": 0, "steps": []}}
+  ```
+
+- **select** — uses `target` (CSS selector) and `value` (the option's value
+  or visible label) to pick a dropdown option. With an EMPTY `value`, the
+  navigator clicks the target instead — use that form for radio buttons and
+  checkboxes.
+  ```json
+  {{"phase": "entry_form", "action": "select", "target": "select#choice", "key": "", "value": "Other", "duration_ms": 0, "steps": []}}
   ```
 
 - **sequence** — uses `steps` (array of nested flat phases). Useful when one
@@ -177,7 +197,8 @@ something else is blocking; switch to a different observation.
 ## Navigation phase JSON schema (CRITICAL — get this right)
 
 The navigator consumes a FLAT phase shape. Top-level fields are `action`,
-`target`, `key`, `duration_ms`, `steps`, plus an informational `phase` label.
+`target`, `key`, `value`, `duration_ms`, `steps`, plus an informational
+`phase` label.
 Do NOT nest under `action.type`/`action.selector` — that nested shape is
 silently ignored by the navigator and produces no behavior (a common failure
 mode that wastes refinement budget).
@@ -200,6 +221,22 @@ Supported `action` values and the fields each uses:
 - **wait** — uses `duration_ms` (integer milliseconds).
   ```json
   {{"phase": "", "action": "wait", "target": "", "key": "", "duration_ms": 800, "steps": []}}
+  ```
+
+- **fill** — uses `target` (CSS selector for a text input/textarea) and
+  `value` (the text to type into it). Use this when a form field blocks
+  progress (consent/demographic forms); for required form fields, propose
+  plausible neutral values.
+  ```json
+  {{"phase": "entry_form", "action": "fill", "target": "input[name='code']", "key": "", "value": "anon", "duration_ms": 0, "steps": []}}
+  ```
+
+- **select** — uses `target` (CSS selector) and `value` (the option's value
+  or visible label) to pick a dropdown option. With an EMPTY `value`, the
+  navigator clicks the target instead — use that form for radio buttons and
+  checkboxes.
+  ```json
+  {{"phase": "entry_form", "action": "select", "target": "select#choice", "key": "", "value": "Other", "duration_ms": 0, "steps": []}}
   ```
 
 - **sequence** — uses `steps` (array of nested flat phases). Useful when one
@@ -253,16 +290,36 @@ Return ONLY a JSON object: {{"stim_id": "<id>", "new_selector": "<css or js>",
 """
 
 
+# Extra single-phase refinement rounds granted when the C3 replay gate
+# fails after a passing live pilot (each round: propose ONE phase from the
+# replay's stuck DOM, append, re-replay).
+_REPLAY_REFINE_BUDGET = 2
+
+# Minimum seconds between replay advance actions (executor-faithful pacing;
+# see replay_navigation docstring note on anti-skim guards).
+_REPLAY_ADVANCE_SPACING_S = 2.0
+
+# Poll budget for the paced replay: pacing allows ~1 advance per
+# _REPLAY_ADVANCE_SPACING_S, so a multi-screen instruction flow needs a
+# time-commensurate budget (1200 polls x 50ms ~= 60s of wall clock plus
+# locator latencies) rather than the walker's shorter early-stop budget.
+_REPLAY_MAX_POLLS = 1200
+
+
 async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                             headless=True, viewport=None,
-                            max_polls=_NO_MATCH_EARLY_STOP) -> bool:
+                            max_polls=_REPLAY_MAX_POLLS,
+                            reading_delay_range=HUMAN_READING_DELAY_RANGE,
+                            ) -> tuple[bool, str]:
     """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
     serially via the unified PilotSession engine (exactly as the executor's entry
     nav does), then poll for a trial stimulus WHILE pressing advance_keys
     periodically — mirroring the executor's trial loop, which presses advance keys
     when no stimulus matches (e.g. to dismiss a "press enter to begin practice"
-    interstitial that nav legitimately leaves the bot on). Returns True iff a
-    trial stimulus is reached.
+    interstitial that nav legitimately leaves the bot on). Returns
+    (reached, final_dom): reached is True iff a trial stimulus is rendered;
+    final_dom is the page snapshot at exit so a gate failure can seed one
+    more walker refinement round (see run_stage6's replay-refine loop).
 
     The advance-key behavior is load-bearing: nav phases get the bot to the brink
     of the trial block, but the final transition into trials is driven by the
@@ -271,8 +328,16 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
     be STRICTER than the executor and reject cards the executor can actually run.
     """
     advance_keys = list(getattr(advance_behavior, "advance_keys", []) or [])
+    feedback_selectors = list(getattr(advance_behavior, "feedback_selectors", []) or [])
     interval = getattr(advance_behavior, "advance_interval_polls", 10) or 10
-    async with PilotSession(headless=headless, viewport=viewport) as session:
+    # Executor-faithful pacing: the executor separates advance actions by its
+    # navigation delays (~1s+); an unpaced replay advancing every ~0.5s trips
+    # anti-skim guards ("read too quickly" re-read loops on RDoC-style
+    # instruction flows) that the executor never trips. Held-out flanker
+    # surfaced this. Keep advance actions >= _REPLAY_ADVANCE_SPACING_S apart.
+    last_advance = 0.0
+    async with PilotSession(headless=headless, viewport=viewport,
+                            reading_delay_range=reading_delay_range) as session:
         await session.goto(url)
         for phase in navigation.phases:
             await session.try_phase(phase)  # skip-on-fail, like the executor
@@ -280,13 +345,79 @@ async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
         for _ in range(max_polls):
             probe = await session.probe_stimulus(lookup)
             if probe.match is not None:
-                return True
+                return True, ""
             misses += 1
-            if advance_keys and misses % interval == 0:
+            import time as _time
+            if misses % interval == 0 and (_time.monotonic() - last_advance) >= _REPLAY_ADVANCE_SPACING_S:
+                last_advance = _time.monotonic()
                 for k in advance_keys:
                     await session.press(k)
+                # Mirror the executor's full advance behavior (executor.py
+                # instructions-screen handling): after the keys, click the
+                # first visible advance control — the card's feedback
+                # selectors, then the platform's multi-page instructions
+                # pager Next control. Held-out flanker surfaced the gap —
+                # jsPsych's multi-page instructions pager advances by
+                # BUTTON, so a keys-only replay is stricter than the
+                # executor and rejects cards the executor can run.
+                await session.click_advance_control(tuple(feedback_selectors))
             await asyncio.sleep(0.05)  # 50ms between polls, let DOM transition settle
-        return False
+        return False, await session.dom_snapshot()
+
+
+async def _validate_phase_predicates(session, phase_detection, trial_html, after_nav_html):
+    """Evaluate the card's phase predicates against recorded pilot DOM
+    snapshots in a throwaway page (A2 hardening: LLM-written predicates can
+    be wrong yet silently harmless-or-harmful; observed live as a 'test'
+    predicate that never fired during real trials).
+
+    Returns (hard_fail_msg | None, warnings). Advisory except the one lethal
+    case: a 'complete' predicate that fires on the trial DOM would end live
+    sessions mid-task. A page-construction error degrades the whole check to
+    a skipped-note (the predicates are advisory to the executor since
+    trial-ness derives from structural roles, not phases)."""
+    try:
+        page = await session.context.new_page()
+    except Exception as e:  # noqa: BLE001 — advisory check must not sink a passing pilot
+        return None, [f"phase_predicate check skipped: {type(e).__name__}: {e}"]
+    warnings: list[str] = []
+    try:
+        async def _fires(js: str, html: str) -> bool:
+            if not js:
+                return False
+            await page.set_content(html)
+            try:
+                return bool(await page.evaluate(f"!!({js})"))
+            except Exception:  # noqa: BLE001 — malformed predicate == does not fire
+                return False
+
+        complete_js = getattr(phase_detection, "complete", "") or ""
+        test_js = getattr(phase_detection, "test", "") or ""
+        practice_js = getattr(phase_detection, "practice", "") or ""
+        if trial_html:
+            if await _fires(complete_js, trial_html):
+                return (
+                    "phase_detection.complete fires on the recorded trial DOM — "
+                    "live sessions would be declared complete mid-task",
+                    warnings,
+                )
+            if not (await _fires(test_js, trial_html)
+                    or await _fires(practice_js, trial_html)):
+                warnings.append(
+                    "phase_predicate_warning: neither 'test' nor 'practice' "
+                    "fires on the recorded trial DOM"
+                )
+        if after_nav_html and await _fires(complete_js, after_nav_html):
+            warnings.append(
+                "phase_predicate_warning: 'complete' fires on the "
+                "after-navigation DOM"
+            )
+    finally:
+        try:
+            await page.close()
+        except Exception:  # noqa: BLE001
+            pass
+    return None, warnings
 
 
 def _partial_to_pilot_config(partial: dict) -> TaskConfig:
@@ -314,6 +445,87 @@ def _partial_to_pilot_config(partial: dict) -> TaskConfig:
         task_specific=p.get("task_specific", {}),
         pilot=PilotConfig.from_dict(pilot_dict),
         runtime=RuntimeConfig.from_dict(p.get("runtime", {})),
+    )
+
+
+def _capture_row_count(data: str, fmt: str) -> int:
+    """Count trial rows in a captured export string (Wave A1).
+
+    - ``json``: a list counts its elements; a dict counts its longest
+      list-valued entry (wrapper objects like ``{"trials": [...]}``);
+      any other parsed shape counts 0. Invalid JSON raises
+      ``ValueError("unparseable ...")``.
+    - delimited (csv/tsv and anything else): non-empty lines minus one
+      assumed header line — a header-only (or single-line) export counts
+      0 rows. Conservative on purpose: the gate exists to catch empty
+      exports, and a lone line is indistinguishable from a bare header.
+    """
+    if fmt == "json":
+        try:
+            parsed = json.loads(data)
+        except json.JSONDecodeError as e:
+            raise ValueError(f"unparseable JSON: {e}") from None
+        if isinstance(parsed, list):
+            return len(parsed)
+        if isinstance(parsed, dict):
+            lengths = [len(v) for v in parsed.values() if isinstance(v, list)]
+            return max(lengths) if lengths else 0
+        return 0
+    lines = [ln for ln in data.splitlines() if ln.strip()]
+    return max(0, len(lines) - 1)
+
+
+async def _validate_data_capture(session: PilotSession, capture_cfg,
+                                 evidence: list[str]) -> None:
+    """Data-capture gate (Wave A1): a platform can pass selector/nav
+    validation yet produce an EMPTY experiment_data export, failing only
+    after a full live session.
+
+    Variant choice (documented per spec): the pilot never FINISHES the
+    experiment, so an end-of-experiment capture isn't observable at Stage 6.
+    The capture configuration is therefore evaluated MID-PILOT, on the
+    walker's live session, after the pilot has completed >= pilot.min_trials
+    trials — and must already return parseable output with >= 1 trial row.
+    This is the honest, implementable variant: it gates on "the configured
+    capture method reads back platform-recorded trial rows", the only thing
+    the pilot can actually observe. (A platform that materializes its export
+    only at completion would fail here — that limitation is preferred over
+    passing cards whose capture config was never exercised.)
+
+    Skips — with an evidence note — when no capture method is configured:
+    the executor treats that as "platform saves server-side", not an error.
+    """
+    if not capture_cfg.method:
+        evidence.append("data_capture_gate: skipped (no capture method configured)")
+        return
+    result = await ConfigDrivenCapture(capture_cfg).capture(session.page)
+    if result.failed or not (result.data or "").strip():
+        what = ("raised an exception during capture" if result.failed
+                else "returned empty output")
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"{what} on the live pilot session after completed pilot trials. "
+            f"The executor would run a full session and export nothing. "
+            f"Fix runtime.data_capture (expression/selector) so it reads back "
+            f"the platform's recorded trials."
+        )
+    fmt = capture_cfg.format or "csv"
+    try:
+        rows = _capture_row_count(result.data, fmt)
+    except ValueError as e:
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"returned unparseable {fmt} output ({e}). "
+            f"First 200 chars: {result.data[:200]!r}"
+        ) from None
+    if rows < 1:
+        raise PilotValidationError(
+            f"Stage-6 data-capture gate: capture method {capture_cfg.method!r} "
+            f"returned parseable {fmt} output but 0 trial rows after completed "
+            f"pilot trials. First 200 chars: {result.data[:200]!r}"
+        )
+    evidence.append(
+        f"data_capture_gate: method={capture_cfg.method} format={fmt} rows={rows}"
     )
 
 
@@ -487,6 +699,29 @@ def _save_diagnostic(diagnostics: PilotDiagnostics, taskcards_dir: Path, label: 
     (out_dir / "pilot.md").write_text(diagnostics.to_report())
 
 
+def _save_pilot_observations(
+    diagnostics: PilotDiagnostics, taskcards_dir: Path, label: str,
+) -> None:
+    """Persist the pilot-observed per-trial condition sequence (encounter
+    order) as a SIDECAR next to pilot.md. A sidecar — not a card field — so
+    the canonical content hashes of already-committed cards stay stable.
+    The mechanical gate (behavior/simgate.py) replays this stream instead
+    of a round-robin when it's available (Wave A4a). Skipped when the pilot
+    logged no trials.
+    """
+    stream = [
+        e.get("condition") for e in diagnostics.trial_log
+        if isinstance(e.get("condition"), str) and e.get("condition")
+    ]
+    if not stream:
+        return
+    out_dir = Path(taskcards_dir) / label
+    out_dir.mkdir(parents=True, exist_ok=True)
+    (out_dir / "pilot_observations.json").write_text(
+        json.dumps({"condition_stream": stream, "source": "stage6_pilot"}, indent=2)
+    )
+
+
 def _save_refinement_diff(
     before: dict, after: dict, taskcards_dir: Path, label: str, attempt: int,
 ) -> str:
@@ -553,7 +788,8 @@ async def run_stage6(
     nav_refinement_count = 0
     stim_refinement_count = 0
 
-    async with PilotSession(headless=headless, viewport=config.runtime.timing.viewport) as session:
+    async with PilotSession(headless=headless, viewport=config.runtime.timing.viewport,
+                            reading_delay_range=HUMAN_READING_DELAY_RANGE) as session:
         await session.goto(bundle.url)
         # Apply initial nav phases on the live session ONCE
         for phase_dict in accumulated_phases:
@@ -618,6 +854,30 @@ async def run_stage6(
                         if s.get('id') == stim_id:
                             s.setdefault('detection', {})['selector'] = new_sel
                 _save_diagnostic(diagnostics, taskcards_dir, label)
+                _save_pilot_observations(diagnostics, taskcards_dir, label)
+                # A2: check the card's phase predicates against the pilot's
+                # recorded DOMs (hard-fail only on complete-fires-on-trial-DOM).
+                _trial_html = next(
+                    (s.get("html", "") for s in (diagnostics.dom_snapshots or [])
+                     if s.get("trigger") == "first_stimulus_match"),
+                    next((s.get("html", "") for s in (diagnostics.dom_snapshots or [])
+                          if s.get("trigger") != "after_navigation"), ""),
+                )
+                _hard_fail, _pred_warnings = await _validate_phase_predicates(
+                    session, config.runtime.phase_detection, _trial_html, after_nav_snap,
+                )
+                if _hard_fail:
+                    raise PilotValidationError(
+                        f"Stage-6 phase-predicate gate: {_hard_fail}"
+                    )
+                evidence.extend(_pred_warnings)
+                if _pred_warnings:
+                    _pmd = Path(taskcards_dir) / label / "pilot.md"
+                    with open(_pmd, "a") as _fh:
+                        _fh.write(
+                            "\n### Phase-predicate warnings\n"
+                            + "\n".join(f"- {w}" for w in _pred_warnings) + "\n"
+                        )
                 if attempt == 0 and not accumulated_stim_overrides:
                     inference = (
                         f"Pilot passed first attempt: "
@@ -632,19 +892,59 @@ async def run_stage6(
                         f"conditions {conditions_observed}."
                     )
                 # C3: prove the finalized nav is executor-replayable (fresh browser).
-                replay_config = _partial_to_pilot_config(partial)
+                # A gate failure feeds the replay's stuck DOM back into the
+                # walker's refinement proposer for a bounded number of extra
+                # single-phase rounds (surfaced by held-out flanker: Stage 1
+                # omitted advance_keys, leaving a final "press enter to begin"
+                # interstitial that neither nav phases nor advance-key presses
+                # crossed — one proposed keypress phase heals it replayably).
                 from experiment_bot.core.stimulus import StimulusLookup as _StimulusLookup
-                reached = await replay_navigation(
-                    bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
-                    advance_behavior=replay_config.runtime.advance_behavior,
-                    headless=headless, viewport=replay_config.runtime.timing.viewport,
-                )
-                if not reached:
-                    raise PilotValidationError(
-                        "Stage-6 replay gate: finalized navigation.phases did not reach "
-                        "trial rendering in a fresh-browser executor-shaped replay. The "
-                        "walker's nav is not executor-replayable. See pilot.md."
+                replay_diffs: list[str] = []
+                for replay_round in range(1 + _REPLAY_REFINE_BUDGET):
+                    replay_config = _partial_to_pilot_config(partial)
+                    reached, replay_dom = await replay_navigation(
+                        bundle.url, replay_config.navigation, _StimulusLookup(replay_config),
+                        advance_behavior=replay_config.runtime.advance_behavior,
+                        headless=headless, viewport=replay_config.runtime.timing.viewport,
                     )
+                    if reached:
+                        break
+                    if replay_round == _REPLAY_REFINE_BUDGET:
+                        raise PilotValidationError(
+                            "Stage-6 replay gate: finalized navigation.phases did not reach "
+                            "trial rendering in a fresh-browser executor-shaped replay, and "
+                            f"{_REPLAY_REFINE_BUDGET} replay-refine round(s) did not heal it. "
+                            "See pilot.md."
+                        )
+                    try:
+                        new_phase = await _propose_next_phase(
+                            client, replay_dom, accumulated_phases, replay_diffs,
+                        )
+                    except Exception as e:  # noqa: BLE001 — budget-bounded; fall through to gate error
+                        logger.warning("replay-refine proposal failed: %s", e)
+                        continue
+                    accumulated_phases.append(new_phase)
+                    partial.setdefault('navigation', {})['phases'] = accumulated_phases
+                    diff_text = (
+                        f"# Replay-gate refinement round {replay_round + 1}\n"
+                        f"# (appended after the live pilot passed; replay could not reach trials)\n\n"
+                        + json.dumps(new_phase, indent=2)
+                    )
+                    replay_diffs.append(diff_text)
+                    _diff_dir = Path(taskcards_dir) / label
+                    _diff_dir.mkdir(parents=True, exist_ok=True)
+                    (_diff_dir / f"pilot_replay_refinement_{replay_round + 1}.diff").write_text(diff_text)
+                    evidence.append(
+                        f"replay_refine_{replay_round + 1}: appended phase "
+                        f"{new_phase.get('phase', '?')!r} ({new_phase.get('action', '?')})"
+                    )
+                # Wave A1: data-capture gate — after the replay gate passes,
+                # exercise the card's capture config on the walker's live
+                # session (which has completed pilot trials). See
+                # _validate_data_capture for the mid-pilot variant rationale.
+                await _validate_data_capture(
+                    session, config.runtime.data_capture, evidence,
+                )
                 return partial, ReasoningStep(
                     step="stage6_pilot",
                     inference=inference,

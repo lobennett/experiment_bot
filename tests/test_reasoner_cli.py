@@ -89,7 +89,7 @@ def test_reason_cli_writes_reasoning_chain_to_taskcard(tmp_path):
         "between_subject_jitter": {},
         "_reasoning_chain": [
             {"step": "stage1_structural", "inference": "stroop", "evidence_lines": [], "confidence": "high", "input_hash": ""},
-            {"step": "stage2_behavioral", "inference": "ex-gauss", "evidence_lines": [], "confidence": "medium", "input_hash": ""},
+            {"step": "stage6_pilot", "inference": "pilot ok", "evidence_lines": [], "confidence": "medium", "input_hash": ""},
         ],
     }
 

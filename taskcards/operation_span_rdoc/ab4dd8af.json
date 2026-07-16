@@ -1,0 +1,208 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "37b2b0bd7e820ae0919be368c9afaaf4a7837b6d0c94b8be0c78705994cd63b1",
+    "scraper_version": "1.0.0",
+    "source_sha256": "3abcc88aa04cecf6b473e6570f80e87ba5f45ecd31015608dc81fecf24da1288",
+    "timestamp": "2026-07-14T02:01:20.949234+00:00",
+    "taskcard_sha256": "ab4dd8af605d7b9879bf2daf0d3a5ee34aa79023d44df188629eedd2790129be"
+  },
+  "task": {
+    "name": "operation_span_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "working memory span task",
+      "binary perceptual judgment processing task",
+      "serial spatial recall task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "processing_symmetry",
+      "description": "8x8 black/white symmetry grid shown during the processing sub-task; participant judges whether the pattern is symmetric.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.distractor-box')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "processing",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? window.correctResponse : null)"
+      }
+    },
+    {
+      "id": "recall_grid",
+      "description": "4x4 recall grid in response mode: participant reproduces the remembered sequence of positions by navigating with arrow keys and confirming with the spacebar.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.container .box') && !!document.querySelector('.response-active')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "recall",
+        "response_key_js": "(typeof window.correctResponse !== 'undefined' && window.correctResponse !== null ? window.correctResponse : null)"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1200
+      },
+      {
+        "phase": "welcome_prompt",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || !!document.getElementById('upload_spinner') || (typeof window.jsPsych !== 'undefined' && document.body && /Experiment Complete/i.test(document.body.textContent || ''))",
+      "test": "(!!document.querySelector('.distractor-box') || (!!document.querySelector('.container .box') && !!document.querySelector('.response-active')))",
+      "loading": "!!document.querySelector('.lds-dual-ring') || !document.querySelector('.jspsych-content')",
+      "instructions": "!!document.querySelector('.jspsych-instructions-nav') || !!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.instructBox')",
+      "practice": "false",
+      "feedback": "!!document.querySelector('.memory_feedback') || !!document.querySelector('.fb_box')",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 2000,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "(!!document.querySelector('.distractor-box') || !!document.querySelector('.response-active'))",
+      "trial_context_js": "(function(){var g=document.querySelector('.distractor-box');if(g)return 'processing';if(document.querySelector('.response-active'))return 'recall';return '';})()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "ArrowRight",
+        " ",
+        "Enter"
+      ],
+      "exit_pager_key": "ArrowRight",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        " ",
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "processing": "dynamic",
+      "recall": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": null
+    },
+    "notes": "Storage phase: positions light up one-at-a-time in a 4x4 grid (.container .box with .active-box) as passive to-be-remembered stimuli \u2014 not declared as response stimuli. Processing phase: 8x8 symmetry grid (.distractor-box, 64 cells matching OG_CHEIN_SYMM_GRIDS) requires a binary symmetric/asymmetric judgment. Recall phase: participant reproduces the remembered spatial sequence via arrow-key navigation (.response-active) plus spacebar selection (.spacebar-box). Exact response keys and per-trial correct-response variable name are NOT visible in the truncated source; response_key_js reads window.correctResponse defensively and Stage 6 piloting must confirm the real key handlers, the recall sequence encoding, and the processing-response keys.",
+    "correct_sequence_js": ""
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'operation_span_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 1 navigation refinement(s), 0 selector update(s): 153 trials, conditions ['processing', 'recall'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['processing', 'recall']",
+        "attempt_2: trials=153, conditions=['processing', 'recall'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=16"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

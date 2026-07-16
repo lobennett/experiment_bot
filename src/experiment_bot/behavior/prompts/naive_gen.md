@@ -31,12 +31,36 @@ def respond(self, ctx):
     ctx fields: condition (str), correct_key (str | None),
     available_keys (tuple[str, ...]), trial_index (int),
     prev_condition, prev_correct, prev_rt_ms, prev_interrupted
-    (previous-trial outcome; None on the first trial).
+    (previous-trial outcome; None on the first trial),
+    stimulus_text (str | None): the trial's visible context text
+    when the task exposes one, else None,
+    response_elements (tuple[str, ...]): labels of the trial's
+    clickable on-screen response options; empty for keyboard tasks,
+    correct_sequence (tuple[int, ...] | None): on trials that require
+    reproducing an ordered series of actions, the ordered target
+    identifiers for this trial (indices into response_elements for
+    click tasks, or the position identifiers the task's source defines
+    for keyboard-navigated tasks); None otherwise.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the
     task reveals more keys. ctx.correct_key is always valid to press for
     the current trial even if it has not appeared in ctx.available_keys yet.
+
+    Some tasks are answered by clicking an on-screen option instead of
+    pressing a key. On trials where ctx.response_elements is non-empty
+    you may return ("click", index, rt_ms), where index selects the
+    option to click from ctx.response_elements.
+
+    On trials where ctx.correct_sequence is not None the trial expects an
+    ordered SERIES of actions. Return a list of actions instead of one:
+    e.g. [("click", i, rt_ms), ("click", j, rt_ms), ...] or a mix of
+    clicks and (key, rt_ms) presses. Each action's rt_ms is the gap
+    before that action. An empty list [] means no response. When the task
+    is answered by navigating with keys rather than clicking, read the
+    task source to work out which key presses move from one target to the
+    next and which key confirms a target, then return that key path as the
+    action list.
     """
 ```
 

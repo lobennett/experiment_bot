@@ -23,6 +23,19 @@ from experiment_bot.core.executor import TaskExecutor
 from experiment_bot.core.phase_detection import detect_phase
 
 
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
+
+
 _SAMPLE_CONFIG = {
     "task": {
         "name": "Test Task",
@@ -61,7 +74,7 @@ _SAMPLE_CONFIG = {
 @pytest.fixture
 def executor():
     config = TaskConfig.from_dict(_SAMPLE_CONFIG)
-    ex = TaskExecutor(config, headless=True, seed=42, session_params={})
+    ex = TaskExecutor(config, headless=True, seed=42, behavior_provider=_bp_stub())
     # Stub out writer so metadata calls don't fail
     ex._writer = MagicMock()
     ex._writer._trials = []
@@ -268,7 +281,7 @@ async def test_response_key_js_non_playwright_exception_counted(executor):
     _js_eval_errors["response_key_js"] is incremented and run_metadata gains
     js_eval_errors_by_source with count >= 1."""
     config = TaskConfig.from_dict(_SAMPLE_CONFIG_WITH_KEY_JS)
-    ex = TaskExecutor(config, headless=True, seed=42, session_params={})
+    ex = TaskExecutor(config, headless=True, seed=42, behavior_provider=_bp_stub())
     ex._writer = MagicMock()
     ex._writer._trials = []
 
@@ -308,75 +321,22 @@ def test_js_eval_errors_by_source_in_metadata(executor):
 # ---------------------------------------------------------------------------
 
 
-def test_pick_wrong_key_returns_none_when_only_one_real_key(executor):
-    """_pick_wrong_key must return None when the key_map has only one real key.
-
-    Single-real-key paradigms (e.g., stop-signal with one go key) cannot
-    produce a genuinely wrong keypress; returning the correct key and logging
-    intended_error=True would desync the bot_log from what was actually pressed.
-    """
-    executor._key_map = {"go": "f"}
-    executor._seen_response_keys = set()
-    result = executor._pick_wrong_key("f")
-    assert result is None, (
-        f"Expected None for single-real-key paradigm, got {result!r}"
-    )
 
 
-def test_pick_wrong_key_returns_none_with_sentinels_only(executor):
-    """When the only other entries are sentinels, _pick_wrong_key returns None."""
-    executor._key_map = {"go": "z", "stop": "withhold"}
-    executor._seen_response_keys = set()
-    result = executor._pick_wrong_key("z")
-    assert result is None, (
-        f"Expected None when no real wrong key exists, got {result!r}"
-    )
 
 
-def test_error_injection_unrealizable_count_init(executor):
-    """_error_injection_unrealizable is initialized to 0 in __init__."""
-    assert executor._error_injection_unrealizable == 0
 
 
-def test_error_injection_unrealizable_count_increments(executor):
-    """When _pick_wrong_key returns None (unrealizable), the counter must increment."""
-    executor._key_map = {"go": "f"}
-    executor._seen_response_keys = set()
-
-    # Simulate the call-site logic: if wrong is None, increment and force is_error=False
-    wrong = executor._pick_wrong_key("f")
-    is_error = True  # would be True if injection were requested
-    if wrong is None:
-        is_error = False
-        executor._error_injection_unrealizable += 1
-
-    assert is_error is False
-    assert executor._error_injection_unrealizable == 1
 
 
-def test_error_injection_metadata_persisted(executor):
-    """run_metadata['error_injection']['unrealizable_count'] reflects the counter."""
-    executor._error_injection_unrealizable = 3
-    # Simulate the metadata-persistence logic
-    metadata: dict = {}
-    metadata["error_injection"] = {"unrealizable_count": executor._error_injection_unrealizable}
-
-    assert metadata["error_injection"]["unrealizable_count"] == 3
 
 
-def test_pick_wrong_key_still_returns_key_when_alternatives_exist(executor):
-    """_pick_wrong_key returns a real wrong key when alternatives are available."""
-    executor._key_map = {"go": "f", "nogo": "j"}
-    executor._seen_response_keys = set()
-    result = executor._pick_wrong_key("f")
-    assert result == "j", (
-        f"Expected 'j' as the wrong key, got {result!r}"
-    )
 
 
-# ---------------------------------------------------------------------------
-# Task 2 (nav unification): no InstructionNavigator in executor
-# ---------------------------------------------------------------------------
+
+
+
+
 
 
 def test_executor_has_no_instruction_navigator():
@@ -386,5 +346,5 @@ def test_executor_has_no_instruction_navigator():
     assert not hasattr(ex_mod, "InstructionNavigator"), \
         "InstructionNavigator import should be gone from executor"
     config = TaskConfig.from_dict(_SAMPLE_CONFIG)
-    e = TaskExecutor(config, headless=True, seed=1, session_params={})
+    e = TaskExecutor(config, headless=True, seed=1, behavior_provider=_bp_stub())
     assert not hasattr(e, "_navigator"), "executor should not hold an InstructionNavigator"

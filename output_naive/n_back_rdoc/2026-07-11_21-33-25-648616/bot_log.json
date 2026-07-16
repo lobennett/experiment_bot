@@ -1,0 +1,2548 @@
+[
+  {
+    "trial": 1,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 2,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 3,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 723.0,
+    "actual_rt_ms": 724.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 14,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 4,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 673.8,
+    "actual_rt_ms": 675.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 18,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 5,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 772.2,
+    "actual_rt_ms": 773.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 22,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 6,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 630.6,
+    "actual_rt_ms": 631.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 26,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 7,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 550.1,
+    "actual_rt_ms": 550.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 31,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 8,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 729.8,
+    "actual_rt_ms": 731.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 35,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 9,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 931.8,
+    "actual_rt_ms": 932.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 39,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 10,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 783.7,
+    "actual_rt_ms": 784.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 43,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 11,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 646.0,
+    "actual_rt_ms": 647.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 47,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 12,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 738.9,
+    "actual_rt_ms": 740.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 51,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 13,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 1154.3,
+    "actual_rt_ms": 1155.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 56,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 14,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 827.1,
+    "actual_rt_ms": 828.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 60,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 15,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1068.5,
+    "actual_rt_ms": 1069.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 64,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 16,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 863.5,
+    "actual_rt_ms": 864.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 68,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 17,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 779.7,
+    "actual_rt_ms": 780.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 72,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 18,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 757.0,
+    "actual_rt_ms": 757.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 76,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 19,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ",",
+    "sampled_rt_ms": 838.8,
+    "actual_rt_ms": 840.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 80,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 20,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 822.9,
+    "actual_rt_ms": 824.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 86,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 21,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 962.1,
+    "actual_rt_ms": 963.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 89,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 22,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1034.8,
+    "actual_rt_ms": 1035.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 92,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 23,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 707.9,
+    "actual_rt_ms": 709.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 95,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 24,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 681.3,
+    "actual_rt_ms": 682.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 98,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 25,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 979.9,
+    "actual_rt_ms": 981.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 101,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 26,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 944.8,
+    "actual_rt_ms": 946.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 104,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 27,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1081.3,
+    "actual_rt_ms": 1082.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 107,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 28,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 914.8,
+    "actual_rt_ms": 915.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 110,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 29,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1089.9,
+    "actual_rt_ms": 1091.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 113,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 30,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 683.1,
+    "actual_rt_ms": 684.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 116,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 31,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 660.0,
+    "actual_rt_ms": 661.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 119,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 32,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 713.4,
+    "actual_rt_ms": 714.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 122,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 33,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 713.7,
+    "actual_rt_ms": 715.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 125,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 34,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ".",
+    "sampled_rt_ms": 573.3,
+    "actual_rt_ms": 574.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 130,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 35,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 688.9,
+    "actual_rt_ms": 690.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 133,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 36,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 887.1,
+    "actual_rt_ms": 888.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 136,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 37,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 694.6,
+    "actual_rt_ms": 695.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 139,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 38,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 799.2,
+    "actual_rt_ms": 800.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 142,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 39,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 579.2,
+    "actual_rt_ms": 580.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 145,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 40,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 794.8,
+    "actual_rt_ms": 796.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 148,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 41,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 912.4,
+    "actual_rt_ms": 913.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 151,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 42,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1273.9,
+    "actual_rt_ms": 1275.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 154,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 43,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 749.9,
+    "actual_rt_ms": 751.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 157,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 44,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 568.1,
+    "actual_rt_ms": 569.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 160,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 45,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 700.8,
+    "actual_rt_ms": 702.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 163,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 46,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 936.3,
+    "actual_rt_ms": 937.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 166,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 47,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 884.9,
+    "actual_rt_ms": 885.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 171,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 48,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 960.0,
+    "actual_rt_ms": 961.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 174,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 49,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 862.3,
+    "actual_rt_ms": 863.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 177,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 50,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ",",
+    "sampled_rt_ms": 876.7,
+    "actual_rt_ms": 878.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 180,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 51,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 926.0,
+    "actual_rt_ms": 927.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 183,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 52,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 869.1,
+    "actual_rt_ms": 870.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 186,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 53,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ",",
+    "sampled_rt_ms": 938.4,
+    "actual_rt_ms": 939.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 189,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 54,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 852.8,
+    "actual_rt_ms": 854.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 192,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 55,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 783.8,
+    "actual_rt_ms": 784.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 195,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 56,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 860.3,
+    "actual_rt_ms": 861.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 198,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 57,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 58,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 895.8,
+    "actual_rt_ms": 896.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 204,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 59,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 932.4,
+    "actual_rt_ms": 933.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 207,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 60,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 535.2,
+    "actual_rt_ms": 536.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 210,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 61,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 746.7,
+    "actual_rt_ms": 747.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 215,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 62,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 546.6,
+    "actual_rt_ms": 547.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 218,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 63,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 825.8,
+    "actual_rt_ms": 827.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 221,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 64,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 525.7,
+    "actual_rt_ms": 526.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 224,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 65,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 691.6,
+    "actual_rt_ms": 692.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 227,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 66,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 871.1,
+    "actual_rt_ms": 872.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 230,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 67,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 724.1,
+    "actual_rt_ms": 725.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 233,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 68,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 842.8,
+    "actual_rt_ms": 843.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 236,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 69,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 802.0,
+    "actual_rt_ms": 803.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 239,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 70,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 619.9,
+    "actual_rt_ms": 621.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 242,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 71,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 519.9,
+    "actual_rt_ms": 521.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 245,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 72,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 73,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 750.2,
+    "actual_rt_ms": 751.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 251,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 74,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 786.8,
+    "actual_rt_ms": 787.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 256,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 75,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 737.6,
+    "actual_rt_ms": 738.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 259,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 76,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 772.6,
+    "actual_rt_ms": 773.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 262,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 77,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 859.5,
+    "actual_rt_ms": 860.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 265,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 78,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 946.3,
+    "actual_rt_ms": 947.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 268,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 79,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 892.9,
+    "actual_rt_ms": 894.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 271,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 80,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 753.6,
+    "actual_rt_ms": 754.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 274,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 81,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 836.9,
+    "actual_rt_ms": 838.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 277,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 82,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 671.3,
+    "actual_rt_ms": 672.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 280,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 83,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 713.7,
+    "actual_rt_ms": 715.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 283,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 84,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 666.6,
+    "actual_rt_ms": 668.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 286,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 85,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ".",
+    "sampled_rt_ms": 1260.5,
+    "actual_rt_ms": 1262.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 289,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 86,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 87,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 947.7,
+    "actual_rt_ms": 949.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 295,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 88,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ".",
+    "sampled_rt_ms": 473.2,
+    "actual_rt_ms": 473.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 300,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 89,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 608.5,
+    "actual_rt_ms": 610.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 303,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 90,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 734.9,
+    "actual_rt_ms": 736.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 306,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 91,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1015.9,
+    "actual_rt_ms": 1017.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 309,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 92,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 754.1,
+    "actual_rt_ms": 754.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 312,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 93,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 483.1,
+    "actual_rt_ms": 485.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 315,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 94,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 575.4,
+    "actual_rt_ms": 577.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 318,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 95,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ".",
+    "sampled_rt_ms": 795.5,
+    "actual_rt_ms": 797.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 321,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 96,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 837.5,
+    "actual_rt_ms": 839.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 324,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 97,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 771.1,
+    "actual_rt_ms": 773.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 327,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 98,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 591.6,
+    "actual_rt_ms": 593.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 330,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 99,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 526.9,
+    "actual_rt_ms": 529.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 333,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 100,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 624.0,
+    "actual_rt_ms": 625.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 336,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 101,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 636.6,
+    "actual_rt_ms": 638.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 341,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 102,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 789.0,
+    "actual_rt_ms": 791.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 344,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 103,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 712.3,
+    "actual_rt_ms": 714.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 347,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 104,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 105,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 936.8,
+    "actual_rt_ms": 939.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 353,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 106,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1042.3,
+    "actual_rt_ms": 1044.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 356,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 107,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 979.9,
+    "actual_rt_ms": 980.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 359,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 108,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 618.2,
+    "actual_rt_ms": 620.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 362,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 109,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 946.5,
+    "actual_rt_ms": 948.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 365,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 110,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 704.6,
+    "actual_rt_ms": 706.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 368,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 111,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 696.3,
+    "actual_rt_ms": 698.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 371,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 112,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1001.8,
+    "actual_rt_ms": 1004.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 374,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 113,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 948.5,
+    "actual_rt_ms": 950.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 377,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 114,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ".",
+    "sampled_rt_ms": 1485.0,
+    "actual_rt_ms": 1485.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 381,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 115,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 663.9,
+    "actual_rt_ms": 666.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 385,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 116,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ".",
+    "sampled_rt_ms": 888.5,
+    "actual_rt_ms": 890.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 388,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 117,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 118,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 912.3,
+    "actual_rt_ms": 914.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 394,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 119,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 658.1,
+    "actual_rt_ms": 659.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 397,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 120,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 336.5,
+    "actual_rt_ms": 338.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 400,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 121,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 601.6,
+    "actual_rt_ms": 603.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 403,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 122,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 123,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 799.2,
+    "actual_rt_ms": 801.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 409,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 124,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 642.1,
+    "actual_rt_ms": 644.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 412,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 125,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 739.9,
+    "actual_rt_ms": 742.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 415,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 126,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 740.1,
+    "actual_rt_ms": 742.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 418,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 127,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 941.6,
+    "actual_rt_ms": 942.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 421,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 128,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 633.0,
+    "actual_rt_ms": 635.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 426,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 129,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 804.3,
+    "actual_rt_ms": 805.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 429,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=N/A"
+  },
+  {
+    "trial": 130,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 131,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 132,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 1046.5,
+    "actual_rt_ms": 1048.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 438,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 133,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 683.4,
+    "actual_rt_ms": 684.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 441,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 134,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 710.3,
+    "actual_rt_ms": 712.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 444,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 135,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 787.9,
+    "actual_rt_ms": 790.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 447,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 136,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 922.9,
+    "actual_rt_ms": 924.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 450,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 137,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 736.2,
+    "actual_rt_ms": 736.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 453,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=match"
+  },
+  {
+    "trial": 138,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 748.5,
+    "actual_rt_ms": 750.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 456,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 139,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 967.4,
+    "actual_rt_ms": 969.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 459,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 140,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 626.8,
+    "actual_rt_ms": 629.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 462,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 141,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 749.3,
+    "actual_rt_ms": 751.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 465,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=2;cond=mismatch"
+  },
+  {
+    "trial": 142,
+    "stimulus_id": "buffer",
+    "condition": "buffer",
+    "response_key": ",",
+    "sampled_rt_ms": 559.9,
+    "actual_rt_ms": 561.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 470,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=N/A"
+  },
+  {
+    "trial": 143,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 144,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 603.1,
+    "actual_rt_ms": 605.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 476,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 145,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": null,
+    "sampled_rt_ms": 1200.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 146,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 695.3,
+    "actual_rt_ms": 697.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 482,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 147,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 788.8,
+    "actual_rt_ms": 790.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 485,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 148,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 483.2,
+    "actual_rt_ms": 484.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 488,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 149,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 657.2,
+    "actual_rt_ms": 657.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 491,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 150,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ",",
+    "sampled_rt_ms": 488.2,
+    "actual_rt_ms": 488.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 494,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 151,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 625.6,
+    "actual_rt_ms": 627.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 497,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 152,
+    "stimulus_id": "match",
+    "condition": "match",
+    "response_key": ".",
+    "sampled_rt_ms": 518.5,
+    "actual_rt_ms": 520.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 500,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=match"
+  },
+  {
+    "trial": 153,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 687.5,
+    "actual_rt_ms": 690.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 503,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  },
+  {
+    "trial": 154,
+    "stimulus_id": "mismatch",
+    "condition": "mismatch",
+    "response_key": ",",
+    "sampled_rt_ms": 577.2,
+    "actual_rt_ms": 579.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 506,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "delay=1;cond=mismatch"
+  }
+]

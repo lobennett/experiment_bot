@@ -36,6 +36,26 @@ _TIMEOUT_S = 300
 # increments consecutive_misses, so the _NO_MATCH_EARLY_STOP guard cannot fire here).
 _INSTRUCTIONS_STUCK_LIMIT = 3
 
+# jsPsych's instructions plugin (a PLATFORM mechanic, not task knowledge —
+# cf. '#jspsych-fullscreen-btn' in the Stage-6 refinement prompts) renders
+# multi-page instruction viewers whose pages advance ONLY by clicking the
+# pager's Next control when key-advancing is disabled (allow_keys: false).
+# Any jsPsych task with such a viewer renders these controls, so the generic
+# advance path tries them AFTER the card's own advance selectors.
+INSTRUCTIONS_PAGER_SELECTORS: tuple[str, ...] = (
+    "#jspsych-instructions-next",
+    ".jspsych-instructions-nav button:last-of-type",
+)
+
+# Human reading dwell before each nav click/keypress. jsPsych RDoC-style
+# instruction flows carry an anti-skim guard (a minimum total reading time;
+# paging faster loops back to a "read too quickly" screen). The executor
+# already dwells this long, so the Stage-6 pilot / replay must too — else a
+# card the executor can run is rejected because the fast-paced pilot trips a
+# guard the live run never trips. Task-agnostic: it is human reading pacing,
+# not a per-paradigm threshold.
+HUMAN_READING_DELAY_RANGE: tuple[float, float] = (3.0, 8.0)
+
 
 @dataclass
 class PhaseAttempt:
@@ -133,6 +153,27 @@ class PilotSession:
                     except PlaywrightError:
                         pass  # page context may be torn down by prior nav
                 await self.page.keyboard.press(phase.key)
+            elif phase.action == "fill":
+                # Wave B2: fill a text input/textarea (consent/demographic
+                # forms that gate the task behind required fields).
+                await self._inject_reading_delay()
+                loc = self.page.locator(phase.target).first
+                await loc.wait_for(state="visible", timeout=1500)
+                await loc.fill(phase.value)
+            elif phase.action == "select":
+                # Wave B2: pick a dropdown option by value, falling back to
+                # label. With an empty value, click the target instead
+                # (radio buttons / checkboxes).
+                await self._inject_reading_delay()
+                loc = self.page.locator(phase.target).first
+                await loc.wait_for(state="visible", timeout=1500)
+                if phase.value:
+                    try:
+                        await loc.select_option(value=phase.value, timeout=1500)
+                    except PlaywrightError:
+                        await loc.select_option(label=phase.value, timeout=1500)
+                else:
+                    await loc.click()
             elif phase.action == "wait":
                 await asyncio.sleep(phase.duration_ms / 1000.0)
             elif phase.action == "sequence":
@@ -175,6 +216,28 @@ class PilotSession:
             dom_after=await self.dom_snapshot(),
             error=None,
         )
+
+    async def click_advance_control(self, selectors: tuple[str, ...] = ()) -> bool:
+        """Click the first visible advance control among the card-provided
+        ``selectors`` followed by the built-in platform pager controls
+        (``INSTRUCTIONS_PAGER_SELECTORS``). Card selectors come first — the
+        card's knowledge of ITS screens wins over the platform default. The
+        click is paced by the session's human reading delay, injected only
+        when a control is actually visible so screens without one cost
+        nothing. Returns True iff a control was clicked; any error on one
+        selector falls through to the next.
+        """
+        for sel in (*selectors, *INSTRUCTIONS_PAGER_SELECTORS):
+            try:
+                loc = self.page.locator(sel).first
+                if not await loc.is_visible(timeout=200):
+                    continue
+                await self._inject_reading_delay()
+                await loc.click(timeout=1500)
+                return True
+            except Exception:
+                continue
+        return False
 
     async def probe_stimulus(self, lookup) -> StimulusProbe:
         """Single poll across all stimulus selectors. Returns match or None."""
@@ -258,7 +321,16 @@ class PilotSession:
                         )
                 _dom_after = await self.dom_snapshot(container_sel)
                 if _dom_after == _dom_before:
-                    # Configured nav did not move this instruction screen.
+                    # Configured nav did not move this screen. Before counting
+                    # it stuck, try the generic advance controls (card
+                    # feedback selectors + the platform's multi-page
+                    # instructions pager Next control).
+                    ab = config.runtime.advance_behavior
+                    if await self.click_advance_control(
+                            tuple(getattr(ab, "feedback_selectors", []) or [])):
+                        _dom_after = await self.dom_snapshot(container_sel)
+                if _dom_after == _dom_before:
+                    # Neither nav re-run nor advance controls moved the screen.
                     instructions_no_advance += 1
                     if instructions_no_advance >= _INSTRUCTIONS_STUCK_LIMIT:
                         anomalies.append(
@@ -311,6 +383,11 @@ class PilotSession:
                     ab = config.runtime.advance_behavior
                     for key in ab.advance_keys:
                         await self._page.keyboard.press(key)
+                    # Mirror the executor's miss-branch advance: also click
+                    # the first visible advance control (card feedback
+                    # selectors + platform instructions pager).
+                    await self.click_advance_control(
+                        tuple(getattr(ab, "feedback_selectors", []) or []))
                 await asyncio.sleep(poll_ms / 1000.0)
                 continue
 
@@ -335,6 +412,7 @@ class PilotSession:
             })
 
             # Press response key (no RT timing). Filter withhold sentinels.
+            from experiment_bot.behavior.provider import _is_pressable_key
             from experiment_bot.core.executor import TaskExecutor
             key = match.response_key
             if TaskExecutor._is_withhold_sentinel(key) or key in ("dynamic", "dynamic_mapping"):
@@ -342,9 +420,18 @@ class PilotSession:
                 fallback = km.get(match.condition)
                 if fallback and fallback not in ("dynamic", "dynamic_mapping") \
                         and not TaskExecutor._is_withhold_sentinel(fallback):
-                    await self._page.keyboard.press(fallback)
-                # else: skip the keypress entirely (withhold trial)
-            else:
+                    key = fallback
+                else:
+                    key = None  # withhold — no keypress
+            # Only press keys Playwright can actually deliver. A stimulus the
+            # executor drives via a response SEQUENCE (correct_sequence_js) or
+            # a card that put a non-key placeholder in key_map (e.g. the
+            # literal "sequence") resolves to a non-pressable string here; the
+            # executor never presses it (sequence stimuli route to
+            # _deliver_sequence), and the pilot must not crash on it either.
+            # The recall display auto-advances on its own timer, so skipping
+            # the press is correct — the loop keeps flowing.
+            if key is not None and _is_pressable_key(key):
                 await self._page.keyboard.press(key)
 
             await asyncio.sleep(poll_ms / 1000.0)

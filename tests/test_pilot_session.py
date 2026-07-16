@@ -15,6 +15,16 @@ FIXTURE_HTML = """<!DOCTYPE html>
 <button id="advance" onclick="document.body.dataset.state='advanced'">Advance</button>
 <button id="one-shot-btn" onclick="this.remove()">x</button>
 <div id="stim-target" style="display:none">stimulus</div>
+<form id="consent-form">
+  <input type="text" id="participant-id" name="pid">
+  <select id="country" onchange="document.body.dataset.country=this.value">
+    <option value="">--</option>
+    <option value="aa">Option AA</option>
+    <option value="bb">Option BB</option>
+  </select>
+  <input type="checkbox" id="agree-box"
+         onclick="document.body.dataset.agreed='yes'">
+</form>
 <script>
 document.body.dataset.state = 'initial';
 document.addEventListener('keydown', e => {
@@ -155,6 +165,129 @@ async def test_try_phase_unknown_action_records_to_run_trace(fixture_url):
         result = await s.try_phase(phase)
         assert result.success is False
         assert "unknown action" in (result.error or "").lower()
+
+
+# --- Wave B2: form actions (fill / select) ---
+
+@pytest.mark.asyncio
+async def test_try_phase_fill_text_input(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "fill", "target": "#participant-id",
+            "key": "", "value": "anon-1", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        val = await s.page.evaluate("document.querySelector('#participant-id').value")
+        assert val == "anon-1"
+
+
+@pytest.mark.asyncio
+async def test_try_phase_fill_missing_target_fails_gracefully(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "fill", "target": "#no-such-input",
+            "key": "", "value": "x", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is False
+        assert result.error
+        # Session remains usable
+        assert await s.dom_snapshot()
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_dropdown_by_value(fixture_url):
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "demographics", "action": "select", "target": "#country",
+            "key": "", "value": "bb", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-country="bb"' in result.dom_after
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_dropdown_by_label(fixture_url):
+    """A value that matches no option value falls back to option label."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "demographics", "action": "select", "target": "#country",
+            "key": "", "value": "Option AA", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-country="aa"' in result.dom_after
+
+
+@pytest.mark.asyncio
+async def test_try_phase_select_empty_value_clicks_target(fixture_url):
+    """select with an empty value clicks the target — radio/checkbox path."""
+    async with PilotSession(headless=True) as s:
+        await s.goto(fixture_url)
+        phase = NavigationPhase.from_dict({
+            "phase": "consent", "action": "select", "target": "#agree-box",
+            "key": "", "value": "", "duration_ms": 0, "steps": [],
+        })
+        result = await s.try_phase(phase)
+        assert result.success is True, result.error
+        assert 'data-agreed="yes"' in result.dom_after
+
+
+@pytest.mark.asyncio
+async def test_poll_stimuli_skips_non_pressable_resolved_key(monkeypatch):
+    """REGRESSION (span recall): a sequence-response stimulus resolves to a
+    non-pressable key (e.g. a card whose key_map placeholder is the literal
+    'sequence'). The executor never presses it (it routes to
+    _deliver_sequence); poll_stimuli must skip the press too, not crash with
+    Playwright's 'Unknown key' error. The display auto-advances on its own
+    timer, so skipping is correct."""
+    from types import SimpleNamespace
+    from unittest.mock import AsyncMock, MagicMock
+    import experiment_bot.core.pilot_session as ps_mod
+    from experiment_bot.core.config import TaskPhase
+
+    async def _always_test(page, pd):
+        return TaskPhase.TEST
+    monkeypatch.setattr(ps_mod, "detect_phase", _always_test)
+
+    pd = SimpleNamespace(complete="", loading="", instructions="", attention_check="",
+                         feedback="", practice="", test="x")
+    ab = SimpleNamespace(advance_keys=[], advance_interval_polls=10,
+                         feedback_selectors=[])
+    runtime = SimpleNamespace(phase_detection=pd, advance_behavior=ab)
+    pilot = SimpleNamespace(target_conditions=["simple"],
+                            stimulus_container_selector="body", min_trials=1)
+    stim = SimpleNamespace(
+        id="simple",
+        detection=SimpleNamespace(method="js_eval", selector="true"))
+    nav = SimpleNamespace(phases=[])
+    config = SimpleNamespace(pilot=pilot, stimuli=[stim], runtime=runtime,
+                             navigation=nav,
+                             task_specific={"key_map": {"simple": "sequence"}})
+    match = SimpleNamespace(stimulus_id="simple", condition="simple",
+                            response_key="sequence")
+    lookup = SimpleNamespace(config=config, identify=AsyncMock(return_value=match))
+
+    session = PilotSession(headless=True)
+    page = MagicMock()
+    page.evaluate = AsyncMock(return_value=True)  # detection selector truthy
+    page.keyboard = MagicMock()
+    page.keyboard.press = AsyncMock()
+    session._page = page
+    session.dom_snapshot = AsyncMock(return_value="<div>recall</div>")
+
+    result = await session.poll_stimuli(lookup, max_polls=50)
+    assert result["trials_with_stimulus_match"] >= 1
+    assert result["conditions_observed"] == ["simple"]
+    # The non-pressable "sequence" key was NEVER pressed.
+    for call in page.keyboard.press.await_args_list:
+        assert call.args[0] != "sequence"
 
 
 @pytest.mark.asyncio

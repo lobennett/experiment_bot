@@ -1,0 +1,291 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "5165229ca7f5fa66513096ae838e130760bd24ce88d89091ea74fda803255604",
+    "scraper_version": "1.0.0",
+    "source_sha256": "434e985b89fb30d02ce8b8f1dd5d119d8b2c294d6434fb4d79e347c9f808a72a",
+    "timestamp": "2026-07-12T03:28:05.259448+00:00",
+    "taskcard_sha256": "fbf1976949bdc37d8e12e4b64fe61c8c15d62a0a4430d023633706339f878cd4"
+  },
+  "task": {
+    "name": "visual_search_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-alternative decision task",
+      "visual search with target present/absent judgment",
+      "set-size manipulation"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "conjunction",
+      "description": "Conjunction-search array: contains white horizontally-rotated distractors plus black distractors (and possibly a white vertical target); participant judges target present/absent.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus #white-distractor-element')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "conjunction",
+        "response_key_js": "(() => { const c = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if (!c) return null; const present = c.querySelector('#target') !== null; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const presentKey = (g >= 0 && g <= 4) ? '.' : ','; const absentKey = (g >= 0 && g <= 4) ? ',' : '.'; return present ? presentKey : absentKey; })()"
+      }
+    },
+    {
+      "id": "feature",
+      "description": "Feature-search array: distractors are all black rectangles (no white distractors); a single white vertical target may or may not be present; participant judges target present/absent.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(!!document.querySelector('#jspsych-html-keyboard-response-stimulus .container') && !document.querySelector('#jspsych-html-keyboard-response-stimulus #white-distractor-element'))",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "feature",
+        "response_key_js": "(() => { const c = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if (!c) return null; const present = c.querySelector('#target') !== null; const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const presentKey = (g >= 0 && g <= 4) ? '.' : ','; const absentKey = (g >= 0 && g <= 4) ? ',' : '.'; return present ? presentKey : absentKey; })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "repeat",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "phase": "",
+            "key": "",
+            "duration_ms": 0,
+            "steps": []
+          }
+        ],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_clickable_nav",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_clickable_nav",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "test": "true"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter",
+        " "
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "target_present": {
+          "column": "target_present",
+          "parse": "float"
+        },
+        "num_stimuli": {
+          "column": "num_stimuli",
+          "parse": "float"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "feature": "dynamic",
+      "conjunction": "dynamic"
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 500,
+      "stimulus_duration_ms": 1500,
+      "trial_duration_ms": 2000,
+      "max_response_time_ms": 2000,
+      "iti": {
+        "distribution": "decaying_exponential",
+        "mean_s": 0.5,
+        "min_s": 0,
+        "max_s": 5
+      }
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index",
+      "default": 1,
+      "mapping": "group_index 0-4: target present->'.'(period,middle), absent->','(comma,index); group_index 5-14: target present->','(comma,index), absent->'.'(period,middle)"
+    },
+    "design": {
+      "conditions": [
+        "feature",
+        "conjunction"
+      ],
+      "set_sizes": [
+        8,
+        24
+      ],
+      "target": [
+        "present",
+        "absent"
+      ],
+      "practice_len": 4,
+      "trials_per_test_block": 64,
+      "num_test_blocks": 3
+    },
+    "adaptive": "none"
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'visual_search_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-call-function.js, plugin-attenti.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 2 navigation refinement(s), 0 selector update(s): 33 trials, conditions ['conjunction', 'feature'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['conjunction', 'feature']",
+        "attempt_2: trials=0, conditions=[], missing=['conjunction', 'feature']",
+        "attempt_3: trials=33, conditions=['conjunction', 'feature'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=24"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

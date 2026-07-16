@@ -1,0 +1,285 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "b9cc26356fea2cdfa15abeec7076d692005eb089827783a20da0e7f20b1d3761",
+    "scraper_version": "1.0.0",
+    "source_sha256": "15697099f0b396df41f3d56f4414b655dd7a2492a31e84a4a463e1de3c226e3e",
+    "timestamp": "2026-07-06T10:54:17.163036+00:00",
+    "taskcard_sha256": "41e68e61c1f5b4cefda6353a12288a5ac33a16ef593f273af5b011408df2c511"
+  },
+  "task": {
+    "name": "flanker_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-choice task",
+      "response-conflict task with distractor flankers"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "congruent",
+      "description": "Five-letter array whose central letter matches the flanking letters (e.g. HHHHH or FFFFF).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const m = document.querySelector('.flankerMiddle img'); const l = document.querySelector('.flankerLeft_2 img'); if (!m || !l) return false; return (m.src||'').includes('/H.png') === (l.src||'').includes('/H.png'); })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "congruent",
+        "response_key_js": "(() => { const m = document.querySelector('.flankerMiddle img'); if (!m) return null; const isH = (m.src||'').includes('/H.png'); const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const isLowGroup = (g >= 0 && g <= 4); return isH ? (isLowGroup ? ',' : '.') : (isLowGroup ? '.' : ','); })()"
+      }
+    },
+    {
+      "id": "incongruent",
+      "description": "Five-letter array whose central letter differs from the flanking letters (e.g. FFHFF or HHFHH).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(() => { const m = document.querySelector('.flankerMiddle img'); const l = document.querySelector('.flankerLeft_2 img'); if (!m || !l) return false; return (m.src||'').includes('/H.png') !== (l.src||'').includes('/H.png'); })()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "incongruent",
+        "response_key_js": "(() => { const m = document.querySelector('.flankerMiddle img'); if (!m) return null; const isH = (m.src||'').includes('/H.png'); const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const isLowGroup = (g >= 0 && g <= 4); return isH ? (isLowGroup ? ',' : '.') : (isLowGroup ? '.' : ','); })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen_prompt",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "task_instructions",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "welcome_begin",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_reread_continue",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_too_quick_continue",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_instructions_next",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_too_quick_final_continue",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions_too_quick_wait_then_continue",
+        "action": "sequence",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "duration_ms": 3000,
+            "phase": "",
+            "steps": []
+          },
+          {
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "duration_ms": 0,
+            "phase": "",
+            "steps": []
+          }
+        ],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "(!!document.getElementById('finished_message')) || (document.body && document.body.innerText.includes('Experiment Complete'))",
+      "test": "(!!document.querySelector('.flankerMiddle img')) && !document.querySelector('.prompt_box')",
+      "loading": "!!document.querySelector('.lds-dual-ring') && !document.getElementById('finished_message')",
+      "instructions": "(!!document.querySelector('#jspsych-instructions-next')) || (!!document.querySelector('.jspsych-instructions-nav'))",
+      "practice": "!!document.querySelector('.prompt_box')",
+      "feedback": "(() => { const el = document.querySelector('#jspsych-content'); if (!el) return false; const t = el.innerText || ''; return t.includes('Press') && (t.includes('to begin practice') || t.includes('completed') || t.includes('read your feedback') || t.includes('test portion')); })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 400,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 6000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "(() => !!document.querySelector('.flankerMiddle img'))()",
+      "trial_context_js": "(() => { const m = document.querySelector('.flankerMiddle img'); const l = document.querySelector('.flankerLeft_2 img'); if (!m || !l) return ''; const mid = (m.src||'').includes('/H.png') ? 'H' : 'F'; const fl = (l.src||'').includes('/H.png') ? 'H' : 'F'; return (mid === fl ? 'congruent' : 'incongruent') + ':center=' + mid; })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "congruent": "dynamic",
+      "incongruent": "dynamic"
+    },
+    "trial_timing": {
+      "fixation_duration_ms": 500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "max_response_time_ms": 1500
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index",
+      "default": 1,
+      "rule": "group_index 0-4: center H -> comma (,), center F -> period (.); group_index 5-14: center H -> period (.), center F -> comma (,)"
+    },
+    "structure": {
+      "practice_trials": 4,
+      "test_trials_per_block": 40,
+      "num_test_blocks": 3,
+      "attention_check_between_test_blocks": true
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'flanker_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 2 navigation refinement(s), 0 selector update(s): 24 trials, conditions ['congruent', 'incongruent'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['congruent', 'incongruent']",
+        "attempt_2: trials=0, conditions=[], missing=['congruent', 'incongruent']",
+        "attempt_3: trials=24, conditions=['congruent', 'incongruent'], missing=[]"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

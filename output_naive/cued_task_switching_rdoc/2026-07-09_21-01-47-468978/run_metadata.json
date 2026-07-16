@@ -1,0 +1,50 @@
+{
+  "task_name": "cued_task_switching_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/2/",
+  "total_trials": 0,
+  "headless": true,
+  "session_seed": 741003,
+  "behavior_program": {
+    "sha256": "17f50d6f8985928392fa03bc60fbdcd4c3d2bbbb9908846f793a56e6181c3e1f",
+    "path": "naive_programs/expfactory_cued_ts/17f50d6f8985928392fa03bc60fbdcd4c3d2bbbb9908846f793a56e6181c3e1f.py",
+    "seed": 741003
+  },
+  "taskcard_sha256": "2d53f4e9f9780dd6c13907d4eff0f1b3564d6e2b8003393a2dbfb755a0a16650",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {},
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "outcome": "platform_error",
+  "loop_diagnostics": {
+    "phase_counts": {},
+    "response_window_open": 0,
+    "response_window_closed": 0,
+    "identify_hits": {},
+    "identify_misses": 0,
+    "advance_actions": 0,
+    "feedback_handled": 0,
+    "attention_checks_handled": 0,
+    "in_trial_nav_reruns": 0
+  },
+  "data_quality": {
+    "stall_trials": null,
+    "note": "no data captured"
+  },
+  "js_eval_errors_by_source": {},
+  "data_capture": {
+    "written": false,
+    "method": "",
+    "failed": false
+  }
+}

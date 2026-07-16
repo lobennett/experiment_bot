@@ -5,7 +5,6 @@ Covers:
 - LLMClient Protocol: ClaudeCLIClient and ClaudeAPIClient expose .model property
 - _wrap_for_taskcard produces non-empty prompt_sha256 and source_sha256
 - _wrap_for_taskcard records the live client's .model (not a hardcoded literal)
-- norms_extractor uses llm_client.model (not getattr with stale default)
 """
 from __future__ import annotations
 import os
@@ -151,35 +150,3 @@ def test_wrap_for_taskcard_does_not_overwrite_existing_produced_by():
     }
     result = _wrap_for_taskcard(partial, "http://x", bundle=_FakeBundle(), llm_client=_FakeClient())
     assert result["produced_by"]["model"] == "existing-model"
-
-
-# ---------------------------------------------------------------------------
-# norms_extractor: uses llm_client.model (not stale getattr fallback)
-# ---------------------------------------------------------------------------
-
-@pytest.mark.asyncio
-async def test_norms_extractor_uses_model_property():
-    """extract_norms records the client's .model, not a hardcoded default."""
-    from experiment_bot.reasoner.norms_extractor import extract_norms
-
-    CONFLICT_RESP = """{
-      "paradigm_class": "conflict",
-      "metrics": {
-        "rt_distribution": {
-          "mu_range": [430, 580], "sigma_range": [40, 90], "tau_range": [50, 130],
-          "citations": [{"doi": "10.0000/x", "authors": "A", "year": 2020,
-                         "title": "x", "table_or_figure": "T1", "page": 1,
-                         "quote": "...", "confidence": "high"}]
-        }
-      }
-    }"""
-
-    class _SentinelClient:
-        @property
-        def model(self):
-            return "sentinel-norms-model"
-        complete = AsyncMock(return_value=LLMResponse(text=CONFLICT_RESP))
-
-    client = _SentinelClient()
-    out = await extract_norms("conflict", llm_client=client)
-    assert out["produced_by"]["model"] == "sentinel-norms-model"

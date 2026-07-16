@@ -1,7 +1,7 @@
 """SP11 Phase 5b — calibration auto-invocation behavior.
 
 Tests the executor's _run_calibration_pass: it runs whenever a
-deliverer is configured and installs the result on the sampler;
+deliverer is configured and records the result for run_metadata;
 it short-circuits when no deliverer is available.
 """
 from __future__ import annotations
@@ -10,6 +10,19 @@ import asyncio
 from unittest.mock import AsyncMock, MagicMock, patch
 
 from experiment_bot.core.config import RuntimeConfig
+
+
+def _bp_stub():
+    """Minimal behavior-provider stub: TaskExecutor requires one at init;
+    structural tests never execute trials through it."""
+    from unittest.mock import MagicMock
+    p = MagicMock()
+    p.program_sha256 = "00" * 32
+    p.program_path = "stub_program.py"
+    p.seed = 0
+    return p
+
+
 
 
 def test_runtime_calibration_n_keys_default():
@@ -36,11 +49,11 @@ def _executor_with_runtime(runtime_overrides: dict):
         "navigation": {"phases": []},
         "runtime": runtime_overrides,
     }
-    return TaskExecutor(TaskConfig.from_dict(base))
+    return TaskExecutor(TaskConfig.from_dict(base), behavior_provider=_bp_stub())
 
 
-def test_run_calibration_pass_applies_to_sampler_by_default():
-    """Post-cal arm: run pass AND install on sampler."""
+def test_run_calibration_pass_records_result_by_default():
+    """Post-cal arm: run pass and record the CalibrationRun."""
     ex = _executor_with_runtime({})  # defaults
     from experiment_bot.calibration.estimator import CalibrationResult
     from experiment_bot.calibration.runner import CalibrationRun
@@ -62,9 +75,9 @@ def test_run_calibration_pass_applies_to_sampler_by_default():
     ), patch(
         "experiment_bot.calibration.playwright_gate_dismisser.PlaywrightGateDismisser"
     ):
-        ex._sampler.set_calibration_result = MagicMock()
         asyncio.run(ex._run_calibration_pass(MagicMock()))
-    ex._sampler.set_calibration_result.assert_called_once_with(fake_result)
+    assert ex._calibration_run is fake_run
+    assert ex._calibration_run.result is fake_result
 
 
 def test_run_calibration_pass_skips_when_no_deliverer():

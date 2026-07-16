@@ -16,9 +16,11 @@ from pathlib import Path
 import click
 
 from experiment_bot.behavior.provider import (
-    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key,
+    NON_LITERAL_KEY_SENTINELS, stim_condition_and_key, stim_correct_sequence_js,
+    stim_response_elements,
 )
 from experiment_bot.behavior.simgate import run_gate
+from experiment_bot.behavior.source_slim import DEFAULT_SOURCE_BUDGET, slim_bundle
 from experiment_bot.core.scraper import scrape_experiment_source
 from experiment_bot.llm.factory import build_default_client
 from experiment_bot.taskcard.hashing import taskcard_sha256 as _compute_taskcard_hash
@@ -66,19 +68,6 @@ def _load_structural_taskcard(label: str, taskcards_dir: str,
     return load_latest(taskcards_dir, label=label)
 
 
-def _combined_source(bundle) -> str:
-    """Build one text blob from a SourceBundle's page HTML + source files.
-
-    SourceBundle carries no single pre-combined field; this mirrors the
-    concatenation pattern used by the Reasoner's Stage 1 prompt builder
-    (src/experiment_bot/reasoner/stage1_structural.py::_build_stage1_prompt).
-    """
-    parts = [f"## Page HTML\n{bundle.description_text[:5000]}"]
-    for fname, content in bundle.source_files.items():
-        parts.append(f"## File: {fname}\n{content[:60000]}")
-    return "\n\n".join(parts)
-
-
 def extract_python_block(text: str) -> str:
     m = re.search(r"```(?:python)?\n(.*?)```", text, re.DOTALL)
     if not m:
@@ -86,12 +75,54 @@ def extract_python_block(text: str) -> str:
     return m.group(1)
 
 
+def _pilot_condition_stream(taskcards_dir: str, label: str,
+                            conditions: list[str]) -> list[str] | None:
+    """Read the pilot-observed condition sequence Stage 6 persisted as a
+    sidecar (taskcards/<label>/pilot_observations.json). Returns None when
+    absent/unreadable — the gate then falls back to round-robin. Labels
+    outside the card's condition vocabulary (e.g. structural-only screens)
+    are dropped so the gate only replays conditions the program was briefed
+    on. Wave A4a.
+    """
+    path = Path(taskcards_dir) / label / "pilot_observations.json"
+    if not path.exists():
+        return None
+    try:
+        data = json.loads(path.read_text())
+    except (OSError, json.JSONDecodeError):
+        return None
+    stream = data.get("condition_stream")
+    if not isinstance(stream, list):
+        return None
+    known = set(conditions)
+    filtered = [c for c in stream if isinstance(c, str) and c in known]
+    return filtered or None
+
+
 def mechanical_facts(taskcard) -> dict:
     conditions: list[str] = []
+    response_elements: dict[str, list[str]] = {}
+    correct_sequence: dict[str, list[int]] = {}
+    # A global correct_sequence_js flags every click-response condition as a
+    # sequence trial (a per-stimulus one flags just that condition).
+    global_seq_js = bool(
+        (taskcard.task_specific or {}).get("correct_sequence_js"))
     for stim in taskcard.stimuli or []:
         cond, _ = stim_condition_and_key(stim)
         if cond and cond not in conditions:
             conditions.append(cond)
+        # Wave B1: clickable option labels per condition, so the gate can
+        # replay click-response trials with the same ctx shape as live runs.
+        labels = [label for label, _sel in stim_response_elements(stim)]
+        if cond and labels and cond not in response_elements:
+            response_elements[cond] = labels
+        # Sequence-response: a card that exposes correct_sequence_js (per
+        # stimulus or globally) reproduces an ordered series of clicks. The
+        # gate can't run the card's JS, so it synthesizes a plausible target
+        # (reproduce all options in order, 0..N-1).
+        if cond and labels and cond not in correct_sequence and (
+                global_seq_js or stim_correct_sequence_js(stim)):
+            correct_sequence[cond] = list(range(len(labels)))
     km = {k: v for k, v in ((taskcard.task_specific or {}).get("key_map") or {}).items()
           if isinstance(v, str) and v.lower() not in NON_LITERAL_KEY_SENTINELS}
     ti = getattr(taskcard.runtime, "trial_interrupt", None)
@@ -101,25 +132,38 @@ def mechanical_facts(taskcard) -> dict:
     interrupt_condition = (getattr(ti, "detection_condition", None) if ti else None) or None
     has_interrupt = interrupt_condition is not None
     return {"conditions": conditions, "key_map": km, "has_interrupt": has_interrupt,
-            "interrupt_condition": interrupt_condition}
+            "interrupt_condition": interrupt_condition,
+            "response_elements": response_elements,
+            "correct_sequence": correct_sequence}
 
 
-async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards",
-                   out_root: Path = Path("naive_programs"),
-                   max_retries: int = 2, taskcard_sha256: str | None = None) -> Path:
-    bundle = await scrape_experiment_source(url=url, hint="")
-    taskcard = _load_structural_taskcard(label, taskcards_dir, taskcard_sha256=taskcard_sha256)
-    tc_hash = _compute_taskcard_hash(taskcard.to_dict())
-    facts = mechanical_facts(taskcard)
-    prompt = _TEMPLATE.read_text().format(
-        PAGE_SOURCE=_combined_source(bundle),
-        CONDITIONS=", ".join(facts["conditions"]),
-        KEY_MAP=json.dumps(facts["key_map"]) if facts["key_map"] else _EMPTY_KEY_MAP_NOTE,
-        INTERRUPT_NOTE=_INTERRUPT_NOTE if facts["has_interrupt"] else "",
-    )
-    out_dir = Path(out_root) / label
-    out_dir.mkdir(parents=True, exist_ok=True)
+def _archive_path(out_dir: Path, sha: str, kind: str, attempt: int) -> Path:
+    """Unique archive path for a transcript/simgate record.
 
+    Writing the same program content twice is idempotent for the .py file
+    (same path), but every generation attempt — including byte-identical
+    re-emissions across retries or across independent programs (C4) — must
+    get its own archived record (pre-registered rule: all attempts
+    archived). Falls back to attempt-numbered / dup-numbered suffixes when
+    the plain name is already taken."""
+    path = out_dir / f"{sha}.{kind}.json"
+    if not path.exists():
+        return path
+    path = out_dir / f"{sha}.attempt{attempt}.{kind}.json"
+    dup = 1
+    while path.exists():
+        path = out_dir / f"{sha}.attempt{attempt}.dup{dup}.{kind}.json"
+        dup += 1
+    return path
+
+
+async def _generate_one(client, prompt: str, facts: dict, condition_stream,
+                        tc_hash: str, slim_manifest: dict, out_dir: Path,
+                        url: str, label: str, max_retries: int,
+                        program_index: int = 0) -> Path:
+    """One independent program: the attempt loop (initial + gate-failure
+    retries), each attempt archived. Raises RuntimeError when every attempt
+    fails the mechanical gate."""
     last_failures: list[str] = []
     for attempt in range(1 + max_retries):
         user = prompt if attempt == 0 else (
@@ -129,24 +173,18 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
         reply = await client.complete(system="", user=user, max_tokens=16384)
         code = extract_python_block(reply.text)
         # Pure content hash — matches the content-addressing convention used
-        # by sim_cli/cli/executor (behavior.provider.program_sha256). Writing
-        # the same content twice is idempotent (same path). Retries that
-        # re-emit byte-identical code must still each get an archived
-        # transcript/simgate record (pre-registered rule: all attempts
-        # archived), so those two filenames fall back to an attempt-numbered
-        # suffix when the plain name is already taken by an earlier attempt.
+        # by sim_cli/cli/executor (behavior.provider.program_sha256).
         sha = hashlib.sha256(code.encode()).hexdigest()
         prog = out_dir / f"{sha}.py"
         prog.write_text(code)
 
-        transcript_path = out_dir / f"{sha}.transcript.json"
-        if transcript_path.exists():
-            transcript_path = out_dir / f"{sha}.attempt{attempt}.transcript.json"
-        transcript_path.write_text(json.dumps({
+        _archive_path(out_dir, sha, "transcript", attempt).write_text(json.dumps({
             "model": client.model, "attempt": attempt, "url": url,
-            "label": label, "prompt": user, "response": reply.text,
+            "label": label, "program_index": program_index,
+            "prompt": user, "response": reply.text,
             "generated_at": datetime.now(timezone.utc).isoformat(),
             "taskcard_sha256": tc_hash,
+            "slimming": slim_manifest,
         }, indent=2))
         # run_gate never raises on a broken program (simgate._trace wraps both
         # BehaviorSession construction and the per-trial loop) — a broken
@@ -154,17 +192,89 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
         report = run_gate(prog, conditions=facts["conditions"],
                           key_map=facts["key_map"],
                           has_interrupt=facts["has_interrupt"],
-                          interrupt_condition=facts["interrupt_condition"])
-        simgate_path = out_dir / f"{sha}.simgate.json"
-        if simgate_path.exists():
-            simgate_path = out_dir / f"{sha}.attempt{attempt}.simgate.json"
-        simgate_path.write_text(json.dumps(report.to_dict(), indent=2))
+                          interrupt_condition=facts["interrupt_condition"],
+                          condition_stream=condition_stream,
+                          response_elements=facts["response_elements"],
+                          correct_sequence=facts["correct_sequence"])
+        _archive_path(out_dir, sha, "simgate", attempt).write_text(
+            json.dumps(report.to_dict(), indent=2))
         if report.passed:
             return prog
         last_failures = report.failures
     raise RuntimeError(
         f"naive program for {label!r} failed the mechanical gate after "
         f"{1 + max_retries} attempts: {last_failures}")
+
+
+async def generate_programs(url: str, label: str, client, *,
+                            n_programs: int = 1,
+                            taskcards_dir: str = "taskcards",
+                            out_root: Path = Path("naive_programs"),
+                            max_retries: int = 2,
+                            taskcard_sha256: str | None = None,
+                            source_budget: int = DEFAULT_SOURCE_BUDGET,
+                            ) -> tuple[list[Path], list[str]]:
+    """Wave C4: generate ``n_programs`` INDEPENDENT participant programs from
+    one scrape + one prompt (variation comes from the LLM's own sampling).
+    Each program gets its own attempt loop, transcripts, and gate records —
+    all archived. Returns (passing program paths, per-slot failure messages).
+    A slot whose passing code is byte-identical to an earlier slot's is
+    counted as a failure (not an independent program)."""
+    bundle = await scrape_experiment_source(url=url, hint="")
+    taskcard = _load_structural_taskcard(label, taskcards_dir, taskcard_sha256=taskcard_sha256)
+    tc_hash = _compute_taskcard_hash(taskcard.to_dict())
+    facts = mechanical_facts(taskcard)
+    condition_stream = _pilot_condition_stream(
+        taskcards_dir, label, facts["conditions"])
+    # Wave C2: purely mechanical slimming of the page bundle (blob elision +
+    # rank-by-size/minification/entry-reference under a char budget). The
+    # manifest of everything elided is archived in each attempt's transcript.
+    slimmed = slim_bundle(bundle, budget=source_budget)
+    prompt = _TEMPLATE.read_text().format(
+        PAGE_SOURCE=slimmed.text,
+        CONDITIONS=", ".join(facts["conditions"]),
+        KEY_MAP=json.dumps(facts["key_map"]) if facts["key_map"] else _EMPTY_KEY_MAP_NOTE,
+        INTERRUPT_NOTE=_INTERRUPT_NOTE if facts["has_interrupt"] else "",
+    )
+    out_dir = Path(out_root) / label
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    passed: list[Path] = []
+    failures: list[str] = []
+    seen_shas: set[str] = set()
+    for program_index in range(n_programs):
+        try:
+            prog = await _generate_one(
+                client, prompt, facts, condition_stream, tc_hash,
+                slimmed.manifest, out_dir, url=url, label=label,
+                max_retries=max_retries, program_index=program_index)
+        except RuntimeError as exc:
+            failures.append(f"program {program_index}: {exc}")
+            continue
+        sha = prog.stem
+        if sha in seen_shas:
+            failures.append(
+                f"program {program_index}: byte-identical to an earlier "
+                f"passing program ({sha[:12]}) — not independent")
+            continue
+        seen_shas.add(sha)
+        passed.append(prog)
+    return passed, failures
+
+
+async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards",
+                   out_root: Path = Path("naive_programs"),
+                   max_retries: int = 2, taskcard_sha256: str | None = None,
+                   source_budget: int = DEFAULT_SOURCE_BUDGET) -> Path:
+    """Pre-registered single-program flow: the first program to pass the
+    mechanical gate IS the program."""
+    passed, failures = await generate_programs(
+        url, label, client, n_programs=1, taskcards_dir=taskcards_dir,
+        out_root=out_root, max_retries=max_retries,
+        taskcard_sha256=taskcard_sha256, source_budget=source_budget)
+    if not passed:
+        raise RuntimeError(failures[0])
+    return passed[0]
 
 
 @click.command()
@@ -176,10 +286,25 @@ async def generate(url: str, label: str, client, taskcards_dir: str = "taskcards
               help="Hermetic generation provenance: load the exact structural "
                    "TaskCard with this content hash (full or unambiguous prefix) "
                    "instead of the newest-by-mtime card.")
+@click.option("--source-budget", default=DEFAULT_SOURCE_BUDGET, show_default=True,
+              help="Total character budget for the page source included in the "
+                   "generation prompt (mechanical slimming; see "
+                   "behavior/source_slim.py).")
+@click.option("--n-programs", default=1, show_default=True,
+              help="Wave C4: generate K independent programs (each its own "
+                   "transcripts + gate records, all archived). Exits nonzero "
+                   "if fewer than K distinct programs pass within per-program "
+                   "retry budgets. The pre-registered flow is the default K=1.")
 def main(url: str, label: str, model: str, taskcards_dir: str,
-         taskcard_sha256: str | None):
-    """Generate the SP21 naive-arm participant program for LABEL."""
+         taskcard_sha256: str | None, source_budget: int, n_programs: int):
+    """Generate the SP21 naive-arm participant program(s) for LABEL."""
     client = build_default_client(model)
-    path = asyncio.run(generate(url, label, client, taskcards_dir=taskcards_dir,
-                                taskcard_sha256=taskcard_sha256))
-    click.echo(f"PASS -> {path}")
+    passed, failures = asyncio.run(generate_programs(
+        url, label, client, n_programs=n_programs, taskcards_dir=taskcards_dir,
+        taskcard_sha256=taskcard_sha256, source_budget=source_budget))
+    for path in passed:
+        click.echo(f"PASS -> {path}")
+    for msg in failures:
+        click.echo(f"FAIL: {msg}", err=True)
+    if len(passed) < n_programs:
+        raise SystemExit(1)

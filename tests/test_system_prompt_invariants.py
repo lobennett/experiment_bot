@@ -32,18 +32,18 @@ def test_no_paradigm_class_accuracy_priors():
         assert anchor not in PROMPT
 
 
-def test_every_registered_mechanism_documented():
-    from experiment_bot.effects.registry import EFFECT_REGISTRY
-    for name in EFFECT_REGISTRY:
-        assert f"`{name}`" in PROMPT, (
-            f"temporal-effects mechanism {name!r} is registered but "
-            "undocumented in system.md section 10"
-        )
+def test_sequence_response_section_present_and_mechanical():
+    """Sequence-response capability: Stage 1 is told to expose the trial's
+    target order via correct_sequence_js, and the instruction is mechanical
+    (no phenomenon names, no numeric priors)."""
+    assert "correct_sequence_js" in PROMPT
+    # No paradigm/phenomenon vocabulary leaked into the new guidance.
+    lowered = PROMPT.lower()
+    for banned in ("corsi", "digit span", "working memory", "serial recall",
+                   "span task"):
+        assert banned not in lowered
 
 
-def test_pink_noise_documents_alpha_not_hurst():
-    assert "`alpha`" in PROMPT
-    # `hurst` may appear only inside the do-not-emit deprecation warning.
-    for line in PROMPT.splitlines():
-        if "hurst" in line.lower():
-            assert "deprecated" in line.lower() or "do not" in line.lower()
+
+
+

@@ -1,0 +1,305 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "5165229ca7f5fa66513096ae838e130760bd24ce88d89091ea74fda803255604",
+    "scraper_version": "1.0.0",
+    "source_sha256": "c18b928f445061da944dee7a632f733d49a7c3080febc4c9b27c894420da5bff",
+    "timestamp": "2026-07-10T00:58:32.516803+00:00",
+    "taskcard_sha256": "0768dd9fda2743e1675b0c55fef6a584058c8c77a675a3c40b808acc68f120ea"
+  },
+  "task": {
+    "name": "ax_cpt_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-choice decision",
+      "cue-probe delayed response",
+      "context-dependent target detection",
+      "continuous performance task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "AX",
+      "description": "Probe letter following an 'A' cue where the probe is 'X' (target combination requiring the AX response key).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el||!el.querySelector('.AX_text'))return false;if(el.className.indexOf('responded')!==-1)return false;var t=(window.jsPsych&&jsPsych.getCurrentTrial)?jsPsych.getCurrentTrial():null;if(!t)return false;var tid='';try{tid=(typeof t.data==='function')?(t.data().trial_id||''):((t.data&&t.data.trial_id)||'');}catch(e){tid='';}var isProbe=(tid==='practice_trial'||tid==='test_trial')||(Array.isArray(t.choices)&&t.choices.length===2);return isProbe&&window.currCondition==='AX';})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "AX",
+        "response_key_js": "(function(){if(window.currCondition&&window.possibleResponses){return window.currCondition==='AX'?window.possibleResponses[0][1]:window.possibleResponses[1][1];}return null;})()"
+      }
+    },
+    {
+      "id": "AY",
+      "description": "Probe letter following an 'A' cue where the probe is not 'X' (non-target requiring the 'other' response key).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el||!el.querySelector('.AX_text'))return false;if(el.className.indexOf('responded')!==-1)return false;var t=(window.jsPsych&&jsPsych.getCurrentTrial)?jsPsych.getCurrentTrial():null;if(!t)return false;var tid='';try{tid=(typeof t.data==='function')?(t.data().trial_id||''):((t.data&&t.data.trial_id)||'');}catch(e){tid='';}var isProbe=(tid==='practice_trial'||tid==='test_trial')||(Array.isArray(t.choices)&&t.choices.length===2);return isProbe&&window.currCondition==='AY';})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "AY",
+        "response_key_js": "(function(){if(window.currCondition&&window.possibleResponses){return window.currCondition==='AX'?window.possibleResponses[0][1]:window.possibleResponses[1][1];}return null;})()"
+      }
+    },
+    {
+      "id": "BX",
+      "description": "Probe letter 'X' following a non-'A' cue (non-target requiring the 'other' response key).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el||!el.querySelector('.AX_text'))return false;if(el.className.indexOf('responded')!==-1)return false;var t=(window.jsPsych&&jsPsych.getCurrentTrial)?jsPsych.getCurrentTrial():null;if(!t)return false;var tid='';try{tid=(typeof t.data==='function')?(t.data().trial_id||''):((t.data&&t.data.trial_id)||'');}catch(e){tid='';}var isProbe=(tid==='practice_trial'||tid==='test_trial')||(Array.isArray(t.choices)&&t.choices.length===2);return isProbe&&window.currCondition==='BX';})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "BX",
+        "response_key_js": "(function(){if(window.currCondition&&window.possibleResponses){return window.currCondition==='AX'?window.possibleResponses[0][1]:window.possibleResponses[1][1];}return null;})()"
+      }
+    },
+    {
+      "id": "BY",
+      "description": "Probe letter following a non-'A' cue where the probe is not 'X' (non-target requiring the 'other' response key).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){var el=document.querySelector('#jspsych-html-keyboard-response-stimulus');if(!el||!el.querySelector('.AX_text'))return false;if(el.className.indexOf('responded')!==-1)return false;var t=(window.jsPsych&&jsPsych.getCurrentTrial)?jsPsych.getCurrentTrial():null;if(!t)return false;var tid='';try{tid=(typeof t.data==='function')?(t.data().trial_id||''):((t.data&&t.data.trial_id)||'');}catch(e){tid='';}var isProbe=(tid==='practice_trial'||tid==='test_trial')||(Array.isArray(t.choices)&&t.choices.length===2);return isProbe&&window.currCondition==='BY';})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "BY",
+        "response_key_js": "(function(){if(window.currCondition&&window.possibleResponses){return window.currCondition==='AX'?window.possibleResponses[0][1]:window.possibleResponses[1][1];}return null;})()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen_prompt",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "welcome",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "instructions",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "practice_instructions",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "begin_practice",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || !!document.getElementById('upload_spinner') || (!!document.body && /Experiment Complete/.test(document.body.innerText))",
+      "test": "!!window.getExpStage && window.getExpStage() === 'test'",
+      "loading": "!document.querySelector('#jspsych-content') && !document.getElementById('jspsych-fullscreen-btn') && !document.getElementById('finished_message')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.getElementById('jspsych-fullscreen-btn') || (!!document.body && /experiment will take|Place your|start with a practice round|begin practice/.test(document.body.innerText))",
+      "practice": "!!window.getExpStage && window.getExpStage() === 'practice'",
+      "feedback": "!document.querySelector('#jspsych-attention-check-rdoc-stimulus') && !!document.body && /You have completed|read your feedback|start the test portion|Respond Faster!|Incorrect|Correct!|Done with this task/.test(document.body.innerText)",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "",
+      "trial_context_js": "",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 5.0,
+      "cdp_dwell_ms": 200.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "block_num": {
+          "column": "block_num",
+          "parse": "float"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "AX": "dynamic",
+      "AY": "dynamic",
+      "BX": "dynamic",
+      "BY": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500,
+      "cue_stimulus_duration_ms": 500,
+      "cue_trial_duration_ms": 500,
+      "isi_duration_ms": 3000,
+      "probe_stimulus_duration_ms": 1000,
+      "probe_trial_duration_ms": 1500,
+      "fixation_duration_ms": 500,
+      "iti_min_ms": 0,
+      "iti_max_ms": 5000,
+      "iti_mean_ms": 500
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index",
+      "default": 1,
+      "mapping": "group_index 0-4: AX->'.' (period), other->',' (comma). group_index 5-14: AX->',' (comma), other->'.' (period). The correct key is resolved at runtime from window.currCondition and window.possibleResponses, so it tracks whatever assignment the page applied.",
+      "response_keys": [
+        ",",
+        "."
+      ]
+    },
+    "structure": {
+      "conditions": [
+        "AX",
+        "AY",
+        "BX",
+        "BY"
+      ],
+      "condition_proportions": "per test block draws of AX/BY/BX/AY plus extra AX (4 AX : 2 BX : 2 AY : 2 BY ratio)",
+      "practice_trials": 5,
+      "test_blocks": 3,
+      "test_trials_per_block": 50,
+      "attention_check_per_test_block": true
+    },
+    "adaptive": "none (no staircase or difficulty-tracking procedure)"
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'ax_cpt_rdoc' with 4 stimuli. Source files: jquery.min.js, bootstrap.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-call-function.js, plugin-attention-check.js, .",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "jspsych.js",
+        "plugin-instructions.js",
+        "plugin-html-keyboard-response.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 5 navigation refinement(s), 0 selector update(s): 95 trials, conditions ['AX', 'AY', 'BX', 'BY'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['AX', 'AY', 'BX', 'BY']",
+        "attempt_2: trials=0, conditions=[], missing=['AX', 'AY', 'BX', 'BY']",
+        "attempt_3: trials=0, conditions=[], missing=['AX', 'AY', 'BX', 'BY']",
+        "attempt_4: trials=0, conditions=[], missing=['AX', 'AY', 'BX', 'BY']",
+        "attempt_5: trials=0, conditions=[], missing=['AX', 'AY', 'BX', 'BY']",
+        "attempt_6: trials=95, conditions=['AX', 'AY', 'BX', 'BY'], missing=[]",
+        "phase_predicate_warning: neither 'test' nor 'practice' fires on the recorded trial DOM",
+        "data_capture_gate: method=js_expression format=json rows=40"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

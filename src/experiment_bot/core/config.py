@@ -5,10 +5,11 @@ from enum import Enum
 
 
 def _unwrap_value(v):
-    """Unwrap a Stage 2 {value, rationale} envelope to its inner value.
-    Bare numbers and None pass through unchanged. Handles both dict
-    envelopes (temporal_effects style) and number envelopes
-    (performance.* style under SP4a's schema generalization).
+    """Unwrap a {value, rationale} envelope to its inner value. Committed
+    TaskCards (produced by the expert pipeline on main) wrap some fields in
+    such envelopes; bare numbers and None pass through unchanged. Handles
+    both dict envelopes (temporal_effects style) and number envelopes
+    (performance.* style).
     """
     if isinstance(v, dict) and "value" in v:
         return v["value"]
@@ -60,6 +61,14 @@ class ResponseConfig:
     key: str | None
     condition: str
     response_key_js: str = ""  # JS expression returning the correct key at runtime
+    # Wave B1: clickable response options for click-response tasks (buttons,
+    # choice grids) — a list of {label, selector} dicts. Empty for keypress
+    # tasks.
+    response_elements: list = field(default_factory=list)
+    # Sequence-response capability: JS expression returning THIS trial's
+    # ordered target element indices/labels (serial reproduction). Empty for
+    # single-action tasks.
+    correct_sequence_js: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> ResponseConfig:
@@ -67,12 +76,20 @@ class ResponseConfig:
             key=d.get("key"),
             condition=d["condition"],
             response_key_js=d.get("response_key_js", ""),
+            response_elements=d.get("response_elements") or [],
+            correct_sequence_js=d.get("correct_sequence_js", ""),
         )
 
     def to_dict(self) -> dict:
         d = {"key": self.key, "condition": self.condition}
         if self.response_key_js:
             d["response_key_js"] = self.response_key_js
+        if self.response_elements:
+            # Emitted only when set: committed cards without the field must
+            # keep serializing byte-identically (content-hash stability).
+            d["response_elements"] = self.response_elements
+        if self.correct_sequence_js:
+            d["correct_sequence_js"] = self.correct_sequence_js
         return d
 
 
@@ -112,356 +129,6 @@ class DistributionConfig:
     def to_dict(self) -> dict:
         return {"distribution": self.distribution, "params": self.params,
                 "unit": self.unit}
-
-
-@dataclass
-class AutocorrelationConfig:
-    enabled: bool = False
-    phi: float = 0.0
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> AutocorrelationConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-@dataclass
-class FatigueDriftConfig:
-    enabled: bool = False
-    drift_per_trial_ms: float = 0.0
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> FatigueDriftConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-@dataclass
-class ConditionRepetitionConfig:
-    """Single-parameter (facilitation_ms, cost_ms) binary repetition
-    modulation.
-
-    **Deprecated in SP11 Phase 2** in favor of ``lag1_pair_modulation``,
-    which expresses the same conceptual phenomenon with a full
-    modulation_table that reproduces the cell-level 2×2 pattern real
-    Gratton has (cI > iI; cC ≈ iC). The single-parameter form cannot
-    capture that asymmetry — it only knows "same" vs "different"
-    condition labels, not the four pairs.
-
-    The handler remains functional so pre-SP11 TaskCards keep running;
-    a loud stderr deprecation warning fires at ``from_dict`` time
-    when ``enabled=True`` so the deprecation isn't silent.
-    Loud-during-window discipline: this warning should never fire on
-    the four SP11 dev paradigms after Phase 5 TaskCard regeneration;
-    if it does, the regenerated card needs to switch to
-    ``lag1_pair_modulation`` with a paradigm-appropriate
-    ``modulation_table``.
-    """
-    enabled: bool = False
-    facilitation_ms: float = 0.0
-    cost_ms: float = 0.0
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> ConditionRepetitionConfig:
-        cfg = cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-        if cfg.enabled and not _CONDITION_REPETITION_WARNED:
-            _emit_condition_repetition_deprecation()
-        return cfg
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-# Module-level once-gated deprecation state. Per Phase 3 user note:
-# warnings must fire once per process, not once per config load, so
-# pytest runs and Phase 7's 180-session validation don't drown stderr.
-# Reset_for_tests() exists for the deprecation tests themselves.
-_CONDITION_REPETITION_WARNED = False
-_PINK_NOISE_HURST_WARNED = False
-
-
-def _emit_condition_repetition_deprecation() -> None:
-    """Fire the condition_repetition deprecation warning to stderr once
-    per process. Idempotent after first call."""
-    global _CONDITION_REPETITION_WARNED
-    if _CONDITION_REPETITION_WARNED:
-        return
-    import sys
-    print(
-        "DEPRECATION (SP11 Phase 2): temporal_effects.condition_repetition "
-        "is deprecated in favor of lag1_pair_modulation. The single-"
-        "parameter (facilitation_ms, cost_ms) form cannot express the "
-        "2×2 Gratton cell pattern. Update the source TaskCard to emit "
-        "a `lag1_pair_modulation` block with a `modulation_table` "
-        "listing the (prev, curr) → delta_ms entries for the paradigm. "
-        "The condition_repetition handler will keep working until Phase 5 "
-        "TaskCard regeneration removes references to it. "
-        "(This warning fires once per process.)",
-        file=sys.stderr,
-    )
-    _CONDITION_REPETITION_WARNED = True
-
-
-def _emit_pink_noise_hurst_deprecation(hurst_val: float, converted_alpha: float) -> None:
-    """Fire the pink_noise hurst→alpha deprecation warning to stderr once
-    per process. Idempotent after first call."""
-    global _PINK_NOISE_HURST_WARNED
-    if _PINK_NOISE_HURST_WARNED:
-        return
-    import sys
-    print(
-        f"DEPRECATION (SP11 Phase 2): PinkNoiseConfig.hurst is renamed "
-        f"to alpha. Got hurst={hurst_val} → converted to "
-        f"alpha={converted_alpha} via the pre-SP11 fBm convention "
-        f"alpha = 2*hurst − 1. Update the source TaskCard's "
-        f"temporal_effects.pink_noise.value to emit `alpha` directly. "
-        f"This deprecation alias will be removed once Phase 5 "
-        f"TaskCard regeneration lands. "
-        f"(This warning fires once per process.)",
-        file=sys.stderr,
-    )
-    _PINK_NOISE_HURST_WARNED = True
-
-
-def _reset_deprecation_warnings_for_tests() -> None:
-    """Test-only helper. Resets the once-gates so deprecation tests
-    can verify the warning fires on the first call after reset.
-    Not part of the public API."""
-    global _CONDITION_REPETITION_WARNED, _PINK_NOISE_HURST_WARNED
-    _CONDITION_REPETITION_WARNED = False
-    _PINK_NOISE_HURST_WARNED = False
-
-
-@dataclass
-class PracticeEffectConfig:
-    """Block-wise RT reduction across the early session.
-
-    Models the learning curve: human RTs typically drop ~30-60ms across
-    the first ~30 trials of a speeded paradigm, then plateau. Without
-    a practice effect the bot's RT is flat from trial 0, which is one
-    of the most visible giveaways in real human RT data.
-
-    Decay shape: exponential approach to asymptote with rate
-    ``decay_rate`` per block. RT delta at block_idx is
-    ``+initial_offset_ms * exp(-decay_rate * block_idx)``, capped at
-    0 once block_idx >= asymptote_block. ``block_idx`` is computed
-    inside the handler from ``trial_index // trials_per_block``.
-
-    Block-counter discipline: SP11 runs single-shot sessions —
-    block_index is derived from the sampler's monotonic trial_index,
-    which restarts at 0 on each ResponseSampler construction. There
-    is no cross-session-restart state to preserve; the test
-    test_practice_effect_block_counter_resets_on_new_sampler covers
-    the new-sampler-restarts-counter invariant explicitly.
-    """
-    enabled: bool = False
-    initial_offset_ms: float = 0.0
-    asymptote_block: int = 3
-    trials_per_block: int = 30
-    decay_rate: float = 0.7
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> PracticeEffectConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-@dataclass
-class VigilanceDecrementConfig:
-    """Per-trial RT-variance inflation over session length.
-
-    Models attentional lapses: variance of human RT grows across a
-    sustained-attention session. Implemented as a zero-mean Gaussian
-    perturbation whose SD grows linearly with trial_index. Mean RT
-    is unchanged; variance grows.
-
-    SP11 Phase 2 scope: RT-variance only. The omission-rate aspect
-    (lapse increases over the session) is a separate executor-side
-    mechanism deferred to a future SP — the handler interface stays
-    at "additive delta_rt_ms" without a per-trial variance multiplier
-    or omission-flag return channel. See SP11 Phase 2 deliverable
-    notes for rationale.
-    """
-    enabled: bool = False
-    sd_per_100_trials_ms: float = 0.0
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> VigilanceDecrementConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-@dataclass
-class PinkNoiseConfig:
-    """1/f^alpha noise applied additively to RT samples.
-
-    The parameter ``alpha`` is the spectral slope: alpha=1 is canonical
-    "pink" noise, alpha=0 is white noise, alpha=2 is Brownian. The
-    underlying generator uses spectral synthesis with
-    ``power_scale = freqs ** (-alpha / 2)``.
-
-    Pre-SP11, this config exposed a parameter named ``hurst``; the
-    generator interpreted it via the fBm convention ``alpha = 2*hurst − 1``,
-    which made ``hurst=1`` produce ``alpha=1`` (pink) — a non-obvious
-    indirection. SP11 Phase 2 renames the parameter to ``alpha`` for
-    direct spectral interpretation. TaskCards that still emit ``hurst``
-    are converted at ``from_dict`` time with a loud-stderr deprecation
-    warning. The deprecation alias is loud-during-window discipline:
-    it should never fire on the four SP11 dev paradigms after Phase 5
-    TaskCard regeneration; if it does, the regenerated card still uses
-    the old field name and needs a re-emission.
-    """
-    enabled: bool = False
-    sd_ms: float = 0.0
-    alpha: float = 0.0
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> PinkNoiseConfig:
-        # Backward-compat: convert legacy "hurst" field to "alpha" using the
-        # pre-SP11 spectral-synthesis convention alpha = 2*hurst − 1.
-        # Emit a loud stderr deprecation warning (once per process — see
-        # _emit_pink_noise_hurst_deprecation) so the conversion is never
-        # silent during normal dev work, but stderr isn't drowned.
-        d = dict(d)  # don't mutate caller's dict
-        if "hurst" in d and "alpha" not in d:
-            hurst_val = d.pop("hurst")
-            converted_alpha = 2.0 * float(hurst_val) - 1.0
-            _emit_pink_noise_hurst_deprecation(hurst_val, converted_alpha)
-            d["alpha"] = converted_alpha
-        elif "hurst" in d and "alpha" in d:
-            import sys
-            # This case (BOTH fields present) is rare — leave it as an
-            # always-fires WARNING because it indicates the TaskCard
-            # author hand-edited both forms simultaneously, which is
-            # the kind of mistake that benefits from repeated visibility.
-            print(
-                f"WARNING (SP11 Phase 2): PinkNoiseConfig got both `hurst` "
-                f"({d['hurst']}) and `alpha` ({d['alpha']}). Using alpha; "
-                f"ignoring hurst. Update the source TaskCard to emit only "
-                f"`alpha`.",
-                file=sys.stderr,
-            )
-            d.pop("hurst")
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
-
-
-class TemporalEffectsConfig:
-    """Open registry of effect configurations.
-
-    Each registered effect (in `effects.registry.EFFECT_REGISTRY`) has a
-    config entry here, populated either as a typed dataclass instance
-    (when the registry declares `config_class`) or as a `SimpleNamespace`
-    built from the raw dict (when no config_class is declared). Adding a
-    new effect — registering its handler with `register_effect()` — does
-    NOT require editing this class. The sampler iterates the registry
-    and looks up configs by name; missing entries yield a default
-    "disabled" SimpleNamespace so handlers short-circuit cleanly.
-
-    The class accepts named-effect kwargs in `__init__` for convenience
-    when constructing in tests/code:
-        TemporalEffectsConfig(autocorrelation=AutocorrelationConfig(enabled=True, phi=0.3))
-    """
-
-    def __init__(self, **kwargs):
-        # Storage keyed by registry effect name. Accepts either typed
-        # dataclass instances or SimpleNamespace objects.
-        self._effects: dict[str, object] = dict(kwargs)
-
-    @classmethod
-    def from_dict(cls, d: dict) -> "TemporalEffectsConfig":
-        from types import SimpleNamespace
-        from experiment_bot.effects.registry import EFFECT_REGISTRY
-
-        out = cls()
-        d = d or {}
-        for name, et in EFFECT_REGISTRY.items():
-            sub = d.get(name, {})
-            cfg_class = getattr(et, "config_class", None)
-            if cfg_class is not None and isinstance(sub, dict):
-                out._effects[name] = cfg_class.from_dict(sub)
-            elif isinstance(sub, dict):
-                out._effects[name] = SimpleNamespace(**sub)
-            else:
-                out._effects[name] = sub
-        # Pass through any non-registry effects the caller emitted
-        for name in d:
-            if name not in out._effects:
-                out._effects[name] = (SimpleNamespace(**d[name])
-                                       if isinstance(d[name], dict) else d[name])
-        return out
-
-    def get(self, name: str):
-        """Return the config for `name`, or None if not present."""
-        return self._effects.get(name)
-
-    def __getattr__(self, name: str):
-        # Backward-compat: `te.autocorrelation` returns the stored config;
-        # if no config is stored, returns a disabled-by-default
-        # SimpleNamespace so handlers short-circuit cleanly.
-        # Dunder names (__deepcopy__, __reduce__, etc.) MUST raise so
-        # Python's protocol probes (copy.deepcopy, pickle) fall back
-        # cleanly — returning a SimpleNamespace fakes a callable and
-        # crashes deepcopy.
-        if name.startswith("_"):
-            raise AttributeError(name)
-        if name in self._effects:
-            return self._effects[name]
-        from types import SimpleNamespace
-        return SimpleNamespace(enabled=False)
-
-    def to_dict(self) -> dict:
-        from dataclasses import is_dataclass, asdict as _asdict
-        out: dict = {}
-        for k, v in self._effects.items():
-            if hasattr(v, "to_dict"):
-                out[k] = v.to_dict()
-            elif is_dataclass(v):
-                out[k] = _asdict(v)
-            elif hasattr(v, "__dict__"):
-                out[k] = dict(vars(v))
-            else:
-                out[k] = v
-        return out
-
-
-@dataclass
-class BetweenSubjectJitterConfig:
-    rt_mean_sd_ms: float = 0.0
-    rt_condition_sd_ms: float = 0.0
-    sigma_tau_range: list = field(default_factory=lambda: [1.0, 1.0])
-    accuracy_sd: float = 0.0
-    omission_sd: float = 0.0
-    # Plausible bounds for jittered accuracy / omission. Defaults reflect
-    # typical conflict/interrupt-task ranges; the Reasoner should override
-    # these per paradigm class — perceptual-threshold tasks need a lower
-    # accuracy floor, slow-paced tasks may need a higher omission ceiling.
-    accuracy_clip_range: list = field(default_factory=lambda: [0.60, 0.995])
-    omission_clip_range: list = field(default_factory=lambda: [0.0, 0.04])
-    rationale: str = ""
-
-    @classmethod
-    def from_dict(cls, d: dict) -> BetweenSubjectJitterConfig:
-        return cls(**{k: v for k, v in d.items() if k in cls.__dataclass_fields__})
-
-    def to_dict(self) -> dict:
-        return asdict(self)
 
 
 @dataclass
@@ -534,6 +201,9 @@ class NavigationPhase:
     steps: list[dict] = field(default_factory=list)
     duration_ms: int = 0
     pre_js: str = ""
+    # Wave B2: form actions — the text to enter (action "fill") or the
+    # dropdown option value/label to pick (action "select").
+    value: str = ""
 
     @classmethod
     def from_dict(cls, d: dict) -> NavigationPhase:
@@ -545,6 +215,7 @@ class NavigationPhase:
             steps=d.get("steps", []),
             duration_ms=d.get("duration_ms", 0),
             pre_js=d.get("pre_js", ""),
+            value=d.get("value", ""),
         )
 
     def to_dict(self) -> dict:
@@ -553,6 +224,10 @@ class NavigationPhase:
              "steps": self.steps, "duration_ms": self.duration_ms}
         if self.pre_js:
             d["pre_js"] = self.pre_js
+        if self.value:
+            # Emitted only when set: committed cards without the field must
+            # keep serializing byte-identically (content-hash stability).
+            d["value"] = self.value
         return d
 
 
@@ -737,12 +412,10 @@ class RuntimeConfig:
     # always runs when a deliverer is configured and the result is
     # always installed on the sampler.
     calibration_n_keys: int = 30
-    # SP18: declarative platform-export mapping. When the Reasoner can infer
-    # the export row schema from source, it emits {row_filter, fields} here
-    # and validation builds its trial loader from the TaskCard instead of a
-    # hand-written per-paradigm adapter (see
-    # validation/platform_adapters.adapter_from_export_config). Empty dict =
-    # absent; hand-written adapters remain the fallback.
+    # Declarative platform-export mapping ({row_filter, fields}), carried by
+    # committed TaskCards. Nothing on this branch reads it (the expert arm's
+    # adapter machinery lives on main); retained for card compatibility.
+    # Empty dict = absent.
     platform_export: dict = field(default_factory=dict)
 
     @classmethod
@@ -789,8 +462,6 @@ class TaskConfig:
     performance: PerformanceConfig
     navigation: NavigationConfig
     task_specific: dict = field(default_factory=dict)
-    temporal_effects: TemporalEffectsConfig = field(default_factory=TemporalEffectsConfig)
-    between_subject_jitter: BetweenSubjectJitterConfig = field(default_factory=BetweenSubjectJitterConfig)
     pilot: PilotConfig = field(default_factory=PilotConfig)
     runtime: RuntimeConfig = field(default_factory=RuntimeConfig)
 
@@ -806,8 +477,6 @@ class TaskConfig:
             performance=PerformanceConfig.from_dict(d["performance"]),
             navigation=NavigationConfig.from_dict(d.get("navigation", {"phases": []})),
             task_specific=d.get("task_specific", {}),
-            temporal_effects=TemporalEffectsConfig.from_dict(d.get("temporal_effects", {})),
-            between_subject_jitter=BetweenSubjectJitterConfig.from_dict(d.get("between_subject_jitter", {})),
             pilot=PilotConfig.from_dict(d.get("pilot", {})),
             runtime=RuntimeConfig.from_dict(d.get("runtime", {})),
         )
@@ -822,8 +491,6 @@ class TaskConfig:
             "performance": self.performance.to_dict(),
             "navigation": self.navigation.to_dict(),
             "task_specific": self.task_specific,
-            "temporal_effects": self.temporal_effects.to_dict(),
-            "between_subject_jitter": self.between_subject_jitter.to_dict(),
             "pilot": self.pilot.to_dict(),
         }
         runtime_dict = self.runtime.to_dict()

@@ -21,15 +21,19 @@ platform-native session exports
 
 ## Column parity vs `data/human/rdoc`
 
-**11 of 12 tasks: exact column parity.** Values spot-checked sane (Stroop
-incongruent RT > congruent; AX-CPT AY RT > AX; spatial-span recall metrics —
-accuracy respective/irrespective of order, grid movement/response times,
-number of responses — computed from the bot's arrow-key grid navigation).
+**12 of 12 tasks: exact column parity.** Values spot-checked sane (Stroop
+incongruent RT > congruent; AX-CPT AY RT > AX; stop-failure RT < go RT per
+the race model; spatial-span recall metrics — accuracy respective/irrespective
+of order, grid movement/response times, number of responses — computed from
+the bot's arrow-key grid navigation).
 
-Honest gaps (absent, never faked):
-- **stop_signal** — missing `go_rt_all_responses` and `mean_stop_failure_RT`:
-  the current pipeline's `get_stop_metrics` does not emit these two columns
-  (the human file's pipeline version did). All other stop-signal columns match.
+- **stop_signal** `go_rt_all_responses` and `mean_stop_failure_RT` are the two
+  columns the current lobennett/rdoc-beh `get_stop_metrics` does not emit;
+  they were computed from the bot's trial-level exports with the project's own
+  tested estimator (`experiment_bot.analysis.per_subject.stop_signal_metrics`,
+  identical definitions) and inserted at their human-schema positions.
+
+Honest gap (absent, never faked):
 - **operation_span** — `8x8_grid_asymmetric_rt` is empty: the processing
   sub-task's asymmetric-trial RT did not separate out from the bot's data.
 

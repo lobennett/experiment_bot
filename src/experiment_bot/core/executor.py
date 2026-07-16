@@ -1484,10 +1484,16 @@ class TaskExecutor:
                     "rt": action.rt_ms, "delivery": delivery,
                 })
         # Correctness for a reproduction is an exact match of the produced
-        # click-index sequence to the target (only meaningful when a target
-        # was exposed and every action was a click).
+        # click-index sequence to the target — scoreable only when a target
+        # was exposed AND every action was a click. Keyboard-delivered
+        # reproductions (or trials without a target) are unscoreable here:
+        # feed the program None (unknown), never a fabricated False.
         target = list(correct_sequence) if correct_sequence is not None else None
-        is_correct = (target is not None and produced_indices == target)
+        all_clicks = all(isinstance(a, ClickResponse) for a in resp.actions)
+        if target is None or not all_clicks:
+            is_correct: bool | None = None
+        else:
+            is_correct = (produced_indices == target)
         total_rt = sum(a.rt_ms for a in resp.actions)
         entry = {
             "trial": self._trial_count,

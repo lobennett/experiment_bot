@@ -1534,6 +1534,68 @@ async def test_provider_sequence_correct_sequence_reaches_program():
 
 
 @pytest.mark.asyncio
+async def test_sequence_key_actions_score_unknown_not_false():
+    """SEQUENCE OUTCOME HONESTY: a keyboard-delivered reproduction (span
+    recall via arrows+space) cannot be scored from click indices, so the
+    outcome fed back to the program must be unknown (None) — never a
+    hardcoded False that poisons ctx.prev_correct on every trial."""
+    session = _seq_session([("ArrowLeft", 300.0), (" ", 200.0)])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_key_intra_trial = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[0, 1])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert session._prev["correct"] is None
+
+
+@pytest.mark.asyncio
+async def test_sequence_click_reproduction_scored_exact_match():
+    """All-click reproductions ARE scoreable: exact index match -> True."""
+    session = _seq_session([("click", 2, 300.0), ("click", 0, 250.0),
+                            ("click", 1, 250.0)])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=[2, 0, 1])
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert session._prev["correct"] is True
+
+
+@pytest.mark.asyncio
+async def test_sequence_without_target_scores_unknown():
+    """No exposed target -> the reproduction is unscoreable -> unknown,
+    not False."""
+    session = _seq_session([("click", 0, 300.0)])
+    ex = TaskExecutor(_seq_click_config(), seed=42, behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._fire_response_click = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value=None)
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value=None)
+    match = StimulusMatch(stimulus_id="go_left", response_key=None,
+                          condition="recall")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._execute_trial(page, match, cue=None)
+    assert session._prev["correct"] is None
+
+
+@pytest.mark.asyncio
 async def test_provider_empty_sequence_fires_nothing():
     """An empty sequence delivers no action and logs a withheld-style record."""
     session = _seq_session([])

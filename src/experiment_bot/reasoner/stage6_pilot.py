@@ -309,7 +309,8 @@ _REPLAY_MAX_POLLS = 1200
 async def replay_navigation(url, navigation, lookup, *, advance_behavior=None,
                             headless=True, viewport=None,
                             max_polls=_REPLAY_MAX_POLLS,
-                            reading_delay_range=HUMAN_READING_DELAY_RANGE) -> bool:
+                            reading_delay_range=HUMAN_READING_DELAY_RANGE,
+                            ) -> tuple[bool, str]:
     """Fresh-browser, executor-shaped replay: run the finalized navigation.phases
     serially via the unified PilotSession engine (exactly as the executor's entry
     nav does), then poll for a trial stimulus WHILE pressing advance_keys

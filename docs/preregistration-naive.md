@@ -1,10 +1,5 @@
 # Pre-registration — naive-builder experiment (naive vs expert-v2 arms)
 
-[Provenance note, branch `naive-only` (2026-07-06): the pre-registered
-content below is frozen and unaltered. Expert-arm assets it references —
-`docs/preregistration.md`, the SP21 design spec, `scripts/frozen_run.sh`,
-and the expert pipeline/dataset — live on the `main` branch.]
-
 _Drafted 2026-07-02, **before** any generation call. Per SP21 design
 (`docs/superpowers/specs/2026-07-02-naive-builder-experiment-design.md`):
 **this document is committed BEFORE any generation call; generation

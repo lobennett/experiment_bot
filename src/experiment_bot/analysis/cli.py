@@ -69,7 +69,7 @@ def _write_report(out: Path, label: str, kind: str, bot_df, human_df, human_csv:
         "",
         "## Exploratory: distribution-level comparison",
         "",
-        "_Pre-registered as exploratory (docs/preregistration.md §Analysis), not part of "
+        "_Pre-specified as exploratory in the frozen design document, not part of "
         "the confirmatory mean-location design above. SD ratio = bot between-subject SD / "
         "human between-subject SD (1.0 = human-like dispersion); KS = two-sample "
         "Kolmogorov–Smirnov test of the per-subject distributions. A cohort can pass the "

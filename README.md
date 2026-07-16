@@ -79,7 +79,7 @@ Full narrative and numbers: [`docs/how-it-works.md`](docs/how-it-works.md) §8.
 
 | Body of evidence | Scope | Headline |
 |---|---|---|
-| Pre-registered comparison ([paper draft](docs/paper-draft-v2-naive-participant.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
+| Pre-specified comparison ([paper draft](docs/paper-draft-v2-naive-participant.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
 | Held-out probe | Eriksen flanker, never seen, frozen pipeline | First-shot program; flanker effect +58 ± 23 ms (literature ≈ 40–70), positive in all 5 sessions |
 | Exploratory battery ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=5 | 84/149 metrics within 1 human SD; stop-signal 12/12; misses documented honestly, no behavioral iteration |
 
@@ -143,6 +143,5 @@ protocol/executor/gate tests pin the participant-program contract.
 ## Further reading
 
 - **[`docs/how-it-works.md`](docs/how-it-works.md)** — the whole system, start to finish: question, integrity design, every stage, evidence, limitations.
-- **[`docs/preregistration-naive.md`](docs/preregistration-naive.md)** — the frozen pre-registration (committed before any generation call; see its [provenance record](docs/preregistration-naive.PROVENANCE.md)).
 - **[`docs/rdoc-battery-results.md`](docs/rdoc-battery-results.md)** — the exploratory 12-task battery results.
 - **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The expert-arm comparison pipeline and dataset are archived at the `expert-arm-final` git tag.

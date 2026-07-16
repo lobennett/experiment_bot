@@ -1,5 +1,5 @@
 """SP21 mechanical simulation gate. Purely mechanical checks — it never
-evaluates whether the behavior looks human (pre-registered rule)."""
+evaluates whether the behavior looks human (pre-specified rule)."""
 from __future__ import annotations
 
 import ast

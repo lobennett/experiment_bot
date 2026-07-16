@@ -561,8 +561,8 @@ def comparison_rows(bot_df: pd.DataFrame, human_df: pd.DataFrame, metrics: list[
     ``z = (bot_mean - human_mean) / human_sd`` and a within-1-SD flag (matches
     the abstract's reporting — the CONFIRMATORY analysis).
 
-    Also carries the pre-registered EXPLORATORY distribution-level fields
-    (docs/preregistration.md §Analysis): ``sd_ratio`` (bot between-subject SD
+    Also carries the pre-specified EXPLORATORY distribution-level fields
+    (frozen design document §Analysis): ``sd_ratio`` (bot between-subject SD
     / human between-subject SD; 1.0 = human-like dispersion) and a two-sample
     Kolmogorov-Smirnov test (``ks_D``, ``ks_p``) of the per-subject
     distributions. These detect the failure mode the confirmatory z cannot:

@@ -51,12 +51,18 @@ including failures — is archived with its full model transcript. This rule
 is what makes the result a one-shot measurement rather than an optimized
 artifact.
 
-**Pre-registration.** The confirmatory experiment's design, measures, and
-decision rules were committed to `docs/preregistration-naive.md` *before
-the first generation call* (verified: the file's last edit predates the
-earliest archived transcript; the file is never modified —
-`docs/preregistration-naive.PROVENANCE.md` records the one violation found
-in review and its restoration).
+**Design freeze — and what it is not.** The confirmatory experiment's
+design, measures, and decision rules were fixed in a design document
+committed to this repository *before the first generation call* (the
+document's last edit, commit `d75cd69`, 2026-07-03 08:17 PDT, predates the
+earliest archived generation transcript, 09:00 PDT). To be explicit about
+the strength of that evidence: this is an **internal design freeze whose
+ordering rests on git history**, not a preregistration — no external
+registry (OSF, AsPredicted) holds an independent timestamp, and the word
+"preregistration" is deliberately not used for it anywhere in this
+package. The frozen document itself was removed from the tree for exactly
+that reason (its original filename overclaimed); read it from history with
+`git show d75cd69:docs/preregistration-naive.md`.
 
 **Hermetic provenance.** Every session records three hashes/values that
 pin it completely: the structural TaskCard's content hash, the participant
@@ -209,15 +215,15 @@ the same code that produced the human matrices — yielding
 ## 8. The evidence
 
 Three bodies of evidence, in increasing order of generalization distance.
-Full numbers: `docs/paper-draft-v2-naive-participant.md` (pre-registered
+Full numbers: `docs/paper-draft-v2-naive-participant.md` (dev-4
 experiment) and `docs/rdoc-battery-results.md` (battery).
 
-**Pre-registered comparison (dev-4).** Two paradigms × two independent
+**Pre-specified comparison (dev-4).** Two paradigms × two independent
 implementations (Stroop and stop-signal; Experiment Factory, STOP-IT,
 Cognition.run), N=30 seeded sessions each, scored against the Eisenberg
 human reference; an expert-parameterized pipeline (tuned distributions +
 effect modules; archived at the `expert-arm-final` tag) ran as comparison
-arm on the identical harness. Naive arm: **22 of 28 pre-registered
+arm on the identical harness. Naive arm: **22 of 28 pre-specified
 measures within 1 human SD** (expert: 23/28) — but the *kinds* of miss
 differ diagnostically. The naive misses are calibration constants (RT
 location runs slow; post-error slowing overshoots). The expert arm's miss
@@ -229,7 +235,7 @@ humans on per-subject SSRT (274±46 / 278±40 ms vs human 303±76; KS
 p ≈ 0.3). Zero program crashes and zero protocol violations across all 120
 naive sessions.
 
-**Held-out probe (flanker).** After the pre-registered collection, the
+**Held-out probe (flanker).** After the dev-4 collection, the
 frozen pipeline was pointed at a fifth, never-seen implementation. One
 structural card, one generation (first gate pass), five sessions:
 flanker effect +58 ± 23 ms (literature ≈ 40–70 ms), positive in every
@@ -265,7 +271,7 @@ horse race of Logan & Cowan (1984) in the stop-signal programs.
   the no-priors rule, deliberately left unfixed under the no-iteration
   rule.
 - **One program per task**: generation variance is unmeasured.
-- The 12-task battery is exploratory (N=5, outside the pre-registration),
+- The 12-task battery is exploratory (N=5, outside the frozen dev-4 plan),
   and its human comparison uses session-level matrices rather than
   trial-level data.
 - The Stage-1 target-reconstruction guidance for span-type tasks was

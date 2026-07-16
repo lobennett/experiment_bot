@@ -11,5 +11,7 @@ used as the human reference for the naive-bot comparison.
   notes/comments/checked/exclusion admin columns).
 - `<task>.placeholder.csv` — committed schema stubs (header + one fake row).
 
-Regenerate the cleaned files from the source matrices with
-`scripts/ingest_rdoc_behavioral.py` (path passed as arg).
+The cleaning that produced them from the lab's source matrices: keep
+identity columns (`sub_id`/`date_time`/`session`) and every behavioral
+metric plus the two columns named above; drop the admin/QA columns listed
+above. (The one-shot ingest script lives in git history.)

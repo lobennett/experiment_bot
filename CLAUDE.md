@@ -91,5 +91,9 @@ branch. This branch contains the naive system only.
   references live on `main`.
 - `docs/paper-draft-v2-naive-participant.md` — the paper draft for the
   two-arm experiment (this branch holds the naive arm).
+- `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery
+  (collection + gate record, behavioral comparison vs the lab's human
+  matrices). Registry: `data/rdoc_task_urls.tsv`; matrices:
+  `data/bot/rdoc/` vs `data/human/rdoc/` (gitignored + placeholders).
 - `README.md` — pipeline walkthrough + the five CLIs.
 - `data/human/README.md` — human reference data download + integrity.

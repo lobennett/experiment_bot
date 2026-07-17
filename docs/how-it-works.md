@@ -121,8 +121,12 @@ else — see §2 on how that "nothing else" is enforced.
 
 - `respond(ctx) → (key, rt_ms)` — called once per trial. The context
   carries the condition label, the correct key, the keys seen so far, the
-  trial index, the previous trial's outcome, and the trial's visible text
-  when the task exposes one. For click-answered tasks the context lists the
+  trial index, the previous trial's outcome, the trial's visible text
+  when the task exposes one, and any text the task displayed to the
+  participant since the previous trial (`ctx.feedback_text` — between-block
+  performance messages and the like). The harness never interprets that
+  text; it only makes sure the participant can perceive what the task
+  says, the way a person at the keyboard would. For click-answered tasks the context lists the
   options and the program may return `("click", index, rt_ms)`. For
   serial-reproduction trials the context carries the target order
   (`ctx.correct_sequence`) and the program may return a *list* of actions,

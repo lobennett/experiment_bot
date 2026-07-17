@@ -463,3 +463,23 @@ def test_on_interrupt_after_sequence_is_protocol_violation():
                     response_elements=("A", "B"), correct_sequence=(0, 1))
     with pytest.raises(ProtocolViolation, match="sequence"):
         session.on_interrupt(ssd_ms=250.0)
+
+
+# --- feedback_text: platform messages reach the program mechanically ---
+
+def test_feedback_text_reaches_program_and_defaults_none():
+    """The platform's displayed feedback text is a mechanical fact the
+    participant perceives: respond(feedback_text=...) surfaces it as
+    ctx.feedback_text; absent, the field is None."""
+    seen = []
+
+    class P:
+        def respond(self, ctx):
+            seen.append(ctx.feedback_text)
+            return ("z", 300.0)
+
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: P())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    session.respond("go", "z", 0)
+    session.respond("go", "z", 1, feedback_text="Block complete. Respond faster.")
+    assert seen == [None, "Block complete. Respond faster."]

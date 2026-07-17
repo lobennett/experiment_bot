@@ -62,6 +62,10 @@ _ADVANCE_MIN_SPACING_S = 2.0
 # multi-screen tasks reach their first trial within a few minutes.
 _ZERO_TRIAL_WATCHDOG_S = 600.0
 
+# Cap on captured feedback-screen text handed to the behavior program —
+# enough for any between-block message, small enough to keep ctx lean.
+_FEEDBACK_TEXT_MAX_CHARS = 500
+
 
 def _taskcard_to_config(tc):
     """Project a TaskCard into a TaskConfig the executor knows how to drive.
@@ -159,6 +163,9 @@ class TaskExecutor:
         self._delivery_channel_log: dict[str, int] = {}  # tally by channel
         self._fire_skip_log: list[dict] = []  # per-trial skip metadata
 
+        # Text captured from the most recent feedback screen, handed to the
+        # behavior program on the next trial's ctx (then cleared).
+        self._pending_feedback_text: str | None = None
         # Adaptive nav state
         self._llm_client = llm_client
         self._adaptive_nav_uses = 0
@@ -1308,11 +1315,16 @@ class TaskExecutor:
         # untouched).
         correct_sequence = await self._resolve_correct_sequence(
             match, page, response_elements)
+        # Text the task displayed since the previous trial (captured by
+        # _handle_feedback); consumed once — no stale carryover.
+        feedback_text = self._pending_feedback_text
+        self._pending_feedback_text = None
         resp = provider.respond(condition, correct_key, self._trial_count,
                                 stimulus_text=stimulus_text,
                                 response_elements=tuple(
                                     label for label, _sel in response_elements),
-                                correct_sequence=correct_sequence)
+                                correct_sequence=correct_sequence,
+                                feedback_text=feedback_text)
 
         if isinstance(resp, SequenceResponse):
             await self._deliver_sequence(page, match, resp, response_elements,
@@ -1539,9 +1551,19 @@ class TaskExecutor:
             await page.keyboard.press("Enter")
 
     async def _handle_feedback(self, page: Page) -> None:
-        """Handle inter-block feedback screens."""
+        """Handle inter-block feedback screens. The screen's visible text is
+        captured and handed to the behavior program on the next trial
+        (ctx.feedback_text) — a participant perceives what the task displays;
+        the harness never interprets it."""
         self._loop_diagnostics.record_feedback()
         logger.info("Handling feedback screen")
+        try:
+            txt = await page.evaluate(
+                "document.body ? document.body.innerText : ''")
+            txt = " ".join(str(txt or "").split())
+            self._pending_feedback_text = txt[:_FEEDBACK_TEXT_MAX_CHARS] or None
+        except Exception:
+            self._pending_feedback_text = None
         ab = self._config.runtime.advance_behavior
         await asyncio.sleep(self._config.runtime.timing.feedback_delay_ms / 1000.0)
 

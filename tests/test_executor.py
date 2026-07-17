@@ -1765,3 +1765,35 @@ def test_zero_progress_watchdog_classifies_nav_stall():
     assert classify_outcome("zero_progress_watchdog", 0, None) == "nav_stall"
     err = RuntimeError("Executor captured 0 trials")
     assert classify_outcome("zero_progress_watchdog", 0, err) == "nav_stall"
+
+
+@pytest.mark.asyncio
+async def test_feedback_screen_text_reaches_next_trial_ctx():
+    """A feedback screen's visible text is captured when the feedback phase
+    is handled and surfaces as ctx.feedback_text on the NEXT trial only —
+    then clears (no stale carryover)."""
+    seen = []
+
+    class _P:
+        def respond(self, ctx):
+            seen.append(ctx.feedback_text)
+            return ("z", 300.0)
+
+    mod = type("M", (), {"make_participant": staticmethod(lambda s: _P())})
+    session = BehaviorSession(mod, seed=1, available_keys=("z",))
+    ex = TaskExecutor(TaskConfig.from_dict(SAMPLE_CONFIG), seed=42,
+                      behavior_provider=session)
+    ex._writer = MagicMock()
+    ex._fire_response_key = AsyncMock(return_value={})
+    ex._resolve_response_key = AsyncMock(return_value="z")
+    ex._check_interrupt = AsyncMock(return_value=False)
+    page = AsyncMock()
+    page.evaluate = AsyncMock(return_value="Too slow! Respond faster.")
+    page.locator.return_value.first.is_visible = AsyncMock(return_value=False)
+    match = StimulusMatch(stimulus_id="go_left", response_key="z",
+                          condition="go")
+    with patch("asyncio.sleep", new=AsyncMock()):
+        await ex._handle_feedback(page)
+        await ex._execute_trial(page, match, cue=None)
+        await ex._execute_trial(page, match, cue=None)
+    assert seen == ["Too slow! Respond faster.", None]

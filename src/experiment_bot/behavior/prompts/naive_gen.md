@@ -40,7 +40,10 @@ def respond(self, ctx):
     reproducing an ordered series of actions, the ordered target
     identifiers for this trial (indices into response_elements for
     click tasks, or the position identifiers the task's source defines
-    for keyboard-navigated tasks); None otherwise.
+    for keyboard-navigated tasks); None otherwise,
+    feedback_text (str | None): text the task displayed to the
+    participant since the previous trial (between-trial or
+    between-block messages), else None.
 
     On some tasks the full key inventory is not known up front: it is
     discovered trial-by-trial, so ctx.available_keys can grow as the
@@ -78,6 +81,10 @@ def respond(self, ctx):
 
 - Condition labels your model will see: {CONDITIONS}
 - Key map (condition -> correct key): {KEY_MAP}
+- The task source below contains the task's own timing parameters
+  (response windows, deadlines, inter-trial intervals). Your participant
+  experiences those constraints; read them when deciding the timing of
+  responses.
 
 ## Task source
 

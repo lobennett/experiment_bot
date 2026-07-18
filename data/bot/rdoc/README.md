@@ -33,11 +33,13 @@ the bot's arrow-key grid navigation).
   tested estimator (`experiment_bot.analysis.per_subject.stop_signal_metrics`,
   identical definitions) and inserted at their human-schema positions.
 
-Honest gap (absent, never faked):
-- **operation_span** — `8x8_grid_asymmetric_rt` is empty: the processing
-  sub-task's asymmetric-trial RT did not separate out from the bot's data.
+Honest gap (sparse, never faked):
+- **operation_span** — `8x8_grid_asymmetric_rt` is present for only 1 of 5
+  sessions: the processing sub-task's asymmetric-trial RTs mostly did not
+  separate out from the bot's data.
 
 ## Regenerate
 
 See `run_rdoc_beh.py` (wraps the bot exports into the pipeline's raw format
-and runs it). Requires the lobennett/rdoc-beh clone + `uv sync`.
+and runs it); v2 selection is `--min-seed 800000`. Requires the
+lobennett/rdoc-beh clone + `uv sync`.

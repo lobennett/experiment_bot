@@ -246,26 +246,36 @@ flanker effect +58 ± 23 ms (literature ≈ 40–70 ms), positive in every
 session, correct accuracy ordering. Every failure met on the way was a
 harness bug, fixed generally; the behavioral layer was never touched.
 
-**Exploratory 12-task RDoC battery.** All 12 RDoC Experiment Factory
-tasks at N=5 (registry: `data/rdoc_task_urls.tsv`), including two
-grid-recall span tasks that required the sequence-response capability (§4;
-multi-action trials against a card-exposed target order — generic, no grid
-geometry in library code). 11 of 12 programs passed the gate first-attempt.
-Against the lab's human matrices: **84/149 metrics within 1 human SD**,
-with an informative gradient — inhibition strongest (stop-signal 12/12),
-attention/switching mid-range with the known slow-RT calibration shift
-(internal effect structure intact everywhere), working memory weakest
-(spans' recall real but degraded). Two framework findings reported
-honestly rather than patched: attention checks go unanswered on the 10
-newly generated cards (a Stage-1 classification variance — 1.0 accuracy on
-the two dev cards where they are answered), and no number was ever fed
-back into regeneration.
+**Exploratory 12-task RDoC battery — two rounds.** All 12 RDoC Experiment
+Factory tasks at N=5 per round (registry: `data/rdoc_task_urls.tsv`),
+including two grid-recall span tasks that required the sequence-response
+capability (§4; multi-action trials against a card-exposed target order —
+generic, no grid geometry in library code). **Round 1 (v1**, Fable-5
+programs, archived in full at the `battery-v1` tag): 84/149 metrics within
+1 human SD (56%); its misses shared one thread — the participant could not
+perceive what the platform tells a person (attention checks unanswered on
+10 tasks; block-performance feedback invisible). **Round 2 (v2**, the
+current dataset) revised the protocol on that diagnosis — full
+attention-check emission from Stage 1, the `ctx.feedback_text` perception
+channel, one timing-salience sentence, and Opus 4.8 as behavioral author —
+and reached **102/150 within 1 human SD (68%)**, with all 12 programs
+passing the gate first-attempt: spatial task-switching 16/16, n-back
+13/14, stop-signal 12/12, flanker 8/8, attention checks answered and
+perfect on 11 of 12 tasks. The rounds are reported side by side, never
+blended, and no number was ever fed back into regenerating any individual
+program. Notable honest findings (`docs/rdoc-battery-results.md`): the
+feedback channel went unused by every one-shot program; RT location still
+runs slow on four tasks; the spans remain weakest (recall mechanics
+solved, pacing not); ax_cpt regressed by two measures — one-shot
+generation variance cuts both ways.
 
 **What the programs contained** (archival observation — never a selection
-criterion): hierarchical individual differences, autocorrelated attentional
-states, practice and fatigue dynamics, deadline-emergent omissions;
-congruency-sequence modulation in the Stroop programs; the independent
-horse race of Logan & Cowan (1984) in the stop-signal programs.
+criterion; dev-4 and probe programs authored by Claude Fable 5, battery-v2
+programs by Claude Opus 4.8): hierarchical individual differences,
+autocorrelated attentional states, practice and fatigue dynamics,
+deadline-emergent omissions; congruency-sequence modulation in the Stroop
+programs; the independent horse race of Logan & Cowan (1984) in the
+stop-signal programs — in both authors' programs, unprompted.
 
 ## 9. Limitations and boundaries
 
@@ -275,9 +285,11 @@ horse race of Logan & Cowan (1984) in the stop-signal programs.
   the no-priors rule, deliberately left unfixed under the no-iteration
   rule.
 - **One program per task**: generation variance is unmeasured.
-- The 12-task battery is exploratory (N=5, outside the frozen dev-4 plan),
-  and its human comparison uses session-level matrices rather than
-  trial-level data.
+- The 12-task battery is exploratory (N=5 per round, outside the frozen
+  dev-4 plan), its human comparison uses session-level matrices rather
+  than trial-level data, and its v2 protocol was revised in response to
+  v1's observed misses — the rounds are comparable to each other only as
+  before/after, never pooled.
 - The Stage-1 target-reconstruction guidance for span-type tasks was
   refined against this battery's two span implementations; its generality
   beyond them is untested.

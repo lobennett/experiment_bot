@@ -1,0 +1,211 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "80e08f6ad3329402b6ed049b832f0036e5be2831bb5588b80d5ff30d1ab3cea2",
+    "scraper_version": "1.0.0",
+    "source_sha256": "9b5e480998eeb4674ec6b74f3e90debd71fbe3f6d9af9dd4e53f996bc8334bee",
+    "timestamp": "2026-07-17T18:04:35.035773+00:00",
+    "taskcard_sha256": "4a28647415765e2731ae668ee93b436d3ded8512bbe152693d8dd48a07e3a7ca"
+  },
+  "task": {
+    "name": "Go/No-Go (RDoC)",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded single-key detection task",
+      "response inhibition task",
+      "withhold response on a no-go signal"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "nogo",
+      "description": "Outlined (unfilled) white square \u2014 participant must withhold the response.",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#stim2",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "nogo"
+      }
+    },
+    {
+      "id": "go",
+      "description": "Solid (filled) white square \u2014 participant presses the spacebar.",
+      "detection": {
+        "method": "dom_query",
+        "selector": "#stim1",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": " ",
+        "condition": "go"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "fullscreen_prompt",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "(document.getElementById('finished_message') !== null) || /Thanks for completing this task!|Experiment Complete/.test(document.body.innerText)",
+      "test": "(document.querySelector('#stim1') || document.querySelector('#stim2')) && !document.querySelector('.prompt_box')",
+      "loading": "!document.querySelector('#jspsych-content') && !document.getElementById('finished_message')",
+      "instructions": "document.querySelector('#jspsych-instructions-next') !== null",
+      "practice": "document.querySelector('.prompt_box') !== null",
+      "feedback": "/read your feedback|begin practice|blocks of trials|repeat the practice round/.test(document.body.innerText)",
+      "attention_check": "document.querySelector('#jspsych-attention-check-rdoc-stimulus') !== null"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 2000,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 6000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!(document.querySelector('#stim1') || document.querySelector('#stim2'))",
+      "trial_context_js": "(document.querySelector('#stim1') ? 'go' : (document.querySelector('#stim2') ? 'nogo' : ''))",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 2000,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(function(){try{ if(typeof currentAttentionCheckData!=='undefined' && currentAttentionCheckData && currentAttentionCheckData.A){ return String.fromCharCode(currentAttentionCheckData.A).toLowerCase(); } }catch(e){} return null;})()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "go": " ",
+      "nogo": null
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "fixation_duration_ms": 500,
+      "iti_distribution": "decaying_exponential",
+      "iti_mean_s": 0.5,
+      "iti_min_s": 0,
+      "iti_max_s": 5
+    },
+    "structure": {
+      "practice_len": 7,
+      "practice_max_repeats": 3,
+      "num_trials_per_block": 63,
+      "num_test_blocks": 3,
+      "go_nogo_ratio": "6:1 (6 go : 1 nogo)",
+      "attention_check_between_test_blocks": true,
+      "counterbalancing_note": "group_index (window.efVars.group_index, default 1) is recorded but does NOT remap keys or conditions in this task \u2014 the go/nogo key mapping is fixed (solid square = spacebar, outlined square = withhold)."
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'Go/No-Go (RDoC)' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed first attempt: 72 trials, conditions ['go', 'nogo'] all observed.",
+      "evidence_lines": [
+        "attempt_1: trials=72, conditions=['go', 'nogo'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=32"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

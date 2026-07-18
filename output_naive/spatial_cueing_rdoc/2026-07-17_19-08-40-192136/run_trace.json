@@ -1,0 +1,79 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/7/"
+      },
+      "duration_s": 1.027767667081207
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "fullscreen_prompt",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 7.274891125038266
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00011454196646809578
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 240,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "test": 11484,
+            "feedback": 26,
+            "instructions": 4,
+            "practice": 202,
+            "attention_check": 3,
+            "complete": 1
+          },
+          "response_window_open": 240,
+          "response_window_closed": 11446,
+          "identify_hits": {
+            "invalid": 19,
+            "nocue": 82,
+            "valid": 60,
+            "doublecue": 79
+          },
+          "identify_misses": 30,
+          "advance_actions": 2,
+          "feedback_handled": 26,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 4
+        }
+      },
+      "duration_s": 778.5203815829009
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 3.0145627080928534
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "output_naive/spatial_cueing_rdoc/2026-07-17_19-08-40-192136"
+      },
+      "duration_s": null
+    }
+  ]
+}

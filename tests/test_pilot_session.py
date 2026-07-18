@@ -327,3 +327,27 @@ async def test_poll_stimuli_breaks_early_when_instructions_never_advance(monkeyp
     assert not any("Hard timeout" in a for a in result["anomalies"]), "must break early, not at 300s"
     # try_phase called only a few times (3 stuck iterations × 1 nav phase), not hundreds
     assert session.try_phase.await_count <= 5, session.try_phase.await_count
+
+
+# --- stealth-mode launch config (pure, no browser) ---
+
+def test_stealth_launch_kwargs_forces_headful_real_chrome():
+    from experiment_bot.core.pilot_session import _launch_kwargs
+    kw = _launch_kwargs(stealth=True, headless=True)  # headless requested but...
+    assert kw["headless"] is False  # stealth forces headful (real GPU renderer)
+    assert kw["channel"] == "chrome"
+    assert "--disable-blink-features=AutomationControlled" in kw["args"]
+
+
+def test_nonstealth_launch_kwargs_passes_headless_through():
+    from experiment_bot.core.pilot_session import _launch_kwargs
+    assert _launch_kwargs(stealth=False, headless=True) == {"headless": True}
+    assert _launch_kwargs(stealth=False, headless=False) == {"headless": False}
+
+
+def test_stealth_fallback_kwargs_drops_channel_keeps_args():
+    from experiment_bot.core.pilot_session import _launch_kwargs, _fallback_kwargs
+    kw = _fallback_kwargs(_launch_kwargs(stealth=True, headless=False))
+    assert "channel" not in kw          # bundled chromium if real Chrome absent
+    assert kw["headless"] is False
+    assert "--disable-blink-features=AutomationControlled" in kw["args"]

@@ -29,6 +29,7 @@ from __future__ import annotations
 
 import asyncio
 import logging
+import random
 import time
 from dataclasses import dataclass, field
 from typing import Any
@@ -36,6 +37,23 @@ from typing import Any
 from .deliverer import KeypressDeliverer, KeypressEvent
 
 logger = logging.getLogger(__name__)
+
+# Humanized key-hold (dwell) timing. Real typing has variable key-down→key-up
+# hold times (~human motor jitter), not a fixed value; a biometric detector
+# reads the flat 50 ms hold as mechanical. When enabled (stealth mode), each
+# fire draws a dwell from this clamped Gaussian. This is DELIVERY timing only —
+# the platform never records key-hold, so the analyzed behavioural data is
+# unchanged; the draw is seeded so sessions stay reproducible.
+_HUMANIZE_DWELL_MEAN_MS = 85.0
+_HUMANIZE_DWELL_SD_MS = 22.0
+_HUMANIZE_DWELL_MIN_MS = 45.0
+_HUMANIZE_DWELL_MAX_MS = 170.0
+_FIXED_DWELL_MS = 50.0
+
+
+def _human_dwell_ms(rng: random.Random) -> float:
+    v = rng.gauss(_HUMANIZE_DWELL_MEAN_MS, _HUMANIZE_DWELL_SD_MS)
+    return max(_HUMANIZE_DWELL_MIN_MS, min(_HUMANIZE_DWELL_MAX_MS, v))
 
 
 # CDP keyboard fields per key. Each entry is the kwargs dict for both
@@ -192,6 +210,8 @@ class CDPDeliverer(KeypressDeliverer):
         records_js: str = DEFAULT_RECORDS_JS,
         record_marker_field: str = DEFAULT_RECORD_MARKER_FIELD,
         trial_advance_timeout_s: float = DEFAULT_TRIAL_ADVANCE_TIMEOUT_S,
+        humanize: bool = False,
+        seed: int | None = None,
     ):
         self._page = page
         self._cdp = cdp_session
@@ -200,6 +220,14 @@ class CDPDeliverer(KeypressDeliverer):
         self._records_js = records_js
         self._record_marker_field = record_marker_field
         self._trial_advance_timeout_s = float(trial_advance_timeout_s)
+        self._humanize = humanize
+        self._dwell_rng = random.Random(seed if seed is not None else 0)
+
+    def _dwell_seconds(self) -> float:
+        """Key-hold duration for one fire, in seconds. Fixed when off (the
+        default path is byte-identical); a seeded human-like draw when on."""
+        ms = _human_dwell_ms(self._dwell_rng) if self._humanize else _FIXED_DWELL_MS
+        return ms / 1000.0
 
     async def _read_trial_marker(self):
         try:
@@ -221,8 +249,8 @@ class CDPDeliverer(KeypressDeliverer):
         await self._cdp.send(
             "Input.dispatchKeyEvent", {"type": "rawKeyDown", **fields},
         )
-        # Brief between-event sleep — same as the Phase 4a spike used.
-        await asyncio.sleep(0.05)
+        # Key-hold: fixed by default; human-jittered under stealth.
+        await asyncio.sleep(self._dwell_seconds())
         await self._cdp.send(
             "Input.dispatchKeyEvent", {"type": "keyUp", **fields},
         )

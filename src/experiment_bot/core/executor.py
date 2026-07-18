@@ -299,6 +299,8 @@ class TaskExecutor:
                     default_dwell_ms=dwell_ms,
                     trial_marker_js=marker_js or DEFAULT_TRIAL_MARKER_JS,
                     records_js=records_js or DEFAULT_RECORDS_JS,
+                    humanize=self._stealth,
+                    seed=self._session_seed,
                 )
                 return
             except Exception as e:

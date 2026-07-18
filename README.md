@@ -81,7 +81,7 @@ Full narrative and numbers: [`docs/how-it-works.md`](docs/how-it-works.md) §8.
 |---|---|---|
 | Pre-specified comparison ([paper draft](docs/paper-draft-v2-naive-participant.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
 | Held-out probe | Eriksen flanker, never seen, frozen pipeline | First-shot program; flanker effect +58 ± 23 ms (literature ≈ 40–70), positive in all 5 sessions |
-| Exploratory battery ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=5 | 84/149 metrics within 1 human SD; stop-signal 12/12; misses documented honestly, no behavioral iteration |
+| Exploratory battery, v2 ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=5, two rounds | v2: **102/150 (68%)** within 1 human SD (v1: 84/149, 56%); spatial task-switching 16/16, n-back 13/14, stop-signal 12/12; attention checks answered on 11/12 tasks; misses documented honestly, no behavioral iteration (v1 archived at the `battery-v1` tag) |
 
 The raw evidence is in-repo: sessions (`output_naive/`), programs with
 generation transcripts and gate reports (`naive_programs/`), structural

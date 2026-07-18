@@ -1,0 +1,277 @@
+{
+  "task": {
+    "name": "visual_search_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-alternative forced-choice task",
+      "visual search task",
+      "target present/absent detection"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "feature",
+      "description": "Feature-search array (homogeneous black distractors, possibly containing a white vertical target).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(!!document.querySelector('#jspsych-html-keyboard-response-stimulus .container .box')) && (window.condition === 'feature')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "feature",
+        "response_key_js": "(() => { const s = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if (!s) return null; const present = !!s.querySelector('#target'); const g = (typeof window.group_index === 'number') ? window.group_index : ((window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1); const low = (g >= 0 && g <= 4); return low ? (present ? '.' : ',') : (present ? ',' : '.'); })()"
+      }
+    },
+    {
+      "id": "conjunction",
+      "description": "Conjunction-search array (mixed black-vertical and white-horizontal distractors, possibly containing a white vertical target).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(!!document.querySelector('#jspsych-html-keyboard-response-stimulus .container .box')) && (window.condition === 'conjunction')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "conjunction",
+        "response_key_js": "(() => { const s = document.querySelector('#jspsych-html-keyboard-response-stimulus'); if (!s) return null; const present = !!s.querySelector('#target'); const g = (typeof window.group_index === 'number') ? window.group_index : ((window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1); const low = (g >= 0 && g <= 4); return low ? (present ? '.' : ',') : (present ? ',' : '.'); })()"
+      }
+    }
+  ],
+  "response_distributions": {},
+  "performance": {
+    "accuracy": {}
+  },
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "sequence",
+        "target": "",
+        "key": "",
+        "steps": [
+          {
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "phase": "",
+            "key": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "wait",
+            "duration_ms": 1000,
+            "phase": "",
+            "target": "",
+            "key": "",
+            "steps": []
+          },
+          {
+            "key": "Enter",
+            "action": "keypress",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "wait",
+            "duration_ms": 500,
+            "phase": "",
+            "target": "",
+            "key": "",
+            "steps": []
+          },
+          {
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "phase": "",
+            "key": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "wait",
+            "duration_ms": 500,
+            "phase": "",
+            "target": "",
+            "key": "",
+            "steps": []
+          },
+          {
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "phase": "",
+            "key": "",
+            "duration_ms": 0,
+            "steps": []
+          },
+          {
+            "action": "wait",
+            "duration_ms": 500,
+            "phase": "",
+            "target": "",
+            "key": "",
+            "steps": []
+          },
+          {
+            "key": "Enter",
+            "action": "keypress",
+            "phase": "",
+            "target": "",
+            "duration_ms": 0,
+            "steps": []
+          }
+        ],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "task_specific": {
+    "key_map": {
+      "feature": "dynamic",
+      "conjunction": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 2000,
+      "stimulus_duration_ms": 1500,
+      "trial_duration_ms": 2000,
+      "fixation_duration_ms": 500
+    },
+    "counterbalancing": {
+      "variable": "window.group_index",
+      "default": 1,
+      "note": "group_index 0-4 maps target-present -> period '.' (middle finger) and target-absent -> comma ',' (index finger); group_index 5-14 reverses this (present -> ',', absent -> '.'). Derived from getKeyMappingForTask() and testTrial.on_finish correct_response assignment. No live window.correctResponse is exposed, so response_key_js computes the key from DOM target presence + group_index."
+    },
+    "design": {
+      "conditions": [
+        "feature",
+        "conjunction"
+      ],
+      "set_sizes": [
+        8,
+        24
+      ],
+      "target": [
+        "present",
+        "absent"
+      ],
+      "practice_trials": 4,
+      "test_trials_per_block": 64,
+      "test_blocks": 3
+    }
+  },
+  "pilot": {
+    "min_trials": 20,
+    "target_conditions": [],
+    "max_blocks": 3,
+    "stimulus_container_selector": "",
+    "rationale": ""
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.querySelector('#finished_message') || !!document.querySelector('#next_experiment_button') || (!!document.body && /Experiment Complete/i.test(document.body.innerText))",
+      "test": "window.expStage === 'test'",
+      "loading": "!!document.querySelector('#jspsych-fullscreen-btn') || (!document.querySelector('#jspsych-content') && !document.querySelector('.jspsych-display-element'))",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "window.expStage === 'practice'",
+      "feedback": "(() => { const s = document.querySelector('#jspsych-html-keyboard-response-stimulus, #jspsych-content'); if (!s) return false; const t = s.innerText || ''; return /Press .*enter.*to (begin|continue)|completed \\d+ out of|read your feedback|start the test portion|repeat the practice/i.test(t); })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 600,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 6000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus .container .box')",
+      "trial_context_js": "(() => { return (window.condition || '') + ' | n=' + (window.numberStim || '') + ' | target=' + (typeof window.trialTargetPresent !== 'undefined' ? window.trialTargetPresent : ''); })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 2000,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 300.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const t = (el.textContent || '').toLowerCase(); const alphabet = 'abcdefghijklmnopqrstuvwxyz'; let m = t.match(/press the ([a-z]) key/); if (m) return m[1]; if (/last letter/.test(t)) { if (/third to last/.test(t)) return alphabet[alphabet.length - 3]; if (/second to last/.test(t)) return alphabet[alphabet.length - 2]; return alphabet[alphabet.length - 1]; } const ord = {first:1, second:2, third:3, fourth:4, fifth:5}; m = t.match(/(first|second|third|fourth|fifth) letter/); if (m) return alphabet[ord[m[1]] - 1]; return null; })()",
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "target_present": {
+          "column": "target_present",
+          "parse": "float"
+        },
+        "num_stimuli": {
+          "column": "num_stimuli",
+          "parse": "float"
+        }
+      }
+    }
+  }
+}

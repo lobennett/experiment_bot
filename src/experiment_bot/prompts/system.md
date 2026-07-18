@@ -190,7 +190,8 @@ stimuli to route to attention-check handling — without
 `detection_selector`, `text_selector`, and `response_js` the bot detects
 the check but cannot answer it, and every check goes unanswered.
 
-If the experiment has attention checks:
+If the experiment has attention checks (emit under the exact key
+`runtime.attention_check` — singular):
 - `detection_selector`: CSS/JS selector that detects when an attention check is displayed
 - `text_selector`: CSS selector to read the attention check prompt text
 - `response_js`: JavaScript expression that reads the attention check prompt and returns the correct key to press as a string. The bot evaluates this expression directly — provide complete logic for determining the response (e.g., parsing ordinal references, reading instructions). This is the primary response mechanism; without it, the bot cannot determine the correct response.

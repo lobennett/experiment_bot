@@ -1,14 +1,14 @@
 ## Pilot Run Diagnostic Report
 
 ### Summary
-- Trials completed: 225
-- Trials with stimulus match: 225/225
+- Trials completed: 219
+- Trials with stimulus match: 219/219
 - Conditions observed: ['processing', 'recall']
 
 ### Selector Results
-- attention_check: 0 matches / 225 polls (0.0%)   <- NEVER MATCHED
-- processing: 224 matches / 225 polls (99.6%)
-- recall: 1 matches / 225 polls (0.4%)
+- attention_check: 0 matches / 219 polls (0.0%)   <- NEVER MATCHED
+- processing: 218 matches / 219 polls (99.5%)
+- recall: 1 matches / 219 polls (0.5%)
 
 ### DOM Snapshot (after_navigation)
 <div id="jspsych-content" class="jspsych-content">
@@ -21,7 +21,7 @@
 <div class="jspsych-instructions-nav" style="padding: 10px 0px;"><button id="jspsych-instructions-back" class="jspsych-btn" style="margin-right: 5px;" disabled="disabled">&lt; Previous</button><button id="jspsych-instructions-next" class="jspsych-btn" style="margin-left: 5px;">Next &gt;</button></div></div>
 
 ### DOM Snapshot (first_stimulus_match)
-<div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="container"><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="di
+<div id="jspsych-content" class="jspsych-content"><div id="jspsych-html-keyboard-response-stimulus"><div class="container"><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box"></div><div class="distractor-box active-box"></div><di
 
 ### Phase Detection
 - complete: never fired
@@ -53,7 +53,4 @@
 - Trial 18: processing (processing)
 - Trial 19: processing (processing)
 - Trial 20: processing (processing)
-  ... and 205 more
-
-### Phase-predicate warnings
-- phase_predicate_warning: neither 'test' nor 'practice' fires on the recorded trial DOM
+  ... and 199 more

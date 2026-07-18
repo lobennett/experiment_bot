@@ -1,0 +1,100 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/49/"
+      },
+      "duration_s": 1.0580942500382662
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "advance_instructions",
+            "action": "repeat",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 113.33160870801657
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00043541588820517063
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 21,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "instructions": 1,
+            "feedback": 3,
+            "practice": 339,
+            "test": 9324,
+            "complete": 1
+          },
+          "response_window_open": 0,
+          "response_window_closed": 0,
+          "identify_hits": {
+            "processing": 4,
+            "recall": 17
+          },
+          "identify_misses": 9646,
+          "advance_actions": 90,
+          "feedback_handled": 3,
+          "attention_checks_handled": 0,
+          "in_trial_nav_reruns": 4
+        }
+      },
+      "duration_s": 1016.7673831249122
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.0476768750231713
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "output_naive/operation_span_rdoc/2026-07-17_21-17-26-630836"
+      },
+      "duration_s": null
+    }
+  ]
+}

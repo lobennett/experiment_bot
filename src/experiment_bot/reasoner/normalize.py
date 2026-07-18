@@ -23,6 +23,13 @@ def normalize_partial(partial: dict) -> dict:
 def _normalize_runtime(r: dict | None) -> dict:
     """Ensure runtime sub-dicts (trial_interrupt, etc.) are dicts not None."""
     out = dict(r or {})
+    # LLM alias: the full attention-check config sometimes arrives under a
+    # plural key. Map it to the canonical singular (never clobbering a
+    # populated singular) — without this the whole config silently drops
+    # and every attention check goes unanswered.
+    plural = out.pop("attention_checks", None)
+    if isinstance(plural, dict) and plural and not out.get("attention_check"):
+        out["attention_check"] = plural
     # Sub-dicts the LLM sometimes returns as null when the feature is N/A
     for key in ("trial_interrupt", "advance_behavior", "data_capture",
                 "attention_check", "phase_detection", "timing"):

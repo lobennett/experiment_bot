@@ -18,8 +18,9 @@ Three phases, none of which reimplement any pipeline metric math:
    left out (reported, never faked); extra pipeline columns not in the
    human schema are dropped (reported).
 
-Usage:  data/bot/rdoc/run_rdoc_beh.py [PIPELINE_CLONE_DIR]
-        (default /private/tmp/rdoc-beh; must be `uv sync`ed)
+Usage:  data/bot/rdoc/run_rdoc_beh.py [PIPELINE_CLONE_DIR] [--min-seed N]
+        (default /private/tmp/rdoc-beh; must be `uv sync`ed. --min-seed
+        selects the collection round: the 5 lowest seeds >= N per task.)
 """
 
 from __future__ import annotations
@@ -34,6 +35,7 @@ from pathlib import Path
 
 REPO = Path(__file__).resolve().parents[3]
 BOT_OUT = REPO / "output_naive"
+MIN_SEED = 0
 HUMAN_DIR = REPO / "data" / "human" / "rdoc"
 DST_DIR = REPO / "data" / "bot" / "rdoc"
 
@@ -122,7 +124,7 @@ def convert(pipeline: Path) -> list[tuple]:
             if trials is None:
                 continue
             by_seed[seed] = (sess, trials)  # sorted() -> latest wins
-        seeds = sorted(by_seed)[:5]  # 5 lowest naive seeds
+        seeds = sorted(s for s in by_seed if s >= MIN_SEED)[:5]  # 5 lowest in-round seeds
         if len(seeds) < 5:
             sys.exit(f"{task}: only {len(seeds)} usable seeds: {seeds}")
         for seed in seeds:
@@ -203,7 +205,13 @@ def assemble(pipeline: Path) -> list[dict]:
 
 
 def main() -> None:
-    pipeline = Path(sys.argv[1] if len(sys.argv) > 1 else "/private/tmp/rdoc-beh")
+    args = [a for a in sys.argv[1:]]
+    global MIN_SEED
+    MIN_SEED = 0
+    if "--min-seed" in args:
+        i = args.index("--min-seed")
+        MIN_SEED = int(args[i + 1]); del args[i:i + 2]
+    pipeline = Path(args[0] if args else "/private/tmp/rdoc-beh")
     manifest = convert(pipeline)
     for task, seed, sess, n in manifest:
         print(f"{task}\t{seed}\t{sess}\tn_trials={n}")

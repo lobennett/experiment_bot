@@ -196,3 +196,24 @@ def test_normalize_navigation_handles_empty_dict():
     p = {"navigation": {}}
     out = normalize_partial(p)
     assert out["navigation"] == {"phases": []}
+
+
+def test_attention_checks_plural_alias_maps_to_singular():
+    """LLM near-miss: Stage 1 sometimes emits the full attention-check config
+    under `runtime.attention_checks` (plural). The canonical schema key is
+    singular — without the alias the whole config silently drops and every
+    attention check goes unanswered."""
+    partial = {"runtime": {"attention_checks": {
+        "detection_selector": "#ac", "text_selector": "#ac",
+        "response_js": "(() => 'a')()"}}}
+    out = normalize_partial(partial)
+    assert out["runtime"]["attention_check"]["response_js"] == "(() => 'a')()"
+    assert "attention_checks" not in out["runtime"]
+
+
+def test_attention_checks_plural_does_not_clobber_existing_singular():
+    partial = {"runtime": {
+        "attention_check": {"response_js": "(() => 'keep')()"},
+        "attention_checks": {"response_js": "(() => 'drop')()"}}}
+    out = normalize_partial(partial)
+    assert out["runtime"]["attention_check"]["response_js"] == "(() => 'keep')()"

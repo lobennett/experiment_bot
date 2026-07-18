@@ -1,0 +1,129 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/5/"
+      },
+      "duration_s": 1.632992667146027
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": {
+              "type": "sequence",
+              "steps": [
+                {
+                  "type": "click",
+                  "selector": "#jspsych-instructions-next"
+                },
+                {
+                  "type": "wait",
+                  "duration_ms": 800
+                }
+              ]
+            },
+            "target": "",
+            "key": "",
+            "success": false,
+            "error": "unknown action: {'type': 'sequence', 'steps': [{'type': 'click', 'selector': '#jspsych-instructions-next'}, {'type': 'wait', 'duration_ms': 800}]}"
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 18.809601749991998
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00014037499204277992
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 148,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "instructions": 4,
+            "feedback": 42,
+            "practice": 717,
+            "attention_check": 10,
+            "test": 5709,
+            "complete": 1
+          },
+          "response_window_open": 1261,
+          "response_window_closed": 5165,
+          "identify_hits": {
+            "match": 30,
+            "mismatch": 118
+          },
+          "identify_misses": 1159,
+          "advance_actions": 1,
+          "feedback_handled": 42,
+          "attention_checks_handled": 10,
+          "in_trial_nav_reruns": 4
+        }
+      },
+      "duration_s": 606.1656285829376
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.012107624905184
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "output_naive/n_back_rdoc/2026-07-17_13-20-56-385032"
+      },
+      "duration_s": null
+    }
+  ]
+}

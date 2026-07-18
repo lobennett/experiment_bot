@@ -1,0 +1,264 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "80e08f6ad3329402b6ed049b832f0036e5be2831bb5588b80d5ff30d1ab3cea2",
+    "scraper_version": "1.0.0",
+    "source_sha256": "19a1d2300e7be58b3c2ec0f9dc35d408c4ebe3a7621b51e9c90d95bf4e68bc7b",
+    "timestamp": "2026-07-17T18:36:19.004248+00:00",
+    "taskcard_sha256": "375ac6d3aff9cc99f3097d4e8eb7a35d9c8c63446194a266bbdb9e13f258f9c9"
+  },
+  "task": {
+    "name": "n_back_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded binary-choice task",
+      "sequential match/mismatch judgment",
+      "variable-delay working memory task"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "match",
+      "description": "Letter image whose identity matches the letter shown 'delay' trials ago (n-back match trial).",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center') && window.nbackCondition === 'match'",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "match",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) return window.correctResponse; if (typeof window.nbackCondition !== 'undefined') { const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const low = (g >= 0 && g <= 4); const matchKey = low ? '.' : ','; const mismatchKey = low ? ',' : '.'; return window.nbackCondition === 'match' ? matchKey : mismatchKey; } return null; })()"
+      }
+    },
+    {
+      "id": "mismatch",
+      "description": "Letter image whose identity does NOT match the letter shown 'delay' trials ago (n-back mismatch trial). The first 'delay' trials of each block are always mismatch.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center') && window.nbackCondition === 'mismatch'",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "mismatch",
+        "response_key_js": "(() => { if (typeof window.correctResponse !== 'undefined' && window.correctResponse !== null) return window.correctResponse; if (typeof window.nbackCondition !== 'undefined') { const g = (window.efVars && typeof window.efVars.group_index === 'number') ? window.efVars.group_index : 1; const low = (g >= 0 && g <= 4); const matchKey = low ? '.' : ','; const mismatchKey = low ? ',' : '.'; return window.nbackCondition === 'match' ? matchKey : mismatchKey; } return null; })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": {
+          "type": "sequence",
+          "steps": [
+            {
+              "type": "click",
+              "selector": "#jspsych-instructions-next"
+            },
+            {
+              "type": "wait",
+              "duration_ms": 800
+            }
+          ]
+        },
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.querySelector('#finished_message') || !!document.querySelector('#next_experiment_button')",
+      "test": "typeof window.expStage !== 'undefined' && window.expStage === 'test'",
+      "loading": "!document.querySelector('#jspsych-content') && !document.querySelector('#jspsych-fullscreen-btn')",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('#jspsych-fullscreen-btn')",
+      "practice": "typeof window.expStage !== 'undefined' && window.expStage === 'practice'",
+      "feedback": "!!document.querySelector('.picture_box') || (!!document.querySelector('.center-text') && /Correct!|Incorrect|Respond Faster/.test((document.querySelector('.center-text')||{}).textContent||''))",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 1500,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('#jspsych-html-keyboard-response-stimulus img.center')",
+      "trial_context_js": "(() => { try { return 'delay=' + window.delay + '|cond=' + window.nbackCondition + '|stage=' + window.expStage + '|block=' + (window.expStage === 'practice' ? window.practiceCount : window.testCount); } catch (e) { return ''; } })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(() => { const el = document.querySelector('#jspsych-attention-check-rdoc-stimulus'); if (!el) return null; const t = (el.textContent || '').toLowerCase(); const m = t.match(/press the ([a-z]) key/); if (m) return m[1]; if (t.includes('third to last')) return 'x'; if (t.includes('second to last')) return 'y'; if (t.includes('last letter')) return 'z'; if (t.includes('first letter')) return 'a'; if (t.includes('second letter')) return 'b'; if (t.includes('third letter')) return 'c'; return null; })()",
+      "stimulus_conditions": []
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        },
+        "delay": {
+          "column": "delay",
+          "parse": "float"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "match": "dynamic",
+      "mismatch": "dynamic"
+    },
+    "trial_timing": {
+      "max_response_time_ms": 1500,
+      "stimulus_duration_ms": 1000,
+      "trial_duration_ms": 1500,
+      "fixation_duration_ms": 500
+    },
+    "counterbalancing": {
+      "variable": "window.efVars.group_index (default 1)",
+      "rule": "group_index 0-4: match -> period key '.', mismatch -> comma key ','. group_index 5-14: match -> comma key ',', mismatch -> period key '.'. The page also exposes the resolved correct key per trial as window.correctResponse (highest-fidelity source, preferred over recomputation).",
+      "delay_schedule": "delay alternates between 1 and 2 across blocks on a shuffled fixed schedule (not adaptive to performance); the first 'delay' trials of each block are always mismatch."
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'n_back_rdoc' with 2 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed first attempt: 46 trials, conditions ['match', 'mismatch'] all observed.",
+      "evidence_lines": [
+        "attempt_1: trials=46, conditions=['match', 'mismatch'], missing=[]",
+        "phase_predicate_warning: neither 'test' nor 'practice' fires on the recorded trial DOM",
+        "data_capture_gate: method=js_expression format=json rows=46"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

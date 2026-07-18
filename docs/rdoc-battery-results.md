@@ -1,104 +1,107 @@
-# RDoC Battery Results — 12 Tasks, N=5 (Exploratory)
+# RDoC Battery Results — v2 (12 Tasks, N=5, Exploratory)
 
-_Collected 2026-07-12 → 2026-07-16. **Exploratory/descriptive — outside the
-frozen dev-4 design** (the stroop/stop-signal comparison at N=30, fixed in
-a design document committed before any generation call; see
-`docs/how-it-works.md` §2). Same framing as the flanker
-held-out probe in the paper draft: the pipeline pointed at URLs, no
-task-specific code, results reported as observed._
+_Collected 2026-07-17 → 2026-07-18 under a revised protocol (below). Round 1
+(v1, collected 2026-07-12 → 07-16) is archived in full — sessions, matrices,
+and its results document — at the git tag **`battery-v1`**. Exploratory /
+descriptive throughout; outside the frozen dev-4 design (see
+`docs/how-it-works.md` §2). Results reported as observed; no program was
+regenerated, edited, or selected on any number below._
 
-This is the single results file for the battery. Deliverable provenance
-(which pipeline produced the matrices, column parity, regeneration script)
-lives in `data/bot/rdoc/README.md`; numbers are not duplicated there.
+## What changed from v1 (the revision, stated plainly)
 
-## Collection
+v1's misses shared one thread: the participant could not perceive what the
+platform tells a person at the keyboard. The revision — motivated by those
+observed misses, which is why v1 and v2 are reported side by side and never
+blended — made three general changes plus a model change:
 
-All 12 RDoC Experiment Factory tasks (registry: `data/rdoc_task_urls.tsv`)
-collected at **N=5 seeded sessions each**, hermetically pinned (card hash +
-program hash + seed in each session's `run_metadata.json`). Human reference:
-the lab's session-level behavioral matrices (`data/human/rdoc/`, N≈2,510
-sessions/task; gitignored, committed placeholders carry the schema).
+1. **Attention-check emission (Stage-1 structural prompt).** Online tasks
+   commonly include attention checks; the structural card must emit the
+   full config (detection, question text, response derivation), not just
+   the classification. A supporting harness fix: Stage 1 sometimes emits
+   the config under `attention_checks` (plural); the normalize layer now
+   maps that LLM alias to the canonical key (with tests). In v1, checks
+   went unanswered on 10 of 12 tasks.
+2. **`ctx.feedback_text` (perception channel).** The text a feedback screen
+   displays now reaches the program on the next trial; the harness never
+   interprets it. The mechanical gate fuzzes the field.
+3. **Timing salience (generation prompt).** One neutral sentence pointing
+   at the task's own timing parameters in the injected source. No numbers,
+   no phenomena; neutrality invariants unchanged and green.
+4. **Behavioral author: Claude Opus 4.8** (v1: Claude Fable 5), per
+   protocol decision. Structural cards remain Fable-authored (10 cards
+   re-reasoned under the new Stage-1 prompt; the two dev cards, already
+   complete, kept). Two Fable-authored v2 programs generated before the
+   model switch were superseded unused (archived in `naive_programs/`,
+   their 10 sessions set aside, not in any dataset).
 
-**Program generation record** (no behavioral iteration — first gate-passing
-program is the program):
+**Generation record:** all 12 Opus programs passed the mechanical gate on
+the **first attempt**. Sessions: 60/60 collected (v2 seeds `8XX001–8XX005`,
+one block per task), hermetically pinned as always.
 
-- **11 of 12 task programs passed the mechanical gate on the first
-  attempt.** `cued_task_switching` required 2 regenerations, both triggered
-  by mechanical gate failures — within the pre-specified max-2-retries
-  rule; all attempts archived under `naive_programs/expfactory_cued_ts/`.
-- `operation_span` and `simple_span` are grid-recall (serial-reproduction)
-  tasks and required the **sequence-response capability**
-  (`docs/how-it-works.md` §4):
-  multi-action trials driven by a card-exposed target sequence, delivered
-  as arrow-key navigation + spacebar selections. The capability is generic
-  (no grid geometry in library code); both spans then collected real recall
-  data first-shot. Caveat: the Stage-1 prompt's target-reconstruction
-  guidance was iteratively refined against these two span implementations,
-  and its generality has not been exercised on a serial-reproduction task
-  outside this battery.
+## Results: v1 → v2
 
-**Deliverable:** `data/bot/rdoc/<task>.csv` — 12/12 tasks at exact column
-parity with `data/human/rdoc`, produced by the lab's own preprocessing
-pipeline (lobennett/rdoc-beh) on the bot's platform-native exports. One
-honest gap: `operation_span`'s `8x8_grid_asymmetric_rt` is empty.
+Bot cohort mean vs the human between-subject distribution (identical
+matrices pipeline, identical scoring, |z| ≤ 1 human SD; N=5 — descriptive).
 
-## Behavioral comparison (descriptive)
-
-Bot cohort mean vs the human between-subject distribution, per metric:
-counted "within range" if |z| ≤ 1 human SD. N=5 per task — treat as
-descriptive, not inferential.
-
-| Task | Within 1 SD | Excluding attention-check |
+| Task | v1 | v2 |
 |---|---|---|
-| stop_signal | **12/12** | 12/12 |
-| flanker | 7/8 | **7/7** |
-| ax_cpt | 12/15 | 12/14 |
-| visual_search | 10/14 | 10/13 |
-| spatial_cueing | 9/14 | 9/13 |
-| cued_task_switching | 9/13 | 9/12 |
-| spatial_task_switching | 9/16 | 9/15 |
+| spatial_task_switching | 9/16 | **16/16** |
+| n_back | 4/14 | **13/14** |
+| stop_signal | 12/12 | **12/12** |
+| flanker | 7/8 | **8/8** |
+| spatial_cueing | 9/14 | 10/14 |
+| ax_cpt | 12/15 | 10/15 |
+| cued_task_switching | 9/13 | 9/13 |
+| go_nogo | 4/7 | 5/7 |
+| visual_search | 10/14 | 9/14 |
 | stroop | 5/8 | 5/8 |
-| go_nogo | 4/7 | 4/6 |
-| n_back | 4/14 | 4/13 |
-| operation_span | 2/16 | 2/15 |
-| simple_span | 1/12 | 1/11 |
-| **Total** | **84/149 (56%)** | **84/139 (60%)** |
+| operation_span | 2/16 | 3/17 |
+| simple_span | 1/12 | 2/12 |
+| **Total** | **84/149 (56%)** | **102/150 (68%)** |
 
-### Patterns in the misses (honest summary)
+**Attention checks: fixed on 11 of 12 tasks.** v1: unanswered (accuracy
+0.0) on 10 tasks. v2: answered and perfect (1.0) everywhere except
+`operation_span`, where the checks are responded to but with the task's
+grid-navigation keys (space/enter) instead of the check's letter answer —
+a card/handling interplay on the battery's most complex trial flow, left
+as a documented defect.
 
-**1. Attention checks unanswered on 10 of 12 tasks (structural, not
-behavioral).** The executor treats attention-check stimuli as structural
-non-trials by design; on the 10 newly generated cards, Stage 1 classified
-the battery's attention-check trials that way, so the bot never responds →
-`attention_check_mean_accuracy = 0.0`. On the two dev-card tasks (stroop,
-stop_signal) the checks are answered and accuracy is **1.0** — when the bot
-does answer them, it answers perfectly. This is a Stage-1 card-classification
-variance, a framework finding, not a property of the generated programs.
+**Deliverable:** `data/bot/rdoc/<task>.csv`, 12/12 at exact column parity
+with `data/human/rdoc`. As in v1, stop_signal's `go_rt_all_responses` and
+`mean_stop_failure_RT` are computed with the project's own estimator
+(identical definitions) because the pipeline version does not emit them;
+stop-failure RT < go RT in every session, as the race model requires.
 
-**2. RT location runs slow — the known calibration pattern.** The same
-uniform miss as the dev-4 comparison (paper draft, Results): RTs are
-directionally correct but shifted slow (spatial_cueing +2.4 to +3.0 z;
-spatial_task_switching / cued_task_switching stay-RTs +2.2 to +3.9 z;
-stroop congruent +2.1 z; visual_search conjunction +2.1 z). Internal effect
-structure survives the shift — e.g., Stroop incongruent > congruent,
-AX-CPT AY > AX, visual-search conjunction > feature, valid < invalid cueing.
+## Honest notes on the misses that remain
 
-**3. Inhibition again strongest.** stop_signal is the only task with every
-metric in range (12/12), consistent with the dev-4 headline
-(race-model programs converge the SSD staircase). flanker misses only the
-attention check.
+- **The feedback channel went unused.** None of the twelve generated
+  programs reads `ctx.feedback_text`. The channel is live (harness
+  captures and delivers it; gate fuzzes it), but one-shot programs did
+  not exploit it — so v2's gains come from the attention-check fix and
+  the new programs' own calibration, not from within-session adaptation.
+  Consistent with that, `proportion_feedback` improved only where
+  baseline performance improved (spatial_task_switching 1.00 → 0.10;
+  spans still 1.00 vs human 0.18–0.30).
+- **RT location still runs slow** on stroop (+2.1 to +2.3 z),
+  spatial_cueing (+1.1 to +2.2), cued_task_switching (+2.8 to +3.3), and
+  visual_search conjunction — the residual calibration signature.
+  Internal effect structure remains intact everywhere.
+- **Spans remain the weakest paradigms** (3/17, 2/12): recall is real and
+  order accuracy improved slightly, but grid navigation is far slower
+  than human (movement/response times up to +18 z) and responses per
+  trial run low. The serial-reproduction *mechanics* are solved; the
+  generated programs' pacing and memory models are not.
+- **ax_cpt regressed** (12/15 → 10/15; AY accuracy and several RTs) and
+  visual_search dipped by one — one-shot generation variance cuts both
+  ways, and is reported as observed.
 
-**4. Working-memory tasks weakest.** n_back (4/14): systematic omissions
-(~6–10% vs human ~1%) plus slow RTs. The spans (2/16, 1/12): recall is
-real but degraded relative to humans — fewer responses per trial (2.9 vs
-4.0), lower order accuracy (0.36–0.61 vs 0.76–0.92), and much slower
-grid navigation (movement/response times +1.5 to +15 z). The capability
-delivers the mechanics; the generated programs' memory models underperform
-the human reference. go_nogo under-inhibits (nogo accuracy 0.556 vs
-0.878±0.109).
+## Provenance
 
-### Not done, by rule
-
-Per the no-behavioral-iteration rule, no program was regenerated, edited,
-or selected because of any number above. The misses stand as the one-shot
-result.
+- Cards: content-addressed under `taskcards/` (10 re-reasoned 2026-07-17,
+  Fable-5-authored, live-pilot + replay-gate validated; op-span card
+  re-rolled once after an incomplete first emission — cards carry no
+  behavioral content and have no one-shot rule).
+- Programs: `naive_programs/<label>/` — Opus 4.8 transcripts archived with
+  every attempt; the session `run_metadata.json` triple (card hash,
+  program hash, seed) pins each of the 60 sessions.
+- v1 in full (sessions, matrices, results doc): `git show battery-v1:...`.

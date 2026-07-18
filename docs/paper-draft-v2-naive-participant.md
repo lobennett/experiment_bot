@@ -182,6 +182,27 @@ on any newly generated card. The division of labor held exactly as
 designed: every failure was repaired in the harness; the behavioral
 layer was never touched.
 
+### Exploratory extension: the 12-task RDoC battery (two rounds)
+
+After the pre-specified experiment and the flanker probe, the pipeline was
+pointed at all 12 RDoC Experiment Factory tasks (N=5 seeded sessions per
+task per round; session-level human matrices from the lab's own
+preprocessing pipeline; outside the frozen design, reported descriptively).
+Round 1 (Fable-5 programs): 84/149 measures within 1 human SD (56%), with
+a single diagnostic thread — the participant could not perceive what the
+platform tells a person (attention checks unanswered on 10 tasks;
+block-performance feedback invisible). Round 2 revised the protocol on
+that diagnosis (full attention-check emission from the structural stage, a
+neutral feedback-text perception channel, one timing-salience sentence,
+and Opus 4.8 as behavioral author) and reached 102/150 (68%): spatial
+task-switching 16/16, n-back 13/14, stop-signal 12/12, flanker 8/8,
+attention checks perfect on 11 of 12 tasks. The rounds are reported side
+by side and never pooled; notably, the new perception channel went unused
+by every one-shot program, so the gains are attributable to the
+structural fix and the new programs' own calibration, not within-session
+adaptation. Full tables and honest misses: `docs/rdoc-battery-results.md`
+(round 1 archived at the `battery-v1` git tag).
+
 ## Discussion
 
 Three claims. **First**, behavioral scaffolding is not necessary: with

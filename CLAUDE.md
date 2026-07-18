@@ -93,9 +93,9 @@ registry, oracle/norms validation) and its dataset are archived at the
   integrity design, stages, evidence, limitations). Read this first.
 - `docs/paper-draft-v2-naive-participant.md` — the paper draft for the
   two-arm experiment (this branch holds the naive arm).
-- `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery
-  (collection + gate record, behavioral comparison vs the lab's human
-  matrices). Registry: `data/rdoc_task_urls.tsv`; matrices:
+- `docs/rdoc-battery-results.md` — the exploratory 12-task RDoC battery,
+  v2 (collection + gate record, v1→v2 comparison vs the lab's human
+  matrices; v1 archived at the `battery-v1` tag). Registry: `data/rdoc_task_urls.tsv`; matrices:
   `data/bot/rdoc/` vs `data/human/rdoc/` (gitignored + placeholders).
 - `README.md` — front door: quickstart, the five CLIs, evidence summary.
 - `data/human/README.md` — human reference data download + integrity.

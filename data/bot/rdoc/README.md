@@ -12,8 +12,8 @@ platform-native session exports
 (`output_naive/<task>_rdoc/<timestamp>/experiment_data.{json,csv}`).
 
 - **N = 5 sessions per task** (one row per synthetic subject; `sub_id` =
-  `s<seed>`). The 5 lowest naive seeds per task; for stroop/stop_signal
-  (collected at N=30) the 5 lowest naive seeds were used.
+  `s<seed>`), battery v2 (seeds `8XX001–8XX005`; programs authored by
+  Claude Opus 4.8). v1 matrices are archived at the `battery-v1` git tag.
 - Each bot session's jsPsych trial array was wrapped in the Prolific raw
   envelope (SubmissionData: `uniqueid`, `dateTime`, `trialdata`, `status`,
   `interactionData`) and fed through the pipeline's preprocess + analyze

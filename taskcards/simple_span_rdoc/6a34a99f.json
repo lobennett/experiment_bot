@@ -1,0 +1,295 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "80e08f6ad3329402b6ed049b832f0036e5be2831bb5588b80d5ff30d1ab3cea2",
+    "scraper_version": "1.0.0",
+    "source_sha256": "35517c335356c1647b10a91d09e35f12be9919965630523ad852e1408419a21a",
+    "timestamp": "2026-07-17T17:25:24.474826+00:00",
+    "taskcard_sha256": "6a34a99f6b7509c95498faa73e63f3ff468485fe14191bd0440d7e19a56fdd9e"
+  },
+  "task": {
+    "name": "unknown",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "visuospatial working-memory span",
+      "serial-order reproduction / ordered recall",
+      "self-paced multi-response reproduction"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "simple",
+      "description": "Blank 4x4 response grid; participant reproduces the previously-shown sequence of black cells via arrow-key navigation + spacebar selection.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "!!document.querySelector('.container .box') && !document.querySelector('.active-box') && !document.querySelector('#jspsych-attention-check-rdoc-stimulus')",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "simple",
+        "correct_sequence_js": "(() => { try { const rows = jsPsych.data.get().values().filter(r => r.trial_id === 'practice_stim' || r.trial_id === 'test_stim'); const last = rows.slice(-4); if (last.length < 4) return null; return last.map(r => r.spatial_location); } catch (e) { return null; } })()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 1000
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 500
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "fixation_settle",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 2000
+      },
+      {
+        "phase": "encoding_display_settle",
+        "action": "wait",
+        "target": "",
+        "key": "",
+        "steps": [],
+        "duration_ms": 5000
+      },
+      {
+        "phase": "attention_check_press_p",
+        "action": "keypress",
+        "target": "",
+        "key": "p",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "(() => { try { if (document.getElementById('finished_message')) return true; const b = document.body ? document.body.innerText : ''; return b.includes('Experiment Complete'); } catch (e) { return false; } })()",
+      "test": "!!document.querySelector('.container .box') && !document.querySelector('.prompt_box_simple') && !document.querySelector('.prompt_box_response')",
+      "loading": "(() => { try { return !document.querySelector('.jspsych-content') && !document.getElementById('finished_message'); } catch (e) { return false; } })()",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav') || (!!document.querySelector('.center-block-text') && (document.body.innerText.includes('Welcome') || document.body.innerText.includes('practice round')))",
+      "practice": "!!document.querySelector('.prompt_box_simple') || !!document.querySelector('.prompt_box_response')",
+      "feedback": "(() => { try { if (document.getElementById('finished_message')) return false; return !!document.querySelector('.picture_box') || (!!document.querySelector('.memory_feedback')) || (!!document.querySelector('.centerbox') && /Press.*enter/i.test(document.querySelector('.centerbox').innerText)); } catch (e) { return false; } })()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 2000,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('.container .box') && !document.querySelector('.active-box')",
+      "trial_context_js": "(() => { try { const s = (typeof getExpStage === 'function') ? getExpStage() : ''; const b = (s === 'practice') ? (typeof practiceCount !== 'undefined' ? practiceCount : '') : (typeof testCount !== 'undefined' ? testCount : ''); return 'stage:' + s + ' block:' + b + ' condition:simple'; } catch (e) { return ''; } })()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 25.0,
+      "cdp_dwell_ms": 100.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30
+  },
+  "task_specific": {
+    "key_map": {
+      "simple": "dynamic"
+    },
+    "correct_sequence_js": "(() => { try { const rows = jsPsych.data.get().values().filter(r => r.trial_id === 'practice_stim' || r.trial_id === 'test_stim'); const last = rows.slice(-4); if (last.length < 4) return null; return last.map(r => r.spatial_location); } catch (e) { return null; } })()",
+    "trial_timing": {
+      "max_response_time_ms": 7000,
+      "presentation_stimulus_duration_ms": 1000,
+      "presentation_trial_duration_ms": 1000,
+      "inter_stimulus_fixation_ms": 2500,
+      "practice_iti_ms": 5000,
+      "test_iti_distribution": "decaying exponential, mean 5000 ms, clipped [2000, 20000]"
+    },
+    "sequence_structure": {
+      "set_size": 4,
+      "grid": "4x4 (16 cells, 0-indexed 0..15, row-major)",
+      "navigation_keys": [
+        "ArrowLeft (-1 if col!=0)",
+        "ArrowRight (+1 if col!=3)",
+        "ArrowUp (-4 if row>=1)",
+        "ArrowDown (+4 if row<3)"
+      ],
+      "select_key": " ",
+      "selections_required": 4,
+      "start_cursor_source": "startingCellInGrid (random 0..15, recorded on the response trial); the participant program must compute the arrow-key path from the current cursor to each target and confirm with spacebar",
+      "target_source": "spatial_location field of the last 4 presentation rows (practice_stim / test_stim); the vestigial window.currSeq is declared but never populated, so targets are reconstructed from recorded data (mirrors the source's own scoring, which filters *_stim and takes slice(-4))"
+    },
+    "structure": {
+      "practice_sets": 1,
+      "practice_loop_max": 3,
+      "test_blocks": 3,
+      "sets_per_test_block": 8,
+      "condition_count": 1,
+      "adaptive_procedure": "none (fixed set size 4; simple span is not staircased)"
+    },
+    "notes": {
+      "cdp_dwell_ms_derivation": "Only one response window exists: responseBlockDuration = 7000 ms. The literal formula min(window)*0.15 = 1050 ms assumes a SINGLE keypress per window; here each response window requires ~10-16 ordered keypresses (arrow navigation + 4 spacebar confirmations) inside the same 7000 ms. Per-keypress budget ~= 7000/16 ~= 440 ms, so 440*0.15 ~= 66 ms; rounded up to 100 ms (>50 ms floor) so total delivery (~1.0-1.6 s) stays well within the 7000 ms window.",
+      "platform_export_omitted": "runtime.platform_export is intentionally omitted: the response trial (trial_id 'test_trial') records correctness (correct_trial) and per-selection timestamp arrays but NO scalar rt column, so the required declarative rt field cannot be mapped honestly. Analysis for this span task is accuracy-based (correct_trial / partial recall)."
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'unknown' with 1 stimuli. Source files: jquery.min.js, bootstrap.min.js, math.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-html-button-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-.",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "math.min.js",
+        "jspsych.js",
+        "plugin-instructions.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed after 3 navigation refinement(s), 0 selector update(s): 2 trials, conditions ['simple'].",
+      "evidence_lines": [
+        "attempt_1: trials=0, conditions=[], missing=['simple']",
+        "attempt_2: trials=0, conditions=[], missing=['simple']",
+        "attempt_3: trials=0, conditions=[], missing=['simple']",
+        "attempt_4: trials=0, conditions=[], missing=['simple']",
+        "attempt_5: trials=2, conditions=['simple'], missing=[]",
+        "data_capture_gate: method=js_expression format=json rows=72"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

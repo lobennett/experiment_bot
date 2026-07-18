@@ -1,0 +1,289 @@
+{
+  "schema_version": "2.0",
+  "produced_by": {
+    "model": "claude-opus-4-8",
+    "prompt_sha256": "80e08f6ad3329402b6ed049b832f0036e5be2831bb5588b80d5ff30d1ab3cea2",
+    "scraper_version": "1.0.0",
+    "source_sha256": "c18b928f445061da944dee7a632f733d49a7c3080febc4c9b27c894420da5bff",
+    "timestamp": "2026-07-17T18:34:02.193239+00:00",
+    "taskcard_sha256": "345d2203d89f9a36fafb36065a56e7e48b7d9caa22c7b2ba36d3a2c96ebcb00e"
+  },
+  "task": {
+    "name": "ax_cpt_rdoc",
+    "constructs": [],
+    "reference_literature": [],
+    "platform": "",
+    "paradigm_classes": [
+      "speeded two-choice discrimination",
+      "cued target-detection task",
+      "context/expectancy manipulation with cue-probe pairs"
+    ]
+  },
+  "stimuli": [
+    {
+      "id": "AX",
+      "description": "Probe letter following an 'A' cue on an AX (target) trial \u2014 cue was A, probe is X.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){try{var c=jsPsych.getCurrentTrial().choices;return !!document.querySelector('.AX_text')&&Array.isArray(c)&&c.indexOf(',')>-1&&window.currCondition==='AX';}catch(e){return false;}})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "AX",
+        "response_key_js": "(function(){try{var t=jsPsych.getCurrentTrial();var d=(typeof t.data==='function')?t.data():t.data;if(d&&d.correct_response)return d.correct_response;}catch(e){}try{if(typeof possibleResponses!=='undefined')return (window.currCondition==='AX')?possibleResponses[0][1]:possibleResponses[1][1];}catch(e){}return null;})()"
+      }
+    },
+    {
+      "id": "BX",
+      "description": "Probe letter 'X' following a non-'A' (B) cue \u2014 non-target combination.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){try{var c=jsPsych.getCurrentTrial().choices;return !!document.querySelector('.AX_text')&&Array.isArray(c)&&c.indexOf(',')>-1&&window.currCondition==='BX';}catch(e){return false;}})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "BX",
+        "response_key_js": "(function(){try{var t=jsPsych.getCurrentTrial();var d=(typeof t.data==='function')?t.data():t.data;if(d&&d.correct_response)return d.correct_response;}catch(e){}try{if(typeof possibleResponses!=='undefined')return (window.currCondition==='AX')?possibleResponses[0][1]:possibleResponses[1][1];}catch(e){}return null;})()"
+      }
+    },
+    {
+      "id": "AY",
+      "description": "Probe letter (non-'X', i.e. Y) following an 'A' cue \u2014 non-target combination.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){try{var c=jsPsych.getCurrentTrial().choices;return !!document.querySelector('.AX_text')&&Array.isArray(c)&&c.indexOf(',')>-1&&window.currCondition==='AY';}catch(e){return false;}})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "AY",
+        "response_key_js": "(function(){try{var t=jsPsych.getCurrentTrial();var d=(typeof t.data==='function')?t.data():t.data;if(d&&d.correct_response)return d.correct_response;}catch(e){}try{if(typeof possibleResponses!=='undefined')return (window.currCondition==='AX')?possibleResponses[0][1]:possibleResponses[1][1];}catch(e){}return null;})()"
+      }
+    },
+    {
+      "id": "BY",
+      "description": "Probe letter (non-'X', i.e. Y) following a non-'A' (B) cue \u2014 non-target combination.",
+      "detection": {
+        "method": "js_eval",
+        "selector": "(function(){try{var c=jsPsych.getCurrentTrial().choices;return !!document.querySelector('.AX_text')&&Array.isArray(c)&&c.indexOf(',')>-1&&window.currCondition==='BY';}catch(e){return false;}})()",
+        "alt_method": "",
+        "pattern": ""
+      },
+      "response": {
+        "key": null,
+        "condition": "BY",
+        "response_key_js": "(function(){try{var t=jsPsych.getCurrentTrial();var d=(typeof t.data==='function')?t.data():t.data;if(d&&d.correct_response)return d.correct_response;}catch(e){}try{if(typeof possibleResponses!=='undefined')return (window.currCondition==='AX')?possibleResponses[0][1]:possibleResponses[1][1];}catch(e){}return null;})()"
+      }
+    }
+  ],
+  "navigation": {
+    "phases": [
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-fullscreen-btn",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "click",
+        "target": "#jspsych-instructions-next",
+        "key": "",
+        "steps": [],
+        "duration_ms": 0
+      },
+      {
+        "phase": "",
+        "action": "keypress",
+        "target": "",
+        "key": "Enter",
+        "steps": [],
+        "duration_ms": 0
+      }
+    ]
+  },
+  "runtime": {
+    "phase_detection": {
+      "method": "js_eval",
+      "complete": "!!document.getElementById('finished_message') || !!document.getElementById('next_experiment_button')",
+      "test": "(function(){try{return window.expStage==='test';}catch(e){return false;}})()",
+      "loading": "!document.querySelector('#jspsych-content') || document.querySelector('#jspsych-content').innerHTML.trim()===''",
+      "instructions": "!!document.querySelector('#jspsych-instructions-next') || !!document.querySelector('.jspsych-instructions-nav')",
+      "practice": "(function(){try{return window.expStage==='practice';}catch(e){return false;}})()",
+      "feedback": "(function(){var el=document.querySelector('.block-text, .center-block-text');return !!el && !document.querySelector('#jspsych-instructions-next') && !document.querySelector('.AX_text');})()",
+      "attention_check": "!!document.querySelector('#jspsych-attention-check-rdoc-stimulus')"
+    },
+    "timing": {
+      "poll_interval_ms": 20,
+      "max_no_stimulus_polls": 2000,
+      "stuck_timeout_s": 10.0,
+      "completion_wait_ms": 5000,
+      "feedback_delay_ms": 2000,
+      "omission_wait_ms": 2000,
+      "rt_floor_ms": 150.0,
+      "rt_cap_fraction": 0.9,
+      "response_window_js": "!!document.querySelector('.AX_text') && (function(){try{var c=jsPsych.getCurrentTrial().choices;return Array.isArray(c)&&c.indexOf(',')>-1;}catch(e){return false;}})()",
+      "trial_context_js": "(function(){try{return 'cond='+window.currCondition+';stage='+window.expStage;}catch(e){return '';}})()",
+      "viewport": {
+        "width": 1280,
+        "height": 800
+      },
+      "navigation_delay_ms": 1000,
+      "attention_check_delay_ms": 1500,
+      "completion_settle_ms": 2000,
+      "trial_end_timeout_s": 8.0,
+      "cdp_dwell_ms": 225.0,
+      "trial_marker_js": "",
+      "records_js": ""
+    },
+    "advance_behavior": {
+      "pre_keypress_js": "",
+      "advance_keys": [
+        "Enter"
+      ],
+      "exit_pager_key": "",
+      "advance_interval_polls": 100,
+      "feedback_selectors": [
+        "#jspsych-instructions-next",
+        "#jspsych-fullscreen-btn",
+        ".jspsych-btn"
+      ],
+      "feedback_fallback_keys": [
+        "Enter"
+      ]
+    },
+    "trial_interrupt": {
+      "detection_condition": "",
+      "failure_rt_key": "",
+      "failure_rt_cap_fraction": 0.0,
+      "inhibit_wait_ms": 0
+    },
+    "data_capture": {
+      "method": "js_expression",
+      "expression": "jsPsych.data.get().json()",
+      "format": "json",
+      "wait_ms": 1000
+    },
+    "attention_check": {
+      "detection_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "text_selector": "#jspsych-attention-check-rdoc-stimulus",
+      "response_js": "(function(){var el=document.querySelector('#jspsych-attention-check-rdoc-stimulus');if(!el)return null;var t=el.textContent.toLowerCase();var m=t.match(/press the ([a-z]) key/);if(m)return m[1];if(t.indexOf('third to last')>-1)return 'x';if(t.indexOf('second to last')>-1)return 'y';if(t.indexOf('last letter')>-1)return 'z';if(t.indexOf('first letter')>-1)return 'a';if(t.indexOf('second letter')>-1)return 'b';if(t.indexOf('third letter')>-1)return 'c';return null;})()",
+      "stimulus_conditions": [
+        "attention_check",
+        "attention_check_response"
+      ]
+    },
+    "navigation_stimulus_condition": "",
+    "delivery_channel": "cdp",
+    "calibration_n_keys": 30,
+    "platform_export": {
+      "row_filter": {
+        "equals": {
+          "trial_id": "test_trial"
+        }
+      },
+      "fields": {
+        "condition": {
+          "column": "condition"
+        },
+        "rt": {
+          "column": "rt",
+          "parse": "float"
+        },
+        "correct": {
+          "column": "correct_trial",
+          "parse": "truthy"
+        }
+      }
+    }
+  },
+  "task_specific": {
+    "key_map": {
+      "AX": "dynamic",
+      "BX": "dynamic",
+      "AY": "dynamic",
+      "BY": "dynamic"
+    },
+    "key_counterbalancing": {
+      "variable": "window.efVars.group_index (default 1)",
+      "note": "group_index 0-4: AX->'.' , other->',' ; group_index 5-14: AX->',' , other->'.'. Correct key is read at runtime from the trial's own data().correct_response, falling back to possibleResponses[0][1] (AX) / possibleResponses[1][1] (other) computed from the global possibleResponses array.",
+      "response_keys": [
+        ",",
+        "."
+      ]
+    },
+    "trial_timing": {
+      "fixation_ms": 500,
+      "cue_stimulus_duration_ms": 500,
+      "cue_trial_duration_ms": 500,
+      "isi_ms": 3000,
+      "probe_stimulus_duration_ms": 1000,
+      "probe_trial_duration_ms": 1500,
+      "iti_ms": "sampled from decaying exponential (mean 500ms, range 0-5000ms)",
+      "max_response_time_ms": 1500
+    },
+    "block_structure": {
+      "practice_block_trials": 5,
+      "test_blocks": 3,
+      "test_trials_per_block": 50,
+      "condition_proportions": "AX x4 : BX x2 : AY x2 : BY x2 per 10-trial unit",
+      "attention_check_between_test_blocks": true
+    }
+  },
+  "performance": {
+    "accuracy": {}
+  },
+  "response_distributions": {},
+  "temporal_effects": {},
+  "between_subject_jitter": {},
+  "reasoning_chain": [
+    {
+      "step": "stage1_structural",
+      "input_hash": "",
+      "inference": "Identified paradigm 'ax_cpt_rdoc' with 4 stimuli. Source files: jquery.min.js, bootstrap.min.js, jspsych.js, plugin-instructions.js, plugin-html-keyboard-response.js, plugin-survey-text.js, plugin-fullscreen.js, plugin-call-function.js, plugin-attention-check.js, .",
+      "evidence_lines": [
+        "jquery.min.js",
+        "bootstrap.min.js",
+        "jspsych.js",
+        "plugin-instructions.js",
+        "plugin-html-keyboard-response.js"
+      ],
+      "confidence": "high"
+    },
+    {
+      "step": "stage6_pilot",
+      "input_hash": "",
+      "inference": "Pilot passed first attempt: 89 trials, conditions ['AX', 'AY', 'BX', 'BY'] all observed.",
+      "evidence_lines": [
+        "attempt_1: trials=89, conditions=['AX', 'AY', 'BX', 'BY'], missing=[]",
+        "phase_predicate_warning: neither 'test' nor 'practice' fires on the recorded trial DOM",
+        "data_capture_gate: method=js_expression format=json rows=44"
+      ],
+      "confidence": "high"
+    }
+  ],
+  "pilot_validation": {}
+}

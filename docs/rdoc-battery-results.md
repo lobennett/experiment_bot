@@ -8,22 +8,22 @@ descriptive throughout; outside the frozen dev-4 design (see
 regenerated, edited, or selected on any number below._
 
 > **Stealth re-collection (2026-07-19).** The committed dataset is now a
-> fresh N=5 **stealth** round (headful real Chrome, GPU renderer, no
+> **stealth** round at **N=20** per task (headful real Chrome, GPU renderer, no
 > WebDriver flag, humanized key-hold), collected by
 > `scripts/collect_battery_stealth.sh` on the same content-hashed
 > cards+programs as v2 — so run mode is the only difference. It serves two
 > purposes at once: the battery analyses below **and** the live
 > bot-detection check (Roundtable Proof-of-Human on the deployed tasks). Two
 > findings. (1) **Run mode does not distort the behavioral data**: 12/12
-> column parity and 95/149 (64%) within 1 human SD, tracking the headless v2
-> (102/150, 68%) with only fresh-N=5 sampling differences — the recorded
+> column parity and 100/149 (67%) within 1 human SD at N=20 (stable vs the
+> headless v2's 102/150, 68%) — the recorded
 > RT/accuracy is unchanged by stealth. Per-subject vs Eisenberg reproduces
 > the headlines (stop-signal all metrics within 1 SD incl. SSRT 256 vs 303,
 > go_rt KS p ≈ 0.76; stroop 6/7, stroop-effect 97 ms). (2) **Bot-detection**:
 > the environment fixes cleared Roundtable's "bot browser" and "software
-> renderer" flags (100→50/100); the residual flag is its behavioral ML on
-> biometrics (absent mouse stream), which a zero-mouse session can still
-> sometimes pass — full analysis in `docs/detection-results.md`. The prior headless v2
+> renderer" flags (100→50/100); the residual flag is its opaque behavioral
+> ML, which auto-rejects only 1/240 sessions and passes operation_span
+> 20/20 — full analysis in `docs/detection-results.md`. The prior headless v2
 > matrices/analyses are at the `battery-v2-data` tag.
 
 ## What changed from v1 (the revision, stated plainly)

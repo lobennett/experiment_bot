@@ -1,0 +1,62 @@
+{
+  "task_name": "operation_span_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/49/",
+  "total_trials": 19,
+  "headless": false,
+  "session_seed": 832012,
+  "behavior_program": {
+    "sha256": "05ae3f831a83f2928cd73e1c870f0bc57f4974672950b2958671228b839b0936",
+    "path": "naive_programs/operation_span_rdoc/05ae3f831a83f2928cd73e1c870f0bc57f4974672950b2958671228b839b0936.py",
+    "seed": 832012
+  },
+  "taskcard_sha256": "409a6ee79acc6a67d1a9068d34245d3db675d6271b6896d328784ece3a82fc09",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 337
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 2,
+    "budget": 10,
+    "successful_proposals": 2,
+    "dom_advances": 2,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "outcome": "completed",
+  "loop_diagnostics": {
+    "phase_counts": {
+      "instructions": 1,
+      "feedback": 5,
+      "practice": 332,
+      "test": 8693,
+      "attention_check": 1,
+      "complete": 1
+    },
+    "response_window_open": 0,
+    "response_window_closed": 0,
+    "identify_hits": {
+      "processing": 4,
+      "recall": 15
+    },
+    "identify_misses": 9012,
+    "advance_actions": 85,
+    "feedback_handled": 5,
+    "attention_checks_handled": 1,
+    "in_trial_nav_reruns": 3
+  },
+  "data_quality": {
+    "stall_trials": null,
+    "note": "no recognizable rt column in captured export"
+  },
+  "js_eval_errors_by_source": {},
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

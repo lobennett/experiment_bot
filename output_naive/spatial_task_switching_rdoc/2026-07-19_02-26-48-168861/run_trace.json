@@ -1,0 +1,148 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/8/"
+      },
+      "duration_s": 1.9039201671257615
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-instructions-next",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "keypress",
+            "target": "",
+            "key": "Enter",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "attention_check",
+            "action": "keypress",
+            "target": "",
+            "key": "b",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 43.78406683285721
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.0008682920597493649
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 204,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "practice": 103,
+            "feedback": 8,
+            "instructions": 1,
+            "test": 8037,
+            "attention_check": 2,
+            "complete": 1
+          },
+          "response_window_open": 204,
+          "response_window_closed": 7936,
+          "identify_hits": {
+            "task_stay_cue_stay": 204
+          },
+          "identify_misses": 9,
+          "advance_actions": 2,
+          "feedback_handled": 8,
+          "attention_checks_handled": 2,
+          "in_trial_nav_reruns": 1
+        }
+      },
+      "duration_s": 600.449389958987
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.015964125050232
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/spatial_task_switching_rdoc/2026-07-19_02-26-48-168861"
+      },
+      "duration_s": null
+    }
+  ]
+}

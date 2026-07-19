@@ -1,0 +1,79 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/7/"
+      },
+      "duration_s": 1.7739963750354946
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "fullscreen_prompt",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 7.427630665944889
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.0004229999613016844
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 252,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "test": 11649,
+            "feedback": 35,
+            "instructions": 4,
+            "practice": 386,
+            "attention_check": 3,
+            "complete": 1
+          },
+          "response_window_open": 252,
+          "response_window_closed": 11783,
+          "identify_hits": {
+            "valid": 67,
+            "doublecue": 81,
+            "nocue": 82,
+            "invalid": 22
+          },
+          "identify_misses": 39,
+          "advance_actions": 7,
+          "feedback_handled": 35,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 4
+        }
+      },
+      "duration_s": 835.5278301250655
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 3.03241654089652
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/spatial_cueing_rdoc/2026-07-19_07-36-41-622318"
+      },
+      "duration_s": null
+    }
+  ]
+}

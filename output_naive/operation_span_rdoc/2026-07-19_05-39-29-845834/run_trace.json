@@ -1,0 +1,100 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/49/"
+      },
+      "duration_s": 1.6093651668634266
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "<unnamed>",
+            "action": "wait",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          },
+          {
+            "phase": "advance_instructions",
+            "action": "repeat",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 114.71509879198857
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.0011404589749872684
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 14,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "instructions": 1,
+            "feedback": 4,
+            "practice": 332,
+            "test": 7187,
+            "complete": 1
+          },
+          "response_window_open": 0,
+          "response_window_closed": 0,
+          "identify_hits": {
+            "processing": 4,
+            "recall": 10
+          },
+          "identify_misses": 7510,
+          "advance_actions": 72,
+          "feedback_handled": 4,
+          "attention_checks_handled": 0,
+          "in_trial_nav_reruns": 4
+        }
+      },
+      "duration_s": 954.942843584111
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.0505658329930156
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/operation_span_rdoc/2026-07-19_05-39-29-845834"
+      },
+      "duration_s": null
+    }
+  ]
+}

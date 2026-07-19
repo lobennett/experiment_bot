@@ -1,0 +1,4076 @@
+[
+  {
+    "trial": 1,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 441.8,
+    "actual_rt_ms": 443.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 8,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 2,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 586.7,
+    "actual_rt_ms": 587.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 14,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 3,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 436.6,
+    "actual_rt_ms": 437.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 20,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 4,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 452.7,
+    "actual_rt_ms": 453.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 26,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 5,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 503.0,
+    "actual_rt_ms": 504.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 33,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 6,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 543.2,
+    "actual_rt_ms": 544.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 38,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 7,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 450.1,
+    "actual_rt_ms": 451.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 44,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 8,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 529.9,
+    "actual_rt_ms": 530.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 50,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 9,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 485.4,
+    "actual_rt_ms": 486.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 57,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 10,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 501.9,
+    "actual_rt_ms": 503.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 62,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 11,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 484.6,
+    "actual_rt_ms": 485.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 68,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 12,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 511.9,
+    "actual_rt_ms": 513.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 74,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 13,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 492.7,
+    "actual_rt_ms": 493.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 81,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 14,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 446.1,
+    "actual_rt_ms": 447.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 87,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 15,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 451.2,
+    "actual_rt_ms": 452.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 93,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 16,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 465.9,
+    "actual_rt_ms": 467.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 99,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 17,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 622.1,
+    "actual_rt_ms": 623.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 105,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 18,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 636.0,
+    "actual_rt_ms": 637.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 112,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 19,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 559.0,
+    "actual_rt_ms": 560.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 117,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 20,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 497.8,
+    "actual_rt_ms": 498.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 123,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 21,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 456.1,
+    "actual_rt_ms": 456.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 129,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 22,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 701.2,
+    "actual_rt_ms": 702.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 135,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 23,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 509.4,
+    "actual_rt_ms": 509.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 141,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 24,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 510.8,
+    "actual_rt_ms": 511.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 147,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 25,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 452.8,
+    "actual_rt_ms": 453.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 155,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 26,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 438.6,
+    "actual_rt_ms": 439.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 160,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 27,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 421.7,
+    "actual_rt_ms": 422.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 165,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 28,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 561.9,
+    "actual_rt_ms": 562.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 170,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 29,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 470.6,
+    "actual_rt_ms": 471.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 175,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 30,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 477.1,
+    "actual_rt_ms": 477.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 180,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 31,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 494.5,
+    "actual_rt_ms": 495.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 185,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 32,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 563.2,
+    "actual_rt_ms": 564.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 190,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 33,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 635.9,
+    "actual_rt_ms": 637.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 195,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 34,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 472.7,
+    "actual_rt_ms": 473.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 200,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 35,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 489.7,
+    "actual_rt_ms": 489.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 205,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 36,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 547.4,
+    "actual_rt_ms": 548.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 210,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 37,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 549.7,
+    "actual_rt_ms": 550.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 215,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 38,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 495.1,
+    "actual_rt_ms": 495.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 220,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 39,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 576.0,
+    "actual_rt_ms": 577.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 225,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 40,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 482.4,
+    "actual_rt_ms": 483.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 230,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 41,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 533.8,
+    "actual_rt_ms": 534.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 235,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 42,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 637.3,
+    "actual_rt_ms": 637.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 240,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 43,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 439.1,
+    "actual_rt_ms": 440.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 245,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 44,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 504.2,
+    "actual_rt_ms": 505.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 250,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 45,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 485.9,
+    "actual_rt_ms": 486.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 255,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 46,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 458.6,
+    "actual_rt_ms": 459.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 260,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 47,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 535.2,
+    "actual_rt_ms": 536.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 265,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 48,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 525.9,
+    "actual_rt_ms": 527.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 270,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 49,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 534.7,
+    "actual_rt_ms": 535.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 275,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 50,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 447.6,
+    "actual_rt_ms": 448.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 280,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 51,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 493.0,
+    "actual_rt_ms": 494.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 285,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 52,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 352.8,
+    "actual_rt_ms": 353.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 290,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 53,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 521.1,
+    "actual_rt_ms": 522.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 295,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 54,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 521.1,
+    "actual_rt_ms": 522.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 300,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 55,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 427.4,
+    "actual_rt_ms": 428.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 305,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 56,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 557.9,
+    "actual_rt_ms": 558.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 310,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 57,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 489.3,
+    "actual_rt_ms": 490.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 315,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 58,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 478.5,
+    "actual_rt_ms": 479.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 320,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 59,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 427.6,
+    "actual_rt_ms": 428.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 325,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 60,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 415.3,
+    "actual_rt_ms": 416.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 330,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 61,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 568.3,
+    "actual_rt_ms": 569.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 335,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 62,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 591.8,
+    "actual_rt_ms": 592.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 340,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 63,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 453.3,
+    "actual_rt_ms": 454.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 345,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 64,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 376.9,
+    "actual_rt_ms": 378.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 350,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 65,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 586.5,
+    "actual_rt_ms": 587.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 355,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 66,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 495.6,
+    "actual_rt_ms": 496.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 360,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 67,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 510.1,
+    "actual_rt_ms": 511.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 365,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 68,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 514.6,
+    "actual_rt_ms": 515.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 370,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 69,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 437.9,
+    "actual_rt_ms": 439.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 375,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 70,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 432.5,
+    "actual_rt_ms": 433.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 380,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 71,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 633.3,
+    "actual_rt_ms": 634.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 385,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 72,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 569.1,
+    "actual_rt_ms": 570.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 390,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 73,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 438.3,
+    "actual_rt_ms": 438.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 395,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 74,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 392.2,
+    "actual_rt_ms": 392.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 400,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 75,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 521.8,
+    "actual_rt_ms": 522.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 405,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 76,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 509.9,
+    "actual_rt_ms": 511.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 410,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 77,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 484.9,
+    "actual_rt_ms": 486.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 415,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 78,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 359.7,
+    "actual_rt_ms": 360.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 420,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 79,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 475.7,
+    "actual_rt_ms": 476.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 425,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 80,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 448.4,
+    "actual_rt_ms": 449.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 430,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 81,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 427.9,
+    "actual_rt_ms": 429.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 435,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 82,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 439.0,
+    "actual_rt_ms": 440.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 440,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 83,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 445.3,
+    "actual_rt_ms": 446.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 445,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 84,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 409.6,
+    "actual_rt_ms": 410.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 450,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 85,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 475.4,
+    "actual_rt_ms": 476.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 455,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 86,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 548.8,
+    "actual_rt_ms": 550.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 460,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 87,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 505.7,
+    "actual_rt_ms": 506.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 465,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 88,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 499.5,
+    "actual_rt_ms": 500.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 470,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 89,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 407.1,
+    "actual_rt_ms": 408.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 475,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 90,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 389.6,
+    "actual_rt_ms": 390.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 480,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 91,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 464.4,
+    "actual_rt_ms": 465.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 485,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 92,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 484.7,
+    "actual_rt_ms": 485.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 490,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 93,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 436.0,
+    "actual_rt_ms": 436.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 495,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 94,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 431.7,
+    "actual_rt_ms": 433.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 500,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 95,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 448.2,
+    "actual_rt_ms": 448.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 505,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 96,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 515.8,
+    "actual_rt_ms": 517.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 510,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 97,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 431.2,
+    "actual_rt_ms": 432.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 517,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 98,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 519.8,
+    "actual_rt_ms": 521.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 522,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 99,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 630.3,
+    "actual_rt_ms": 631.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 527,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 100,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 470.9,
+    "actual_rt_ms": 472.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 532,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 101,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 555.8,
+    "actual_rt_ms": 557.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 537,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 102,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 470.6,
+    "actual_rt_ms": 471.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 542,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 103,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 486.8,
+    "actual_rt_ms": 487.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 547,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 104,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 600.5,
+    "actual_rt_ms": 601.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 552,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 105,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 480.5,
+    "actual_rt_ms": 481.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 557,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 106,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 383.2,
+    "actual_rt_ms": 384.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 562,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 107,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 588.8,
+    "actual_rt_ms": 589.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 567,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 108,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 424.2,
+    "actual_rt_ms": 425.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 572,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 109,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 541.0,
+    "actual_rt_ms": 541.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 577,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 110,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 440.0,
+    "actual_rt_ms": 440.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 582,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 111,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 441.4,
+    "actual_rt_ms": 442.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 587,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 112,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 419.2,
+    "actual_rt_ms": 420.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 592,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 113,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 554.5,
+    "actual_rt_ms": 555.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 597,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 114,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 508.3,
+    "actual_rt_ms": 509.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 602,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 115,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 409.5,
+    "actual_rt_ms": 410.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 607,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 116,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 586.5,
+    "actual_rt_ms": 588.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 612,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 117,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 441.8,
+    "actual_rt_ms": 443.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 617,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 118,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 497.3,
+    "actual_rt_ms": 498.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 622,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 119,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 442.5,
+    "actual_rt_ms": 442.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 627,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 120,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 510.6,
+    "actual_rt_ms": 512.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 632,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 121,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 564.6,
+    "actual_rt_ms": 566.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 637,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 122,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 412.8,
+    "actual_rt_ms": 415.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 642,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 123,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 541.9,
+    "actual_rt_ms": 544.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 647,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 124,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 389.8,
+    "actual_rt_ms": 391.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 652,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 125,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 655.3,
+    "actual_rt_ms": 657.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 657,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 126,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 513.0,
+    "actual_rt_ms": 515.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 662,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 127,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 406.5,
+    "actual_rt_ms": 406.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 667,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 128,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 442.7,
+    "actual_rt_ms": 444.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 672,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 129,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 452.7,
+    "actual_rt_ms": 454.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 677,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 130,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 474.8,
+    "actual_rt_ms": 476.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 682,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 131,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 437.5,
+    "actual_rt_ms": 439.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 687,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 132,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 494.7,
+    "actual_rt_ms": 496.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 692,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 133,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 451.4,
+    "actual_rt_ms": 453.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 697,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 134,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 470.3,
+    "actual_rt_ms": 470.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 702,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 135,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 417.0,
+    "actual_rt_ms": 419.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 707,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 136,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 424.3,
+    "actual_rt_ms": 425.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 712,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 137,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 629.2,
+    "actual_rt_ms": 631.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 717,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 138,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 435.1,
+    "actual_rt_ms": 437.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 722,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 139,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 447.2,
+    "actual_rt_ms": 448.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 727,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 140,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 454.7,
+    "actual_rt_ms": 456.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 732,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 141,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 408.0,
+    "actual_rt_ms": 410.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 737,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 142,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 529.2,
+    "actual_rt_ms": 531.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 742,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 143,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 620.7,
+    "actual_rt_ms": 622.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 747,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 144,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 756.0,
+    "actual_rt_ms": 757.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 752,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 145,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 510.0,
+    "actual_rt_ms": 512.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 757,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 146,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 458.5,
+    "actual_rt_ms": 459.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 762,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 147,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 544.1,
+    "actual_rt_ms": 546.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 767,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 148,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 396.5,
+    "actual_rt_ms": 396.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 772,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 149,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 508.6,
+    "actual_rt_ms": 510.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 777,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 150,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 609.1,
+    "actual_rt_ms": 611.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 782,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 151,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 491.3,
+    "actual_rt_ms": 493.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 787,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 152,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 587.0,
+    "actual_rt_ms": 589.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 792,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 153,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 503.7,
+    "actual_rt_ms": 505.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 797,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 154,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 472.5,
+    "actual_rt_ms": 474.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 802,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 155,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 459.1,
+    "actual_rt_ms": 460.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 807,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 156,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 481.8,
+    "actual_rt_ms": 484.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 812,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 157,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 507.9,
+    "actual_rt_ms": 510.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 817,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 158,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 609.4,
+    "actual_rt_ms": 611.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 822,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 159,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 600.9,
+    "actual_rt_ms": 601.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 827,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 160,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 429.4,
+    "actual_rt_ms": 431.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 832,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 161,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 440.6,
+    "actual_rt_ms": 442.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 837,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 162,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 588.5,
+    "actual_rt_ms": 590.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 842,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 163,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 545.5,
+    "actual_rt_ms": 547.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 847,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 164,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 541.1,
+    "actual_rt_ms": 542.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 852,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 165,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 526.3,
+    "actual_rt_ms": 528.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 857,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 166,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 538.8,
+    "actual_rt_ms": 540.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 862,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 167,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 642.4,
+    "actual_rt_ms": 643.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 867,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 168,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 506.1,
+    "actual_rt_ms": 506.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 872,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 169,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 542.0,
+    "actual_rt_ms": 543.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 879,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 170,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 452.3,
+    "actual_rt_ms": 453.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 884,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 171,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 440.8,
+    "actual_rt_ms": 443.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 889,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 172,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 532.9,
+    "actual_rt_ms": 535.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 894,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 173,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 447.5,
+    "actual_rt_ms": 449.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 899,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 174,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 357.6,
+    "actual_rt_ms": 359.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 904,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 175,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 627.8,
+    "actual_rt_ms": 628.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 909,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 176,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 419.8,
+    "actual_rt_ms": 421.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 914,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 177,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 506.2,
+    "actual_rt_ms": 508.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 919,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 178,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 458.6,
+    "actual_rt_ms": 460.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 924,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 179,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 466.9,
+    "actual_rt_ms": 469.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 929,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 180,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 370.4,
+    "actual_rt_ms": 372.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 934,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 181,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 483.2,
+    "actual_rt_ms": 485.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 939,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 182,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 415.5,
+    "actual_rt_ms": 417.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 944,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 183,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 547.0,
+    "actual_rt_ms": 549.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 949,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 184,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 603.9,
+    "actual_rt_ms": 605.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 954,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 185,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 459.9,
+    "actual_rt_ms": 462.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 959,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 186,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 511.9,
+    "actual_rt_ms": 514.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 964,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 187,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 425.9,
+    "actual_rt_ms": 427.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 969,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 188,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 604.2,
+    "actual_rt_ms": 606.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 974,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 189,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 519.1,
+    "actual_rt_ms": 520.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 979,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 190,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 530.8,
+    "actual_rt_ms": 531.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 984,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 191,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 424.3,
+    "actual_rt_ms": 426.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 989,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 192,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 581.4,
+    "actual_rt_ms": 583.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 994,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 193,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 509.0,
+    "actual_rt_ms": 511.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 999,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 194,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 495.4,
+    "actual_rt_ms": 497.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1004,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 195,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 605.9,
+    "actual_rt_ms": 608.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1009,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 196,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 458.3,
+    "actual_rt_ms": 460.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1014,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 197,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 478.2,
+    "actual_rt_ms": 479.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1019,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 198,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 644.2,
+    "actual_rt_ms": 646.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1024,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 199,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 422.7,
+    "actual_rt_ms": 424.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1029,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 200,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 611.6,
+    "actual_rt_ms": 613.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1034,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 201,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 503.8,
+    "actual_rt_ms": 506.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1039,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 202,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 509.0,
+    "actual_rt_ms": 511.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1044,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 203,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 423.3,
+    "actual_rt_ms": 425.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1049,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 204,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 591.5,
+    "actual_rt_ms": 593.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1054,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 205,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 550.6,
+    "actual_rt_ms": 551.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1059,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 206,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 521.7,
+    "actual_rt_ms": 524.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1064,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 207,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 514.1,
+    "actual_rt_ms": 516.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1069,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 208,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 420.5,
+    "actual_rt_ms": 422.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1074,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 209,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 412.0,
+    "actual_rt_ms": 414.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1079,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 210,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 469.8,
+    "actual_rt_ms": 472.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1084,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 211,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 727.6,
+    "actual_rt_ms": 730.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1089,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 212,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 431.0,
+    "actual_rt_ms": 433.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1094,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 213,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ",",
+    "sampled_rt_ms": 470.9,
+    "actual_rt_ms": 473.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1099,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/left"
+  },
+  {
+    "trial": 214,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 535.0,
+    "actual_rt_ms": 535.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1104,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 215,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 497.1,
+    "actual_rt_ms": 499.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1109,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 216,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 507.9,
+    "actual_rt_ms": 510.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1114,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 217,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 493.5,
+    "actual_rt_ms": 494.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1119,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 218,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ".",
+    "sampled_rt_ms": 602.8,
+    "actual_rt_ms": 603.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1124,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/right"
+  },
+  {
+    "trial": 219,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 436.3,
+    "actual_rt_ms": 438.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1129,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 220,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 455.0,
+    "actual_rt_ms": 457.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1134,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 221,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 499.6,
+    "actual_rt_ms": 501.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1139,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 222,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": null,
+    "sampled_rt_ms": 1500.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 223,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 588.4,
+    "actual_rt_ms": 589.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1149,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 224,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 514.8,
+    "actual_rt_ms": 517.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1154,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 225,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 414.1,
+    "actual_rt_ms": 414.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1159,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 226,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ",",
+    "sampled_rt_ms": 496.2,
+    "actual_rt_ms": 498.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1164,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/left"
+  },
+  {
+    "trial": 227,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 539.2,
+    "actual_rt_ms": 540.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1169,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 228,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 422.4,
+    "actual_rt_ms": 424.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1174,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 229,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 467.9,
+    "actual_rt_ms": 468.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1179,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 230,
+    "stimulus_id": "invalid",
+    "condition": "invalid",
+    "response_key": ".",
+    "sampled_rt_ms": 642.5,
+    "actual_rt_ms": 644.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1184,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "invalid/right"
+  },
+  {
+    "trial": 231,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 429.6,
+    "actual_rt_ms": 431.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1189,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 232,
+    "stimulus_id": "nocue",
+    "condition": "nocue",
+    "response_key": ",",
+    "sampled_rt_ms": 586.4,
+    "actual_rt_ms": 587.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1194,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "nocue/left"
+  },
+  {
+    "trial": 233,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 448.1,
+    "actual_rt_ms": 449.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1199,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 234,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 729.9,
+    "actual_rt_ms": 732.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1204,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 235,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 614.2,
+    "actual_rt_ms": 614.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1209,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 236,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 532.8,
+    "actual_rt_ms": 534.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1214,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 237,
+    "stimulus_id": "doublecue",
+    "condition": "doublecue",
+    "response_key": ".",
+    "sampled_rt_ms": 495.5,
+    "actual_rt_ms": 495.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1219,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "doublecue/right"
+  },
+  {
+    "trial": 238,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 414.3,
+    "actual_rt_ms": 415.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1224,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  },
+  {
+    "trial": 239,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ".",
+    "sampled_rt_ms": 487.8,
+    "actual_rt_ms": 489.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1229,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/right"
+  },
+  {
+    "trial": 240,
+    "stimulus_id": "valid",
+    "condition": "valid",
+    "response_key": ",",
+    "sampled_rt_ms": 431.4,
+    "actual_rt_ms": 431.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 1234,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "valid/left"
+  }
+]

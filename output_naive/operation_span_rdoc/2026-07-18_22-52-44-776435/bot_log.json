@@ -1,0 +1,7332 @@
+[
+  {
+    "trial": 1,
+    "stimulus_id": "processing",
+    "condition": "processing",
+    "response_key": "ArrowRight",
+    "sampled_rt_ms": 1201.6,
+    "actual_rt_ms": 1202.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 28,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "practice"
+  },
+  {
+    "trial": 2,
+    "stimulus_id": "processing",
+    "condition": "processing",
+    "response_key": null,
+    "sampled_rt_ms": 1124.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 3,
+    "stimulus_id": "processing",
+    "condition": "processing",
+    "response_key": "ArrowRight",
+    "sampled_rt_ms": 1780.5,
+    "actual_rt_ms": 1781.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 39,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "practice"
+  },
+  {
+    "trial": 4,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 936.3028451409259,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 113.97608743407453,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 115.65239501711238,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 97.51888323451928,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 91.60324469352413,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 56.906549191507565,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 93.81858762345658,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 103.08057994432575,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 86.39882320836163,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 82.50960759585664,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 108.85813525135367,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 304.956641966847,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 99.757934790841,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 91.68242180293487,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 78.57655844821304,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 108.16420860350782,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 319.2102074757233,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 97.74582370911483,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 57.10020655023377,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 71.5505449341115,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 86.75124153554512,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 186.51704218934506,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 110.76336116817647,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 118.97120285838653,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 98.35429571488572,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 91.2386736123785,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 108.61451116983888,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 218.15686641878312,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 40,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 4134.7,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "practice"
+  },
+  {
+    "trial": 5,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 842.5491622981287,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 116.21585622728657,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 78.73626890022047,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 86.5833262372763,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 74.54129457822603,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 96.00539923613213,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 119.10861746845914,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 81.08585822872087,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 80.75565837417314,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 117.27141610236491,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 65.83281244821765,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 199.70013295879573,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 137.15195819841207,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 127.30036984341955,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 241.61011766733765,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 99.22142004612296,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 76.18366620094545,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 339.5911982286736,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 132.32100885564535,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 84.11400095606744,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 99.5007815471648,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 95.449638954129,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 67.2134966248417,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.49276818092174,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 148.2169947615208,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 55,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3695.8,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 6,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 400.0,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 105.2732305970204,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 93.15829404100037,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 73.98075391086782,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 85.30787406744929,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 88.72750510409801,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 132.64109604012268,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 108.93627874756501,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 57.086881229297,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 197.69806438811264,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 132.49677824944482,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 106.83127521052535,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 105.92527758450865,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 106.23015705908959,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 99.20004346668452,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 286.89695258639335,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 101.65852068976449,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 92.2820505222527,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 81.92884920180953,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 111.56606887791234,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 249.07625046224683,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 88.52009899016349,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 235.03607655394345,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 67,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3140.5,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 7,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 854.4954529400944,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 65.60763897224943,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 77.64023877656979,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 99.17526202730285,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 105.44661704584261,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 60.6880686917363,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 123.6440299488942,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 116.13568272786864,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 56.77838741660094,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 109.60755759018443,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 313.24676662191473,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 87.14802690240388,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 92.78918103211204,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 201.80425759997172,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 73.4058103089733,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 79.03173682463039,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 96.6322598439426,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 82.9203463698899,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 184.35162296146157,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 127.6805148344545,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 51.55830592932899,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 102.99308072546457,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 129.42183278550866,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 81,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3292.2,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 8,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 806.1532910247506,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 100.82642479337501,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 96.35352720050486,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 55.345727120571716,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 81.2822711049878,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 64.24776867134982,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 72.89854267999752,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 152.6464483455998,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 98.05097328684593,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 97.44809214790784,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 250.73127033706794,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 154.41056014337548,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 103.99740762804394,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 77.22006107004924,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 147.05886089834544,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 272.0083881367664,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 101.81336075108486,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 225.92966210864955,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 94,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 2958.4,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 9,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1278.6251083769002,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 106.98134305113402,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 95.58956397677267,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 53.11622578130269,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 82.0921167202787,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 93.91295910314572,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 84.4292421774473,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 161.61927726317688,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 151.50275995885974,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 81.03727378277976,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 78.32297787420387,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 75.92012255297718,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 121.8337332402612,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 63.15199567572295,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 215.78118522343217,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 101.26671015353138,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 137.94944585023336,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 99.66466122748045,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 117.46118872113222,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 166.3596974117089,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 101.12859425507729,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 276.9575821646442,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 110,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3744.7,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 10,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 400.0,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 110.09457244994707,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 87.12192062160636,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 112.80807665200514,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 121.87378526511095,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 119.45323465768286,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 126.78674987223343,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 81.27982982620851,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 71.03885766016428,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 137.86641906165022,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 130.07745857016928,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 275.6499582054963,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 115.24076955829318,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 123.66720302921784,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 116.73449107872581,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 104.94246359010923,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 176.4840423926931,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 56.18934896123201,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 82.18771800467465,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 218.67181443151975,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 131.25400210653635,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 138.17623219205484,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 125.37303618478694,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 92.41718002608755,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 131.9949141577537,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 126,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3387.4,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 11,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1006.9408661197507,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 94.89979880775807,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 151.03439204500532,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 74.1441115439424,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 104.93042321432213,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 114.13650309935834,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 61.50995864353168,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 176.8991332363711,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 85.30588027454623,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 77.41814304493181,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 54.22614881064,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 82.51939389146244,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 126.47085032532304,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 123.8294451259732,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 109.00785997562319,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 198.61504776512635,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 112.5958174051977,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 133.4655279614775,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 236.79301506564246,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 137,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3124.7,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 12,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 756.743722137675,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 76.12062471478411,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 102.06385405926103,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 127.96751493387153,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 126.6254352464323,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 113.74329480208819,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 137.24485999886647,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 78.84694572403112,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 233.26855108973746,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 95.11705808226084,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 89.83206498611898,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 83.578532236718,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 311.1771509417739,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 112.83563186559795,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 77.90826638237391,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 122.59633991757615,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.9668715789893,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 396.1951350158628,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 98.48400879984594,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 48.62258811533442,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 129.6168107967113,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 119.26359246197863,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 254.7641391581317,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 150,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3782.6,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 13,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 951.3392166258984,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 95.68206418095603,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 104.00473292626951,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 168.6550093568482,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 62.903141909059876,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 108.51640358910315,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 85.09936932582043,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 147.94121068455593,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 121.44799680809957,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 109.46794703998182,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 317.26949407548665,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 73.92493068287854,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 120.72394364521526,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 201.780555324974,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 74.49938624505455,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 163.06125931942427,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 91.80331364483239,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 79.95280332080085,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 197.81200902441955,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 164,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3275.9,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 14,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1012.8370955096652,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 108.43732000407296,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 108.34111155977024,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.59091300205596,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 108.10934999226598,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 106.923773483429,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 156.5118058732165,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 94.72337545765645,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 286.53445023686584,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 117.23167211684657,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 113.80643497251361,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 120.66280761309234,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 119.10963853745514,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 195.2797168715921,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 94.05206169724454,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 95.58264541674728,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 87.18395539712456,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 208.89027398336103,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 96.4523821898836,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 304.39796737289856,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 180,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3624.7,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 15,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 913.0182262788132,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 91.1738495199175,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 79.2028878877943,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.37711485201477,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 60.304886345054086,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 97.77690369259956,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 121.97746726693393,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 69.95109867033355,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 115.13063833039735,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 82.51026324698233,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 85.6500093382562,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 195.87910644436784,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 117.81689712685682,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 61.48852657688714,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 77.90162199787585,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 113.46206104996531,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 179.35386847679104,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 105.1848856144536,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 54.625767003737714,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 174.75187169148444,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 149.4068042419516,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 86.31112680476103,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 297.9820275309485,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 192,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3420.2,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 16,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1125.946515000663,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 121.57319917253947,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 66.3836312474769,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 102.8047264432773,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 75.05522328294876,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 111.8975794407534,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 157.8263870149161,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 141.48349587620996,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 112.91935915871304,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 111.40116727881227,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 268.53440702038347,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 127.28251623008464,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 74.17701535073323,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 293.42970847805935,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 76.96701431541409,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 125.65819803182154,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.1967159578753,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 88.2080616201753,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 263.51539175708325,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 105.50635271855839,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 243.05236531258564,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 208,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3882.8,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 17,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 838.6517264449018,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 93.11439415777055,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 89.08708909383559,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 99.96505982045362,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 97.23406393014099,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 59.4631244809192,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 154.2342878328976,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 116.43210907928855,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 292.1194127682463,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 131.86401758760684,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 95.80606472267938,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 132.66971567978635,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 227.72109723908594,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 107.67212057245037,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 143.85210483042346,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 111.46175964066855,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 100.55358435870055,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 91.56304899648708,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 71.05919824607346,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 301.41227055378323,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 219,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3355.9,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 18,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 715.1303008525194,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 99.91323736546397,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 107.0203531826952,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 90.65409441718975,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 146.55536560949454,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 106.00553429662875,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 128.38968430201203,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 70.43114416765194,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 121.06128241898509,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 416.7226781880766,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 62.13903248000586,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 115.8518567551532,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 140.48881530687638,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 50.46140628724399,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 228.38836230118483,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 94.11010887284759,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 93.89933136674878,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 267.52420636983663,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 93.72788862086014,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 75.03360688083754,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 125.64604002985335,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 265.4915620935826,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 235,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3614.6,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "type": "adaptive_nav",
+    "step": 1,
+    "session_t": 835.6293094998691,
+    "phase": {
+      "phase": "advance_fixation",
+      "action": "keypress",
+      "target": "",
+      "key": " ",
+      "duration_ms": 0,
+      "steps": []
+    },
+    "success": true,
+    "advanced": true,
+    "error": null,
+    "dom_fingerprint_before": "519d86c2bf7aeeae",
+    "dom_fingerprint_after": "0ac1771c455c51f3"
+  },
+  {
+    "trial": 19,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 828.1355985761231,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 135.75632361604434,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 103.24597912715052,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 114.09931062919314,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 128.0634758131911,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 118.68929340263479,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 117.42306145381274,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 79.78737789416633,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 81.04370638073996,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 71.42392314527325,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 117.83542464422624,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 256.4451188045847,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 111.53628961001299,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 97.66637130255255,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 90.98711450565322,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 76.16564768853316,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 72.15304209234874,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 152.78871156876718,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 102.2561814255797,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 100.08582241441194,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 45.0,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 148.90428629965382,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 280,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3149.5,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 20,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1035.9019158052276,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 124.15765034671301,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 90.00645865403504,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 109.55759076684666,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 97.09336718622372,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 69.25511164848332,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 55.790489224272925,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 45.0,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 120.83816571194849,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 58.23488031495473,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 186.146207396143,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 94.11319183772099,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 109.58828694831432,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 99.76563004144643,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 82.82042603814133,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 76.32095432058706,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 267.5918014312077,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 102.78878533031575,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 102.16639258278448,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 121.11588359762018,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 217.414920171032,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 102.71463083536833,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 215.97426015134596,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 296,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3584.4,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 21,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 1060.4487935401487,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 89.44039394188293,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 103.22226302532047,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 103.58523178881448,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 113.54725490555306,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 82.7831523928518,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 132.40164548997043,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 84.55498775875427,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 177.42020612183086,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 130.5024610207497,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 82.0273738545189,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 267.41915142284523,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 87.77996471650485,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 337.1144464660455,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 85.3626112106926,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 129.2082396533085,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 270.51172966266154,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 312,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3337.3,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 22,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 846.0374981343614,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 74.17928009213695,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 55.12157346151625,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 83.69933672171842,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 109.38038492213627,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 119.13443348640965,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 80.19635340683325,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 93.04380899132005,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 98.13069894035148,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 245.16351250090753,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 79.1609806949996,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 68.0518057578081,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 285.1278721002207,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 128.2106217094499,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 101.21839114104186,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 128.55897206428872,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 179.10081994706496,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 131.78205189709217,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 58.4805347506288,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 73.15934535738116,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 110.0,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 328,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 3146.9,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "trial": 23,
+    "stimulus_id": "recall",
+    "condition": "recall",
+    "response_key": null,
+    "response_sequence": [
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 759.7417080762153,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 98.43046846204007,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 60.161267575195915,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 93.35325892992026,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 89.35703678563843,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 76.25205444938743,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 124.08775756402737,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowDown",
+        "rt": 81.21764113348165,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowDown",
+            "code": "ArrowDown",
+            "windowsVirtualKeyCode": 40
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 254.5532853869766,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 82.27100906118953,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 222.08742011968312,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 94.91050588318228,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 111.89530553142558,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowRight",
+        "rt": 117.17789155139,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowRight",
+            "code": "ArrowRight",
+            "windowsVirtualKeyCode": 39
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowUp",
+        "rt": 80.17090252994747,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowUp",
+            "code": "ArrowUp",
+            "windowsVirtualKeyCode": 38
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 171.5098607973013,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 65.77361414918501,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": "ArrowLeft",
+        "rt": 95.16015804189874,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": "ArrowLeft",
+            "code": "ArrowLeft",
+            "windowsVirtualKeyCode": 37
+          }
+        }
+      },
+      {
+        "type": "key",
+        "key": " ",
+        "rt": 309.57443388830865,
+        "delivery": {
+          "channel": "cdp_dispatchKeyEvent",
+          "trial_marker_at_fire": 339,
+          "skipped": false,
+          "skip_reason": null,
+          "cdp_fields": {
+            "key": " ",
+            "code": "Space",
+            "windowsVirtualKeyCode": 32,
+            "text": " "
+          }
+        }
+      }
+    ],
+    "sampled_rt_ms": 2987.7,
+    "omission": false,
+    "behavior_provider": true,
+    "cue": "test"
+  },
+  {
+    "type": "adaptive_nav",
+    "step": 2,
+    "session_t": 1107.8308501248248,
+    "phase": {
+      "phase": "experiment_complete",
+      "action": "wait",
+      "target": "",
+      "key": "",
+      "value": "",
+      "duration_ms": 3000,
+      "steps": []
+    },
+    "success": true,
+    "advanced": false,
+    "error": null,
+    "dom_fingerprint_before": "dd74c81686cf556e",
+    "dom_fingerprint_after": "dd74c81686cf556e"
+  }
+]

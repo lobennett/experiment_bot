@@ -1,0 +1,3074 @@
+[
+  {
+    "trial": 1,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 520.1,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 2,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 499.8,
+    "actual_rt_ms": 519.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 12,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 3,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 631.3,
+    "actual_rt_ms": 638.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 15,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 4,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 516.1,
+    "actual_rt_ms": 529.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 20,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 5,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 543.6,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 6,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 564.7,
+    "actual_rt_ms": 578.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 28,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 7,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 603.2,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 8,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 602.0,
+    "actual_rt_ms": 625.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 36,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 9,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 1098.9,
+    "actual_rt_ms": 1106.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 41,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 10,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 830.0,
+    "actual_rt_ms": 837.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 44,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 11,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 572.1,
+    "actual_rt_ms": 577.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 48,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 12,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 514.3,
+    "actual_rt_ms": 515.9,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 57,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 13,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 585.5,
+    "actual_rt_ms": 594.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 62,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 14,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 551.2,
+    "actual_rt_ms": 551.7,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 65,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 15,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 673.0,
+    "actual_rt_ms": 677.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 70,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 16,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 594.7,
+    "actual_rt_ms": 598.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 73,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 17,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 531.1,
+    "actual_rt_ms": 532.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 78,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 18,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 476.3,
+    "actual_rt_ms": 476.5,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 83,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 19,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 478.7,
+    "actual_rt_ms": 490.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 86,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 20,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 833.2,
+    "actual_rt_ms": 833.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 89,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 21,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 756.4,
+    "actual_rt_ms": 757.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 92,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 22,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 457.9,
+    "actual_rt_ms": 458.1,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 95,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 23,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 654.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 24,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 416.9,
+    "actual_rt_ms": 420.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 101,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 25,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 556.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 26,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 650.2,
+    "actual_rt_ms": 654.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 107,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 27,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 576.5,
+    "actual_rt_ms": 596.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 110,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 28,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 619.0,
+    "actual_rt_ms": 638.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 113,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 29,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 498.1,
+    "actual_rt_ms": 500.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 116,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 30,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 508.1,
+    "actual_rt_ms": 525.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 119,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 31,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 505.9,
+    "actual_rt_ms": 512.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 122,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 32,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 493.3,
+    "actual_rt_ms": 495.4,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 125,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 33,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 510.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 34,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 624.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 35,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 504.2,
+    "actual_rt_ms": 506.3,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 134,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 36,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 570.2,
+    "actual_rt_ms": 584.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 137,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 37,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 647.6,
+    "actual_rt_ms": 669.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 140,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 38,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 793.4,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 39,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 898.8,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 40,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 591.9,
+    "actual_rt_ms": 604.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 149,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 41,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 563.9,
+    "actual_rt_ms": 568.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 152,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 42,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 434.3,
+    "actual_rt_ms": 451.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 155,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 43,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 806.5,
+    "actual_rt_ms": 817.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 158,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 44,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 702.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 45,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 572.1,
+    "actual_rt_ms": 573.1,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 164,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 46,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 641.5,
+    "actual_rt_ms": 647.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 167,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 47,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 734.9,
+    "actual_rt_ms": 754.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 170,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 48,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 581.0,
+    "actual_rt_ms": 591.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 173,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 49,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 847.0,
+    "actual_rt_ms": 852.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 176,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 50,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 661.3,
+    "actual_rt_ms": 680.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 179,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 51,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 663.9,
+    "actual_rt_ms": 665.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 182,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 52,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 512.6,
+    "actual_rt_ms": 516.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 185,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 53,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 589.3,
+    "actual_rt_ms": 597.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 188,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 54,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 575.2,
+    "actual_rt_ms": 577.3,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 191,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 55,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 671.6,
+    "actual_rt_ms": 681.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 194,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 56,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 580.2,
+    "actual_rt_ms": 590.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 197,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 57,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 574.4,
+    "actual_rt_ms": 578.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 200,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 58,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 647.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 59,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 499.9,
+    "actual_rt_ms": 502.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 206,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 60,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 603.6,
+    "actual_rt_ms": 605.7,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 209,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 61,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 1222.5,
+    "actual_rt_ms": 1233.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 212,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 62,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 546.0,
+    "actual_rt_ms": 548.0,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 215,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 63,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 520.5,
+    "actual_rt_ms": 524.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 218,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 64,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 768.5,
+    "actual_rt_ms": 779.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 221,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 65,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 1160.4,
+    "actual_rt_ms": 1174.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 224,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 66,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 615.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 67,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 529.0,
+    "actual_rt_ms": 543.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 230,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 68,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 708.2,
+    "actual_rt_ms": 719.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 233,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 69,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 730.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 70,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 653.0,
+    "actual_rt_ms": 672.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 239,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 71,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 614.8,
+    "actual_rt_ms": 631.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 242,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 72,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 527.7,
+    "actual_rt_ms": 549.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 245,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 73,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 546.8,
+    "actual_rt_ms": 556.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 248,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 74,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 587.1,
+    "actual_rt_ms": 605.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 251,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 75,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 562.4,
+    "actual_rt_ms": 564.4,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 254,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 76,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 602.7,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 77,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 589.5,
+    "actual_rt_ms": 606.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 260,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 78,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 715.5,
+    "actual_rt_ms": 737.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 265,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 79,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 631.1,
+    "actual_rt_ms": 643.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 268,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 80,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 658.6,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 81,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 583.5,
+    "actual_rt_ms": 602.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 274,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 82,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 710.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 83,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 522.5,
+    "actual_rt_ms": 542.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 280,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 84,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 574.7,
+    "actual_rt_ms": 579.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 283,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 85,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 693.9,
+    "actual_rt_ms": 711.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 286,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 86,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 672.2,
+    "actual_rt_ms": 674.5,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 289,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 87,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 495.3,
+    "actual_rt_ms": 508.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 292,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 88,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 524.0,
+    "actual_rt_ms": 534.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 295,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 89,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 529.5,
+    "actual_rt_ms": 531.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 298,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 90,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 465.3,
+    "actual_rt_ms": 479.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 301,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 91,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 344.9,
+    "actual_rt_ms": 348.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 304,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 92,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 400.3,
+    "actual_rt_ms": 413.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 307,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 93,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 384.5,
+    "actual_rt_ms": 392.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 310,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 94,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 575.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 95,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 492.5,
+    "actual_rt_ms": 511.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 316,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 96,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 466.1,
+    "actual_rt_ms": 484.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 319,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 97,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 438.6,
+    "actual_rt_ms": 444.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 322,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 98,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 567.8,
+    "actual_rt_ms": 569.9,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 325,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 99,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 489.8,
+    "actual_rt_ms": 500.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 328,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 100,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 641.4,
+    "actual_rt_ms": 645.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 331,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 101,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 393.6,
+    "actual_rt_ms": 395.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 334,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 102,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 361.8,
+    "actual_rt_ms": 370.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 337,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 103,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 436.6,
+    "actual_rt_ms": 438.1,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 340,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 104,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 449.8,
+    "actual_rt_ms": 459.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 343,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 105,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 488.6,
+    "actual_rt_ms": 494.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 346,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 106,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 643.2,
+    "actual_rt_ms": 645.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 349,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 107,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 532.8,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 108,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 448.1,
+    "actual_rt_ms": 450.2,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 355,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 109,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 471.3,
+    "actual_rt_ms": 477.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 358,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 110,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": null,
+    "sampled_rt_ms": 686.4,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 111,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 442.3,
+    "actual_rt_ms": 443.2,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 364,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 112,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 364.8,
+    "actual_rt_ms": 366.9,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 367,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 113,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 435.8,
+    "actual_rt_ms": 455.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 370,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 114,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 343.7,
+    "actual_rt_ms": 360.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 373,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 115,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 389.1,
+    "actual_rt_ms": 408.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 376,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 116,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 482.9,
+    "actual_rt_ms": 498.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 379,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 117,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 471.8,
+    "actual_rt_ms": 491.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 382,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 118,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 392.6,
+    "actual_rt_ms": 394.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 385,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 119,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 429.7,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 120,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 325.5,
+    "actual_rt_ms": 337.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 391,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 121,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 564.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 122,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 553.1,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 123,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 348.3,
+    "actual_rt_ms": 363.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 400,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 124,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 416.1,
+    "actual_rt_ms": 424.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 403,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 125,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 467.0,
+    "actual_rt_ms": 473.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 406,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 126,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": null,
+    "sampled_rt_ms": 401.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "withheld": true,
+    "behavior_provider": true
+  },
+  {
+    "trial": 127,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 329.6,
+    "actual_rt_ms": 343.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 412,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 128,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 399.3,
+    "actual_rt_ms": 401.4,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 415,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 129,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 507.7,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 130,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 676.9,
+    "actual_rt_ms": 683.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 421,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 131,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 378.3,
+    "actual_rt_ms": 385.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 424,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 132,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 311.7,
+    "actual_rt_ms": 313.7,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 427,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 133,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 377.7,
+    "actual_rt_ms": 394.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 430,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 134,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 332.7,
+    "actual_rt_ms": 337.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 433,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 135,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 451.5,
+    "actual_rt_ms": 453.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 436,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 136,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 395.4,
+    "actual_rt_ms": 418.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 439,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 137,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 534.6,
+    "actual_rt_ms": 537.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 442,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 138,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 625.0,
+    "actual_rt_ms": 644.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 447,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 139,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 381.9,
+    "actual_rt_ms": 382.2,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 450,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 140,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 404.7,
+    "actual_rt_ms": 408.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 453,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 141,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 359.3,
+    "actual_rt_ms": 365.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 456,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 142,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 457.9,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 143,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 313.4,
+    "actual_rt_ms": 315.4,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 462,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 144,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 686.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 145,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 684.8,
+    "actual_rt_ms": 687.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 468,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 146,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 437.4,
+    "actual_rt_ms": 451.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 471,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 147,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 389.3,
+    "actual_rt_ms": 407.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 474,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 148,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 339.8,
+    "actual_rt_ms": 341.8,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 477,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 149,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 503.3,
+    "actual_rt_ms": 512.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 480,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 150,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 376.2,
+    "actual_rt_ms": 390.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 483,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 151,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 393.7,
+    "actual_rt_ms": 409.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 486,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 152,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 607.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 153,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 520.6,
+    "actual_rt_ms": 530.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 492,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 154,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 372.5,
+    "actual_rt_ms": 385.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 495,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 155,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 658.6,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 156,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 543.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 157,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 568.8,
+    "actual_rt_ms": 588.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 504,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 158,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 411.9,
+    "actual_rt_ms": 413.1,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 507,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 159,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 409.3,
+    "actual_rt_ms": 429.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 510,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 160,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 411.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 161,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 453.2,
+    "actual_rt_ms": 464.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 516,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 162,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 503.3,
+    "actual_rt_ms": 519.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 519,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 163,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 298.5,
+    "actual_rt_ms": 321.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 522,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 164,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 499.3,
+    "actual_rt_ms": 504.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 525,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 165,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 507.2,
+    "actual_rt_ms": 521.2,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 528,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 166,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 744.2,
+    "actual_rt_ms": 751.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 531,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 167,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 434.5,
+    "actual_rt_ms": 435.2,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 534,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 168,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 672.9,
+    "actual_rt_ms": 679.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 537,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 169,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 482.2,
+    "actual_rt_ms": 502.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 540,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 170,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 496.4,
+    "actual_rt_ms": 498.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 543,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 171,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 906.3,
+    "actual_rt_ms": 920.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 546,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 172,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 639.0,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 173,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 610.9,
+    "actual_rt_ms": 617.5,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 552,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 174,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 670.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 175,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 380.8,
+    "actual_rt_ms": 395.0,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 558,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 176,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 593.0,
+    "actual_rt_ms": 609.7,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 561,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 177,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 542.6,
+    "actual_rt_ms": 556.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 564,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 178,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 695.4,
+    "actual_rt_ms": 708.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 567,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 179,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 543.9,
+    "actual_rt_ms": 550.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 570,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 180,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 583.6,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 181,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 543.6,
+    "actual_rt_ms": 549.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 576,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 182,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 641.8,
+    "actual_rt_ms": 658.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 579,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 183,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 559.1,
+    "actual_rt_ms": 564.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 582,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 184,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 496.4,
+    "actual_rt_ms": 511.1,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 585,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 185,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 537.3,
+    "actual_rt_ms": 538.8,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 588,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": "."
+  },
+  {
+    "trial": 186,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 588.1,
+    "actual_rt_ms": 589.6,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 591,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 187,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 610.8,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 188,
+    "stimulus_id": "go",
+    "condition": "stop_responded",
+    "sampled_rt_ms": 465.3,
+    "actual_rt_ms": 467.4,
+    "omission": false,
+    "behavior_provider": true,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 597,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "response_key": ","
+  },
+  {
+    "trial": 189,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 561.4,
+    "actual_rt_ms": 566.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 600,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 190,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 654.0,
+    "actual_rt_ms": 679.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 603,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 191,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 841.2,
+    "actual_rt_ms": 852.9,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 606,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 192,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 551.9,
+    "actual_rt_ms": 560.6,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 609,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 193,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 911.3,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 194,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ",",
+    "sampled_rt_ms": 523.2,
+    "actual_rt_ms": 529.3,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 615,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:circle"
+  },
+  {
+    "trial": 195,
+    "stimulus_id": "go",
+    "condition": "stop_withheld",
+    "response_key": null,
+    "sampled_rt_ms": 640.5,
+    "actual_rt_ms": null,
+    "omission": false,
+    "behavior_provider": true
+  },
+  {
+    "trial": 196,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 519.8,
+    "actual_rt_ms": 530.4,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 621,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  },
+  {
+    "trial": 197,
+    "stimulus_id": "go",
+    "condition": "go",
+    "response_key": ".",
+    "sampled_rt_ms": 582.6,
+    "actual_rt_ms": 604.8,
+    "omission": false,
+    "delivery": {
+      "channel": "cdp_dispatchKeyEvent",
+      "trial_marker_at_fire": 624,
+      "skipped": false,
+      "skip_reason": null
+    },
+    "behavior_provider": true,
+    "cue": "go:square"
+  }
+]

@@ -1,0 +1,76 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/28/"
+      },
+      "duration_s": 1.4728634997736663
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "<unnamed>",
+            "action": "sequence",
+            "target": "",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 29.56089370790869
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.004862082889303565
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 196,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "practice": 163,
+            "feedback": 4,
+            "attention_check": 3,
+            "test": 6622,
+            "complete": 1
+          },
+          "response_window_open": 196,
+          "response_window_closed": 6589,
+          "identify_hits": {
+            "feature": 98,
+            "conjunction": 98
+          },
+          "identify_misses": 4,
+          "advance_actions": 1,
+          "feedback_handled": 4,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 0
+        }
+      },
+      "duration_s": 597.8814946250059
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.043281874852255
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/visual_search_rdoc/2026-07-19_09-10-15-991766"
+      },
+      "duration_s": null
+    }
+  ]
+}

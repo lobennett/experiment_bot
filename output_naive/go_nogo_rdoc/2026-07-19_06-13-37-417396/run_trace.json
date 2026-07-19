@@ -1,0 +1,77 @@
+{
+  "stages": [
+    {
+      "stage": "navigate",
+      "data": {
+        "url": "https://deploy.expfactory.org/preview/4/"
+      },
+      "duration_s": 1.5292694161180407
+    },
+    {
+      "stage": "entry_navigation",
+      "data": {
+        "phases": [
+          {
+            "phase": "fullscreen_prompt",
+            "action": "click",
+            "target": "#jspsych-fullscreen-btn",
+            "key": "",
+            "success": true,
+            "error": null
+          }
+        ]
+      },
+      "duration_s": 3.5159401251003146
+    },
+    {
+      "stage": "calibration",
+      "data": {
+        "status": "skipped"
+      },
+      "duration_s": 0.00023045786656439304
+    },
+    {
+      "stage": "trial_loop",
+      "data": {
+        "trials": 196,
+        "loop_exit_reason": "complete",
+        "loop_diagnostics": {
+          "phase_counts": {
+            "test": 6783,
+            "instructions": 2,
+            "feedback": 3,
+            "practice": 332,
+            "attention_check": 3,
+            "complete": 1
+          },
+          "response_window_open": 196,
+          "response_window_closed": 6919,
+          "identify_hits": {
+            "go": 168,
+            "nogo": 28
+          },
+          "identify_misses": 5,
+          "advance_actions": 3,
+          "feedback_handled": 3,
+          "attention_checks_handled": 3,
+          "in_trial_nav_reruns": 2
+        }
+      },
+      "duration_s": 536.4283922079485
+    },
+    {
+      "stage": "wait_completion",
+      "data": {
+        "status": "ok"
+      },
+      "duration_s": 2.0146316669415683
+    },
+    {
+      "stage": "save",
+      "data": {
+        "output": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/output_naive/go_no-go_(rdoc)/2026-07-19_06-13-37-417396"
+      },
+      "duration_s": null
+    }
+  ]
+}

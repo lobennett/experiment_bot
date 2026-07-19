@@ -1,0 +1,64 @@
+{
+  "task_name": "spatial_cueing_rdoc",
+  "task_url": "https://deploy.expfactory.org/preview/7/",
+  "total_trials": 240,
+  "headless": false,
+  "session_seed": 831503,
+  "behavior_program": {
+    "sha256": "4094d8083d3725f54797cf588e724cbc08ba1c1e63dec4f9014cadae7f5c4108",
+    "path": "naive_programs/spatial_cueing_rdoc/4094d8083d3725f54797cf588e724cbc08ba1c1e63dec4f9014cadae7f5c4108.py",
+    "seed": 831503
+  },
+  "taskcard_sha256": "dd91af120740557203b3fc6e3d6256cc29de0f7dec92d7341edafe2bf6be050c",
+  "delivery": {
+    "configured_channel": "cdp",
+    "channel_counts": {
+      "cdp_dispatchKeyEvent": 237
+    },
+    "fire_skip_count": 0,
+    "fire_skip_samples": []
+  },
+  "adaptive_nav": {
+    "uses": 0,
+    "budget": 10,
+    "successful_proposals": 0,
+    "dom_advances": 0,
+    "llm_disabled": false
+  },
+  "loop_exit_reason": "complete",
+  "incomplete": false,
+  "outcome": "completed",
+  "loop_diagnostics": {
+    "phase_counts": {
+      "test": 11493,
+      "feedback": 28,
+      "instructions": 4,
+      "practice": 312,
+      "attention_check": 3,
+      "complete": 1
+    },
+    "response_window_open": 240,
+    "response_window_closed": 11565,
+    "identify_hits": {
+      "invalid": 20,
+      "nocue": 81,
+      "valid": 61,
+      "doublecue": 78
+    },
+    "identify_misses": 32,
+    "advance_actions": 6,
+    "feedback_handled": 28,
+    "attention_checks_handled": 3,
+    "in_trial_nav_reruns": 4
+  },
+  "data_quality": {
+    "stall_trials": null,
+    "note": "no recognizable rt column in captured export"
+  },
+  "js_eval_errors_by_source": {},
+  "data_capture": {
+    "written": true,
+    "method": "js_expression",
+    "failed": false
+  }
+}

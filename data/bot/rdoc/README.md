@@ -12,8 +12,11 @@ platform-native session exports
 (`output_naive/<task>_rdoc/<timestamp>/experiment_data.{json,csv}`).
 
 - **N = 5 sessions per task** (one row per synthetic subject; `sub_id` =
-  `s<seed>`), battery v2 (seeds `8XX001–8XX005`; programs authored by
-  Claude Opus 4.8). v1 matrices are archived at the `battery-v1` git tag.
+  `s<seed>`), stealth round (seeds `831xxx`; run mode `--stealth`,
+  Opus-4.8 programs — the same content-hashed cards+programs as
+  battery-v2, so run mode is the only difference). Collected via
+  `scripts/collect_battery_stealth.sh`. The prior headless v2 matrices
+  are archived at the `battery-v2-data` git tag.
 - Each bot session's jsPsych trial array was wrapped in the Prolific raw
   envelope (SubmissionData: `uniqueid`, `dateTime`, `trialdata`, `status`,
   `interactionData`) and fed through the pipeline's preprocess + analyze

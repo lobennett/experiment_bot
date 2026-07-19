@@ -361,3 +361,35 @@ def test_deliver_sequence_does_not_abort_when_trials_advance():
     )
     events = _run(deliverer.deliver_sequence(["Space"] * 5, [1.0] * 5))
     assert len(events) == 5  # all fired, no early abort
+
+
+# --- humanized key-hold (dwell) timing ---
+
+def test_human_dwell_in_range_and_varies():
+    import random
+    from experiment_bot.calibration.cdp_deliverer import (
+        _human_dwell_ms, _HUMANIZE_DWELL_MIN_MS, _HUMANIZE_DWELL_MAX_MS,
+    )
+    rng = random.Random(123)
+    vals = [_human_dwell_ms(rng) for _ in range(200)]
+    assert all(_HUMANIZE_DWELL_MIN_MS <= v <= _HUMANIZE_DWELL_MAX_MS for v in vals)
+    assert len(set(vals)) > 100          # genuinely varied, not a constant
+    assert 45 < sum(vals) / len(vals) < 170
+
+
+def test_human_dwell_is_seed_reproducible():
+    import random
+    from experiment_bot.calibration.cdp_deliverer import _human_dwell_ms
+    a = [_human_dwell_ms(random.Random(7)) for _ in range(1)]
+    b = [_human_dwell_ms(random.Random(7)) for _ in range(1)]
+    assert a == b
+
+
+def test_deliverer_dwell_seconds_humanize_toggle():
+    from experiment_bot.calibration.cdp_deliverer import CDPDeliverer
+    plain = CDPDeliverer(page=None, cdp_session=None)
+    assert plain._dwell_seconds() == 0.05       # default path byte-identical
+    human = CDPDeliverer(page=None, cdp_session=None, humanize=True, seed=42)
+    d = [human._dwell_seconds() for _ in range(50)]
+    assert len(set(d)) > 25                       # varied per fire
+    assert all(0.045 <= x <= 0.170 for x in d)

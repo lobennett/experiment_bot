@@ -56,6 +56,7 @@ async def _run_task(
     taskcard_sha256: str | None = None,
     calibrate: bool = True,
     behavior_program: str = "",
+    stealth: bool = False,
 ) -> None:
     try:
         # Hermetic replay: when a hash is given, load the EXACT card a past
@@ -88,7 +89,7 @@ async def _run_task(
     click.echo(f"Running task at {url}")
     llm_client = None if no_llm_client else build_default_client()
     executor = TaskExecutor(
-        taskcard, headless=headless,
+        taskcard, headless=headless, stealth=stealth,
         seed=seed,
         llm_client=llm_client,
         keep_open=keep_open,
@@ -103,6 +104,11 @@ async def _run_task(
 @click.argument("url")
 @click.option("--label", required=True, help="TaskCard label (folder under taskcards/)")
 @click.option("--headless", is_flag=True, default=False, help="Run browser in headless mode")
+@click.option("--stealth", is_flag=True, default=False,
+              help="Present the browser as a real participant's: headful, real "
+                   "Chrome (falls back to bundled Chromium), GPU renderer, no "
+                   "WebDriver flag. Makes a bot-detector score behaviour, not "
+                   "the automation harness. Forces headful (ignores --headless).")
 @click.option("--taskcards-dir", default="taskcards",
               help="Directory containing TaskCard subfolders (default: taskcards/)")
 @click.option("--seed", type=int, default=None,
@@ -130,7 +136,7 @@ async def _run_task(
                    "a generated participant program. The program IS the "
                    "behavioral layer; navigation/detection/capture come from "
                    "the TaskCard as usual.")
-def main(url: str, label: str, headless: bool, taskcards_dir: str,
+def main(url: str, label: str, headless: bool, stealth: bool, taskcards_dir: str,
          seed: int | None, verbose: bool, no_llm_client: bool, keep_open: bool,
          taskcard_sha256: str | None, no_calibration: bool,
          behavior_program: str):
@@ -142,5 +148,5 @@ def main(url: str, label: str, headless: bool, taskcards_dir: str,
     asyncio.run(_run_task(
         url, label, headless, Path(taskcards_dir), seed, no_llm_client, keep_open,
         taskcard_sha256=taskcard_sha256, calibrate=not no_calibration,
-        behavior_program=behavior_program,
+        behavior_program=behavior_program, stealth=stealth,
     ))

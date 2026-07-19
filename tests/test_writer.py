@@ -54,3 +54,17 @@ def test_save_task_data_writes_tsv(tmp_path):
     writer.save_task_data("go\tleft\t423\n", "experiment_data.tsv")
     saved = (writer.run_dir / "experiment_data.tsv").read_text()
     assert "go\tleft\t423" in saved
+
+
+def test_writer_sanitizes_slash_in_task_name(tmp_path):
+    """A card name with '/' (e.g. 'Go/No-Go (RDoC)') must produce a single
+    path segment, not a nested two-level dir that hides the session from
+    per-task tooling."""
+    config = TaskConfig.from_dict(SAMPLE_CONFIG_DICT)
+    writer = OutputWriter(base_dir=tmp_path)
+    run_dir = writer.create_run("Go/No-Go (RDoC)", config)
+    assert run_dir.exists()
+    # one level under base: base_dir / <sanitized> / <timestamp>
+    assert run_dir.parent.parent == tmp_path
+    assert "/" not in run_dir.parent.name
+    assert run_dir.parent.name == "Go_No-Go (RDoC)"

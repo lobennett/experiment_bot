@@ -13,6 +13,14 @@ logger = logging.getLogger(__name__)
 DEFAULT_OUTPUT_DIR = Path(__file__).parent.parent.parent.parent / "output"
 
 
+def _safe_segment(name: str) -> str:
+    """Collapse a free-text task name to one filesystem-safe path segment:
+    path separators and other unsafe characters become '_' (no nesting),
+    and an empty result falls back to 'session'."""
+    safe = "".join("_" if c in '/\\:' else c for c in (name or "")).strip()
+    return safe or "session"
+
+
 def _resolved_default_output_dir() -> Path:
     """Honor EXPERIMENT_BOT_OUTPUT_DIR env var when set (a sweep wrapper
     uses this to redirect each arm's sessions into its own subtree).
@@ -35,6 +43,10 @@ class OutputWriter:
         self._trace_stages: list[dict] = []
 
     def create_run(self, task_name: str, config: TaskConfig) -> Path:
+        # Sanitize to a single, filesystem-safe path segment: a "/" in the
+        # card's task name (e.g. "Go/No-Go (RDoC)") would otherwise nest the
+        # session two levels deep and hide it from per-task tooling.
+        task_name = _safe_segment(task_name)
         # Include microseconds so concurrent runs that start in the
         # same second don't collide on the directory name.
         timestamp = datetime.now().strftime("%Y-%m-%d_%H-%M-%S-%f")

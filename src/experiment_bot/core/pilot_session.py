@@ -56,6 +56,39 @@ INSTRUCTIONS_PAGER_SELECTORS: tuple[str, ...] = (
 # not a per-paradigm threshold.
 HUMAN_READING_DELAY_RANGE: tuple[float, float] = (3.0, 8.0)
 
+# Stealth mode: make the browser environment indistinguishable from a real
+# participant's, so a bot-detector scores the BEHAVIOUR rather than the
+# automation harness. Two environment tells drive detection — the WebDriver
+# flag / "HeadlessChrome" fingerprint, and the SwiftShader software renderer
+# headless Chrome falls back to. Running headful with real Chrome fixes the
+# renderer (real GPU) and the fingerprint; the arg + init script clear the
+# WebDriver tell. This changes NO behavioural input (keys/RT/mouse) — it only
+# affects how the browser presents itself.
+_STEALTH_INIT_JS = (
+    "Object.defineProperty(navigator, 'webdriver', {get: () => undefined});"
+)
+
+
+def _launch_kwargs(stealth: bool, headless: bool) -> dict:
+    """Playwright chromium.launch kwargs. Stealth forces headful (real GPU
+    renderer, no HeadlessChrome UA), real Chrome, and drops the automation
+    banner; otherwise headless is passed through unchanged."""
+    if not stealth:
+        return {"headless": headless}
+    return {
+        "headless": False,
+        "channel": "chrome",
+        "args": ["--disable-blink-features=AutomationControlled"],
+    }
+
+
+def _fallback_kwargs(kw: dict) -> dict:
+    """Stealth launch without the 'chrome' channel — for machines where real
+    Google Chrome is not installed. Bundled Chromium, still headful + args."""
+    out = dict(kw)
+    out.pop("channel", None)
+    return out
+
 
 @dataclass
 class PhaseAttempt:
@@ -79,8 +112,10 @@ class PilotSession:
     """
 
     def __init__(self, *, headless: bool = True, viewport: dict | None = None,
-                 reading_delay_range: tuple[float, float] = (0.5, 1.0)):
+                 reading_delay_range: tuple[float, float] = (0.5, 1.0),
+                 stealth: bool = False):
         self._headless = headless
+        self._stealth = stealth
         self._viewport = viewport or {"width": 1280, "height": 800}
         self._reading_delay_range = reading_delay_range
         self._playwright = None
@@ -90,8 +125,19 @@ class PilotSession:
 
     async def __aenter__(self) -> "PilotSession":
         self._playwright = await async_playwright().start()
-        self._browser = await self._playwright.chromium.launch(headless=self._headless)
+        kw = _launch_kwargs(self._stealth, self._headless)
+        try:
+            self._browser = await self._playwright.chromium.launch(**kw)
+        except Exception:
+            if not self._stealth:
+                raise
+            # Real Chrome not installed — fall back to bundled Chromium,
+            # still headful + de-automation args (keeps the renderer real).
+            self._browser = await self._playwright.chromium.launch(
+                **_fallback_kwargs(kw))
         self._context = await self._browser.new_context(viewport=self._viewport)
+        if self._stealth:
+            await self._context.add_init_script(_STEALTH_INIT_JS)
         self._page = await self._context.new_page()
         return self
 

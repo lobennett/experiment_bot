@@ -177,4 +177,5 @@ protocol/executor/gate tests pin the participant-program contract.
 
 - **[`docs/how-it-works.md`](docs/how-it-works.md)** — the whole system, start to finish: question, integrity design, every stage, evidence, limitations.
 - **[`docs/rdoc-battery-results.md`](docs/rdoc-battery-results.md)** — the exploratory 12-task battery results.
+- **[`docs/detection-results.md`](docs/detection-results.md)** — Roundtable Proof-of-Human bot-detection results on the stealth battery.
 - **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The expert-arm comparison pipeline and dataset are archived at the `expert-arm-final` git tag.

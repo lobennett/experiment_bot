@@ -23,7 +23,7 @@ regenerated, edited, or selected on any number below._
 > the environment fixes cleared Roundtable's "bot browser" and "software
 > renderer" flags (100→50/100); the residual flag is its behavioral ML on
 > biometrics (absent mouse stream), which a zero-mouse session can still
-> sometimes pass — see the detection-thread notes. The prior headless v2
+> sometimes pass — full analysis in `docs/detection-results.md`. The prior headless v2
 > matrices/analyses are at the `battery-v2-data` tag.
 
 ## What changed from v1 (the revision, stated plainly)

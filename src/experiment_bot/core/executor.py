@@ -101,6 +101,7 @@ class TaskExecutor:
         *,
         seed: int | None = None,
         headless: bool = False,
+        stealth: bool = False,
         llm_client: "LLMClient | None" = None,  # enables adaptive nav
         keep_open: bool = False,  # leave the browser open after the session ends
         calibrate: bool = True,  # run the startup keypress-latency calibration pass
@@ -124,6 +125,7 @@ class TaskExecutor:
             self._taskcard = None
         self._config = config
         self._headless = headless
+        self._stealth = stealth
         self._keep_open = keep_open
         self._calibrate = calibrate
         # Persisted to run_metadata.json for provenance. The seed selects the
@@ -297,6 +299,8 @@ class TaskExecutor:
                     default_dwell_ms=dwell_ms,
                     trial_marker_js=marker_js or DEFAULT_TRIAL_MARKER_JS,
                     records_js=records_js or DEFAULT_RECORDS_JS,
+                    humanize=self._stealth,
+                    seed=self._session_seed,
                 )
                 return
             except Exception as e:
@@ -589,6 +593,7 @@ class TaskExecutor:
             headless=self._headless,
             viewport=self._config.runtime.timing.viewport,
             reading_delay_range=HUMAN_READING_DELAY_RANGE,
+            stealth=self._stealth,
         ) as session:
             page = session.page
             context = session.context

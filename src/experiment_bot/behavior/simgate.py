@@ -46,8 +46,16 @@ class GateReport:
                 "failures": self.failures, "stats": self.stats}
 
 
+class ProgramSyntaxError(Exception):
+    """The generated program is not parseable Python. Treated as a mechanical
+    gate failure (retry-eligible), never a crash of the gate run."""
+
+
 def scan_imports(program_path: Path) -> list[str]:
-    tree = ast.parse(Path(program_path).read_text())
+    try:
+        tree = ast.parse(Path(program_path).read_text())
+    except (SyntaxError, ValueError) as e:  # ValueError: source with null bytes
+        raise ProgramSyntaxError(f"{type(e).__name__}: {e}") from e
     bad = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -270,7 +278,11 @@ def run_gate(program_path: Path, conditions: list[str], key_map: dict[str, str],
              response_elements: dict[str, list[str]] | None = None,
              correct_sequence: dict[str, list[int]] | None = None) -> GateReport:
     report = GateReport(program_sha256=program_sha256(program_path))
-    bad_imports = scan_imports(program_path)
+    try:
+        bad_imports = scan_imports(program_path)
+    except ProgramSyntaxError as e:
+        report.fail(f"syntax error: {e}")
+        return report
     if bad_imports:
         report.fail(f"disallowed imports: {bad_imports}")
         return report

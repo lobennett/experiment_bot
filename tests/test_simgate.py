@@ -434,3 +434,21 @@ def test_fuzz_program_crashing_on_feedback_text_fails_named(tmp_path):
     assert not report.passed
     assert any("fuzz:feedback_text_present" in f for f in report.failures), \
         report.failures
+
+
+def test_gate_fails_gracefully_on_syntax_error(tmp_path):
+    """A generated program with invalid Python must fail the gate as a named
+    failure (so the max-2-retry path engages), not crash the gate run.
+    Regression: ast.parse in scan_imports raised SyntaxError unguarded."""
+    prog = tmp_path / "broken.py"
+    prog.write_text(
+        "def make_participant(seed):\n"
+        "    class P:\n"
+        "        def respond(self, ctx):\n"
+        "            x = int(free[int(self.rng.integers(len(free))])  # mismatched )\n"
+        "            return ('z', 300.0)\n"
+        "    return P()\n")
+    report = run_gate(prog, conditions=["go"], key_map={"go": "z"},
+                      has_interrupt=False, n_trials=10)
+    assert not report.passed
+    assert any("syntax" in f.lower() for f in report.failures), report.failures

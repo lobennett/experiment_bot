@@ -105,7 +105,7 @@ stop-failure RT < go RT in every session, as the race model requires.
   spatial_cueing (+1.1 to +2.2), cued_task_switching (+2.8 to +3.3), and
   visual_search conjunction — the residual calibration signature.
   Internal effect structure remains intact everywhere.
-- **Spans remain the weakest paradigms** (3/17, 2/12): recall is real and
+- **Spans remain the weakest paradigms (full analysis: `docs/span-failure-analysis.md`)** (3/17, 2/12): recall is real and
   order accuracy improved slightly, but grid navigation is far slower
   than human (movement/response times up to +18 z) and responses per
   trial run low. The serial-reproduction *mechanics* are solved; the

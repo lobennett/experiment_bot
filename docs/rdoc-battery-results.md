@@ -1,126 +1,122 @@
-# RDoC Battery Results — v2 (12 Tasks, N=5, Exploratory)
+# RDoC Battery Results — 12 tasks, N=20 per task (exploratory)
 
-_Collected 2026-07-17 → 2026-07-18 under a revised protocol (below). Round 1
-(v1, collected 2026-07-12 → 07-16) is archived in full — sessions, matrices,
-and its results document — at the git tag **`battery-v1`**. Exploratory /
-descriptive throughout; outside the frozen dev-4 design (see
-`docs/how-it-works.md` §2). Results reported as observed; no program was
-regenerated, edited, or selected on any number below._
+_Committed dataset: **240 stealth sessions** (12 tasks × N=20), collected
+2026-07-19 by `scripts/collect_battery_stealth.sh` on content-hashed
+cards + programs. Exploratory and descriptive throughout — outside the
+frozen dev-4 design (`docs/how-it-works.md` §2). Reported as observed; no
+program was regenerated, edited, or selected on any number below._
 
-> **Stealth re-collection (2026-07-19).** The committed dataset is now a
-> **stealth** round at **N=20** per task (headful real Chrome, GPU renderer, no
-> WebDriver flag, humanized key-hold), collected by
-> `scripts/collect_battery_stealth.sh` on the same content-hashed
-> cards+programs as v2 — so run mode is the only difference. It serves two
-> purposes at once: the battery analyses below **and** the live
-> bot-detection check (Roundtable Proof-of-Human on the deployed tasks). Two
-> findings. (1) **Run mode does not distort the behavioral data**: 12/12
-> column parity and 100/149 (67%) within 1 human SD at N=20 (stable vs the
-> headless v2's 102/150, 68%) — the recorded
-> RT/accuracy is unchanged by stealth. Per-subject vs Eisenberg reproduces
-> the headlines (stop-signal all metrics within 1 SD incl. SSRT 256 vs 303,
-> go_rt KS p ≈ 0.76; stroop 6/7, stroop-effect 97 ms). (2) **Bot-detection**:
-> the environment fixes cleared Roundtable's "bot browser" and "software
-> renderer" flags (100→50/100); the residual flag is its opaque behavioral
-> ML, which auto-rejects only 1/240 sessions and passes operation_span
-> 20/20 — full analysis in `docs/detection-results.md`. The prior headless v2
-> matrices/analyses are at the `battery-v2-data` tag.
+_Numbers on this page were recomputed from the committed matrices on
+2026-08-05. See **Scoring note** — the previously published headline
+(100/149) included non-subject rows in the human reference and was the most
+lenient of three defensible variants._
 
-## What changed from v1 (the revision, stated plainly)
+## The dataset
 
-v1's misses shared one thread: the participant could not perceive what the
-platform tells a person at the keyboard. The revision — motivated by those
-observed misses, which is why v1 and v2 are reported side by side and never
-blended — made three general changes plus a model change:
+One run mode serves two purposes: the battery analyses here **and** the
+live bot-detection check (Roundtable Proof-of-Human on the deployed tasks —
+`docs/detection-results.md`). Stealth means headful real Chrome, GPU
+renderer, no WebDriver flag, humanized key-hold. Run mode changes nothing
+behavioral: 12/12 column parity with the human matrices, and the
+within-1-SD total is stable against the earlier headless round.
 
-1. **Attention-check emission (Stage-1 structural prompt).** Online tasks
-   commonly include attention checks; the structural card must emit the
-   full config (detection, question text, response derivation), not just
-   the classification. A supporting harness fix: Stage 1 sometimes emits
-   the config under `attention_checks` (plural); the normalize layer now
-   maps that LLM alias to the canonical key (with tests). In v1, checks
-   went unanswered on 10 of 12 tasks.
-2. **`ctx.feedback_text` (perception channel).** The text a feedback screen
-   displays now reaches the program on the next trial; the harness never
-   interprets it. The mechanical gate fuzzes the field.
-3. **Timing salience (generation prompt).** One neutral sentence pointing
-   at the task's own timing parameters in the injected source. No numbers,
-   no phenomena; neutrality invariants unchanged and green.
-4. **Behavioral author: Claude Opus 4.8** (v1: Claude Fable 5), per
-   protocol decision. Structural cards remain Fable-authored (10 cards
-   re-reasoned under the new Stage-1 prompt; the two dev cards, already
-   complete, kept). Two Fable-authored v2 programs generated before the
-   model switch were superseded unused (archived in `naive_programs/`,
-   their 10 sessions set aside, not in any dataset).
+- **Sessions:** 240 (`output_naive/<task>_rdoc/`), seeds `83xxxx`
+- **Matrices:** `data/bot/rdoc/<task>.csv`, 12/12 at exact column parity
+  with `data/human/rdoc/<task>.csv`
+- **Programs:** one per task, all 12 passed the mechanical gate on the
+  **first attempt**; transcripts in `naive_programs/<label>/`
+- **Human reference:** the lab's RDoC battery matrices (501 participants,
+  ~5 sessions each), produced by the lab's own preprocessing pipeline —
+  the same code path that produced the bot matrices
 
-**Generation record:** all 12 Opus programs passed the mechanical gate on
-the **first attempt**. Sessions: 60/60 collected (v2 seeds `8XX001–8XX005`,
-one block per task), hermetically pinned as always.
+## Results
 
-## Results: v1 → v2
+Bot cohort mean vs the human between-subject distribution, |z| ≤ 1 human
+SD, identical scoring on both cohorts.
 
-Bot cohort mean vs the human between-subject distribution (identical
-matrices pipeline, identical scoring, |z| ≤ 1 human SD; N=5 — descriptive).
+| Task | within 1 SD |
+|---|---|
+| flanker | 8/8 |
+| spatial_task_switching | 14/16 |
+| n_back | 13/14 |
+| stop_signal | 11/12 |
+| spatial_cueing | 10/14 |
+| ax_cpt | 10/15 |
+| visual_search | 10/14 |
+| cued_task_switching | 9/13 |
+| go_nogo | 5/7 |
+| stroop | 5/8 |
+| simple_span | 2/12 |
+| operation_span | 2/16 |
+| **Total** | **99/149 (66%)** |
 
-| Task | v1 | v2 |
-|---|---|---|
-| spatial_task_switching | 9/16 | **16/16** |
-| n_back | 4/14 | **13/14** |
-| stop_signal | 12/12 | **12/12** |
-| flanker | 7/8 | **8/8** |
-| spatial_cueing | 9/14 | 10/14 |
-| ax_cpt | 12/15 | 10/15 |
-| cued_task_switching | 9/13 | 9/13 |
-| go_nogo | 4/7 | 5/7 |
-| visual_search | 10/14 | 9/14 |
-| stroop | 5/8 | 5/8 |
-| operation_span | 2/16 | 3/17 |
-| simple_span | 1/12 | 2/12 |
-| **Total** | **84/149 (56%)** | **102/150 (68%)** |
+Ten of twelve tasks land at or above 60%. The two grid-recall spans account
+for 24 of the 50 misses; excluding them, the battery is **95/121 (79%)**.
 
-**Attention checks: fixed on 11 of 12 tasks.** v1: unanswered (accuracy
-0.0) on 10 tasks. v2: answered and perfect (1.0) everywhere except
-`operation_span`, where the checks are responded to but with the task's
-grid-navigation keys (space/enter) instead of the check's letter answer —
-a card/handling interplay on the battery's most complex trial flow, left
-as a documented defect.
+### Scoring note (why the number moved)
 
-**Deliverable:** `data/bot/rdoc/<task>.csv`, 12/12 at exact column parity
-with `data/human/rdoc`. As in v1, stop_signal's `go_rt_all_responses` and
-`mean_stop_failure_RT` are computed with the project's own estimator
-(identical definitions) because the pipeline version does not emit them;
-stop-failure RT < go RT in every session, as the race model requires.
+The count depends on how the human reference rows are handled. All three
+variants use identical estimators on both cohorts:
 
-## Honest notes on the misses that remain
+| Human reference handling | Total |
+|---|---|
+| All rows, including `Max`/`Mean`/`Min`/`SD` summary rows | 100/149 (67%) |
+| **All sessions, summary rows excluded** (reported above) | **99/149 (66%)** |
+| One session per participant (true between-subject SD, N≈500) | 97/149 (65%) |
 
-- **The feedback channel went unused.** None of the twelve generated
-  programs reads `ctx.feedback_text`. The channel is live (harness
-  captures and delivers it; gate fuzzes it), but one-shot programs did
-  not exploit it — so v2's gains come from the attention-check fix and
-  the new programs' own calibration, not from within-session adaptation.
-  Consistent with that, `proportion_feedback` improved only where
-  baseline performance improved (spatial_task_switching 1.00 → 0.10;
-  spans still 1.00 vs human 0.18–0.30).
-- **RT location still runs slow** on stroop (+2.1 to +2.3 z),
-  spatial_cueing (+1.1 to +2.2), cued_task_switching (+2.8 to +3.3), and
-  visual_search conjunction — the residual calibration signature.
-  Internal effect structure remains intact everywhere.
-- **Spans remain the weakest paradigms (full analysis: `docs/span-failure-analysis.md`)** (3/17, 2/12): recall is real and
-  order accuracy improved slightly, but grid navigation is far slower
-  than human (movement/response times up to +18 z) and responses per
-  trial run low. The serial-reproduction *mechanics* are solved; the
-  generated programs' pacing and memory models are not.
-- **ax_cpt regressed** (12/15 → 10/15; AY accuracy and several RTs) and
-  visual_search dipped by one — one-shot generation variance cuts both
-  ways, and is reported as observed.
+The first variant is what earlier revisions of this document reported. It is
+wrong in kind — `Max` and `Min` rows are not participants, and including
+them inflates the human SD, which makes the within-1-SD test more lenient.
+The third is the strictest and arguably the most correct: pooling ~5
+repeated sessions per participant mixes within-person variance into a
+"between-subject" SD. The spread across all three is 2 percentage points,
+so no conclusion here turns on the choice; the middle variant is reported
+because it preserves parity with the lab pipeline's own row conventions
+while dropping rows that are not subjects.
+
+### Per-task counts do not survive from N=5
+
+An earlier round reported per-task headlines at N=5 (spatial_task_switching
+16/16, stop_signal 12/12). Those do not replicate at N=20 under a
+between-subject reference: with one session per participant, stop_signal is
+6/12 and spatial_task_switching 9/16. Tightening the bot cohort mean with
+four times the sessions, while holding the human SD fixed, moves borderline
+metrics out of range. **The stable claim is the total (65–67%) and the
+task-level ordering, not any individual task's fraction.** This is the main
+reason the N=5 per-task table has been removed rather than updated.
+
+## Honest notes on the misses
+
+- **Spans are the weakest paradigms** (2/16, 2/12) and the naive approach's
+  principled ceiling — full analysis in `docs/span-failure-analysis.md`.
+  Recall mechanics work; grid-navigation pacing (up to +18 z on movement
+  time) and the memory model do not.
+- **RT location runs slow** on stroop, spatial_cueing, cued_task_switching,
+  and visual_search conjunction — the residual calibration signature of the
+  no-priors rule. Internal effect structure stays intact everywhere.
+- **The feedback channel went unused.** None of the twelve programs reads
+  `ctx.feedback_text`. The channel is live (harness captures and delivers
+  it; the gate fuzzes it), but one-shot programs did not exploit it — so
+  there is no within-session adaptation in this dataset.
+- **Attention checks** are answered and perfect on 11 of 12 tasks. On
+  `operation_span` they are answered with the task's grid keys
+  (space/enter) instead of the check's letter answer — a card/handling
+  interplay on the battery's most complex trial flow, left as a documented
+  defect.
+- **One program per task.** Generation variance is unmeasured, so a
+  per-task fraction reflects one draw from the model, not the model's
+  central tendency. This is the largest open methodological gap in the
+  battery (see `docs/scope-and-venue-assessment.md`).
 
 ## Provenance
 
-- Cards: content-addressed under `taskcards/` (10 re-reasoned 2026-07-17,
-  Fable-5-authored, live-pilot + replay-gate validated; op-span card
-  re-rolled once after an incomplete first emission — cards carry no
-  behavioral content and have no one-shot rule).
-- Programs: `naive_programs/<label>/` — Opus 4.8 transcripts archived with
-  every attempt; the session `run_metadata.json` triple (card hash,
-  program hash, seed) pins each of the 60 sessions.
-- v1 in full (sessions, matrices, results doc): `git show battery-v1:...`.
+- **Cards:** content-addressed under `taskcards/`; structural only, no
+  behavioral content.
+- **Programs:** `naive_programs/<label>/` with every attempt's full model
+  transcript and gate report. Behavioral author: Claude Opus 4.8;
+  structural cards: Claude Fable 5.
+- **Sessions:** each `run_metadata.json` pins the triple (card hash,
+  program hash, seed) for all 240 sessions.
+- **History:** earlier rounds (N=5 headless v1/v2) are archived at the
+  `battery-v1` and `battery-v2-data` git tags, including their matrices and
+  results documents. Rounds are never pooled.

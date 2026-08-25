@@ -39,3 +39,21 @@ validation/smoke_*/
 # Committed placeholders document the schema.
 data/human/rdoc/*.csv
 !data/human/rdoc/*.placeholder.csv
+
+# Poster / manuscript build workspaces are kept outside the repo
+# (see ../ccn2026_poster). Never commit large binary poster artifacts.
+poster_assets/
+poldracklab_poster_examples/
+references/
+*.pptx
+BennettEtAl2026CCNPoster*
+
+# Derived analysis outputs computed from restricted human-subject data
+# (RDoC raw exports). Regenerable; not committed.
+analysis_out_naive/*_human_rdoc.csv
+analysis_out_naive/cohort_pids.txt
+analysis_out_naive/*accuracy_raw*.csv
+data/human/rdoc/raw.zip
+
+# macOS
+.DS_Store

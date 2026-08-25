@@ -1,8 +1,8 @@
 # A Language Model Writes Validated Computational Participants from Task Source Code Alone
 
-_Matured draft, 2026-07-06 — supersedes the two-arm draft of 2026-07-05.
-Incorporates the standalone naive pipeline (this branch), the held-out
-flanker probe, and the harness hardening it forced. Provenance: the
+_Draft, last revised 2026-08-05. Incorporates the standalone naive
+pipeline, the first-shot flanker probe, the harness hardening it forced,
+and the N=20 battery + detection results. Provenance: the
 expert-pipeline comparison arm (code and dataset) is archived at the
 `expert-arm-final` git tag; this tree contains the complete naive system.
 Design freeze: the design/analysis plan was fixed in a document committed
@@ -22,8 +22,8 @@ reference on 22 of 28 pre-specified measures across four task
 implementations, and were statistically indistinguishable from humans on
 per-subject stop-signal reaction time distributions (KS p ≈ 0.3) — a
 property the expert-parameterized comparison pipeline fails
-architecturally (z ≈ −3, KS p ≈ 10⁻⁴⁶). A held-out probe on a fifth,
-never-before-seen task (Eriksen flanker) produced a first-shot,
+architecturally (z ≈ −3, KS p ≈ 10⁻⁴⁶). A first-shot probe on a fifth
+implementation (Eriksen flanker) produced a first-shot,
 gate-passing program and five sessions of literature-typical behavior
 (flanker effect +58 ± 23 ms), while every failure encountered en route
 hardened the browser harness — never the behavior.
@@ -93,9 +93,9 @@ modules) re-collected on the identical harness (N=30 × 4; assets on
 other. Confirmatory measure: cohort mean within 1 human SD; exploratory:
 between-subject SD ratio and two-sample KS.
 
-**Held-out probe (flanker):** after the dev-4 collection was
+**First-shot probe (flanker):** after the dev-4 collection was
 complete and the naive system frozen, we pointed the pipeline at a fifth
-implementation it had never encountered (Experiment Factory RDoC Eriksen
+implementation it had not been run on (Experiment Factory RDoC Eriksen
 flanker). The full pipeline ran as designed: structural card generated
 and gate-validated, one program generation (first gate pass, no
 iteration), five seeded sessions. No trial-level human flanker reference
@@ -152,7 +152,7 @@ modulation and fast word-capture errors; both stop-signal programs
 implemented the independent horse race of Logan and Cowan (1984),
 unprompted.
 
-### Held-out probe: flanker
+### First-shot probe: flanker
 
 The probe is the generalization test the pipeline claims to support:
 URL in, data out, no task-specific code.
@@ -182,26 +182,72 @@ on any newly generated card. The division of labor held exactly as
 designed: every failure was repaired in the harness; the behavioral
 layer was never touched.
 
-### Exploratory extension: the 12-task RDoC battery (two rounds)
+### Exploratory extension: the 12-task RDoC battery (240 sessions)
 
 After the pre-specified experiment and the flanker probe, the pipeline was
-pointed at all 12 RDoC Experiment Factory tasks (N=5 seeded sessions per
-task per round; session-level human matrices from the lab's own
-preprocessing pipeline; outside the frozen design, reported descriptively).
-Round 1 (Fable-5 programs): 84/149 measures within 1 human SD (56%), with
-a single diagnostic thread — the participant could not perceive what the
-platform tells a person (attention checks unanswered on 10 tasks;
-block-performance feedback invisible). Round 2 revised the protocol on
-that diagnosis (full attention-check emission from the structural stage, a
-neutral feedback-text perception channel, one timing-salience sentence,
-and Opus 4.8 as behavioral author) and reached 102/150 (68%): spatial
-task-switching 16/16, n-back 13/14, stop-signal 12/12, flanker 8/8,
-attention checks perfect on 11 of 12 tasks. The rounds are reported side
-by side and never pooled; notably, the new perception channel went unused
-by every one-shot program, so the gains are attributable to the
-structural fix and the new programs' own calibration, not within-session
-adaptation. Full tables and honest misses: `docs/rdoc-battery-results.md`
-(round 1 archived at the `battery-v1` git tag).
+pointed at all 12 RDoC Experiment Factory tasks (N=20 seeded sessions per
+task, 240 total; session-level human matrices from the lab's own
+preprocessing pipeline; outside the frozen design, reported
+descriptively). All 12 programs passed the mechanical gate on the first
+attempt. **99 of 149 measures fall within 1 human SD (66%)**; excluding
+the two grid-recall spans, 95/121 (79%). Ten of twelve tasks reach 60% or
+better (flanker 8/8, spatial task-switching 14/16, n-back 13/14,
+stop-signal 11/12); the spans are the floor (2/16, 2/12) and are a
+principled ceiling of the no-priors design rather than a defect
+(`docs/span-failure-analysis.md`). Attention checks are answered and
+perfect on 11 of 12 tasks.
+
+Three qualifications are load-bearing. The total is **scoring-sensitive**
+(97–100/149, 65–67%, depending on how the human reference's rows are
+handled). **Per-task fractions do not survive a change of N**: an earlier
+N=5 round reported stop-signal 12/12 and spatial task-switching 16/16,
+neither of which replicates at N=20 under a strict between-subject
+reference — so the durable claims are the total and the task ordering, not
+any single task's fraction. And the neutral feedback-text perception
+channel went **unused by every one-shot program**, so nothing here
+demonstrates within-session adaptation. Full tables and misses:
+`docs/rdoc-battery-results.md`.
+
+### Detection and human discrimination
+
+The same 240 stealth sessions carried Roundtable's Proof-of-Human tracker.
+With an indistinguishable browser environment (headful real Chrome, GPU
+renderer, no WebDriver flag), the detector **auto-rejected 1 of 240**
+sessions, auto-accepted 14%, and deferred 84% to manual review; every
+rule-based behavioral sub-flag was effectively silent, and the most
+complex task (operation span) passed 20/20 with zero mouse events, which
+falsifies the mouse-stream hypothesis as the lever
+(`docs/detection-results.md`). This bounds one commercial detector on one
+batch, not detectability in general.
+
+In a small discrimination pilot (five tasks, 40 blinded records each — 20
+bot, 20 human), a cognitive scientist blind to the generator labeled at
+chance on the four non-artifact tasks (51%), while the system's author,
+who knows its calibration signatures, reached 79%. AX-CPT was excluded
+because its giveaway is a harness artifact, not behavior. Two raters, one
+non-independent: suggestive, not an estimate.
+
+## Related work
+
+Three 2026 contributions frame this one. Westwood (2025) showed that
+LLM-based synthetic respondents pass as humans in online *surveys*. Van
+der Stigchel et al. (2026) extended the concern to reaction-time research,
+reporting patterns consistent with AI-generated responding in an online
+Posner task. Ozudogru et al. (2026) built prompt-generated bots for three
+behavioral tasks, and Huskey et al. (2026) built an agent that completes
+the Attention Network Test with human-like signatures after seven code
+revisions.
+
+The present work differs on the input side, which is the whole point.
+Both prior bot demonstrations supplied behavioral knowledge — Ozudogru et
+al.'s Stroop script "correctly referenced the literature to produce
+appropriate human-like response time distributions and accuracy rates";
+Huskey et al. iterated code against observed behavior on a single task.
+Here the prompt is neutral by tested construction, no numeric behavioral
+prior reaches the model, the first gate-passing program is kept, and the
+same unmodified pipeline runs on twelve tasks. The question is therefore
+not *can a prompted bot imitate human data* (answered: yes) but *how much
+human-likeness survives when nothing human is supplied*.
 
 ## Discussion
 
@@ -235,6 +281,21 @@ four dev-task programs plus the flanker program as the design corpus.
 Eisenberg, I. W., Bissett, P. G., Enkavi, A. Z., et al. (2019).
 Uncovering the structure of self-regulation through data-driven ontology
 discovery. *Nature Communications, 10*, 2319.
+
+Huskey, R., Zhao, Z., Parry, D. A., & Fisher, J. T. (2026). An AI agent
+can complete the Attention Network Test with human-like behavioral
+signatures: Implications for the bot-or-not debate. *Preprint*.
+
+Ozudogru, T., Van der Stigchel, S., Strauch, C., de Zwart, B., & van
+Maanen, L. (2026). Online behavioral studies are vulnerable to agentic AI.
+*Preprint*.
+
+Van der Stigchel, S., Strauch, C., de Zwart, B., & Van Maanen, L. (2026).
+Will online behavioral research follow the fate of online survey research?
+*PNAS, 123*(8).
+
+Westwood, S. J. (2025). The potential existential threat of large language
+models to online survey research. *PNAS, 122*(47), e2518075122.
 
 Eriksen, B. A., & Eriksen, C. W. (1974). Effects of noise letters upon
 the identification of a target letter in a nonsearch task. *Perception &

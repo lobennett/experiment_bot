@@ -67,13 +67,13 @@ the deployed tasks) and the battery matrices/analyses — no separate headless
 run.
 
 ```bash
-# 1. Collect N=5 stealth sessions per task -> output_naive/<task>_rdoc/
+# 1. Collect N=20 stealth sessions per task -> output_naive/<task>_rdoc/
 #    Pinned to the battery-v2 card+program per task (content hashes in the
 #    script); idempotent by seed. Headful real Chrome (needs Google Chrome).
 #    Run as two parallel streams (2 windows at a time) or all 12 sequentially:
-bash scripts/collect_battery_stealth.sh 5 stroop_rdoc flanker_rdoc ax_cpt_rdoc \
+bash scripts/collect_battery_stealth.sh 20 stroop_rdoc flanker_rdoc ax_cpt_rdoc \
      go_nogo_rdoc cued_task_switching_rdoc stop_signal_rdoc &
-bash scripts/collect_battery_stealth.sh 5 n_back_rdoc spatial_cueing_rdoc \
+bash scripts/collect_battery_stealth.sh 20 n_back_rdoc spatial_cueing_rdoc \
      visual_search_rdoc spatial_task_switching_rdoc operation_span_rdoc simple_span_rdoc &
 wait
 
@@ -87,8 +87,9 @@ uv run experiment-bot-per-subject --label all --output-dir output_naive \
      --human-stroop data/human/stroop_eisenberg.csv --out-dir analysis_out_naive
 ```
 
-The prior (battery-v2) sessions, analyses, and matrices are archived out of
-HEAD and recoverable in full at the **`battery-v2-data`** git tag
+The committed dataset is the N=20 stealth round (240 sessions). Earlier
+headless rounds are archived out of HEAD and recoverable in full at the
+**`battery-v1`** and **`battery-v2-data`** git tags
 (`git checkout battery-v2-data -- output_naive analysis_out_naive data/bot/rdoc`).
 
 ## The five CLIs
@@ -113,8 +114,9 @@ Full narrative and numbers: [`docs/how-it-works.md`](docs/how-it-works.md) §8.
 | Body of evidence | Scope | Headline |
 |---|---|---|
 | Pre-specified comparison ([paper draft](docs/paper-draft-v2-naive-participant.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
-| Held-out probe | Eriksen flanker, never seen, frozen pipeline | First-shot program; flanker effect +58 ± 23 ms (literature ≈ 40–70), positive in all 5 sessions |
-| Exploratory battery, v2 ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=5, two rounds | v2: **102/150 (68%)** within 1 human SD (v1: 84/149, 56%); spatial task-switching 16/16, n-back 13/14, stop-signal 12/12; attention checks answered on 11/12 tasks; misses documented honestly, no behavioral iteration (v1 archived at the `battery-v1` tag) |
+| First-shot probe | Eriksen flanker, unchanged pipeline | First-shot program; flanker effect +58 ± 23 ms (literature ≈ 40–70), positive in all 5 sessions |
+| Exploratory battery ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=20 (240 sessions) | **99/149 (66%)** within 1 human SD; 95/121 (79%) excluding the two spans; all 12 programs gate-passed first attempt; attention checks answered on 11/12 tasks. Scoring-sensitive (97–100/149) and per-task fractions are not stable across N |
+| Bot detection ([results](docs/detection-results.md)) | Roundtable Proof-of-Human on the same 240 sessions | With a clean browser environment, **1/240 auto-rejected**, 14% auto-accepted, 84% deferred to manual review; rule-based behavioral sub-flags essentially silent. One detector, one batch |
 
 The raw evidence is in-repo: sessions (`output_naive/`), programs with
 generation transcripts and gate reports (`naive_programs/`), structural
@@ -158,9 +160,9 @@ experiment-bot/
 │   │   └── rdoc/               # RDoC battery human matrices (gitignored) + committed placeholders
 │   ├── bot/rdoc/               # Bot metric matrices at human-schema parity (see its README)
 │   └── rdoc_task_urls.tsv      # RDoC battery label → URL registry
-├── scripts/                    # naive_run.sh (collection), check_doc_links.py (CI)
-├── tests/                      # 750-test suite, incl. the prompt-neutrality invariants
-└── docs/                       # how-it-works, prereg (frozen) + provenance, paper draft, battery results
+├── scripts/                    # naive_run.sh + collect_battery_stealth.sh (collection), check_doc_links.py (CI)
+├── tests/                      # 770-test suite, incl. the prompt-neutrality invariants
+└── docs/                       # how-it-works, battery + detection results, span analysis, paper draft, scope assessment
 ```
 
 ## Tests
@@ -180,3 +182,4 @@ protocol/executor/gate tests pin the participant-program contract.
 - **[`docs/span-failure-analysis.md`](docs/span-failure-analysis.md)** — why the two span tasks are the naive approach's principled ceiling.
 - **[`docs/detection-results.md`](docs/detection-results.md)** — Roundtable Proof-of-Human bot-detection results on the stealth battery.
 - **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The expert-arm comparison pipeline and dataset are archived at the `expert-arm-final` git tag.
+- **[`docs/scope-and-venue-assessment.md`](docs/scope-and-venue-assessment.md)** — what this project actually established, what is still missing, and whether it should be a tweet, a blog post, or a preprint.

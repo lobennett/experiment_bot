@@ -239,35 +239,58 @@ humans on per-subject SSRT (274±46 / 278±40 ms vs human 303±76; KS
 p ≈ 0.3). Zero program crashes and zero protocol violations across all 120
 naive sessions.
 
-**Held-out probe (flanker).** After the dev-4 collection, the
-frozen pipeline was pointed at a fifth, never-seen implementation. One
+**First-shot probe on a new implementation (flanker).** After the dev-4
+collection, the pipeline — unchanged — was pointed at a fifth
+implementation it had not been run on. One
 structural card, one generation (first gate pass), five sessions:
 flanker effect +58 ± 23 ms (literature ≈ 40–70 ms), positive in every
 session, correct accuracy ordering. Every failure met on the way was a
 harness bug, fixed generally; the behavioral layer was never touched.
 
-**Exploratory 12-task RDoC battery — two rounds.** All 12 RDoC Experiment
-Factory tasks at N=5 per round (registry: `data/rdoc_task_urls.tsv`),
+**Exploratory 12-task RDoC battery — 240 sessions.** All 12 RDoC Experiment
+Factory tasks at N=20 per task (registry: `data/rdoc_task_urls.tsv`),
 including two grid-recall span tasks that required the sequence-response
 capability (§4; multi-action trials against a card-exposed target order —
-generic, no grid geometry in library code). **Round 1 (v1**, Fable-5
-programs, archived in full at the `battery-v1` tag): 84/149 metrics within
-1 human SD (56%); its misses shared one thread — the participant could not
-perceive what the platform tells a person (attention checks unanswered on
-10 tasks; block-performance feedback invisible). **Round 2 (v2**, the
-current dataset) revised the protocol on that diagnosis — full
-attention-check emission from Stage 1, the `ctx.feedback_text` perception
-channel, one timing-salience sentence, and Opus 4.8 as behavioral author —
-and reached **102/150 within 1 human SD (68%)**, with all 12 programs
-passing the gate first-attempt: spatial task-switching 16/16, n-back
-13/14, stop-signal 12/12, flanker 8/8, attention checks answered and
-perfect on 11 of 12 tasks. The rounds are reported side by side, never
-blended, and no number was ever fed back into regenerating any individual
-program. Notable honest findings (`docs/rdoc-battery-results.md`): the
-feedback channel went unused by every one-shot program; RT location still
-runs slow on four tasks; the spans remain weakest (recall mechanics
-solved, pacing not); ax_cpt regressed by two measures — one-shot
-generation variance cuts both ways.
+generic, no grid geometry in library code). All 12 programs passed the gate
+on the first attempt. Result: **99 of 149 metrics within 1 human SD (66%)**;
+excluding the two spans, 95/121 (79%). Ten of twelve tasks land at or above
+60%, with flanker 8/8, spatial task-switching 14/16, n-back 13/14, and
+stop-signal 11/12 at the top and the two spans (2/16, 2/12) at the bottom.
+Attention checks are answered and perfect on 11 of 12 tasks.
+
+Three honest qualifications belong with that number
+(`docs/rdoc-battery-results.md`). **The count is scoring-sensitive**: it
+ranges 97–100/149 (65–67%) depending on how the human reference's rows are
+handled, and an earlier published figure of 100/149 included non-subject
+summary rows, the most lenient variant. **Per-task fractions are not
+stable across N**: headlines from an earlier N=5 round (stop-signal 12/12,
+spatial task-switching 16/16) do not replicate at N=20 under a strict
+between-subject reference, so the durable claims are the total and the
+task-level ordering, not any single task's fraction. **The feedback channel
+went unused** by every one-shot program, so nothing here demonstrates
+within-session adaptation. RT location still runs slow on four tasks, and
+the spans are a principled ceiling rather than a bug
+(`docs/span-failure-analysis.md`).
+
+**Bot detection, measured against a commercial detector.** The same 240
+stealth sessions carry Roundtable's Proof-of-Human tracker. Once the
+browser environment is indistinguishable (headful real Chrome, GPU
+renderer, no WebDriver flag), the detector **auto-rejects 1 of 240**
+sessions and auto-accepts 14%, deferring 84% to manual review; every
+rule-based behavioral sub-flag is effectively silent, and the most complex
+task (operation span) passes 20/20. Full analysis and the falsified mouse
+hypothesis: `docs/detection-results.md`. Scope caveat: one detector, one
+batch — this measures a single commercial product, not detectability in
+general.
+
+**Human-expert discrimination (small pilot).** On five tasks, 40 blinded
+records each (20 bot, 20 human), two cognitive scientists labeled bot vs
+human. A domain expert blind to the generator scored at chance on the four
+non-artifact tasks (51%); the system's own author, who knows its
+calibration signatures, reached 79%. AX-CPT is excluded from that
+comparison because its giveaway is a harness artifact (an advance-key press
+on a between-trials screen), not behavior. This is a two-rater pilot, one
+rater non-independent — suggestive, not an estimate.
 
 **What the programs contained** (archival observation — never a selection
 criterion; dev-4 and probe programs authored by Claude Fable 5, battery-v2
@@ -284,12 +307,20 @@ stop-signal programs — in both authors' programs, unprompted.
 - **RT location drifts slow** without literature anchoring — the price of
   the no-priors rule, deliberately left unfixed under the no-iteration
   rule.
-- **One program per task**: generation variance is unmeasured.
-- The 12-task battery is exploratory (N=5 per round, outside the frozen
-  dev-4 plan), its human comparison uses session-level matrices rather
-  than trial-level data, and its v2 protocol was revised in response to
-  v1's observed misses — the rounds are comparable to each other only as
-  before/after, never pooled.
+- **One program per task**: generation variance is unmeasured. Every
+  behavioral result here is one draw from one model family (Claude); no
+  cross-model or repeated-generation comparison exists.
+- **Detection evidence is one detector, one batch.** The Roundtable result
+  bounds what one commercial product flags on 240 sessions; it is not a
+  general claim about detectability. The human-discrimination pilot is two
+  raters on five tasks, one rater non-independent.
+- The 12-task battery is exploratory (N=20 per task, outside the frozen
+  dev-4 plan) and its human comparison uses session-level matrices rather
+  than trial-level data. Its within-1-SD total is scoring-sensitive
+  (97–100/149 depending on how human reference rows are handled), and
+  per-task fractions are not stable across N — see
+  `docs/rdoc-battery-results.md`. Earlier rounds were collected under a
+  revised protocol and are comparable only as before/after, never pooled.
 - The Stage-1 target-reconstruction guidance for span-type tasks was
   refined against this battery's two span implementations; its generality
   beyond them is untested.

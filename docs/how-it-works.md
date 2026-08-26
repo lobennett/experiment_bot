@@ -1,359 +1,237 @@
-# How experiment-bot works, start to finish
+# How it works
 
-This is the one document to read to understand the system: what question it
-answers, how it is built so the answer can be trusted, what happens at each
-stage from a URL to a scored dataset, and what the evidence shows. It
-explains the science first and names commands and files only where you need
-them to follow along or reproduce something.
+Give this system the web address of a cognitive experiment. It comes back
+with recorded behavioral data that looks, on most measures, like data from
+a real person — and nobody ever told it what human data looks like.
 
-## 1. The question
+## The question
 
-Can a language model, given nothing but a web experiment's source code,
-author a *computational participant* — a small program that decides every
-response, key and reaction time, trial by trial — whose recorded data is
-hard to distinguish from a real human participant's?
+Can a language model, reading nothing but an experiment's source code,
+write a small program that plays a participant convincingly? The program
+decides every response: which key, and how many milliseconds later.
 
-The question matters in two directions. For online data quality: if a
-general-purpose agent can produce convincing data on standard cognitive
-tasks, platforms need countermeasures, and the demonstration should be
-public and reproducible. For cognitive science: whatever structure the
-model writes into its participants *unprompted* — race models for stopping,
-conflict adaptation, fatigue drift — is a measure of what task
-understanding a model brings to bare source code.
+The answer matters twice over. Online experiments can be flooded with fake
+participants, so anyone running one should know how good a fake can get.
+And whatever human-like structure the model builds into its programs
+*without being asked* tells us something about how much it understands a
+task from code alone.
 
-The hard part of the question is the word *nothing*. It is easy to make a
-bot match human data if you tell it what human data looks like. The entire
-design below exists to make sure nobody — not the codebase, not the prompt,
-not the experimenter — tells it.
+The hard word in the question is *nothing*. Making a bot match human data
+is easy if you tell it what human data looks like. Everything below exists
+to make sure nobody tells it — not the code, not the prompt, not the person
+running it.
 
-## 2. The integrity design
+## Four rules, enforced by machines
 
-Four rules make the result mean something. Each is enforced by machinery,
-not by good intentions.
+**The prompt says nothing about behavior.** It names the task's mechanical
+facts: the condition labels, which keys the task accepts, whether a stop
+signal can interrupt a trial. It never names an effect, a distribution, or
+a number. Tests scan the prompt and every value injected into it against a
+list of banned terms, so a change that leaks behavioral knowledge fails the
+suite. Weaken those tests and the experiment means nothing.
 
-**Prompt neutrality.** The prompt that asks the model to write a
-participant program contains no phenomenon names, no distribution families,
-and no numeric behavioral priors — it names the task's mechanical facts
-(condition labels, key map, whether a mid-trial interrupt exists) and asks
-for data indistinguishable from a typical healthy adult's, each seed a
-distinct person. Enforcement: invariant tests
-(`tests/test_naive_prompt_invariants.py`, `tests/test_system_prompt_invariants.py`)
-scan the prompt templates and every constant injected into them against a
-banned-terms list (mechanism names, distributions, phenomena, `N ms`/`N %`
-patterns). If a change would leak behavioral knowledge into the prompt, the
-suite fails. Weakening these tests invalidates the experiment.
+**The first program that works is the program.** A generated program has to
+survive a mechanical check (below). The first one that passes is kept. We
+never regenerate it because the data looks wrong, never edit its responses,
+and never run several and keep the most human-looking one. Regeneration is
+allowed only when the check fails mechanically, at most twice, and every
+attempt is archived with the full model transcript.
 
-**No behavioral iteration.** The first program to pass the mechanical gate
-(§5) *is* the program. No regenerating because the data looks wrong, no
-editing, no selecting among candidates by behavior. Regeneration is allowed
-only when the gate fails mechanically (max 2 retries), and every attempt —
-including failures — is archived with its full model transcript. This rule
-is what makes the result a one-shot measurement rather than an optimized
-artifact.
-
-**Design freeze — and what it is not.** The confirmatory experiment's
-design, measures, and decision rules were fixed in a design document
-committed to this repository *before the first generation call* (the
-document's last edit, commit `d75cd69`, 2026-07-03 08:17 PDT, predates the
-earliest archived generation transcript, 09:00 PDT). To be explicit about
-the strength of that evidence: this is an **internal design freeze whose
-ordering rests on git history**, not a preregistration — no external
-registry (OSF, AsPredicted) holds an independent timestamp, and the word
-"preregistration" is deliberately not used for it anywhere in this
-package. The frozen document itself was removed from the tree for exactly
-that reason (its original filename overclaimed); read it from history with
+**The design was frozen before the first generation.** The measures and
+decision rules were committed before any program was generated — commit
+`d75cd69`, timestamped an hour before the earliest archived transcript.
+This is a freeze that rests on git history, not a preregistration. No
+outside registry holds a timestamp, and the word "preregistration" is never
+used for it. Read the frozen document with
 `git show d75cd69:docs/preregistration-naive.md`.
 
-**Hermetic provenance.** Every session records three hashes/values that
-pin it completely: the structural TaskCard's content hash, the participant
-program's content hash, and the seed. Cards and programs are stored
-content-addressed, so a recorded session can always be traced to the exact
-bytes that produced it.
+**Every session can be traced to the exact bytes that made it.** Each one
+records three things: the hash of the structural description, the hash of
+the program, and the seed. Both artifacts are stored by content hash, so
+any past session replays exactly.
 
-A fifth principle governs the code itself: **the library knows no tasks**.
-There is no Stroop code, no stop-signal code, no grid code anywhere in the
-harness. Every task-varying fact flows from the TaskCard into generic
-mechanics. That is what lets the same pipeline run on a task it has never
-seen — which is the claim under test.
+One more rule governs the code: **the library knows no tasks.** There is no
+Stroop code, no stop-signal code, no grid code. Every fact that varies by
+task flows in from the structural description. That is why the same
+pipeline runs on a task it has never seen — which is the whole claim.
 
-## 3. Stage 1 — structural reasoning (URL → TaskCard)
+## Stage 1: read the page
 
-`experiment-bot-reason <url> --label <L>`
+```
+experiment-bot-reason <url> --label <name>
+```
 
-Before anything can behave, something must *operate the page*. An LLM reads
-the experiment's scraped page source (HTML plus linked JS/CSS) and produces
-a **structural TaskCard**: how to detect each stimulus on screen (a
-selector or JS expression, with a condition label), how to navigate the
-instruction flow (ordered phases of clicks, keypresses, form fills, waits),
-which keys the task accepts, where the correct answer for the current
-trial can be read from the page's own state, how to capture the platform's
-recorded data, and whether the task has a mid-trial interrupt signal. For
-tasks answered by clicking on-screen options, the card lists those
-elements; for tasks that test reproduction of a sequence (spatial span and
-kin), the card exposes a JS expression that yields the trial's target
-order.
+Something has to drive the page before anything can behave. A model reads
+the scraped source — HTML plus the linked JavaScript — and writes a
+**structural description** of the task: how to spot each stimulus on
+screen, how to click through the instructions, which keys the task accepts,
+where on the page the current trial's correct answer can be read, and
+whether a stop signal can interrupt. For tasks answered by clicking, it
+lists the clickable options. For tasks that ask you to reproduce a
+sequence, it gives an expression that yields the target order.
 
-The card is *structural only* — it contains no distributions, no effect
-sizes, nothing behavioral. It answers "what is on the page and how do you
-drive it," never "what should a participant do."
+The description holds no behavior. It answers "what is on this page and how
+do I operate it," never "what should a participant do."
 
-Because a parse of source code can be wrong about a live page, the card is
-validated in two steps: a short live pilot (~20 trials) refines selectors
-and navigation one step at a time against the real page, and a **replay
-gate** then proves, in a fresh browser shaped exactly like the executor,
-that the finalized navigation actually reaches trial rendering — feeding
-failures back into refinement for a bounded number of rounds. Validated
-cards land content-addressed at `taskcards/<label>/<sha>.json`.
+A parse of source code can be wrong about a live page, so the description
+gets tested twice: a pilot of about twenty trials fixes selectors and
+navigation against the real page one step at a time, and then a replay
+check proves, in a browser shaped exactly like the one that will run the
+session, that the navigation really does reach the first trial. Failures
+feed back into refinement. What survives lands at
+`taskcards/<name>/<hash>.json`.
 
-## 4. Stage 2 — program authorship (the one generative act)
+## Stage 2: write the participant
 
-`experiment-bot-naive-gen <url> --label <L> --taskcard-sha256 <sha>`
+```
+experiment-bot-naive-gen <url> --label <name> --taskcard-sha256 <hash>
+```
 
-One prompt to the model contains exactly four things: the page source, the
-mechanical facts the harness will share at runtime (read from the pinned
-card), the participant-program protocol, and the instruction to write a
-Python program whose recorded data would be indistinguishable from a
-typical healthy adult's, with each seed a distinct participant. Nothing
-else — see §2 on how that "nothing else" is enforced.
+This is the only creative step. One prompt carries four things: the page
+source, the mechanical facts the harness will share at runtime, the
+protocol the program must follow, and the instruction to write a Python
+program whose recorded data would be indistinguishable from a typical
+healthy adult's, with each seed a different person. Nothing else.
 
-**What a participant program is.** A program defines
-`make_participant(seed)` returning an object with:
+A program defines `make_participant(seed)`, which returns an object with
+two methods:
 
-- `respond(ctx) → (key, rt_ms)` — called once per trial. The context
-  carries the condition label, the correct key, the keys seen so far, the
-  trial index, the previous trial's outcome, the trial's visible text
-  when the task exposes one, and any text the task displayed to the
-  participant since the previous trial (`ctx.feedback_text` — between-block
-  performance messages and the like). The harness never interprets that
-  text; it only makes sure the participant can perceive what the task
-  says, the way a person at the keyboard would. For click-answered tasks the context lists the
-  options and the program may return `("click", index, rt_ms)`. For
-  serial-reproduction trials the context carries the target order
-  (`ctx.correct_sequence`) and the program may return a *list* of actions,
-  each with its own inter-action time.
-- `on_interrupt(ctx, ssd_ms, intended)` — interrupt tasks only. When a
-  stop-type signal appears during the program's intended response time, the
-  harness hands the program the signal delay and its own intended response;
-  the program decides the outcome (withhold or respond). The race between
-  going and stopping is therefore the program's to implement — or to fail
-  to implement.
+- **`respond(ctx)`** returns `(key, rt_ms)` once per trial. The context
+  carries the condition, the correct key, the keys seen so far, the trial
+  number, how the last trial went, the trial's visible text, and anything
+  the task displayed since the previous trial — a between-block score
+  message, for instance. The harness never interprets that text. It only
+  makes sure the participant can see what a person at the keyboard would
+  see. On click tasks the program may answer with an option index; on
+  reproduction tasks it may return a list of actions, each with its own
+  delay.
+- **`on_interrupt(ctx, ssd_ms, intended)`** runs only on tasks with a stop
+  signal. When the signal appears during the program's intended reaction
+  time, the harness hands over the delay and the response the program had
+  planned. The program decides whether it manages to stop. The race between
+  going and stopping is the program's to implement — or to fail to
+  implement.
 
-Two design points carry the science. First, the bot **does not perceive
-stimuli**. It is told the trial's condition and correct answer, the same
-way a psychophysicist knows the answer key; everything human about the
-data — errors, RT structure, drifting attention, individual differences —
-must be *generated*, drawn against that key from whatever internal model
-the program implements. Second, programs are sandboxed to stdlib+numpy,
-deterministic per seed, with no I/O, network, or clock — so a seed is a
-reproducible synthetic participant, and a program can never look anything
-up at runtime.
+Two details carry the science. First, **the bot cannot see stimuli.** It is
+told the condition and the correct answer, the way an experimenter knows
+the answer key. Everything human about the data — errors, the shape of the
+reaction-time distribution, attention drifting, one participant differing
+from the next — has to be generated. Second, programs run on the standard
+library and numpy only, with no file access, no network, and no clock, and
+they are deterministic given a seed. A seed is therefore a reproducible
+synthetic person, and a program can never look anything up.
 
-Every generation attempt is archived under its content hash at
-`naive_programs/<label>/<sha>.py` with `<sha>.transcript.json` (model, full
-prompt, raw response) and `<sha>.simgate.json` (gate report).
+Every attempt is archived at `naive_programs/<name>/<hash>.py` beside its
+transcript and its check report.
 
-## 5. Stage 3 — the mechanical gate
+## Stage 3: check that the program is lawful
 
-`experiment-bot-naive-sim <program> ...`
+```
+experiment-bot-naive-sim <program>
+```
 
-Before any live session, the program runs ~1,000 synthetic trials built
-from the card's condition stream (including interrupt trials and fuzzed
-edge cases). The gate checks only that the program is *executable and
-lawful*: no crashes; RTs finite and within (0, 60 s]; keys legal; same
-seed → identical trace; different seeds → distinct traces; imports within
-the whitelist. It never judges whether behavior looks human — that would
-reintroduce behavioral selection through the back door. Its one job is to
-make "the first passing program is the program" a safe rule to follow.
+Before any live session, the program runs about a thousand simulated
+trials. The check asks only whether the program is executable and legal: it
+must not crash, its reaction times must be finite and under a minute, its
+keys must be pressable, the same seed must reproduce the same trace,
+different seeds must differ, and its imports must be on the safe list.
 
-## 6. Stage 4 — execution (seeded sessions on the live page)
+It never asks whether the behavior looks human. That would sneak
+behavioral selection in through the back door. Its one job is to make "keep
+the first program that passes" a safe rule.
 
-`experiment-bot <url> --label <L> --taskcard-sha256 <sha> --behavior-program <label>/<hash> --seed <N> --headless`
+## Stage 4: run the session
 
-The executor opens the page in Playwright and, using only the structural
-card: navigates the instruction flow (paced like a person — advances
-spaced ≥2 s, because real tasks have anti-skim guards; a bounded LLM
-fallback handles unfamiliar screens), then polls the DOM for stimuli. Per
-trial it resolves the correct answer from the page's own state, builds the
-context, asks the program for its response, waits exactly the program's
-`rt_ms`, and delivers the response through a timing-calibrated channel
-(CDP-level keypresses; clicks on the chosen option's selector; ordered
-multi-action delivery for sequences). On interrupt-capable tasks it polls
-for the signal during the intended RT and, on detection, hands the program
-the stop/go decision. The trial's outcome is fed back so the next trial's
-context carries real history — and when an outcome is unscoreable (e.g. a
-keyboard-delivered reproduction), the program is told "unknown," never a
-fabricated value.
+```
+experiment-bot <url> --label <name> --taskcard-sha256 <hash> \
+  --behavior-program <name>/<hash> --seed <n>
+```
 
-What counts as a trial is structural, not behavioral: a stimulus is a
-trial if it has a response channel and plays no structural role
-(navigation, attention check, interrupt condition). Timing faithfulness is
-the point of all of this — the platform's own recorded timestamps, not the
-bot's intentions, are what analysis will read.
+The executor opens the page in a real browser and, using only the
+structural description, clicks through the instructions at a human pace —
+advances spaced at least two seconds apart, because real tasks guard
+against skimming. Then it watches the page for stimuli.
 
-Each session writes the platform's native export
-(`experiment_data.{csv,json}`), a per-trial decision log for debugging
-(`bot_log.json` — never used for analysis), and `run_metadata.json` with
-the provenance triple (§2). `scripts/naive_run.sh` runs full collections —
-generate once, gate, then N seeded sessions per task, idempotent by seed.
+For each trial it reads the correct answer out of the page's own state,
+builds the context, asks the program what to do, waits exactly the
+program's reaction time, and delivers the response through a
+timing-calibrated channel. On stop-signal tasks it watches for the signal
+during that wait and hands the program the decision when it appears. The
+outcome feeds forward, so the next trial's context carries real history —
+and when an outcome cannot be scored, the program is told "unknown" rather
+than a made-up value.
 
-## 7. Stage 5 — analysis (identical estimators, platform data only)
+What counts as a trial is structural, never behavioral: a stimulus is a
+trial when it has a response channel and plays no other role. Timing
+fidelity is the point of all of it, because the numbers that matter are the
+ones the experiment's own software writes down.
 
-`experiment-bot-per-subject ...`
+Each session saves the platform's native export, a decision log for
+debugging that analysis never touches, and the provenance triple.
 
-Analysis reads the platform's export, never the bot's self-log — the bot
-is scored on what the platform recorded, exactly as a human would be. Each
-session becomes one row of per-subject measures (condition-wise RTs,
-accuracies, omissions, task effects, mean-method SSRT, lag-1 RT
-autocorrelation, post-error slowing), computed by the *same estimator
-code* applied to trial-level human reference data (Eisenberg et al. 2019,
-N=522 workers; `data/human/`). Comparison places the bot cohort inside the
-human between-subject distribution (z-scores, within-1-SD counts) plus
-distribution-level checks (SD ratio, two-sample KS).
+## Stage 5: score bot and humans the same way
 
-For the 12-task RDoC battery the comparison goes one step further: the
-bot's exports were run through the *lab's own preprocessing pipeline* —
-the same code that produced the human matrices — yielding
-`data/bot/rdoc/<task>.csv` at exact column parity with
-`data/human/rdoc/<task>.csv`. Parity by construction, not reimplementation.
+```
+experiment-bot-per-subject ...
+```
 
-## 8. The evidence
+Analysis reads what the experiment recorded, never the bot's own log. The
+bot is scored on the platform's data exactly as a person would be.
 
-Three bodies of evidence, in increasing order of generalization distance.
-Full numbers: `docs/paper-draft-v2-naive-participant.md` (dev-4
-experiment) and `docs/rdoc-battery-results.md` (battery).
+Each session becomes one row of per-subject measures — reaction times and
+accuracies by condition, omissions, task effects, stop-signal reaction
+time, trial-to-trial correlation, slowing after errors — computed by the
+*same code* that scores the human reference data. Then the bot cohort is
+placed inside the spread of human individuals, with distribution-level
+checks alongside.
 
-**Pre-specified comparison (dev-4).** Two paradigms × two independent
-implementations (Stroop and stop-signal; Experiment Factory, STOP-IT,
-Cognition.run), N=30 seeded sessions each, scored against the Eisenberg
-human reference; an expert-parameterized pipeline (tuned distributions +
-effect modules; archived at the `expert-arm-final` tag) ran as comparison
-arm on the identical harness. Naive arm: **22 of 28 pre-specified
-measures within 1 human SD** (expert: 23/28) — but the *kinds* of miss
-differ diagnostically. The naive misses are calibration constants (RT
-location runs slow; post-error slowing overshoots). The expert arm's miss
-is architectural: its inhibition is a configured probability, so the
-platform's SSD staircase cannot converge (SSRT collapses; KS p ≈ 10⁻⁴⁶
-against human SSRT distributions), while the naive programs implemented an
-actual race — unprompted — and are statistically indistinguishable from
-humans on per-subject SSRT (274±46 / 278±40 ms vs human 303±76; KS
-p ≈ 0.3). Zero program crashes and zero protocol violations across all 120
-naive sessions.
+For the twelve-task battery the comparison goes further: the bot's exports
+ran through the lab's own preprocessing pipeline, the same code that made
+the human matrices. The columns match by construction, not by
+reimplementation.
 
-**First-shot probe on a new implementation (flanker).** After the dev-4
-collection, the pipeline — unchanged — was pointed at a fifth
-implementation it had not been run on. One
-structural card, one generation (first gate pass), five sessions:
-flanker effect +58 ± 23 ms (literature ≈ 40–70 ms), positive in every
-session, correct accuracy ordering. Every failure met on the way was a
-harness bug, fixed generally; the behavioral layer was never touched.
-
-**Exploratory 12-task RDoC battery — 240 sessions.** All 12 RDoC Experiment
-Factory tasks at N=20 per task (registry: `data/rdoc_task_urls.tsv`),
-including two grid-recall span tasks that required the sequence-response
-capability (§4; multi-action trials against a card-exposed target order —
-generic, no grid geometry in library code). All 12 programs passed the gate
-on the first attempt. Result: **99 of 149 metrics within 1 human SD (66%)**;
-excluding the two spans, 95/121 (79%). Ten of twelve tasks land at or above
-60%, with flanker 8/8, spatial task-switching 14/16, n-back 13/14, and
-stop-signal 11/12 at the top and the two spans (2/16, 2/12) at the bottom.
-Attention checks are answered and perfect on 11 of 12 tasks.
-
-Three honest qualifications belong with that number
-(`docs/rdoc-battery-results.md`). **The count is scoring-sensitive**: it
-ranges 97–100/149 (65–67%) depending on how the human reference's rows are
-handled, and an earlier published figure of 100/149 included non-subject
-summary rows, the most lenient variant. **Per-task fractions are not
-stable across N**: headlines from an earlier N=5 round (stop-signal 12/12,
-spatial task-switching 16/16) do not replicate at N=20 under a strict
-between-subject reference, so the durable claims are the total and the
-task-level ordering, not any single task's fraction. **The feedback channel
-went unused** by every one-shot program, so nothing here demonstrates
-within-session adaptation. RT location still runs slow on four tasks, and
-the spans are a principled ceiling rather than a bug
-(`docs/span-failure-analysis.md`).
-
-**Bot detection, measured against a commercial detector.** The same 240
-stealth sessions carry Roundtable's Proof-of-Human tracker. Once the
-browser environment is indistinguishable (headful real Chrome, GPU
-renderer, no WebDriver flag), the detector **auto-rejects 1 of 240**
-sessions and auto-accepts 14%, deferring 84% to manual review; every
-rule-based behavioral sub-flag is effectively silent, and the most complex
-task (operation span) passes 20/20. Full analysis and the falsified mouse
-hypothesis: `docs/detection-results.md`. Scope caveat: one detector, one
-batch — this measures a single commercial product, not detectability in
-general.
-
-**Human-expert discrimination (small pilot).** On five tasks, 40 blinded
-records each (20 bot, 20 human), two cognitive scientists labeled bot vs
-human. A domain expert blind to the generator scored at chance on the four
-non-artifact tasks (51%); the system's own author, who knows its
-calibration signatures, reached 79%. AX-CPT is excluded from that
-comparison because its giveaway is a harness artifact (an advance-key press
-on a between-trials screen), not behavior. This is a two-rater pilot, one
-rater non-independent — suggestive, not an estimate.
-
-**What the programs contained** (archival observation — never a selection
-criterion; dev-4 and probe programs authored by Claude Fable 5, battery-v2
-programs by Claude Opus 4.8): hierarchical individual differences,
-autocorrelated attentional states, practice and fatigue dynamics,
-deadline-emergent omissions; congruency-sequence modulation in the Stroop
-programs; the independent horse race of Logan & Cowan (1984) in the
-stop-signal programs — in both authors' programs, unprompted.
-
-## 9. Limitations and boundaries
-
-- **Matching output distributions is not mechanism equivalence.** These
-  are simulations of data, not of minds.
-- **RT location drifts slow** without literature anchoring — the price of
-  the no-priors rule, deliberately left unfixed under the no-iteration
-  rule.
-- **One program per task**: generation variance is unmeasured. Every
-  behavioral result here is one draw from one model family (Claude); no
-  cross-model or repeated-generation comparison exists.
-- **Detection evidence is one detector, one batch.** The Roundtable result
-  bounds what one commercial product flags on 240 sessions; it is not a
-  general claim about detectability. The human-discrimination pilot is two
-  raters on five tasks, one rater non-independent.
-- The 12-task battery is exploratory (N=20 per task, outside the frozen
-  dev-4 plan) and its human comparison uses session-level matrices rather
-  than trial-level data. Its within-1-SD total is scoring-sensitive
-  (97–100/149 depending on how human reference rows are handled), and
-  per-task fractions are not stable across N — see
-  `docs/rdoc-battery-results.md`. Earlier rounds were collected under a
-  revised protocol and are comparable only as before/after, never pooled.
-- The Stage-1 target-reconstruction guidance for span-type tasks was
-  refined against this battery's two span implementations; its generality
-  beyond them is untested.
-- Online platform capture contributes occasional recording stalls,
-  arm-independent of the behavioral layer.
-- Platform knowledge in the harness is limited to declared, overridable
-  jsPsych defaults (data-capture expressions, an instructions-pager
-  fallback); no URLs or task names exist in library code.
-
-## 10. Running it on a new task
+## Running it on a new task
 
 ```bash
 uv sync && uv run playwright install chromium
 
-# 1. Structural card (uses Claude; once per experiment)
+# 1. Structural description (uses Claude; once per experiment)
 uv run experiment-bot-reason "<url>" --label my_task
 
-# 2. Participant program (uses Claude; once per experiment; gate runs automatically)
+# 2. Participant program (uses Claude; once per experiment)
 uv run experiment-bot-naive-gen "<url>" --label my_task \
-  --taskcard-sha256 <sha printed by step 1>
+  --taskcard-sha256 <hash from step 1>
 
-# 3. Seeded sessions (no API needed; each seed = one synthetic participant)
+# 3. Sessions (no API needed; each seed is one synthetic participant)
 uv run experiment-bot "<url>" --label my_task \
-  --taskcard-sha256 <card-sha> --behavior-program my_task/<program-hash> \
-  --seed 1001 --headless --no-calibration
+  --taskcard-sha256 <card-hash> --behavior-program my_task/<program-hash> \
+  --seed 1001 --headless
 
-# 4. Per-subject analysis vs a human reference
+# 4. Compare against a human reference
 uv run experiment-bot-per-subject --help
 ```
 
-Worked artifacts to study alongside a run: any
-`taskcards/<label>/<sha>.json` (what a structural card looks like), any
-`naive_programs/<label>/<sha>.py` with its `.transcript.json` (what the
-model was asked and what it wrote), and any
-`output_naive/<task>/<timestamp>/` session directory (what a hermetic
-session records).
+Three artifacts are worth opening while you follow along: any
+`taskcards/<name>/<hash>.json` to see what a structural description looks
+like, any `naive_programs/<name>/<hash>.py` with its transcript to see what
+the model was asked and what it wrote, and any session directory under
+`output_naive/` to see what one run records.
+
+## What this cannot tell you
+
+- **Matching data is not matching minds.** These programs simulate
+  behavior, not cognition.
+- **Reaction times run slow.** Without literature to anchor absolute
+  speed, the programs land late on several tasks. The no-iteration rule
+  means we left it that way.
+- **One program per task.** Generation variance is unmeasured, and every
+  number comes from one model family. "A frontier model can do this" is
+  really "this model did it once per task."
+- **The battery uses a coarser human reference** than the two-task
+  comparison — session-level matrices rather than trial-level data — and
+  its headline is sensitive to how those rows are handled. See
+  [results.md](results.md).
+- **Detection evidence covers one product and one batch.** The
+  human-discrimination pilot used two raters, one of them the author.
+- **Reproduction under time pressure is a real boundary.** The two span
+  tasks fail for a reason the design chose to accept.

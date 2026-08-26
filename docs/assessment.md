@@ -1,4 +1,4 @@
-# Scope and venue assessment
+# Assessment: scope, and where to publish
 
 _Written 2026-08-05. A decision memo, not a results document: what this
 project has actually established, how satisfying it is as a product, what

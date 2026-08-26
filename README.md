@@ -113,10 +113,10 @@ Full narrative and numbers: [`docs/how-it-works.md`](docs/how-it-works.md) §8.
 
 | Body of evidence | Scope | Headline |
 |---|---|---|
-| Pre-specified comparison ([paper draft](docs/paper-draft-v2-naive-participant.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
+| Pre-specified comparison ([results](docs/results.md)) | Stroop + stop-signal, 2 implementations each, N=30 | 22/28 measures within 1 human SD; per-subject SSRT indistinguishable from humans (KS p ≈ 0.3) where the expert-parameterized arm fails architecturally (KS p ≈ 10⁻⁴⁶) |
 | First-shot probe | Eriksen flanker, unchanged pipeline | First-shot program; flanker effect +58 ± 23 ms (literature ≈ 40–70), positive in all 5 sessions |
-| Exploratory battery ([results](docs/rdoc-battery-results.md)) | All 12 RDoC Experiment Factory tasks, N=20 (240 sessions) | **99/149 (66%)** within 1 human SD; 95/121 (79%) excluding the two spans; all 12 programs gate-passed first attempt; attention checks answered on 11/12 tasks. Scoring-sensitive (97–100/149) and per-task fractions are not stable across N |
-| Bot detection ([results](docs/detection-results.md)) | Roundtable Proof-of-Human on the same 240 sessions | With a clean browser environment, **1/240 auto-rejected**, 14% auto-accepted, 84% deferred to manual review; rule-based behavioral sub-flags essentially silent. One detector, one batch |
+| Exploratory battery ([results](docs/results.md)) | All 12 RDoC Experiment Factory tasks, N=20 (240 sessions) | **99/149 (66%)** within 1 human SD; 95/121 (79%) excluding the two spans; all 12 programs gate-passed first attempt; attention checks answered on 11/12 tasks. Scoring-sensitive (97–100/149) and per-task fractions are not stable across N |
+| Bot detection ([results](docs/results.md)) | Roundtable Proof-of-Human on the same 240 sessions | With a clean browser environment, **1/240 auto-rejected**, 14% auto-accepted, 84% deferred to manual review; rule-based behavioral sub-flags essentially silent. One detector, one batch |
 
 The raw evidence is in-repo: sessions (`output_naive/`), programs with
 generation transcripts and gate reports (`naive_programs/`), structural
@@ -162,7 +162,7 @@ experiment-bot/
 │   └── rdoc_task_urls.tsv      # RDoC battery label → URL registry
 ├── scripts/                    # naive_run.sh + collect_battery_stealth.sh (collection), check_doc_links.py (CI)
 ├── tests/                      # 770-test suite, incl. the prompt-neutrality invariants
-└── docs/                       # how-it-works, battery + detection results, span analysis, paper draft, scope assessment
+└── docs/                       # index, how-it-works, results, assessment
 ```
 
 ## Tests
@@ -177,9 +177,6 @@ protocol/executor/gate tests pin the participant-program contract.
 
 ## Further reading
 
-- **[`docs/how-it-works.md`](docs/how-it-works.md)** — the whole system, start to finish: question, integrity design, every stage, evidence, limitations.
-- **[`docs/rdoc-battery-results.md`](docs/rdoc-battery-results.md)** — the exploratory 12-task battery results.
-- **[`docs/span-failure-analysis.md`](docs/span-failure-analysis.md)** — why the two span tasks are the naive approach's principled ceiling.
-- **[`docs/detection-results.md`](docs/detection-results.md)** — Roundtable Proof-of-Human bot-detection results on the stealth battery.
-- **[`docs/paper-draft-v2-naive-participant.md`](docs/paper-draft-v2-naive-participant.md)** — paper draft. The expert-arm comparison pipeline and dataset are archived at the `expert-arm-final` git tag.
-- **[`docs/scope-and-venue-assessment.md`](docs/scope-and-venue-assessment.md)** — what this project actually established, what is still missing, and whether it should be a tweet, a blog post, or a preprint.
+- **[`docs/how-it-works.md`](docs/how-it-works.md)** — the whole system, start to finish: question, the rules, every stage, limitations.
+- **[`docs/results.md`](docs/results.md)** — what the behavior looks like next to humans, whether a detector catches it, and where it breaks.
+- **[`docs/assessment.md`](docs/assessment.md)** — what the project established, what is missing, and whether it should be a tweet, a blog post, or a preprint.

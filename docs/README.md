@@ -1,12 +1,14 @@
 # Documentation
 
-Four documents. Read them in this order.
+Start with the system description, results, and assessment. The architecture
+review proposes a future direction.
 
 | Document | What it tells you |
 |---|---|
 | [how-it-works.md](how-it-works.md) | What the system does and how each stage works, from a URL to scored data |
 | [results.md](results.md) | What the bot's behavior looks like next to human behavior, where it fails, and whether a detector catches it |
 | [assessment.md](assessment.md) | What the project has actually established, what is still missing, and whether it should be a tweet, a blog post, or a preprint |
+| [architecture-review.md](architecture-review.md) | Proposed URL discovery, event contracts, literature-informed behavior, and timing architecture |
 
 Start with `how-it-works.md` if you want to understand or run the system.
 Start with `assessment.md` if you want to know whether the science is

@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "reminder_patterns": [
+    "Match the current letter to the letter that appeared [12] trials? ago\\.",
+    "Mismatch: comma key \\(,\\)",
+    "Match: period key \\(.\\)"
+  ],
+  "cue_patterns": [
+    "We will now start practice for a delay of ([12])\\."
+  ],
+  "evidence": [
+    "../attempt-06/evidence/review-57.json",
+    "../attempt-06/evidence/review-58.json"
+  ],
+  "scope": "Equivalent representation of observed cue/reminder text only. No response or timing choices."
+}

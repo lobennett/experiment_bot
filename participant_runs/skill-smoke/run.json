@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "run_id": "skill-smoke",
+  "mode": "direct_browser",
+  "input_url": "file:///private/tmp/behavioral-participant-validation/index.html",
+  "final_url": "file:///private/tmp/behavioral-participant-validation/index.html",
+  "started_at": "2026-10-28T21:22:28.700619+00:00",
+  "ended_at": "2026-10-28T21:27:52.806986+00:00",
+  "status": "completed",
+  "status_reason": "The participant-visible terminal screen states Task complete and confirms all four responses recorded, with no submission required.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "version": null,
+    "viewport": {
+      "screenshot_width_px": 1200,
+      "screenshot_height_px": 2029,
+      "source": "saved screenshot raster; CSS viewport size and device scale unknown"
+    },
+    "session": "skill-smoke"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9",
+    "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2"
+  },
+  "seed": null,
+  "reproducibility": "Evidence and native export will be retained; a direct browser session does not promise deterministic replay.",
+  "completion_evidence_refs": [
+    "ev_15_completion",
+    "image_16_completion_screenshot"
+  ],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/native_export.json"
+    ],
+    "reason": "Native export appeared in a visible panel after completion and instructed exact-text saving. Original UTF-8 bytes of its text were preserved; four trial-level records and completed=true."
+  },
+  "counts": {
+    "observed_response_opportunities": 4,
+    "response_actions": 4,
+    "navigation_actions": 6,
+    "native_export_trial_rows": 4,
+    "events": 32
+  },
+  "limitations": [
+    "Exact model identifier/version and browser version are unavailable.",
+    "Accessibility snapshots omitted the visual card text; screenshots were required and inspected before each response.",
+    "Direct browser RT includes tool, model, logging and approval overhead; native RT was preserved without adjustment. No human timing fidelity or scientific validity is claimed.",
+    "Native export is the exact visible panel text, rather than a downloaded file.",
+    "Task randomization and native timing-clock implementation remain unknown."
+  ],
+  "artifacts_sha256": {
+    "data/native_export.json": "da8f655dde14041f720fee7873354a1b397dda5b8ab4053ac6062b37349172c6",
+    "events.jsonl": "007523e2a8d2f4da76ace91dbb0f710f39d701ad6ccade1c255870d5367080b1",
+    "evidence/01_instructions.txt": "7d0398e82ea07700c9e8ac89b3dee16c3d0d17ba2aaf203778570caf09faef35",
+    "evidence/02_begin.txt": "24bf1e8d33202ca11d66814331315ed72230f4ab29ec7c2723665ec5be61ef61",
+    "evidence/03_card_1.png": "ef3cf9ba49f4b5c5390bd0f9a589da431ffb85d07440adcaad984b9b74bd0a04",
+    "evidence/03_card_1_screenshot.txt": "dcc983a15ae22110b85bff677d343e598d74909527e194e14228c78df6e7ef64",
+    "evidence/04_card_1_response.txt": "e64f7d15b7b20ac8f8aa8bccce9fd99dc774eb8f5400db4c7f5fbd171aebd394",
+    "evidence/05_card_2.txt": "3fd4cd6cb8dae45e01d562896c90267f75dff1a0460881263915fe8478a74ae1",
+    "evidence/06_card_2.png": "2a8581cd716f79c553c9da5268382edcbf463487e686c926431f710379ecbed1",
+    "evidence/06_card_2_screenshot.txt": "eddf832698393dd1c6bacee9d883a3004843c14212bceac12ccbb7a43690cb94",
+    "evidence/07_card_2_response.txt": "466fb1534362e287c89a9d00ee63b6558807fcd6f9a6fc786f6564b32e0bc1fd",
+    "evidence/08_instructions.txt": "f8450e05c9192d82740e7fc40d6449546a355da3c6b6fc3a84b41edc150dac49",
+    "evidence/09_begin.txt": "670c1cc59abcc335e1333a0769d74f3210cbe4fa9dcbcdf9d68ef87800d22103",
+    "evidence/10_card_1.png": "92191d455c3ac8f45cee2210114cffa7fe3f3fbc237c92cbf7079f2b771b94f9",
+    "evidence/10_card_1_screenshot.txt": "42cdf9d27efd1880910afa63ab4f5e1962fe3bbb7851188f72055dbf9d6ed1b1",
+    "evidence/11_card_1_response.txt": "562396364b45dbd5b4e7521f6329b0ec620593065830b7e51de299b16ba21c3c",
+    "evidence/12_card_2.txt": "977dc7ebb1703631dc7db56ebde1e6338626aa9a1efe705513ade21c468bf007",
+    "evidence/13_card_2.png": "a5edf085b75b2672e63e6a19359a0d4845ae6cc740428e242a39c2db7b140055",
+    "evidence/13_card_2_screenshot.txt": "24cef421f42324a8535bb90f8e8d6dc6d23f351e9f02a71f143d88107ba01ebf",
+    "evidence/14_card_2_response.txt": "bb32e27d34091bee1b97af9013328ea259e421c4243e4435d32d4dad653106f2",
+    "evidence/15_completion.txt": "b61be6b379d7622f6aec43c671de87c46da9efbf8b143353f8e5d92b630e225f",
+    "evidence/16_completion.png": "f086e234ced1661669ed0c7cbc9ee72a13720c13b6a2232678554c3ea939f237",
+    "evidence/16_completion_screenshot.txt": "03ccd375bb2253b5a2f245d23e2e4adefe948ae17754b9071f9f328fa4c0ca5e",
+    "evidence/17_native_export.txt": "561b0a720e8afa2492b93ae2608a25563f7832fd5e6ece6b848d69020a99cf09",
+    "ontology.json": "b35908039bfa205efe2e044dd6e45bb0e8f6f928f1012cdfe693163934d760ea",
+    "summary.md": "504c50a9915dc17aaf784577e22100f8a9779967e0c590cccd54d276e58f602b",
+    "validation.json": "58c89c798aa846524ad0743f1d2d82afafaef09f0e38d6d888e551c90e9729b9"
+  }
+}

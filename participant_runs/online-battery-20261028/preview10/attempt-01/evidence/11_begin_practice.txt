@@ -1,0 +1,14 @@
+page:
+  title: The Experiment Factory
+  refs: 8
+snapshot:
+uid=g8:1_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/10/"
+  uid=g8:8_0 "+"
+  uid=g8:8_1 "WORD"
+  uid=g8:8_2 ": comma key (,)"
+  uid=g8:8_3 "WORD"
+  uid=g8:8_4 ": period key (.)"
+  uid=g8:8_5 "WORD"
+  uid=g8:8_6 ": forward slash key (/)"
+help[1]:
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

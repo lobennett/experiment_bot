@@ -1,0 +1,763 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "intro",
+      "kind": "phase",
+      "label": "Self-paced reading task",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_03_start_image"
+      ]
+    },
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Sentence-start instructions",
+      "attributes": {
+        "key": "n"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e_04_instructions_image"
+      ]
+    },
+    {
+      "id": "word",
+      "kind": "stimulus",
+      "label": "One word at a time on canvas",
+      "attributes": {
+        "example_observation": "Mary"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e_05_word_image"
+      ]
+    },
+    {
+      "id": "advance",
+      "kind": "response",
+      "label": "Press n for following word",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_04_instructions_image"
+      ]
+    },
+    {
+      "id": "space",
+      "kind": "response",
+      "label": "Press space to continue introduction",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_03_start_image"
+      ]
+    },
+    {
+      "id": "sentence",
+      "kind": "sequence",
+      "label": "Sentence represented as successive words",
+      "attributes": {
+        "native_sentence_count": 5,
+        "native_word_count": 29
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_export"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Wait until next sentence",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_11_word_image"
+      ]
+    },
+    {
+      "id": "ending",
+      "kind": "completion",
+      "label": "Native export controls",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_33_next_image",
+        "e_34_completion"
+      ]
+    },
+    {
+      "id": "ceiling",
+      "kind": "timing",
+      "label": "Possible automatic per-word deadline",
+      "attributes": {
+        "native_ceiling_value_ms": 9999,
+        "entries_at_ceiling": 6,
+        "word_observation_coverage": "incomplete"
+      },
+      "status": "inferred",
+      "evidence_refs": [
+        "native_export",
+        "e_13_word_image",
+        "e_14_word_image",
+        "e_15_word_image"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "intro",
+      "predicate": "accepts",
+      "object": "space",
+      "status": "observed",
+      "evidence_refs": [
+        "e_03_start_image"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "specifies",
+      "object": "advance",
+      "status": "observed",
+      "evidence_refs": [
+        "e_04_instructions_image"
+      ]
+    },
+    {
+      "subject": "sentence",
+      "predicate": "presents",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "e_05_word_image"
+      ]
+    },
+    {
+      "subject": "advance",
+      "predicate": "advances",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "e_04_instructions_image"
+      ]
+    },
+    {
+      "subject": "sentence",
+      "predicate": "followed_by",
+      "object": "feedback",
+      "status": "observed",
+      "evidence_refs": [
+        "e_11_word_image"
+      ]
+    },
+    {
+      "subject": "feedback",
+      "predicate": "precedes",
+      "object": "instructions",
+      "status": "observed",
+      "evidence_refs": [
+        "e_12_next_image"
+      ]
+    },
+    {
+      "subject": "sentence",
+      "predicate": "eventually_ends_with",
+      "object": "ending",
+      "status": "observed",
+      "evidence_refs": [
+        "e_33_next_image"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e_01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:06.770632+00:00",
+      "description": "Browser open result"
+    },
+    {
+      "id": "e_01_open_image",
+      "path": "evidence/01_open.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:48:08.020221+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_02_resize",
+      "path": "evidence/02_resize.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:56.255000+00:00",
+      "description": "Browser resize result"
+    },
+    {
+      "id": "e_02_resize_image",
+      "path": "evidence/02_resize.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:48:56.621582+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_03_start",
+      "path": "evidence/03_start.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:57.286453+00:00",
+      "description": "Browser click result"
+    },
+    {
+      "id": "e_03_start_image",
+      "path": "evidence/03_start.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:48:58.355197+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_04_instructions",
+      "path": "evidence/04_instructions.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:03.705832+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_04_instructions_image",
+      "path": "evidence/04_instructions.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:04.472042+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_05_word",
+      "path": "evidence/05_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:10.098032+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_05_word_image",
+      "path": "evidence/05_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:10.872178+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_06_word",
+      "path": "evidence/06_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:15.768572+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_06_word_image",
+      "path": "evidence/06_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:16.537478+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_07_word",
+      "path": "evidence/07_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:22.442378+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_07_word_image",
+      "path": "evidence/07_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:23.237623+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_08_word",
+      "path": "evidence/08_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:27.315271+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_08_word_image",
+      "path": "evidence/08_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:28.203463+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_09_word",
+      "path": "evidence/09_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:35.038881+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_09_word_image",
+      "path": "evidence/09_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:35.804019+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_10_word",
+      "path": "evidence/10_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:42.137517+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_10_word_image",
+      "path": "evidence/10_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:42.992987+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_11_word",
+      "path": "evidence/11_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:46.993678+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_11_word_image",
+      "path": "evidence/11_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:47.804391+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_12_next",
+      "path": "evidence/12_next.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:54.793351+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_12_next_image",
+      "path": "evidence/12_next.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:49:54.793351+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_13_word",
+      "path": "evidence/13_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:59.379074+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_13_word_image",
+      "path": "evidence/13_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:50:00.185985+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_14_word",
+      "path": "evidence/14_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:13.116717+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_14_word_image",
+      "path": "evidence/14_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:50:13.919507+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_15_word",
+      "path": "evidence/15_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:31.312822+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_15_word_image",
+      "path": "evidence/15_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:50:32.117786+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_16_word",
+      "path": "evidence/16_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:45.468951+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_16_word_image",
+      "path": "evidence/16_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:50:46.251513+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_17_next",
+      "path": "evidence/17_next.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:59.226183+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_17_next_image",
+      "path": "evidence/17_next.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:50:59.226183+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_18_word",
+      "path": "evidence/18_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:09.656916+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_18_word_image",
+      "path": "evidence/18_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:10.500057+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_19_word",
+      "path": "evidence/19_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:15.730151+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_19_word_image",
+      "path": "evidence/19_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:16.532051+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_20_word",
+      "path": "evidence/20_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:22.707072+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_20_word_image",
+      "path": "evidence/20_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:23.497684+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_21_word",
+      "path": "evidence/21_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:29.610728+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_21_word_image",
+      "path": "evidence/21_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:30.447577+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_22_word",
+      "path": "evidence/22_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:39.111496+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_22_word_image",
+      "path": "evidence/22_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:39.915850+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_23_next",
+      "path": "evidence/23_next.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:46.293892+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_23_next_image",
+      "path": "evidence/23_next.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:46.293892+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_24_word",
+      "path": "evidence/24_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:52.593250+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_24_word_image",
+      "path": "evidence/24_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:51:53.397054+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_25_word",
+      "path": "evidence/25_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:10.871731+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_25_word_image",
+      "path": "evidence/25_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:11.679569+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_26_next",
+      "path": "evidence/26_next.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:19.977896+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_26_next_image",
+      "path": "evidence/26_next.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:19.977896+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_27_word",
+      "path": "evidence/27_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:24.254902+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_27_word_image",
+      "path": "evidence/27_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:25.081510+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_28_word",
+      "path": "evidence/28_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:29.306951+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_28_word_image",
+      "path": "evidence/28_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:30.096634+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_29_word",
+      "path": "evidence/29_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:38.435607+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_29_word_image",
+      "path": "evidence/29_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:39.212931+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_30_word",
+      "path": "evidence/30_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:52:51.434938+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_30_word_image",
+      "path": "evidence/30_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:52:52.213183+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_31_word",
+      "path": "evidence/31_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:00.613234+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_31_word_image",
+      "path": "evidence/31_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:53:01.429506+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_32_word",
+      "path": "evidence/32_word.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:06.394355+00:00",
+      "description": "Browser press result"
+    },
+    {
+      "id": "e_32_word_image",
+      "path": "evidence/32_word.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:53:07.194399+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_33_next",
+      "path": "evidence/33_next.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:11.811009+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_33_next_image",
+      "path": "evidence/33_next.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:53:11.811009+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_34_completion",
+      "path": "evidence/34_completion.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:17.974434+00:00",
+      "description": "Browser snapshot result"
+    },
+    {
+      "id": "e_35_show_data",
+      "path": "evidence/35_show_data.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:23.886977+00:00",
+      "description": "Browser click result"
+    },
+    {
+      "id": "e_35_show_data_image",
+      "path": "evidence/35_show_data.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:53:24.963352+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_36_export",
+      "path": "evidence/36_export.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:53:42.410352+00:00",
+      "description": "Browser eval result"
+    },
+    {
+      "id": "native_export",
+      "path": "data/native-export.tsv",
+      "locator": "all five sentence rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:53:42.410352+00:00",
+      "description": "Exact visible native table innerText; original serialized capture at evidence/36_export.txt."
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "What exactly does native value 9999 represent?",
+      "reason": "Six values coincide with missed word observations; a deadline is inferred, but task implementation was not inspected."
+    },
+    {
+      "question": "What display durations occurred for words not seen in screenshots?",
+      "reason": "Direct browser observation loop did not capture every word."
+    },
+    {
+      "question": "Is this comparable to human reading?",
+      "reason": "No human comparison; tool/inference delays dominate intervals."
+    }
+  ]
+}

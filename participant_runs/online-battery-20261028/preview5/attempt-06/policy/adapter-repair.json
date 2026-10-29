@@ -1,0 +1,11 @@
+{
+  "source_evidence": "../attempt-05/policy/perception-failures.json",
+  "method": "Vision revision3 fast; crop x320,y250,w320,h320 from saved960x800 derived image",
+  "external_offline_report": "policy/offline-ocr-validation.json",
+  "case_relevance": "Task instruction explicitly ignores case. No substitutions added.",
+  "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+  "driver_sha256": "77716c63e524204a9b67b12be96b27475809e4aa26010e6716de067db0068dc5",
+  "raw_pixels_retained": true,
+  "nonblank_unread_detection": true,
+  "original_candidate_unchanged": true
+}

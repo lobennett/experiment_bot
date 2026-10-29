@@ -1,0 +1,158 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "letter_comparison",
+      "kind": "rule",
+      "label": "Compare current letter to earlier letter",
+      "attributes": {
+        "delays": [
+          1,
+          2
+        ],
+        "case_sensitive": false,
+        "mismatch_key": ",",
+        "match_key": ".",
+        "delay_announced_each_block": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e003"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice delay 1",
+      "attributes": {
+        "first_trial": "mismatch"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e004"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Missed-response practice feedback",
+      "attributes": {
+        "advance_seconds": 30,
+        "repeats_practice": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e007"
+      ]
+    },
+    {
+      "id": "deadline",
+      "kind": "timing",
+      "label": "Response deadline exists",
+      "attributes": {
+        "duration_ms": null
+      },
+      "status": "inferred",
+      "evidence_refs": [
+        "e006",
+        "e007"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "practice",
+      "predicate": "uses",
+      "object": "letter_comparison",
+      "status": "observed",
+      "evidence_refs": [
+        "e004"
+      ]
+    },
+    {
+      "subject": "feedback",
+      "predicate": "follows",
+      "object": "practice",
+      "status": "observed",
+      "evidence_refs": [
+        "e007"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e001",
+      "path": "evidence/001-fullscreen.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:16:46.356462+00:00",
+      "description": "Initial fullscreen instruction"
+    },
+    {
+      "id": "e002",
+      "path": "evidence/002-welcome.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:02.480731+00:00",
+      "description": "Instruction screen captured from browser; timestamp is archival time after observation"
+    },
+    {
+      "id": "e003",
+      "path": "evidence/003-instructions.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:02.480731+00:00",
+      "description": "Instruction screen captured from browser; timestamp is archival time after observation"
+    },
+    {
+      "id": "e004",
+      "path": "evidence/004-practice-instructions.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:28.687Z",
+      "description": "Saved tool observation; nonexact timestamps use archival time"
+    },
+    {
+      "id": "e005",
+      "path": "evidence/005-practice-ready.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:29.381Z",
+      "description": "Saved tool observation; nonexact timestamps use archival time"
+    },
+    {
+      "id": "e006",
+      "path": "evidence/006-error.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:37.730313+00:00",
+      "description": "Saved tool observation; nonexact timestamps use archival time"
+    },
+    {
+      "id": "e007",
+      "path": "evidence/007-final-feedback.txt",
+      "locator": "entire file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:37.730313+00:00",
+      "description": "Saved tool observation; nonexact timestamps use archival time"
+    },
+    {
+      "id": "native",
+      "path": "data/experiment_data.json",
+      "locator": "whole export",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:20:37.730313+00:00",
+      "description": "Partial jsPsych 7.3.1 native export; read only after direct participation ended"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Why did welcome advance without an agent Enter?",
+      "reason": "The welcome screen was followed by instructions during read-only tool calls."
+    }
+  ]
+}

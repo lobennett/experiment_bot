@@ -1,0 +1,11 @@
+{
+  "at": "2026-10-28T22:03:13.328362+00:00",
+  "kind": "adapter_navigation_guard",
+  "reason": "Block feedback automatically advances after 30 seconds. An Enter intended for that screen was delivered after current snapshot already showed fixation. Input is not a task response key; preserved in executed-segment source. Future boundary navigation must reread visible prompt before Enter.",
+  "evidence": [
+    "evidence/segment-005.jsonl",
+    "evidence/12_block1_feedback.txt"
+  ],
+  "policy_changed": false,
+  "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769"
+}

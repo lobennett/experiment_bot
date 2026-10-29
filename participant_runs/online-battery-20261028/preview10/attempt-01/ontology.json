@@ -1,0 +1,591 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/10/",
+    "title": "Ink-color response task (Experiment Factory preview 10)"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Instructions",
+      "attributes": {
+        "advertised_duration_minutes": 7
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_begin"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "feedback": true,
+        "reminders": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "09_next"
+      ]
+    },
+    {
+      "id": "test",
+      "kind": "phase",
+      "label": "Test as described in instructions",
+      "attributes": {
+        "observed_live": false,
+        "feedback": false,
+        "reminders": false
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "09_next"
+      ]
+    },
+    {
+      "id": "word",
+      "kind": "stimulus",
+      "label": "Colored word",
+      "attributes": {
+        "described_words": [
+          "RED",
+          "BLUE",
+          "GREEN"
+        ],
+        "instruction": "Identify ink color rather than word identity"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "red",
+      "kind": "feature",
+      "label": "Red ink",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "blue",
+      "kind": "feature",
+      "label": "Blue ink",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "green",
+      "kind": "feature",
+      "label": "Green ink",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "comma",
+      "kind": "response",
+      "label": "Comma key",
+      "attributes": {
+        "key": ","
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "id": "period",
+      "kind": "response",
+      "label": "Period key",
+      "attributes": {
+        "key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "id": "slash",
+      "kind": "response",
+      "label": "Forward slash key",
+      "attributes": {
+        "key": "/"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "id": "rule_red",
+      "kind": "rule",
+      "label": "red ink response",
+      "attributes": {
+        "condition": "ink is red",
+        "response": "comma",
+        "scope": "Task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "rule_blue",
+      "kind": "rule",
+      "label": "blue ink response",
+      "attributes": {
+        "condition": "ink is blue",
+        "response": "period",
+        "scope": "Task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "rule_green",
+      "kind": "rule",
+      "label": "green ink response",
+      "attributes": {
+        "condition": "ink is green",
+        "response": "slash",
+        "scope": "Task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin",
+        "instructions"
+      ]
+    },
+    {
+      "id": "correct_feedback",
+      "kind": "feedback",
+      "label": "Correct feedback",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "after_response"
+      ]
+    },
+    {
+      "id": "practice_repeat",
+      "kind": "feedback",
+      "label": "Practice repeat after omissions",
+      "attributes": {
+        "automatic_advance_seconds": 30,
+        "observed_message": "Low accuracy and missing responses; practice will repeat"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "16_feedback",
+        "feedback"
+      ]
+    },
+    {
+      "id": "timing",
+      "kind": "timing",
+      "label": "Recorded practice timing",
+      "attributes": {
+        "stimulus_duration_ms": 1000,
+        "trial_duration_ms": 1500,
+        "basis": "native export after participation"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "id": "session_end",
+      "kind": "session_status",
+      "label": "Partial baseline stopped",
+      "attributes": {
+        "completed": false,
+        "reason": "Observation-action correspondence lost as timed trials progressed"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "12_first_trial",
+        "13_green_response",
+        "16_feedback",
+        "20_session_stop"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "practice",
+      "status": "observed",
+      "evidence_refs": [
+        "09_next"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "test",
+      "status": "observed",
+      "evidence_refs": [
+        "09_next"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "presents",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "first_trial"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "has_timing",
+      "object": "timing",
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "shows_feedback",
+      "object": "correct_feedback",
+      "status": "observed",
+      "evidence_refs": [
+        "after_response"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "may_repeat_after",
+      "object": "practice_repeat",
+      "status": "observed",
+      "evidence_refs": [
+        "16_feedback"
+      ]
+    },
+    {
+      "subject": "rule_red",
+      "predicate": "conditions_on",
+      "object": "red",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_red",
+      "predicate": "requires_response",
+      "object": "comma",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_red",
+      "predicate": "applies_to",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_blue",
+      "predicate": "conditions_on",
+      "object": "blue",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_blue",
+      "predicate": "requires_response",
+      "object": "period",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_blue",
+      "predicate": "applies_to",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_green",
+      "predicate": "conditions_on",
+      "object": "green",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_green",
+      "predicate": "requires_response",
+      "object": "slash",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    },
+    {
+      "subject": "rule_green",
+      "predicate": "applies_to",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "07_begin"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:32:26.582381+00:00",
+      "description": "01 open"
+    },
+    {
+      "id": "02_open_retry",
+      "path": "evidence/02_open_retry.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:07.032438+00:00",
+      "description": "02 open retry"
+    },
+    {
+      "id": "03_fullscreen",
+      "path": "evidence/03_fullscreen.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:14.943752+00:00",
+      "description": "03 fullscreen"
+    },
+    {
+      "id": "04_refresh",
+      "path": "evidence/04_refresh.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:22.843399+00:00",
+      "description": "04 refresh"
+    },
+    {
+      "id": "05_fullscreen",
+      "path": "evidence/05_fullscreen.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:27.636572+00:00",
+      "description": "05 fullscreen"
+    },
+    {
+      "id": "06_instructions",
+      "path": "evidence/06_instructions.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:35.221877+00:00",
+      "description": "06 instructions"
+    },
+    {
+      "id": "07_begin",
+      "path": "evidence/07_begin.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:39.048948+00:00",
+      "description": "07 begin"
+    },
+    {
+      "id": "08_instruction_screenshot",
+      "path": "evidence/08_instruction_screenshot.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:44.743619+00:00",
+      "description": "08 instruction screenshot"
+    },
+    {
+      "id": "09_next",
+      "path": "evidence/09_next.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:48.179786+00:00",
+      "description": "09 next"
+    },
+    {
+      "id": "10_practice_start",
+      "path": "evidence/10_practice_start.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:59.410022+00:00",
+      "description": "10 practice start"
+    },
+    {
+      "id": "11_begin_practice",
+      "path": "evidence/11_begin_practice.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:10.212205+00:00",
+      "description": "11 begin practice"
+    },
+    {
+      "id": "12_first_trial",
+      "path": "evidence/12_first_trial.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:11.512617+00:00",
+      "description": "12 first trial"
+    },
+    {
+      "id": "13_green_response",
+      "path": "evidence/13_green_response.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:17.193569+00:00",
+      "description": "13 green response"
+    },
+    {
+      "id": "14_after_response",
+      "path": "evidence/14_after_response.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:18.503809+00:00",
+      "description": "14 after response"
+    },
+    {
+      "id": "15_visible_timing",
+      "path": "evidence/15_visible_timing.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:38.995559+00:00",
+      "description": "15 visible timing"
+    },
+    {
+      "id": "16_feedback",
+      "path": "evidence/16_feedback.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:35:17.977725+00:00",
+      "description": "16 feedback"
+    },
+    {
+      "id": "17_feedback_screenshot",
+      "path": "evidence/17_feedback_screenshot.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:35:26.679620+00:00",
+      "description": "17 feedback screenshot"
+    },
+    {
+      "id": "18_native_export",
+      "path": "evidence/18_native_export.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:35:27.487512+00:00",
+      "description": "18 native export"
+    },
+    {
+      "id": "19_native_export_full",
+      "path": "evidence/19_native_export_full.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:35:38.081316+00:00",
+      "description": "19 native export full"
+    },
+    {
+      "id": "20_session_stop",
+      "path": "evidence/20_session_stop.txt",
+      "locator": "Entire captured browser tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:35:39.099830+00:00",
+      "description": "20 session stop"
+    },
+    {
+      "id": "instructions",
+      "path": "evidence/instructions.png",
+      "locator": "Full screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:33:44.743619+00:00",
+      "description": "instructions"
+    },
+    {
+      "id": "first_trial",
+      "path": "evidence/first_trial.png",
+      "locator": "Full screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:34:11.512617+00:00",
+      "description": "first trial"
+    },
+    {
+      "id": "after_response",
+      "path": "evidence/after_response.png",
+      "locator": "Full screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:34:18.503809+00:00",
+      "description": "after response"
+    },
+    {
+      "id": "feedback",
+      "path": "evidence/feedback.png",
+      "locator": "Full screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:35:26.679620+00:00",
+      "description": "feedback"
+    },
+    {
+      "id": "native_data",
+      "path": "data/experiment_data.json",
+      "locator": "Full array; trial_id=practice_trial rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:35:38.081316+00:00",
+      "description": "Unmodified jsPsych.data.get().json() output collected after the decision to end participation."
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "What are the complete main-test blocks and terminal state?",
+      "reason": "Participation ended during repeated practice.",
+      "related_ids": [
+        "test"
+      ]
+    },
+    {
+      "question": "Which screenshot corresponds to the single recorded response?",
+      "reason": "The live task advanced between screenshot interpretation and key delivery; no native trial ID was observed at action time."
+    },
+    {
+      "question": "What would direct-browser performance be if uninterrupted by tool/inference overhead?",
+      "reason": "No such measurement was performed; current data cannot establish human timing fidelity."
+    }
+  ]
+}

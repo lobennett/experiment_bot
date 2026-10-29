@@ -1,0 +1,92 @@
+{
+  "schema_version": "1.0",
+  "run_id": "tower-hanoi-attempt-02",
+  "mode": "direct_browser",
+  "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+  "final_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+  "started_at": "2026-10-28T21:43:44.258159+00:00",
+  "ended_at": "2026-10-28T21:48:48.287616+00:00",
+  "status": "completed",
+  "status_reason": "Seven ordinary pointer drags produced the instructed final arrangement; task then automatically displayed native export controls.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "Playwright ordinary mouse/keyboard input",
+    "session": "eb-other-pointer",
+    "viewport": {
+      "width": 1200,
+      "height": 900
+    }
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+  },
+  "seed": null,
+  "reproducibility": "Direct model participation; no deterministic replay claim.",
+  "completion_evidence_refs": [
+    "011_drag_image",
+    "012_observe_image"
+  ],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/native-export.tsv"
+    ],
+    "reason": "Native Show data table rendered after completion. Exact data substring retained from browser-visible body innerText; complete source text also archived."
+  },
+  "counts": {
+    "response_actions": 7,
+    "navigation_actions": 4,
+    "native_export_trial_rows": 7,
+    "events": 14
+  },
+  "limitations": [
+    "Second attempt replaces an input transport incapable of canvas coordinate drag; no behavioral results selected.",
+    "Native export text preserves the visible table values and tab/newline separators, not a downloaded file.",
+    "Native cumulative time includes model and tool overhead; no human timing equivalence.",
+    "Exact model and browser versions unavailable.",
+    "Initial sandbox launch of pointer browser failed before page opened; elevated launch succeeded."
+  ],
+  "artifacts_sha256": {
+    "data/native-export.tsv": "ff971da42e5554cd6e3119914109573d8bf9c260038072035e9e2bbe85fa42f8",
+    "events.jsonl": "080ea2bd3e548058f3aba4150b269ca4a7bec0faf718e7bb00743836a021a659",
+    "evidence/000_observe.png": "2b3e805a8ff366a60faffd3ef87b578436db4175d48be6544df20f36db2fe884",
+    "evidence/000_observe.txt": "fb2166ddb2efc52a62de9a2489fe30ab73207342539099bff6a30a74a2a3d22e",
+    "evidence/001_click_text.png": "14b3bbd2556dca68873115706c2bbcc1b07c8dfe1a4776f9117fd73306deb2bb",
+    "evidence/001_click_text.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/002_observe.png": "57688069100ee0d785b4034275fe73c140f9e90d49bd44e3401c249508240401",
+    "evidence/002_observe.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/003_click.png": "ea9facec383bea2bec1df684b1846882dccb0cbee1073f52814d7940c80236aa",
+    "evidence/003_click.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/004_click.png": "ba079e3d3bc995f828ba923041d636cc4357349db41a39bf10ea978ae59ae034",
+    "evidence/004_click.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/005_drag.png": "50d16c18843e1503c64d025d1a05d225d173f83f44987ee9d104dac9851152a5",
+    "evidence/005_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/006_drag.png": "6659998fa96a8b0c808e0332ed29d67a23549d9c533de5fdaadd586cf0ae5d49",
+    "evidence/006_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/007_drag.png": "9f1309e0a01e1c9f37f925b1fb2cd95ebd717b781c246a3d1e260f67f8f2097d",
+    "evidence/007_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/008_drag.png": "c98e0d4990bb2054943c7d657b33892da1598b82b6399e038e7215e5b8549902",
+    "evidence/008_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/009_drag.png": "f91ab2eedcbdd113850ca386cdf6b07c0baa84ddfdb538cc059db15311ab4b93",
+    "evidence/009_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/010_drag.png": "7c6234768817cc82ff7089c5d4cef49b0dc9c7b32fbbfdae1998342ad02b1933",
+    "evidence/010_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/011_drag.png": "d12a2cc104b80b9fa2ee567076fc4d9d991ccc08a7d821dc69c8aa4e2e64b1a7",
+    "evidence/011_drag.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/012_observe.png": "14ef338c07e43233d949bf92df859892115bfb81e9d8e26ab780de4312b41ba9",
+    "evidence/012_observe.txt": "496b57047d7acab4397e06ff6f530c6774338899343f6a482f35b9d1d7d6349c",
+    "evidence/013_click_text.png": "93ea4e83bd60bda4a554fbc6a2b535b0d6824e875e14517fa437a0c30c5d537e",
+    "evidence/013_click_text.txt": "271742d88fb5148d18e81ab980718efa0397e8154c6a088937476cc5509879b9",
+    "ontology.json": "2c0c55ba825aa4c459051568a8e1dd3d2853514f3b062e19d697bed09bde1176",
+    "protocol/SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9",
+    "protocol/artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "summary.md": "05adaab688fafeab5c4d29e16b83bc23f1911903621ce47a7c9da6a77d5cabc1"
+  },
+  "parent_attempt": "../attempt-01"
+}

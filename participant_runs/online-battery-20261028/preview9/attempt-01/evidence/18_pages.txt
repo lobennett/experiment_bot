@@ -1,0 +1,6 @@
+pages[2]{id,url,selected}:
+  1,about:blank,false
+  2,https://deploy.expfactory.org/preview/9/,true
+help[2]:
+  Run `chrome-devtools-axi selectpage <id>` to switch tabs
+  Run `chrome-devtools-axi newpage <url>` to open a new tab

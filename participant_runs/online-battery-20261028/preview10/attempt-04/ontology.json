@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/10/",
+    "title": null
+  },
+  "nodes": [],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "injection_failure",
+      "path": "evidence/injection_failure.txt",
+      "locator": "Full file",
+      "source_type": "tool_error",
+      "observed_at": "2026-10-28T22:04:44.362044+00:00",
+      "description": "Recorded adapter exception"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Task execution",
+      "reason": "Policy injection failed before participation"
+    }
+  ]
+}

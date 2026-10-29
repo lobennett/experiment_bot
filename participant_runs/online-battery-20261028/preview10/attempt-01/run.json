@@ -1,0 +1,86 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview10-attempt-01",
+  "mode": "direct_browser",
+  "input_url": "https://deploy.expfactory.org/preview/10/",
+  "final_url": "https://deploy.expfactory.org/preview/10/",
+  "started_at": "2026-10-28T21:32:25.123671+00:00",
+  "ended_at": "2026-10-28T21:37:41.346880+00:00",
+  "status": "partial",
+  "status_reason": "Practice timed stimuli advanced between observation and model-directed key delivery; task reported omissions and repeated practice. Isolated session stopped before main-test completion.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview10"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+  },
+  "seed": null,
+  "reproducibility": "Direct browser session; no deterministic replay promised.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Read-only jsPsych native export collected after participation was ended; incomplete session contains practice data."
+  },
+  "counts": {
+    "native_export_rows": 44,
+    "native_export_response_trials": 9,
+    "native_export_recorded_responses": 1,
+    "native_export_omissions": 8,
+    "native_export_correct_responses": 1,
+    "response_actions": 1,
+    "successful_navigation_actions": 6,
+    "failed_navigation_actions": 1,
+    "events": 20
+  },
+  "limitations": [
+    "Main test and terminal task completion not reached.",
+    "Stimuli were displayed for 1000 ms and trials accepted responses for 1500 ms according to post-participation native records.",
+    "Single recorded correct response cannot be linked to the earlier screenshot; it is not a valid direct same-trial performance demonstration.",
+    "Task automatically repeated practice within the same session while evidence was being saved.",
+    "Transport plus model inference exceeded useful observation-action interval.",
+    "Exact model identifier and browser version unavailable."
+  ],
+  "artifacts_sha256": {
+    "summary.md": "eae5dc6c8415437ed008d452f11151e8a393ccd7c49d1c216ff6c0d094419dfc",
+    "ontology.json": "3de67e1eb362a16b512bbf6cb8b2cbaf13d39ae65050d7e69d5224cd2bd17400",
+    "events.jsonl": "51a6af5ef7753efaec5114bec6fbf8476c823504154cc26342c3cfd69774ee7a",
+    "validation.json": "1704b9539a34e0e3cde7a0e792c8a0d00210f132ebcabe4e0cd6cf363c8b53c8",
+    "record.py": "80461f94aa5499534ddc3c2733cc31e0414827d122a65ffadf36d0017a3f7ced",
+    "evidence/05_fullscreen.txt": "5ee8be9325a3ebaffe7dabe0827e636447b290ae36aca12429087e8d70682673",
+    "evidence/03_fullscreen.txt": "fdba95a00fcb0c980ce86efe9a5dd1ff1335f82dc94d424612f33f27cc0aae23",
+    "evidence/13_green_response.txt": "723e34d9cbcad92b7e1db79a6cdadabff3b31c7e8b9fee58ff3feaa4f973cfab",
+    "evidence/08_instruction_screenshot.txt": "ffdd9f3df713eb4084a5d13a846511f4f008751e78457a8bc39cfa6468bd93a7",
+    "evidence/14_after_response.txt": "cb9940d2fb79f3a887dc91ab27d58031c0b745f865883b71f814b6a532df4cd5",
+    "evidence/10_practice_start.txt": "710504f8b098955ed7daae8673f702ccc5930234213b58d9fb5a68dc4e128931",
+    "evidence/15_visible_timing.txt": "900f01045a0269aa784fb778603dea4618ae221a711e1ad0de650c973f8f62ce",
+    "evidence/instructions.png": "c95299ec284efbb9dd0a2f9942c935e2d850ee40242b09b67bf132d623cf2e10",
+    "evidence/06_instructions.txt": "0f9574513ab8358623a575e512525665a7f40b35ea1aef7d988eaf7143d74b24",
+    "evidence/20_session_stop.txt": "f2bc7e29f103aa6b355ed78f349a607be6b4f2626f0a19aeae7eee6cbdeaba81",
+    "evidence/12_first_trial.txt": "3ab69589511116a752db43404d63a5acfc3ab491e4309c02fb31013c3fe0cd56",
+    "evidence/01_open.txt": "132870acd315904e0c4aad702a18bb7cb6309049c238e746dd36787d1efc3b6b",
+    "evidence/18_native_export.txt": "df0bbd7448c94d717b023980de28b5d64a503525e161193f9e61f2dd60fb1332",
+    "evidence/17_feedback_screenshot.txt": "c4cd354010ab4dfb214567934f3000a4b4034c9e7e3ab0ef20685c8f0687737f",
+    "evidence/16_feedback.txt": "6351877e631a4fd1bc2c177e407e642fd9f78b39a77c662168d413fff7f7b569",
+    "evidence/11_begin_practice.txt": "ecd2cee9bde0ad44a055671a84df9abc7060a3092fb07e615747af1f2ddbd048",
+    "evidence/first_trial.png": "cc7213ee2447afc018cc0c54335738e703ba63fe288a2cbae1ed1141263131ca",
+    "evidence/07_begin.txt": "1327eb6dd8a975f9a476e68df62a04e5b878ee7873fa67660b9ae05925da822e",
+    "evidence/19_native_export_full.txt": "b29e1cd91ecd64c772c15b454b9de044bd1774220e14b181fb164397b165ea82",
+    "evidence/02_open_retry.txt": "3196e003898c9b85173aca31d4428f4cd7f24da75d6b1122682ad0268e925501",
+    "evidence/feedback.png": "7ae7025dfc334be253952ce6cff3a563e46763e4d11f47f2d1abc0f1f0dbd3ab",
+    "evidence/after_response.png": "c11570d7d256164abc030ba9fb05bee0d234c75d4f138a58b0a8112fd000a784",
+    "evidence/04_refresh.txt": "48d572bca2332aba21f13d57d2150d04382370728fc9873c59a3ad09c8b92a86",
+    "evidence/09_next.txt": "53735958e500ea38a0bfb2b3992c5fcb3427f67ec64edfcb6061d5590a6f17e0",
+    "data/experiment_data.json": "5db6a9c645086f0cdfaa7a8447a5ddd0d38e9bc39632bbeb2217056ad124d13f"
+  }
+}

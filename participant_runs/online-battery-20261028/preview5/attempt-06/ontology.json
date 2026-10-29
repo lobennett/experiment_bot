@@ -1,0 +1,476 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": "The Experiment Factory"
+  },
+  "nodes": [
+    {
+      "id": "comparison",
+      "kind": "rule",
+      "label": "Case-insensitive delayed letter comparison",
+      "attributes": {
+        "delays": [
+          1,
+          2
+        ],
+        "mismatch_key": ",",
+        "match_key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "004-instructions"
+      ]
+    },
+    {
+      "id": "practice1",
+      "kind": "phase",
+      "label": "Practice delay 1",
+      "attributes": {
+        "first_trial": "mismatch"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "005-practice-instructions"
+      ]
+    },
+    {
+      "id": "practice2",
+      "kind": "phase",
+      "label": "Practice delay 2",
+      "attributes": {
+        "first_two_trials": "mismatch",
+        "announcement": "We will now start practice for a delay of 2."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-57"
+      ]
+    },
+    {
+      "id": "reminder2",
+      "kind": "rule",
+      "label": "Persistent delay-2 reminder",
+      "attributes": {
+        "visible_text": "Match the current letter to the letter that appeared 2 trials ago."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-58"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Practice-repeat feedback",
+      "attributes": {
+        "automatic_advance_seconds": 30,
+        "omissions_reported": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "008-final"
+      ]
+    },
+    {
+      "id": "partial",
+      "kind": "completion",
+      "label": "Stopped before terminal task state",
+      "attributes": {
+        "terminal_observed": false
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "008-final"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "practice2",
+      "predicate": "follows",
+      "object": "practice1",
+      "status": "observed",
+      "evidence_refs": [
+        "review-57"
+      ]
+    },
+    {
+      "subject": "practice2",
+      "predicate": "presents",
+      "object": "reminder2",
+      "status": "observed",
+      "evidence_refs": [
+        "review-58"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "001-initial",
+      "path": "evidence/001-initial.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:43:30.941198+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "002-after-fullscreen",
+      "path": "evidence/002-after-fullscreen.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:43:53.669562+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "003-welcome",
+      "path": "evidence/003-welcome.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:44:00.917567+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "004-instructions",
+      "path": "evidence/004-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:45:22.289892+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "005-practice-instructions",
+      "path": "evidence/005-practice-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:45:22.372940+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "006-practice-ready",
+      "path": "evidence/006-practice-ready.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:02.416119+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "007-practice-start",
+      "path": "evidence/007-practice-start.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:18.597710+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "008-final",
+      "path": "evidence/008-final.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:56.037443+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-30",
+      "path": "evidence/review-30.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:27.260626+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-38",
+      "path": "evidence/review-38.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:30.087459+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-46",
+      "path": "evidence/review-46.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:32.866225+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-54",
+      "path": "evidence/review-54.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:36.194175+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-57",
+      "path": "evidence/review-57.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:37.260152+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-58",
+      "path": "evidence/review-58.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:07.259049+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-59",
+      "path": "evidence/review-59.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:07.735326+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-60",
+      "path": "evidence/review-60.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:09.246798+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-61",
+      "path": "evidence/review-61.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:09.740774+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-62",
+      "path": "evidence/review-62.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:12.039245+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-63",
+      "path": "evidence/review-63.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:12.546884+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-64",
+      "path": "evidence/review-64.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:14.038184+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-65",
+      "path": "evidence/review-65.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:14.552472+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-66",
+      "path": "evidence/review-66.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:14.711185+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-67",
+      "path": "evidence/review-67.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:15.229807+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-68",
+      "path": "evidence/review-68.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:16.723244+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-69",
+      "path": "evidence/review-69.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:17.221119+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-7",
+      "path": "evidence/review-7.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:45:22.416774+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-70",
+      "path": "evidence/review-70.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:17.746150+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-71",
+      "path": "evidence/review-71.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:18.266165+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-72",
+      "path": "evidence/review-72.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:19.755991+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-73",
+      "path": "evidence/review-73.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:20.258896+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-74",
+      "path": "evidence/review-74.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:20.515591+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-75",
+      "path": "evidence/review-75.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:20.992835+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-76",
+      "path": "evidence/review-76.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:22.510042+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-77",
+      "path": "evidence/review-77.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:23.009102+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-78",
+      "path": "evidence/review-78.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:23.620728+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-79",
+      "path": "evidence/review-79.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:24.123222+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-80",
+      "path": "evidence/review-80.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:25.622983+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-81",
+      "path": "evidence/review-81.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:26.122232+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-82",
+      "path": "evidence/review-82.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:26.252561+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-83",
+      "path": "evidence/review-83.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:26.761326+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-84",
+      "path": "evidence/review-84.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:28.270609+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-85",
+      "path": "evidence/review-85.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:28.764432+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-86",
+      "path": "evidence/review-86.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:47:29.261066+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "review-9",
+      "path": "evidence/review-9.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:46:02.457751+00:00",
+      "description": "Saved live visible observation; corresponding PNG preserved"
+    },
+    {
+      "id": "native",
+      "path": "data/experiment_data.json",
+      "locator": "all rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:49:17.110224+00:00",
+      "description": "Post-participation native trial export"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Later test blocks and completion?",
+      "reason": "Attempt stopped during delay-2 practice after the newly observed instruction framing proved unsupported."
+    }
+  ]
+}

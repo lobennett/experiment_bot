@@ -1,0 +1,10 @@
+page:
+  title: PsyToolkit run experiment
+  refs: 3
+snapshot:
+uid=g22:4_0 RootWebArea "PsyToolkit run experiment" url="https://www.psytoolkit.org/library/experiment_pacedreading1.html"
+  uid=g22:5_0 Canvas focusable focused
+  uid=g22:5_1 button " ⛶" description="fullscreen"
+help[2]:
+  Run `chrome-devtools-axi click @g22:5_1` to click the " ⛶" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

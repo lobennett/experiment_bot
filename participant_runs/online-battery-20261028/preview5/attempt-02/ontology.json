@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "fullscreen",
+      "kind": "phase",
+      "label": "Fullscreen setup",
+      "attributes": {
+        "button": "Continue"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "initial"
+      ]
+    }
+  ],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "initial",
+      "path": "evidence/001-initial.json",
+      "locator": "text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:23:25.376886+00:00",
+      "description": "Initial fullscreen prompt captured before driver ended"
+    }
+  ],
+  "unknowns": []
+}

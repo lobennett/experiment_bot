@@ -1,0 +1,1690 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+    "title": "Self-paced reading"
+  },
+  "nodes": [
+    {
+      "id": "intro",
+      "kind": "phase",
+      "label": "Self-paced reading task",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "001_frame_image"
+      ]
+    },
+    {
+      "id": "ready",
+      "kind": "phase",
+      "label": "Sentence-start instructions",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "002_frame_image"
+      ]
+    },
+    {
+      "id": "word",
+      "kind": "stimulus",
+      "label": "Single visible word on canvas",
+      "attributes": {
+        "recognized_count": 27
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "003_frame_image"
+      ]
+    },
+    {
+      "id": "advance",
+      "kind": "response",
+      "label": "n key",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "002_frame_image"
+      ]
+    },
+    {
+      "id": "intro_key",
+      "kind": "response",
+      "label": "Space key",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "001_frame_image"
+      ]
+    },
+    {
+      "id": "sequence",
+      "kind": "sequence",
+      "label": "Word-by-word sentence",
+      "attributes": {
+        "sentence_rows": 5,
+        "word_count": 28
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_export"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Wait until next sentence",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "009_frame_image"
+      ]
+    },
+    {
+      "id": "end",
+      "kind": "completion",
+      "label": "Native export controls",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "093_frame_image"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "intro",
+      "predicate": "accepts",
+      "object": "intro_key",
+      "status": "observed",
+      "evidence_refs": [
+        "001_frame_image"
+      ]
+    },
+    {
+      "subject": "ready",
+      "predicate": "specifies",
+      "object": "advance",
+      "status": "observed",
+      "evidence_refs": [
+        "002_frame_image"
+      ]
+    },
+    {
+      "subject": "sequence",
+      "predicate": "presents",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "003_frame_image"
+      ]
+    },
+    {
+      "subject": "advance",
+      "predicate": "advances",
+      "object": "word",
+      "status": "observed",
+      "evidence_refs": [
+        "002_frame_image"
+      ]
+    },
+    {
+      "subject": "sequence",
+      "predicate": "followed_by",
+      "object": "feedback",
+      "status": "observed",
+      "evidence_refs": [
+        "009_frame_image"
+      ]
+    },
+    {
+      "subject": "sequence",
+      "predicate": "eventually_ends_with",
+      "object": "end",
+      "status": "observed",
+      "evidence_refs": [
+        "093_frame_image"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "000_preflight_image",
+      "path": "evidence/000_preflight.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:42.210543+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "000_preflight_ocr",
+      "path": "evidence/000_preflight.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:42.210543+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "001_frame_image",
+      "path": "evidence/001_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:43.051998+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "001_frame_ocr",
+      "path": "evidence/001_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:43.051998+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "002_frame_image",
+      "path": "evidence/002_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:43.660994+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "002_frame_ocr",
+      "path": "evidence/002_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:43.660994+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "003_frame_image",
+      "path": "evidence/003_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:44.077615+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "003_frame_ocr",
+      "path": "evidence/003_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:44.077615+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "004_frame_image",
+      "path": "evidence/004_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:44.472307+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "004_frame_ocr",
+      "path": "evidence/004_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:44.472307+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "005_frame_image",
+      "path": "evidence/005_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:44.859012+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "005_frame_ocr",
+      "path": "evidence/005_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:44.859012+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "006_frame_image",
+      "path": "evidence/006_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:45.232760+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "006_frame_ocr",
+      "path": "evidence/006_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:45.232760+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "007_frame_image",
+      "path": "evidence/007_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:45.608888+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "007_frame_ocr",
+      "path": "evidence/007_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:45.608888+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "008_frame_image",
+      "path": "evidence/008_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:46.003716+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "008_frame_ocr",
+      "path": "evidence/008_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:46.003716+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "009_frame_image",
+      "path": "evidence/009_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:46.389787+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "009_frame_ocr",
+      "path": "evidence/009_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:46.389787+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "010_frame_image",
+      "path": "evidence/010_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:46.806558+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "010_frame_ocr",
+      "path": "evidence/010_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:46.806558+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "011_frame_image",
+      "path": "evidence/011_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:47.178378+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "011_frame_ocr",
+      "path": "evidence/011_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:47.178378+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "012_frame_image",
+      "path": "evidence/012_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:47.536288+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "012_frame_ocr",
+      "path": "evidence/012_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:47.536288+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "013_frame_image",
+      "path": "evidence/013_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:47.899622+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "013_frame_ocr",
+      "path": "evidence/013_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:47.899622+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "014_frame_image",
+      "path": "evidence/014_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:48.258206+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "014_frame_ocr",
+      "path": "evidence/014_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:48.258206+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "015_frame_image",
+      "path": "evidence/015_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:48.604518+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "015_frame_ocr",
+      "path": "evidence/015_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:48.604518+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "016_frame_image",
+      "path": "evidence/016_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:48.970697+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "016_frame_ocr",
+      "path": "evidence/016_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:48.970697+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "017_frame_image",
+      "path": "evidence/017_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:49.342296+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "017_frame_ocr",
+      "path": "evidence/017_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:49.342296+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "018_frame_image",
+      "path": "evidence/018_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:49.738823+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "018_frame_ocr",
+      "path": "evidence/018_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:49.738823+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "019_frame_image",
+      "path": "evidence/019_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:50.105616+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "019_frame_ocr",
+      "path": "evidence/019_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:50.105616+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "020_frame_image",
+      "path": "evidence/020_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:50.480507+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "020_frame_ocr",
+      "path": "evidence/020_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:50.480507+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "021_frame_image",
+      "path": "evidence/021_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:50.853166+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "021_frame_ocr",
+      "path": "evidence/021_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:50.853166+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "022_frame_image",
+      "path": "evidence/022_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:51.256773+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "022_frame_ocr",
+      "path": "evidence/022_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:51.256773+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "023_frame_image",
+      "path": "evidence/023_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:51.645145+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "023_frame_ocr",
+      "path": "evidence/023_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:51.645145+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "024_frame_image",
+      "path": "evidence/024_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:51.994573+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "024_frame_ocr",
+      "path": "evidence/024_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:51.994573+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "025_frame_image",
+      "path": "evidence/025_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:52.351885+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "025_frame_ocr",
+      "path": "evidence/025_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:52.351885+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "026_frame_image",
+      "path": "evidence/026_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:52.712100+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "026_frame_ocr",
+      "path": "evidence/026_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:52.712100+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "027_frame_image",
+      "path": "evidence/027_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:53.065544+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "027_frame_ocr",
+      "path": "evidence/027_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:53.065544+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "028_frame_image",
+      "path": "evidence/028_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:53.421866+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "028_frame_ocr",
+      "path": "evidence/028_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:53.421866+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "029_frame_image",
+      "path": "evidence/029_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:53.832237+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "029_frame_ocr",
+      "path": "evidence/029_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:53.832237+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "030_frame_image",
+      "path": "evidence/030_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:54.225262+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "030_frame_ocr",
+      "path": "evidence/030_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:54.225262+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "031_frame_image",
+      "path": "evidence/031_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:54.614830+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "031_frame_ocr",
+      "path": "evidence/031_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:54.614830+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "032_frame_image",
+      "path": "evidence/032_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:54.991931+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "032_frame_ocr",
+      "path": "evidence/032_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:54.991931+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "033_frame_image",
+      "path": "evidence/033_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:55.383944+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "033_frame_ocr",
+      "path": "evidence/033_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:55.383944+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "034_frame_image",
+      "path": "evidence/034_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:55.750362+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "034_frame_ocr",
+      "path": "evidence/034_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:55.750362+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "035_frame_image",
+      "path": "evidence/035_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:56.131950+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "035_frame_ocr",
+      "path": "evidence/035_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:56.131950+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "036_frame_image",
+      "path": "evidence/036_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:56.503539+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "036_frame_ocr",
+      "path": "evidence/036_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:56.503539+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "037_frame_image",
+      "path": "evidence/037_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:56.919803+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "037_frame_ocr",
+      "path": "evidence/037_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:56.919803+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "038_frame_image",
+      "path": "evidence/038_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:57.304159+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "038_frame_ocr",
+      "path": "evidence/038_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:57.304159+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "039_frame_image",
+      "path": "evidence/039_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:57.762600+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "039_frame_ocr",
+      "path": "evidence/039_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:57.762600+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "040_frame_image",
+      "path": "evidence/040_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:58.144896+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "040_frame_ocr",
+      "path": "evidence/040_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:58.144896+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "041_frame_image",
+      "path": "evidence/041_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:58.501470+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "041_frame_ocr",
+      "path": "evidence/041_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:58.501470+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "042_frame_image",
+      "path": "evidence/042_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:58.876349+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "042_frame_ocr",
+      "path": "evidence/042_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:58.876349+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "043_frame_image",
+      "path": "evidence/043_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:59.247855+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "043_frame_ocr",
+      "path": "evidence/043_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:59.247855+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "044_frame_image",
+      "path": "evidence/044_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:59.611697+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "044_frame_ocr",
+      "path": "evidence/044_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:59.611697+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "045_frame_image",
+      "path": "evidence/045_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:20:59.983947+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "045_frame_ocr",
+      "path": "evidence/045_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:20:59.983947+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "046_frame_image",
+      "path": "evidence/046_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:00.343731+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "046_frame_ocr",
+      "path": "evidence/046_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:00.343731+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "047_frame_image",
+      "path": "evidence/047_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:00.715484+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "047_frame_ocr",
+      "path": "evidence/047_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:00.715484+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "048_frame_image",
+      "path": "evidence/048_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:01.100732+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "048_frame_ocr",
+      "path": "evidence/048_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:01.100732+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "049_frame_image",
+      "path": "evidence/049_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:01.498106+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "049_frame_ocr",
+      "path": "evidence/049_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:01.498106+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "050_frame_image",
+      "path": "evidence/050_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:01.911407+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "050_frame_ocr",
+      "path": "evidence/050_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:01.911407+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "051_frame_image",
+      "path": "evidence/051_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:02.276894+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "051_frame_ocr",
+      "path": "evidence/051_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:02.276894+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "052_frame_image",
+      "path": "evidence/052_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:02.731179+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "052_frame_ocr",
+      "path": "evidence/052_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:02.731179+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "053_frame_image",
+      "path": "evidence/053_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:03.116864+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "053_frame_ocr",
+      "path": "evidence/053_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:03.116864+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "054_frame_image",
+      "path": "evidence/054_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:03.463299+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "054_frame_ocr",
+      "path": "evidence/054_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:03.463299+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "055_frame_image",
+      "path": "evidence/055_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:03.789787+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "055_frame_ocr",
+      "path": "evidence/055_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:03.789787+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "056_frame_image",
+      "path": "evidence/056_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:04.143871+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "056_frame_ocr",
+      "path": "evidence/056_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:04.143871+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "057_frame_image",
+      "path": "evidence/057_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:04.478098+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "057_frame_ocr",
+      "path": "evidence/057_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:04.478098+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "058_frame_image",
+      "path": "evidence/058_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:04.818210+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "058_frame_ocr",
+      "path": "evidence/058_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:04.818210+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "059_frame_image",
+      "path": "evidence/059_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:05.170477+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "059_frame_ocr",
+      "path": "evidence/059_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:05.170477+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "060_frame_image",
+      "path": "evidence/060_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:05.515182+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "060_frame_ocr",
+      "path": "evidence/060_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:05.515182+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "061_frame_image",
+      "path": "evidence/061_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:05.842443+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "061_frame_ocr",
+      "path": "evidence/061_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:05.842443+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "062_frame_image",
+      "path": "evidence/062_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:06.192237+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "062_frame_ocr",
+      "path": "evidence/062_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:06.192237+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "063_frame_image",
+      "path": "evidence/063_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:06.527314+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "063_frame_ocr",
+      "path": "evidence/063_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:06.527314+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "064_frame_image",
+      "path": "evidence/064_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:06.863794+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "064_frame_ocr",
+      "path": "evidence/064_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:06.863794+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "065_frame_image",
+      "path": "evidence/065_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:07.202497+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "065_frame_ocr",
+      "path": "evidence/065_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:07.202497+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "066_frame_image",
+      "path": "evidence/066_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:07.538362+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "066_frame_ocr",
+      "path": "evidence/066_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:07.538362+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "067_frame_image",
+      "path": "evidence/067_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:07.862220+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "067_frame_ocr",
+      "path": "evidence/067_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:07.862220+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "068_frame_image",
+      "path": "evidence/068_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:08.201248+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "068_frame_ocr",
+      "path": "evidence/068_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:08.201248+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "069_frame_image",
+      "path": "evidence/069_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:08.536219+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "069_frame_ocr",
+      "path": "evidence/069_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:08.536219+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "070_frame_image",
+      "path": "evidence/070_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:08.876060+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "070_frame_ocr",
+      "path": "evidence/070_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:08.876060+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "071_frame_image",
+      "path": "evidence/071_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:09.217804+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "071_frame_ocr",
+      "path": "evidence/071_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:09.217804+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "072_frame_image",
+      "path": "evidence/072_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:09.556681+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "072_frame_ocr",
+      "path": "evidence/072_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:09.556681+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "073_frame_image",
+      "path": "evidence/073_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:09.900118+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "073_frame_ocr",
+      "path": "evidence/073_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:09.900118+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "074_frame_image",
+      "path": "evidence/074_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:10.247888+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "074_frame_ocr",
+      "path": "evidence/074_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:10.247888+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "075_frame_image",
+      "path": "evidence/075_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:10.580943+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "075_frame_ocr",
+      "path": "evidence/075_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:10.580943+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "076_frame_image",
+      "path": "evidence/076_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:10.905454+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "076_frame_ocr",
+      "path": "evidence/076_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:10.905454+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "077_frame_image",
+      "path": "evidence/077_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:11.246854+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "077_frame_ocr",
+      "path": "evidence/077_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:11.246854+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "078_frame_image",
+      "path": "evidence/078_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:11.570888+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "078_frame_ocr",
+      "path": "evidence/078_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:11.570888+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "079_frame_image",
+      "path": "evidence/079_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:11.915472+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "079_frame_ocr",
+      "path": "evidence/079_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:11.915472+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "080_frame_image",
+      "path": "evidence/080_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:12.253252+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "080_frame_ocr",
+      "path": "evidence/080_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:12.253252+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "081_frame_image",
+      "path": "evidence/081_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:12.593249+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "081_frame_ocr",
+      "path": "evidence/081_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:12.593249+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "082_frame_image",
+      "path": "evidence/082_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:12.932305+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "082_frame_ocr",
+      "path": "evidence/082_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:12.932305+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "083_frame_image",
+      "path": "evidence/083_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:13.268983+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "083_frame_ocr",
+      "path": "evidence/083_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:13.268983+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "084_frame_image",
+      "path": "evidence/084_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:13.659889+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "084_frame_ocr",
+      "path": "evidence/084_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:13.659889+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "085_frame_image",
+      "path": "evidence/085_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:14.033762+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "085_frame_ocr",
+      "path": "evidence/085_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:14.033762+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "086_frame_image",
+      "path": "evidence/086_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:14.407348+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "086_frame_ocr",
+      "path": "evidence/086_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:14.407348+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "087_frame_image",
+      "path": "evidence/087_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:14.787906+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "087_frame_ocr",
+      "path": "evidence/087_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:14.787906+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "088_frame_image",
+      "path": "evidence/088_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:15.192857+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "088_frame_ocr",
+      "path": "evidence/088_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:15.192857+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "089_frame_image",
+      "path": "evidence/089_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:15.586040+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "089_frame_ocr",
+      "path": "evidence/089_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:15.586040+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "090_frame_image",
+      "path": "evidence/090_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:15.974807+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "090_frame_ocr",
+      "path": "evidence/090_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:15.974807+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "091_frame_image",
+      "path": "evidence/091_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:16.347473+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "091_frame_ocr",
+      "path": "evidence/091_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:16.347473+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "092_frame_image",
+      "path": "evidence/092_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:16.728618+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "092_frame_ocr",
+      "path": "evidence/092_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:16.728618+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "093_frame_image",
+      "path": "evidence/093_frame.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:17.048374+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "093_frame_ocr",
+      "path": "evidence/093_frame.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:17.048374+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "094_native_export_image",
+      "path": "evidence/094_native_export.png",
+      "locator": "whole captured visible surface",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:21:17.456557+00:00",
+      "description": "Rendered pixels"
+    },
+    {
+      "id": "094_native_export_ocr",
+      "path": "evidence/094_native_export.json",
+      "locator": "whole captured visible surface",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:17.456557+00:00",
+      "description": "Local OCR of corresponding screenshot; no task internals"
+    },
+    {
+      "id": "native_export",
+      "path": "data/native-export.tsv",
+      "locator": "all rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:21:17.883503+00:00",
+      "description": "Native visible table exported only after completion."
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Does this represent human reading or comprehension?",
+      "reason": "Local OCR and a frozen procedural policy executed the responses; no human behavioral comparison or comprehension question was supplied."
+    },
+    {
+      "question": "Why was a word not recognized?",
+      "reason": "Saved screenshots and OCR output document the observation adapter limitation; see summary."
+    }
+  ]
+}

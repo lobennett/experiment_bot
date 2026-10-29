@@ -1,0 +1,12 @@
+page:
+  title: Signal Cards — local skill check
+  refs: 5
+snapshot:
+uid=g6:1_0 RootWebArea "Signal Cards — local skill check" url="file:///private/tmp/behavioral-participant-validation/index.html"
+  uid=g6:1_1 main
+    uid=g6:6_0 heading "Response recorded" level="2"
+    uid=g6:6_1 "Correct."
+    uid=g6:6_2 button "Continue"
+help[2]:
+  Run `chrome-devtools-axi click @g6:6_2` to click the "Continue" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

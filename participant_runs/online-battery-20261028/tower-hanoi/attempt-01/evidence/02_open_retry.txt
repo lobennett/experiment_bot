@@ -1,0 +1,10 @@
+page:
+  title: PsyToolkit run experiment
+  url: "https://www.psytoolkit.org/library/experiment_tower_hanoi.html"
+  refs: 2
+snapshot:
+uid=g1:1_0 RootWebArea "PsyToolkit run experiment" url="https://www.psytoolkit.org/library/experiment_tower_hanoi.html"
+  uid=g1:1_1 button "Click to start"
+help[2]:
+  Run `chrome-devtools-axi click @g1:1_1` to click the "Click to start" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

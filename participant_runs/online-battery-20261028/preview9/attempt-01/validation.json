@@ -1,0 +1,16 @@
+{
+  "status": "passed",
+  "native_rows": 55,
+  "native_trials": 12,
+  "nodes": 16,
+  "relations": 14,
+  "events": 19,
+  "exact_export_string_preserved": true,
+  "checks": [
+    "JSON and JSONL parse",
+    "node and evidence IDs unique",
+    "relation endpoints and evidence references resolve",
+    "evidence files exist",
+    "native export parsed without edits"
+  ]
+}

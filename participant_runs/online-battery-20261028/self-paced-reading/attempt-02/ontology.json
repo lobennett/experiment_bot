@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+    "title": "Self-paced reading"
+  },
+  "nodes": [],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "startup_error",
+      "path": "evidence/startup-error.txt",
+      "locator": "entire text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:58:44.659938+00:00",
+      "description": "Recorded transport exception before first task action."
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Could this transport complete the task?",
+      "reason": "Startup screenshot failed before first action."
+    }
+  ]
+}

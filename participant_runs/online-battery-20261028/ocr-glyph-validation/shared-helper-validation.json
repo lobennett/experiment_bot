@@ -1,0 +1,949 @@
+{
+  "helper_sha256": "e508df8a693db8eff31a16259d58008c5aa5c46bc7bb40741605ee3f1a43c49b",
+  "results": [
+    {
+      "expected": "g",
+      "source_sha256": "c5651b1f0b23d51c6c693fc058a15396ae1fd2a117d366dd1e7ca5ad572d33a1",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-1857233f96723708.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-1857233f96723708.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 160,
+              "width": 136,
+              "x": 416,
+              "y": 334
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "g"
+              }
+            ],
+            "confidence": 1,
+            "text": "g"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "g"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "v",
+      "source_sha256": "9aedbf0cdbb5b83ef383b85f047bba0df0cf1401cac9fccc6c67d302b96d27b9",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-0ab24edf988e0a6a.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-0ab24edf988e0a6a.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 120,
+              "width": 152,
+              "x": 400,
+              "y": 334
+            },
+            "candidates": [
+              {
+                "confidence": 0.5,
+                "text": "v"
+              }
+            ],
+            "confidence": 0.5,
+            "text": "v"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "v"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "t",
+      "source_sha256": "50662b4ec2b6a8516f97289602764241a45232a0b8ed6d327e6bd258e6a9f2ba",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-letter-t.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-letter-t.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 144,
+              "width": 135.99999999999997,
+              "x": 408,
+              "y": 310
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "t"
+              }
+            ],
+            "confidence": 1,
+            "text": "t"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "t"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "",
+      "source_sha256": "cbab7c830782703a99ed52ce41f3813ba38bfbc8e68c7afd52a9f752f36b1fa5",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-blank.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-blank.png",
+          "width": 960
+        },
+        "observations": [],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": ""
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "+",
+      "source_sha256": "c9f346a8995050f8bcf0b9e9638b8171e3df99b2a911bf349f43971ca0d8814b",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-fixation.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/fixture-fixation.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 128,
+              "width": 120.00000000000001,
+              "x": 416,
+              "y": 342
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "+"
+              }
+            ],
+            "confidence": 1,
+            "text": "+"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "+"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "B",
+      "source_sha256": "784a88a1e0cc0631fd0b19d1a74d8a43c8a1a331ecee3cf0d98346a97ecf84c6",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-37a69906a6888ae8.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-37a69906a6888ae8.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 144,
+              "width": 144,
+              "x": 408,
+              "y": 310
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "B"
+              }
+            ],
+            "confidence": 1,
+            "text": "B"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "B"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "G",
+      "source_sha256": "9b77e9d74b55b488fdafbf4466171afbc3a59ee143611c9adcbe2c636675ba71",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-a91aee5b26f5d21c.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-a91aee5b26f5d21c.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 144,
+              "width": 144,
+              "x": 408,
+              "y": 310
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "G"
+              }
+            ],
+            "confidence": 1,
+            "text": "G"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "G"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "V",
+      "source_sha256": "ec442438e9063b5174f1348639a895e4910a08938b8904edc9342f58ed4db92e",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-b3ba805a0728c10e.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-b3ba805a0728c10e.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 144,
+              "width": 160,
+              "x": 400,
+              "y": 310
+            },
+            "candidates": [
+              {
+                "confidence": 0.5,
+                "text": "v"
+              }
+            ],
+            "confidence": 0.5,
+            "text": "v"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "v"
+      },
+      "stderr": "",
+      "exact_match": false,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "D",
+      "source_sha256": "3d45b9ec572fa4bd8cff7bfc7f72223acb18cb6d30f564c798a4d010ca8602fa",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-ed9885c8140086af.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-ed9885c8140086af.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 144,
+              "width": 144,
+              "x": 408,
+              "y": 310
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "D"
+              }
+            ],
+            "confidence": 1,
+            "text": "D"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "D"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "b",
+      "source_sha256": "a733ef30bf2ec564c184fcb05e0889489b906bba12177026ce25708aff6256f2",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-fc96e965416a4309.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-fc96e965416a4309.png",
+          "width": 960
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 152,
+              "width": 144,
+              "x": 408,
+              "y": 302
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "b"
+              }
+            ],
+            "confidence": 1,
+            "text": "b"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": "b"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "",
+      "source_sha256": "cbab7c830782703a99ed52ce41f3813ba38bfbc8e68c7afd52a9f752f36b1fa5",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-f1ad1490970b19af.png",
+        "--crop",
+        "320",
+        "250",
+        "320",
+        "320",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 800,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-05/evidence/pixel-f1ad1490970b19af.png",
+          "width": 960
+        },
+        "observations": [],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 320,
+          "width": 320,
+          "x": 320,
+          "y": 250
+        },
+        "text": ""
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "t",
+      "source_sha256": "8a89b44d24dd86afde66cafe2c5e7fb17ba22948e7d93cf36b9b0d926bc232a2",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/009-current.png",
+        "--crop",
+        "600",
+        "413",
+        "80",
+        "80",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 900,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/009-current.png",
+          "width": 1280
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 36.00000000000001,
+              "width": 33.99999999999999,
+              "x": 622,
+              "y": 426
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "t"
+              }
+            ],
+            "confidence": 1,
+            "text": "t"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 80,
+          "width": 80,
+          "x": 600,
+          "y": 413
+        },
+        "text": "t"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "",
+      "source_sha256": "8a89b44d24dd86afde66cafe2c5e7fb17ba22948e7d93cf36b9b0d926bc232a2",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/009-current.png",
+        "--crop",
+        "280",
+        "413",
+        "80",
+        "80",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 900,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/009-current.png",
+          "width": 1280
+        },
+        "observations": [],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 80,
+          "width": 80,
+          "x": 280,
+          "y": 413
+        },
+        "text": ""
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "+",
+      "source_sha256": "9a74d837628d804dce1b79619c5115d76354760e179e327449bf9a9d413cb58c",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/007-practice-start.png",
+        "--crop",
+        "600",
+        "413",
+        "80",
+        "80",
+        "--fast"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 900,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/preview5/attempt-04/evidence/007-practice-start.png",
+          "width": 1280
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 32,
+              "width": 30.000000000000004,
+              "x": 624,
+              "y": 436
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "+"
+              }
+            ],
+            "confidence": 1,
+            "text": "+"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "fast",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 80,
+          "width": 80,
+          "x": 600,
+          "y": 413
+        },
+        "text": "+"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "Mary",
+      "source_sha256": "e7b887ab74c7ade15a83988fbd560e73160cb9d287e4c8d29b4e8f1dbed6c289",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/self-paced-reading/attempt-01/evidence/05_word.png"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 900,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/self-paced-reading/attempt-01/evidence/05_word.png",
+          "width": 1200
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 54.00000000000005,
+              "width": 120,
+              "x": 252.00000075,
+              "y": 239.99999993749995
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "Mary"
+              }
+            ],
+            "confidence": 1,
+            "text": "Mary"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "accurate",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 900,
+          "width": 1200,
+          "x": 0,
+          "y": 0
+        },
+        "text": "Mary"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "",
+      "source_sha256": "14b3bbd2556dca68873115706c2bbcc1b07c8dfe1a4776f9117fd73306deb2bb",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/tower-hanoi/attempt-02/evidence/001_click_text.png"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 900,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/tower-hanoi/attempt-02/evidence/001_click_text.png",
+          "width": 1200
+        },
+        "observations": [],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "accurate",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 900,
+          "width": 1200,
+          "x": 0,
+          "y": 0
+        },
+        "text": ""
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    },
+    {
+      "expected": "is",
+      "source_sha256": "ef8d65825b90bdd029e72aaaeca3a68710b7ef116dd7a67d1f2729fca6261183",
+      "source_unchanged": true,
+      "command": [
+        "/private/tmp/experiment-bot-ocr",
+        "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/self-paced-reading/attempt-04/evidence/053_frame.png",
+        "--crop",
+        "20",
+        "70",
+        "760",
+        "110"
+      ],
+      "output": {
+        "coordinate_system": "source_pixels_top_left",
+        "image": {
+          "height": 600,
+          "path": "/Users/lobennett/grants/r01_rdoc/projects/experiment_bot/participant_runs/online-battery-20261028/self-paced-reading/attempt-04/evidence/053_frame.png",
+          "width": 800
+        },
+        "observations": [
+          {
+            "box": {
+              "height": 38,
+              "width": 42.00000000000001,
+              "x": 45.999999737500005,
+              "y": 105.99999976250001
+            },
+            "candidates": [
+              {
+                "confidence": 1,
+                "text": "is"
+              }
+            ],
+            "confidence": 1,
+            "text": "is"
+          }
+        ],
+        "recognition": {
+          "language_correction": false,
+          "languages": [
+            "en_US"
+          ],
+          "level": "accurate",
+          "minimum_text_height": 0,
+          "revision": 3
+        },
+        "region": {
+          "height": 110,
+          "width": 760,
+          "x": 20,
+          "y": 70
+        },
+        "text": "is"
+      },
+      "stderr": "",
+      "exact_match": true,
+      "case_insensitive_match": true
+    }
+  ],
+  "fast_exact_passed": 13,
+  "fast_total": 14,
+  "fast_case_insensitive_passed": 14,
+  "default_compatibility_passed": 3,
+  "default_total": 3
+}

@@ -1,0 +1,28 @@
+{
+  "status": "passed",
+  "checked_at": "2026-10-28T21:28:50.651208+00:00",
+  "checks": [
+    "Both JSON artifacts and every JSONL line parsed",
+    "Native export parsed and contains four trial records plus completed=true",
+    "Unique node/evidence IDs and valid relation endpoints",
+    "Evidence, event and completion references resolve to existing files",
+    "Event indices strictly increase and phase IDs resolve",
+    "Observed actions agree with reported counts",
+    "Terminal evidence contains Task complete",
+    "Native export bytes equal exact decoded visible-panel text",
+    "All five screenshots are valid PNG files with dimensions matching manifest",
+    "Summary links resolve",
+    "Skill hashes match files used at run start",
+    "Finalized artifact hashes verified after manifest creation"
+  ],
+  "corrections_during_validation": [
+    "Initial estimated screenshot height was 2030; PNG header inspection established 2029 and the manifest was corrected. No task actions or native data changed."
+  ],
+  "counts": {
+    "nodes": 21,
+    "evidence": 23,
+    "relations": 18,
+    "events": 32,
+    "native_trial_records": 4
+  }
+}

@@ -1,0 +1,12 @@
+page:
+  title: The Experiment Factory
+  refs: 5
+snapshot:
+uid=g6:1_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/10/"
+  uid=g6:6_0 "We'll start with a practice round. During practice, you will receive feedback and a reminder of the rules. These will be taken out for the test, so make sure you understand the instructions before moving on."
+  uid=g6:6_1 "Try to respond as quickly and accurately as possible."
+  uid=g6:6_2 button "< Previous" disableable disabled
+  uid=g6:6_3 button "Next >"
+help[2]:
+  Run `chrome-devtools-axi click @g6:6_2` to click the "< Previous" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

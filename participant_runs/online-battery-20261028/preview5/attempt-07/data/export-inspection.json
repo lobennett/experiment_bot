@@ -1,0 +1,169 @@
+{
+  "inspected_at": "2026-10-28T23:07:42.243720+00:00",
+  "native_rows": 485,
+  "trial_id_counts": {
+    "None": 2,
+    "instruction_feedback": 1,
+    "instructions": 2,
+    "practice_feedback": 15,
+    "practice_fixation": 13,
+    "practice_trial": 13,
+    "practice_ITI": 13,
+    "test_feedback": 10,
+    "test_attention_check": 10,
+    "test_fixation": 135,
+    "test_trial": 135,
+    "test_ITI": 135,
+    "end": 1
+  },
+  "response_bearing_phases": {
+    "practice_trial": {
+      "opportunities": 13,
+      "responses": 13,
+      "omissions": 0,
+      "native_scored_correct": 13,
+      "native_scored_incorrect": 0,
+      "unknown_correctness": 0,
+      "incorrect_delivered_responses": 0
+    },
+    "test_trial": {
+      "opportunities": 135,
+      "responses": 135,
+      "omissions": 0,
+      "native_scored_correct": 135,
+      "native_scored_incorrect": 0,
+      "unknown_correctness": 0,
+      "incorrect_delivered_responses": 0
+    },
+    "test_attention_check": {
+      "opportunities": 10,
+      "responses": 4,
+      "omissions": 6,
+      "native_scored_correct": 4,
+      "native_scored_incorrect": 6,
+      "unknown_correctness": 0,
+      "incorrect_delivered_responses": 0
+    }
+  },
+  "letter_phases_by_delay": {
+    "practice_trial_delay_1": {
+      "opportunities": 6,
+      "responses": 6,
+      "correct": 6,
+      "omissions": 0
+    },
+    "practice_trial_delay_2": {
+      "opportunities": 7,
+      "responses": 7,
+      "correct": 7,
+      "omissions": 0
+    },
+    "test_trial_delay_1": {
+      "opportunities": 65,
+      "responses": 65,
+      "correct": 65,
+      "omissions": 0
+    },
+    "test_trial_delay_2": {
+      "opportunities": 70,
+      "responses": 70,
+      "correct": 70,
+      "omissions": 0
+    }
+  },
+  "attention_checks": [
+    {
+      "trial_index": 59,
+      "block_num": 0,
+      "attention_check_question": "<p class='block-text'>Press the t key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": "t",
+      "correct_trial": 1,
+      "rt": 7134,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 100,
+      "block_num": 1,
+      "attention_check_question": "<p class='block-text'>Press the key for the third letter of the English alphabet.</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": "c",
+      "correct_trial": 1,
+      "rt": 6260,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 144,
+      "block_num": 2,
+      "attention_check_question": "<p class='block-text'>Press the s key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": "s",
+      "correct_trial": 1,
+      "rt": 6279,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 185,
+      "block_num": 3,
+      "attention_check_question": "<p class='block-text'>Press the u key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": "u",
+      "correct_trial": 1,
+      "rt": 7679,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 229,
+      "block_num": 4,
+      "attention_check_question": "<p class='block-text'>Press the m key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 270,
+      "block_num": 5,
+      "attention_check_question": "<p class='block-text'>Press the j key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 314,
+      "block_num": 6,
+      "attention_check_question": "<p class='block-text'>Press the e key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 355,
+      "block_num": 7,
+      "attention_check_question": "<p class='block-text'>Press the q key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 399,
+      "block_num": 8,
+      "attention_check_question": "<p class='block-text'>Press the r key</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    },
+    {
+      "trial_index": 440,
+      "block_num": 9,
+      "attention_check_question": "<p class='block-text'>Press the key for the second letter of the English alphabet.</p> <div class=block-text>This screen will advance automatically in 15 seconds. Do not press shift.</div>",
+      "response": null,
+      "correct_trial": 0,
+      "rt": null,
+      "trial_duration": 15000
+    }
+  ],
+  "correctness_note": "Native correct_trial=0 on omitted checks is retained as a native score; omissions are separately counted and are not described as incorrect delivered responses.",
+  "original_export_sha256": "a58503cdf7c5f4313f48b78995f3f99ca7ee0e77838ba91894244c42f885736a",
+  "original_export_unchanged": true
+}

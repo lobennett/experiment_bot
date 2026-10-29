@@ -1,0 +1,39 @@
+{
+  "recorded_at": "2026-10-28T21:44:39.089036+00:00",
+  "purpose": "Evaluate browser task operation and refine mechanical skill design; no human behavioral validity claim.",
+  "selection_basis": "User supplied the first two URLs. Additional tasks were selected for distinct visible interaction and memory requirements before their run outcomes.",
+  "completion_criterion": "Observed terminal state supported by evidence; data availability, omissions, correctness, and execution mode reported separately.",
+  "preservation": "Keep every attempt, failed candidate, protocol snapshot, and native export. Never select only successful runs.",
+  "tasks": [
+    {
+      "id": "preview9",
+      "url": "https://deploy.expfactory.org/preview/9/",
+      "coverage": "response interruption"
+    },
+    {
+      "id": "preview10",
+      "url": "https://deploy.expfactory.org/preview/10/",
+      "coverage": "color-based keyed discrimination"
+    },
+    {
+      "id": "tower-hanoi",
+      "url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+      "coverage": "spatial planning and canvas pointer input"
+    },
+    {
+      "id": "paced-reading",
+      "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "coverage": "self-paced sequential reading"
+    },
+    {
+      "id": "preview5",
+      "url": "https://deploy.expfactory.org/preview/5/",
+      "coverage": "task-history memory"
+    },
+    {
+      "id": "preview28",
+      "url": "https://deploy.expfactory.org/preview/28/",
+      "coverage": "visual search and spatial perception"
+    }
+  ]
+}

@@ -1,0 +1,561 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/9/",
+    "title": "Shape responses with star withholding"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Task instructions",
+      "attributes": {
+        "active_fullscreen_required": true,
+        "announced_duration_minutes": 10
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "05_instructions"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "feedback_and_rule_reminders": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "08_instructions_next",
+        "10_start_practice"
+      ]
+    },
+    {
+      "id": "circle",
+      "kind": "stimulus",
+      "label": "Circle",
+      "attributes": {
+        "presentation": "one shape at a time",
+        "basis": "described by instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "id": "square",
+      "kind": "stimulus",
+      "label": "Square",
+      "attributes": {
+        "presentation": "one shape at a time",
+        "also_visually_observed": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin",
+        "image_11_practice"
+      ]
+    },
+    {
+      "id": "comma",
+      "kind": "response",
+      "label": "Comma key",
+      "attributes": {
+        "key": ","
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "id": "period",
+      "kind": "response",
+      "label": "Period key",
+      "attributes": {
+        "key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "id": "circle_rule",
+      "kind": "rule",
+      "label": "Circle response mapping",
+      "attributes": {
+        "when": "circle appears",
+        "response": ",",
+        "scope": "task"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "id": "square_rule",
+      "kind": "rule",
+      "label": "Square response mapping",
+      "attributes": {
+        "when": "square appears",
+        "response": ".",
+        "scope": "task"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "id": "star",
+      "kind": "stimulus",
+      "label": "Star around shape",
+      "attributes": {
+        "onset": "with or shortly after shape",
+        "basis": "instructions; star not visually captured"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_instructions_next"
+      ]
+    },
+    {
+      "id": "withhold",
+      "kind": "response",
+      "label": "Withhold response",
+      "attributes": {
+        "key": null
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_instructions_next"
+      ]
+    },
+    {
+      "id": "star_rule",
+      "kind": "rule",
+      "label": "Withhold when star appears",
+      "attributes": {
+        "when": "star appears",
+        "instruction": "try to withhold; do not slow to wait for star"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_instructions_next"
+      ]
+    },
+    {
+      "id": "fixation",
+      "kind": "stimulus",
+      "label": "Fixation cross",
+      "attributes": {
+        "visible_text": "+"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "10_start_practice",
+        "13_practice_current"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Practice feedback",
+      "attributes": {
+        "reports": "low accuracy and omitted required responses",
+        "automatic_advance_seconds": 30,
+        "announces_practice_repeat": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "14_practice_feedback",
+        "image_15_practice"
+      ]
+    },
+    {
+      "id": "deadline",
+      "kind": "timing",
+      "label": "Native practice timing",
+      "attributes": {
+        "trial_duration_ms": 1500,
+        "stimulus_duration_ms": 1000,
+        "known_only_after_participation": "native export"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "id": "repeat",
+      "kind": "phase",
+      "label": "Automatic practice repetition",
+      "attributes": {
+        "observed_blocks_in_export": [
+          0,
+          1
+        ],
+        "agent_did_not_request_restart": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "14_practice_feedback",
+        "native_data"
+      ]
+    },
+    {
+      "id": "direct_latency",
+      "kind": "constraint",
+      "label": "Direct loop cannot service observed windows",
+      "attributes": {
+        "reason": "A square was visible in the first screenshot, absent in the next; native feedback reported omitted responses. No trial key could be grounded in a still-current observation."
+      },
+      "status": "inferred",
+      "evidence_refs": [
+        "image_11_practice",
+        "image_12_practice",
+        "14_practice_feedback",
+        "native_data"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "circle_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin",
+        "07_instructions_next"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "square_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin",
+        "07_instructions_next"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "star_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin",
+        "07_instructions_next"
+      ]
+    },
+    {
+      "subject": "circle_rule",
+      "predicate": "matches",
+      "object": "circle",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "subject": "circle_rule",
+      "predicate": "requires",
+      "object": "comma",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "subject": "square_rule",
+      "predicate": "matches",
+      "object": "square",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "subject": "square_rule",
+      "predicate": "requires",
+      "object": "period",
+      "status": "observed",
+      "evidence_refs": [
+        "06_begin"
+      ]
+    },
+    {
+      "subject": "star_rule",
+      "predicate": "matches",
+      "object": "star",
+      "status": "observed",
+      "evidence_refs": [
+        "07_instructions_next"
+      ]
+    },
+    {
+      "subject": "star_rule",
+      "predicate": "requires",
+      "object": "withhold",
+      "status": "observed",
+      "evidence_refs": [
+        "07_instructions_next"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "presents",
+      "object": "square",
+      "status": "observed",
+      "evidence_refs": [
+        "image_11_practice"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "presents",
+      "object": "fixation",
+      "status": "observed",
+      "evidence_refs": [
+        "10_start_practice"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "followed_by",
+      "object": "feedback",
+      "status": "observed",
+      "evidence_refs": [
+        "14_practice_feedback"
+      ]
+    },
+    {
+      "subject": "feedback",
+      "predicate": "announces",
+      "object": "repeat",
+      "status": "observed",
+      "evidence_refs": [
+        "14_practice_feedback"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "has_timing",
+      "object": "deadline",
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:32:33.506239+00:00",
+      "description": "Result of open in isolated browser session"
+    },
+    {
+      "id": "02_fullscreen",
+      "path": "evidence/02_fullscreen.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:32:43.677544+00:00",
+      "description": "Result of click in isolated browser session"
+    },
+    {
+      "id": "03_refresh",
+      "path": "evidence/03_refresh.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:32:49.156486+00:00",
+      "description": "Result of snapshot in isolated browser session"
+    },
+    {
+      "id": "04_fullscreen",
+      "path": "evidence/04_fullscreen.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:32:55.572891+00:00",
+      "description": "Result of click in isolated browser session"
+    },
+    {
+      "id": "05_instructions",
+      "path": "evidence/05_instructions.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:00.616091+00:00",
+      "description": "Result of snapshot in isolated browser session"
+    },
+    {
+      "id": "06_begin",
+      "path": "evidence/06_begin.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:04.873016+00:00",
+      "description": "Result of press in isolated browser session"
+    },
+    {
+      "id": "07_instructions_next",
+      "path": "evidence/07_instructions_next.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:09.428216+00:00",
+      "description": "Result of click in isolated browser session"
+    },
+    {
+      "id": "08_instructions_next",
+      "path": "evidence/08_instructions_next.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:21.616754+00:00",
+      "description": "Result of click in isolated browser session"
+    },
+    {
+      "id": "09_practice_ready",
+      "path": "evidence/09_practice_ready.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:37.844535+00:00",
+      "description": "Result of click in isolated browser session"
+    },
+    {
+      "id": "10_start_practice",
+      "path": "evidence/10_start_practice.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:44.374768+00:00",
+      "description": "Result of press in isolated browser session"
+    },
+    {
+      "id": "11_practice_screen",
+      "path": "evidence/11_practice_screen.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:45.651238+00:00",
+      "description": "Result of screenshot in isolated browser session"
+    },
+    {
+      "id": "12_practice_current",
+      "path": "evidence/12_practice_current.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:50.819749+00:00",
+      "description": "Result of screenshot in isolated browser session"
+    },
+    {
+      "id": "13_practice_current",
+      "path": "evidence/13_practice_current.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:56.237456+00:00",
+      "description": "Result of snapshot in isolated browser session"
+    },
+    {
+      "id": "14_practice_feedback",
+      "path": "evidence/14_practice_feedback.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:15.976138+00:00",
+      "description": "Result of snapshot in isolated browser session"
+    },
+    {
+      "id": "15_practice_feedback",
+      "path": "evidence/15_practice_feedback.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:17.234337+00:00",
+      "description": "Result of screenshot in isolated browser session"
+    },
+    {
+      "id": "16_native_export",
+      "path": "evidence/16_native_export.txt",
+      "locator": "entire tool output",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:34:49.132710+00:00",
+      "description": "Result of eval in isolated browser session"
+    },
+    {
+      "id": "17_native_export_full",
+      "path": "evidence/17_native_export_full.txt",
+      "locator": "entire tool output",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:34:57.242523+00:00",
+      "description": "Result of eval in isolated browser session"
+    },
+    {
+      "id": "18_pages",
+      "path": "evidence/18_pages.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:58.444521+00:00",
+      "description": "Result of pages in isolated browser session"
+    },
+    {
+      "id": "19_close",
+      "path": "evidence/19_close.txt",
+      "locator": "entire tool output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:35:08.705492+00:00",
+      "description": "Result of closepage in isolated browser session"
+    },
+    {
+      "id": "image_11_practice",
+      "path": "evidence/11_practice.png",
+      "locator": "entire screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:33:45.651238+00:00",
+      "description": "Participant-visible practice screen"
+    },
+    {
+      "id": "image_12_practice",
+      "path": "evidence/12_practice.png",
+      "locator": "entire screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:33:50.819749+00:00",
+      "description": "Participant-visible practice screen"
+    },
+    {
+      "id": "image_15_practice",
+      "path": "evidence/15_practice.png",
+      "locator": "entire screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:34:17.234337+00:00",
+      "description": "Participant-visible practice screen"
+    },
+    {
+      "id": "native_data",
+      "path": "data/experiment_data.json",
+      "locator": "all rows; practice_trial rows for response records",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:34:57.242523+00:00",
+      "description": "Exact json string from jsPsych.data.get().json(), read only after participation was abandoned"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Can the main test be completed with this skill mode?",
+      "reason": "Direct browser participation failed during practice; main test was not reached.",
+      "related_ids": [
+        "practice",
+        "direct_latency"
+      ]
+    },
+    {
+      "question": "What is the terminal completion screen?",
+      "reason": "Not reached."
+    },
+    {
+      "question": "What randomization procedure generated the sequence?",
+      "reason": "Task source and hidden state were not inspected."
+    }
+  ]
+}

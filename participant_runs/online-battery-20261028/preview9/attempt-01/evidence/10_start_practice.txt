@@ -1,0 +1,11 @@
+page:
+  title: The Experiment Factory
+  refs: 5
+snapshot:
+uid=g9:1_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/9/"
+  uid=g9:9_0 "+"
+  uid=g9:9_1 "circle: comma key (,)"
+  uid=g9:9_2 "square: period key (.)"
+  uid=g9:9_3 "Do not respond if a star appears."
+help[1]:
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

@@ -1,0 +1,31 @@
+[
+  {
+    "adapter": "ocr-fast",
+    "recognized": [],
+    "duration_ms": 192.79375002952293,
+    "exit_code": 0
+  },
+  {
+    "adapter": "ocr-language",
+    "recognized": [],
+    "duration_ms": 499.31404198287055,
+    "exit_code": 0
+  },
+  {
+    "adapter": "ocr-crop",
+    "recognized": [
+      {
+        "bbox": [
+          0.10833333223958336,
+          0.2600000023749999,
+          0.175,
+          0.3800000000000001
+        ],
+        "confidence": 1,
+        "text": "is"
+      }
+    ],
+    "duration_ms": 592.9089999990538,
+    "exit_code": 0
+  }
+]

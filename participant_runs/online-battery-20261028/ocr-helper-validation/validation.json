@@ -1,0 +1,72 @@
+{
+  "status": "passed",
+  "helper": "skills/behavioral-participant/scripts/ocr.swift",
+  "helper_sha256": "cc5c1337d989000c1d1ae1760d14985720fd524c1d2d62c17f6ac7c67cf545c5",
+  "compile": "swiftc -module-cache-path /private/tmp/eb-ocr-module-cache skills/behavioral-participant/scripts/ocr.swift -o /private/tmp/experiment-bot-ocr",
+  "tests": [
+    {
+      "name": "visible_word",
+      "chunk_id": "00071b",
+      "wall_time_seconds": 0.741814458,
+      "exit_code": 0,
+      "original_token_count": 125,
+      "output": "{\"coordinate_system\":\"source_pixels_top_left\",\"image\":{\"height\":900,\"path\":\"\\/Users\\/lobennett\\/grants\\/r01_rdoc\\/projects\\/experiment_bot\\/participant_runs\\/online-battery-20261028\\/self-paced-reading\\/attempt-01\\/evidence\\/05_word.png\",\"width\":1200},\"observations\":[{\"box\":{\"height\":54.00000000000005,\"width\":120,\"x\":252.00000075,\"y\":239.99999993749995},\"candidates\":[{\"confidence\":1,\"text\":\"Mary\"}],\"confidence\":1,\"text\":\"Mary\"}],\"region\":{\"height\":900,\"width\":1200,\"x\":0,\"y\":0},\"text\":\"Mary\"}\n"
+    },
+    {
+      "name": "blank",
+      "chunk_id": "d84a83",
+      "wall_time_seconds": 0.367803667,
+      "exit_code": 0,
+      "original_token_count": 83,
+      "output": "{\"coordinate_system\":\"source_pixels_top_left\",\"image\":{\"height\":900,\"path\":\"\\/Users\\/lobennett\\/grants\\/r01_rdoc\\/projects\\/experiment_bot\\/participant_runs\\/online-battery-20261028\\/tower-hanoi\\/attempt-02\\/evidence\\/001_click_text.png\",\"width\":1200},\"observations\":[],\"region\":{\"height\":900,\"width\":1200,\"x\":0,\"y\":0},\"text\":\"\"}\n"
+    },
+    {
+      "name": "cropped_short_word",
+      "chunk_id": "88dea1",
+      "wall_time_seconds": 0.554202834,
+      "exit_code": 0,
+      "original_token_count": 125,
+      "output": "{\"coordinate_system\":\"source_pixels_top_left\",\"image\":{\"height\":600,\"path\":\"\\/Users\\/lobennett\\/grants\\/r01_rdoc\\/projects\\/experiment_bot\\/participant_runs\\/online-battery-20261028\\/self-paced-reading\\/attempt-04\\/evidence\\/053_frame.png\",\"width\":800},\"observations\":[{\"box\":{\"height\":38,\"width\":42.000000000000007,\"x\":45.999999737500005,\"y\":105.99999976250001},\"candidates\":[{\"confidence\":1,\"text\":\"is\"}],\"confidence\":1,\"text\":\"is\"}],\"region\":{\"height\":110,\"width\":760,\"x\":20,\"y\":70},\"text\":\"is\"}\n"
+    },
+    {
+      "name": "invalid_negative_crop",
+      "chunk_id": "5bad23",
+      "wall_time_seconds": 0.23108675,
+      "exit_code": 1,
+      "original_token_count": 20,
+      "output": "OCR error: Crop must be positive integer dimensions inside the source image.\n"
+    },
+    {
+      "name": "invalid_oversize_crop",
+      "chunk_id": "df7113",
+      "wall_time_seconds": 0.112417291,
+      "exit_code": 1,
+      "original_token_count": 20,
+      "output": "OCR error: Crop must be positive integer dimensions inside the source image.\n"
+    }
+  ],
+  "source_hashes_before": {
+    "participant_runs/online-battery-20261028/self-paced-reading/attempt-01/evidence/05_word.png": "e7b887ab74c7ade15a83988fbd560e73160cb9d287e4c8d29b4e8f1dbed6c289",
+    "participant_runs/online-battery-20261028/tower-hanoi/attempt-02/evidence/001_click_text.png": "14b3bbd2556dca68873115706c2bbcc1b07c8dfe1a4776f9117fd73306deb2bb",
+    "participant_runs/online-battery-20261028/self-paced-reading/attempt-04/evidence/053_frame.png": "ef8d65825b90bdd029e72aaaeca3a68710b7ef116dd7a67d1f2729fca6261183"
+  },
+  "source_hashes_after": {
+    "participant_runs/online-battery-20261028/self-paced-reading/attempt-01/evidence/05_word.png": "e7b887ab74c7ade15a83988fbd560e73160cb9d287e4c8d29b4e8f1dbed6c289",
+    "participant_runs/online-battery-20261028/tower-hanoi/attempt-02/evidence/001_click_text.png": "14b3bbd2556dca68873115706c2bbcc1b07c8dfe1a4776f9117fd73306deb2bb",
+    "participant_runs/online-battery-20261028/self-paced-reading/attempt-04/evidence/053_frame.png": "ef8d65825b90bdd029e72aaaeca3a68710b7ef116dd7a67d1f2729fca6261183"
+  },
+  "checks": [
+    "visible full screenshot recognized Mary",
+    "blank screenshot yields zero observations",
+    "explicit crop recognizes is",
+    "source coordinates correctly offset crop box",
+    "negative crop rejected",
+    "out-of-bounds crop rejected",
+    "source image SHA-256 values unchanged"
+  ],
+  "limits": [
+    "macOS Vision required",
+    "OCR may miss small text without an observation-derived crop",
+    "Fixture success does not establish universal OCR accuracy"
+  ]
+}

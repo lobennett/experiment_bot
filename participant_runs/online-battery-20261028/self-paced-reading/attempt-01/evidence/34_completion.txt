@@ -1,0 +1,19 @@
+page:
+  title: PsyToolkit run experiment
+  refs: 8
+snapshot:
+uid=g31:4_0 RootWebArea "PsyToolkit run experiment" url="https://www.psytoolkit.org/library/experiment_pacedreading1.html"
+  uid=g31:31_0 LineBreak "
+"
+  uid=g31:31_1 LineBreak "
+"
+  uid=g31:31_2 button "Show data"
+  uid=g31:31_3 "  "
+  uid=g31:31_4 button "Copy data to clipboard"
+  uid=g31:31_5 LineBreak "
+"
+  uid=g31:31_6 LineBreak "
+"
+help[2]:
+  Run `chrome-devtools-axi click @g31:31_2` to click the "Show data" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

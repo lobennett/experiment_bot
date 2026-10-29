@@ -1,0 +1,21 @@
+{
+  "evidence": [
+    {
+      "image": "evidence/pixel-1857233f96723708.png",
+      "agent_visible_reading": "g",
+      "ocr_result": "no text"
+    },
+    {
+      "image": "evidence/pixel-0ab24edf988e0a6a.png",
+      "agent_visible_reading": "v",
+      "ocr_result": "no text"
+    }
+  ],
+  "action": "Stop after repeated omission feedback; no policy change or further live restart.",
+  "limitations": [
+    "An empty OCR result can reflect a visible glyph, not absence.",
+    "Screenshot and DOM observation are sequential; feedback can replace a glyph between them. Both images and text are archived.",
+    "Policy memory includes recognized glyphs only; an omitted observation can therefore shift the history needed for later comparisons."
+  ],
+  "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793"
+}

@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview5-attempt-02",
+  "mode": "direct_browser",
+  "input_url": "https://deploy.expfactory.org/preview/5/",
+  "final_url": "https://deploy.expfactory.org/preview/5/",
+  "started_at": "2026-10-28T22:20:37.730313+00:00",
+  "ended_at": "2026-10-28T22:23:25.376886+00:00",
+  "status": "blocked",
+  "status_reason": "Persistent driver stdin reached EOF in non-PTY execution immediately after initial fullscreen capture; no task responses delivered.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null,
+    "reported_family": "GPT-6, from developer description; exact runtime identifier unavailable"
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview5"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+  },
+  "reproducibility": "Direct agent session; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "unavailable",
+    "paths": [],
+    "reason": "Browser closed during setup, before any task response."
+  },
+  "submission": {
+    "status": "unconfirmed",
+    "reason": null
+  },
+  "counts": {
+    "observed_response_opportunities": 0,
+    "actions": 0,
+    "native_trial_rows": null
+  },
+  "limitations": [
+    "Chromium launch requires sandbox escalation.",
+    "Non-PTY stdin was closed immediately, so driver exited after initial observation."
+  ],
+  "artifacts_sha256": {
+    "events.jsonl": "8a530d9e82874c6a8236e7e623b7e919e02e25db8804f2733dda04fbde49a867",
+    "evidence/001-initial.json": "3b4d39a7bc202059edfc373dc325dffb7b91622b1e7553a8452c8f1f86ae4530",
+    "evidence/001-initial.png": "032e165b3677d049654b7e8cf1beb3c325b6f6beeee803b5caf74bdfd99cc91f",
+    "evidence/setup-failures.txt": "b028d5c204aa87653f66d4fad7ca21888845c9d7f7e6c6beab17907b41e87b65",
+    "ontology.json": "a251173025e3d28315046144ff29bcf9c104fe7b3084912542c227d2fb122a75",
+    "policy/driver.py": "34da3ee1eb860061e51eb32d9159cd21322879058d3b25195e4311e78b4fa0dd",
+    "protocol/SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "protocol/artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "protocol/execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "protocol/scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9",
+    "summary.md": "1f2ad539c43102394a4c43b258d4261434d0a1310b04154c7254e1adbd567706"
+  },
+  "parent_attempt": "../attempt-01",
+  "full_transcript_path": null,
+  "seed": null
+}

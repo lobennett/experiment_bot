@@ -1,0 +1,68 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview10-attempt-04",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/10/",
+  "final_url": "https://deploy.expfactory.org/preview/10/",
+  "started_at": "2026-10-28T21:57:53.480212+00:00",
+  "ended_at": "2026-10-28T22:04:44.362044+00:00",
+  "status": "blocked",
+  "status_reason": "Transport preflight passed, but policy source injection failed before fullscreen/task participation: SyntaxError Unexpected token if.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "Playwright Python",
+    "isolation": "Dedicated Chromium launch; unique temporary profile",
+    "version": null
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+  },
+  "seed": {
+    "value": null,
+    "scope": "Policy uses no randomness; deterministic given observation history."
+  },
+  "reproducibility": "Policy is deterministic given visible observation history; live browser timing and task randomization are not deterministically replayed.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "unavailable",
+    "paths": [],
+    "reason": "Policy injection failed before task participation; browser closed on process exit."
+  },
+  "counts": {
+    "response_actions": 0
+  },
+  "limitations": [
+    "Explicit policy prompt is not a complete isolated model generation transcript; authoring inherited agent context."
+  ],
+  "artifacts_sha256": {
+    "driver.py": "c1964095c14bb616552dc8c2b1fa02772b1a1add21b5eae777708bcf45f2ac1e",
+    "events.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/injection_failure.txt": "513ed1a056775a65da1bdc2f8f599824ed18ab40cb7e2caf9e056953988b23de",
+    "ontology.json": "8a3a2ef389e4afdfb6fa47ed5f49eedd7b16c66ba09d929044ba77a6f3b205ac",
+    "policy/adapter_gate.json": "b8a31d4c3e29c2ac04f224f3362854cfa97e9c32c624afa1768b81326402d04f",
+    "policy/authoring_prompt.md": "86c99d64ef2e9d885b0501e534a6d846abaa2e58dc6ca9f7d7e273d94e090cac",
+    "policy/gate.cjs": "7b701212cf4edb7de8ce6f4b650da567d247c94b49feca98fe346dc3690df99d",
+    "policy/gate.json": "c79248d3fec4fa0d1f0d877f0d7fc45af0d709c340afb73960516900398e02be",
+    "policy/participant.js": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+    "protocol/SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "summary.md": "d8f11f0197800a2bbd9b709af546f4ed086a89e42fe1ff360810c3bb989ada62"
+  },
+  "parent_attempt": "../attempt-03",
+  "policy_path": "policy/participant.js",
+  "authoring_prompt_path": "policy/authoring_prompt.md",
+  "gate_report_path": "policy/gate.json",
+  "input_delivery": "Playwright page.keyboard.press",
+  "observation_interface": "Visible rendered text, computed color, geometry and displayed DOM boundary; no task state or native data during participation.",
+  "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+  "authoring_context": "inherited_agent_context",
+  "authoring_transcript_path": null
+}

@@ -1,0 +1,9 @@
+.DS_Store
+/.venv/
+/skills/**/__pycache__/
+/skills/**/*.pyc
+.pytest_cache/
+
+# Preserve files covered by the archived run manifests.
+!/participant_runs/online-battery-20261028/**/__pycache__/
+!/participant_runs/online-battery-20261028/**/*.pyc

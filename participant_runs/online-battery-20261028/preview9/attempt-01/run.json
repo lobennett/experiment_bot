@@ -1,0 +1,87 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview9-attempt-01",
+  "mode": "direct_browser",
+  "input_url": "https://deploy.expfactory.org/preview/9/",
+  "final_url": "https://deploy.expfactory.org/preview/9/",
+  "started_at": "2026-10-28T21:32:31.019572+00:00",
+  "ended_at": "2026-10-28T21:36:41.073118+00:00",
+  "status": "partial",
+  "status_reason": "Practice advanced faster than direct screenshot/inference/action could respond. Native feedback reported omissions. Participation ended and the task tab was closed; terminal task completion was not reached.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview9",
+    "version": null
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+  },
+  "seed": null,
+  "reproducibility": "Direct agent decisions are not deterministically replayable.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Partial native records captured via documented read-only jsPsych.data.get().json() after ending participation; API documentation https://www.jspsych.org/6.3/core_library/jspsych-data/#jspsychdataget. Exact returned JSON string retained."
+  },
+  "counts": {
+    "visually_identified_response_opportunities": 1,
+    "response_actions": 0,
+    "navigation_actions": 7,
+    "native_export_rows": 55,
+    "native_export_trial_rows": 12,
+    "native_go_trials": 8,
+    "native_go_omissions": 8,
+    "events": 19
+  },
+  "limitations": [
+    "Partial practice only; no main test or terminal completion.",
+    "Direct tool+model loop missed brief visual stimuli; accessibility text omitted shape identity.",
+    "Practice repeated automatically while post-participation export documentation/capture was performed; this was not an agent-requested restart. All captured rows retained.",
+    "Native timings and answer metadata were read only after participation ended and were not used for responses.",
+    "No actual task response keys delivered; all 8 exported required-response trials were omitted.",
+    "Exact model identifier and browser version unknown.",
+    "Initial stale element reference recovered by a fresh snapshot."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "5390557926857ff0a45cb38933ad0e72f3e6950f27c62109c375286070a257cc",
+    "events.jsonl": "2e4c42e59884356ec46d5840395268643b38504f20e4d66f57210b16d801b650",
+    "evidence/01_open.txt": "39af06c6580e45646c4431828f2e60589be00064ca19974f21f8b8b47165bdd1",
+    "evidence/02_fullscreen.txt": "fdba95a00fcb0c980ce86efe9a5dd1ff1335f82dc94d424612f33f27cc0aae23",
+    "evidence/03_refresh.txt": "73368e309de5f0b66704bfa04f8a93fb41a8bde4ec2b3029f126a866c03f48a1",
+    "evidence/04_fullscreen.txt": "41334e906630222b6ef56e55d8b366394c87ccb9d36c214ba0a9055fe27c7cf7",
+    "evidence/05_instructions.txt": "7ea8917fe210aa1cc734567decbe5e553b612a955c41431e6e913d722abe2315",
+    "evidence/06_begin.txt": "35a9e3c3e48a383a264ca80a0fd9b6aca272d2fc2513b8e2c6ad96e70e13bb6e",
+    "evidence/07_instructions_next.txt": "1b7c82015a3f163f4877da648471bc1786f6494252dd69957928c6833f8b35ec",
+    "evidence/08_instructions_next.txt": "36744c45741d1bcd411abca3da66db232cde20d45a34e687e2758f8429cb81e9",
+    "evidence/09_practice_ready.txt": "31ff23c5f5ca50d71ab037696d1ba613c14760e47e7ddf2b7e036b52a615a962",
+    "evidence/10_start_practice.txt": "816c1c3073cafdf45a9409ef2c8d45b907e0e09d071c16a0fcb8a580a6e87d35",
+    "evidence/11_practice.png": "88c70b7f4bc58f27fdb775fd34bdae75d81a5bcd480dcde58eb48466a53475c1",
+    "evidence/11_practice_screen.txt": "96db400df60e9f868ca1114180d725e39e6840bc2ae3e7371efe78d255404000",
+    "evidence/12_practice.png": "88c70b7f4bc58f27fdb775fd34bdae75d81a5bcd480dcde58eb48466a53475c1",
+    "evidence/12_practice_current.txt": "24d449d3d0d54c75d046e2d6ba7b28a63c5a64e074a91700e7751144aa2c8d4e",
+    "evidence/13_practice_current.txt": "0cfc93a3751f0beb57c9371a5ea2ea0f120c61bf4dc8d1b8469bcd4a95833987",
+    "evidence/14_practice_feedback.txt": "6b698467e0a864eac96b5a7b57c4b38fd55840afd3b019e98d84b14a86c40905",
+    "evidence/15_practice.png": "ff61406c3a51ce56905ad1f2fa2a9d7b0f7deaf8bc7f5ac308800cdd798db338",
+    "evidence/15_practice_feedback.txt": "cef4a62e64aa3f207c71edac240f41c32ab0c32758aa046035d677dd38e75a18",
+    "evidence/16_native_export.txt": "cba9a8ebaaae205ee824c7d4414a41b435e3a97fc4f9df723b83ffda566c4edc",
+    "evidence/17_native_export_full.txt": "062d761425abd7c24e75c5d29f8e46745ff71c72a66774839914cfa902e1663f",
+    "evidence/18_pages.txt": "1964efb4742b50711923800cadbb42a82853c56fe139ec3d37e9014b5c742569",
+    "evidence/19_close.txt": "d2f3d6dbb29e68ba2ee6f06eec38ad77049097fa9dd954f922c999fb8454cc53",
+    "ontology.json": "72fdb0164c584f78decbf393a5f68ce2e86894163f2fb89a1c86ad102a8b22ad",
+    "operate.py": "eeeee291f92b8442bd0315eacfb55d4f6565c28aa7b6ffc96bc706d921c960dc",
+    "protocol/SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9",
+    "protocol/artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "summary.md": "b35e2476b7f3330b0eb5d1c9e53645a930d66ccd91e00b4c1bd5748731dd57c1",
+    "validation.json": "ba7b63a857306d6a92f7b5f45ad9f6abd9cdd7cf06a25986f5942ae3e1b797c0"
+  }
+}

@@ -1,0 +1,166 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+    "title": "Self-paced reading"
+  },
+  "nodes": [
+    {
+      "id": "intro",
+      "kind": "phase",
+      "label": "Self-paced reading task",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "001_click_text_image"
+      ]
+    },
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Press n for first and subsequent words",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "002_key_image"
+      ]
+    },
+    {
+      "id": "advance",
+      "kind": "response",
+      "label": "n key",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "002_key_image"
+      ]
+    },
+    {
+      "id": "ending",
+      "kind": "completion",
+      "label": "Native export controls",
+      "attributes": {
+        "word_coverage": 0
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "003_key_image"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "instructions",
+      "predicate": "specifies",
+      "object": "advance",
+      "status": "observed",
+      "evidence_refs": [
+        "002_key_image"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "000_observe_image",
+      "path": "evidence/000_observe.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:58:49.123974+00:00",
+      "description": "Participant-visible browser state after observe"
+    },
+    {
+      "id": "000_observe_text",
+      "path": "evidence/000_observe.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:58:49.123974+00:00",
+      "description": "Participant-visible browser state after observe"
+    },
+    {
+      "id": "001_click_text_image",
+      "path": "evidence/001_click_text.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:03:58.351873+00:00",
+      "description": "Participant-visible browser state after click_text"
+    },
+    {
+      "id": "001_click_text_text",
+      "path": "evidence/001_click_text.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:03:58.351873+00:00",
+      "description": "Participant-visible browser state after click_text"
+    },
+    {
+      "id": "002_key_image",
+      "path": "evidence/002_key.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:20.858960+00:00",
+      "description": "Participant-visible browser state after key"
+    },
+    {
+      "id": "002_key_text",
+      "path": "evidence/002_key.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:20.858960+00:00",
+      "description": "Participant-visible browser state after key"
+    },
+    {
+      "id": "003_key_image",
+      "path": "evidence/003_key.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:13:30.981028+00:00",
+      "description": "Participant-visible browser state after key"
+    },
+    {
+      "id": "003_key_text",
+      "path": "evidence/003_key.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:13:30.981028+00:00",
+      "description": "Participant-visible browser state after key"
+    },
+    {
+      "id": "004_click_text_image",
+      "path": "evidence/004_click_text.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:15:40.663911+00:00",
+      "description": "Participant-visible browser state after click_text"
+    },
+    {
+      "id": "004_click_text_text",
+      "path": "evidence/004_click_text.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:15:40.663911+00:00",
+      "description": "Participant-visible browser state after click_text"
+    },
+    {
+      "id": "005_export_image",
+      "path": "evidence/005_export.png",
+      "locator": "whole screen",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:16:19.301473+00:00",
+      "description": "Participant-visible browser state after export"
+    },
+    {
+      "id": "005_export_text",
+      "path": "evidence/005_export.txt",
+      "locator": "whole screen",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:16:19.301473+00:00",
+      "description": "Participant-visible browser state after export"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Which words were displayed during the delay?",
+      "reason": "No word screenshots were obtained; post-run export is not a participant observation."
+    }
+  ]
+}

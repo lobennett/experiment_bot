@@ -1,0 +1,38 @@
+{
+  "recorded_at": "2026-10-29T02:11:27.299593+00:00",
+  "scope": "Final source checks and complete exploratory run inventory. No human behavioral validation.",
+  "repository_tests": {
+    "command": ".venv/bin/pytest -q",
+    "passed": 772,
+    "skipped": 6,
+    "warnings": 7,
+    "warning_type": "existing AsyncMock runtime warnings",
+    "evidence": "Executed earlier in this session after the final checker and test edits; result retained in session tool output."
+  },
+  "skill_metadata": "passed",
+  "documentation_links": "passed",
+  "diff_whitespace": "passed",
+  "artifact_integrity": {
+    "attempts": 24,
+    "verified": 24,
+    "failures": []
+  },
+  "source_sha256": {
+    "skills/behavioral-participant/SKILL.md": "4c6d9c6652a5cf3ee3c4b9860d087ab4c5d91adb27bd04509b577a21b2887337",
+    "skills/behavioral-participant/artifacts.md": "5aaa19256a0bc353c2301bf782eee5de8f6097ec91b9f62cd01d01514afa1cb1",
+    "skills/behavioral-participant/execution.md": "1d033e6a94bf14377064198c3b98609abccd153617365471b45771901fb2d2fb",
+    "skills/behavioral-participant/perception.md": "5c64e1c8dad3f471a4e22ff26f76cf60501bc1dbc7cdd617b0e42f9d4787dd53",
+    "skills/behavioral-participant/scripts/check_run.py": "2c718fbc7a86922006b5b11f2448cc1dd90c166745cea5b2e82d4130ec7fe19e",
+    "skills/behavioral-participant/scripts/ocr.swift": "e508df8a693db8eff31a16259d58008c5aa5c46bc7bb40741605ee3f1a43c49b"
+  },
+  "ocr_evidence": "ocr-glyph-validation/shared-helper-validation.json",
+  "results_sha256": "42e8f6728664c79966e326e9c3099e246458e5c7eb38b3aa3f2673963f3e2d65",
+  "source_commit": "40cdf925c36e8829756d5d9ee6e92711c4b2f095",
+  "report_review": {
+    "rendered_in_browser": true,
+    "screenshot": "report-preview.png",
+    "browser_snapshot_task_rows": 6,
+    "browser_snapshot_attempts": 24,
+    "note": "Rendered report and complete attempt inventory inspected. Scripted interaction check could not access the sandboxed Lavish iframe; search/dialog behavior was not independently verified."
+  }
+}

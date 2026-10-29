@@ -1,0 +1,16 @@
+page:
+  title: Signal Cards — local skill check
+  refs: 9
+snapshot:
+uid=g7:1_0 RootWebArea "Signal Cards — local skill check" url="file:///private/tmp/behavioral-participant-validation/index.html"
+  uid=g7:1_1 main
+    uid=g7:7_0 heading "Signal Cards" level="1"
+    uid=g7:7_1 heading "Block 2 instructions" level="2"
+    uid=g7:7_2 "This is a local synthetic test. There is no server submission."
+    uid=g7:7_3 "For this block, press "
+    uid=g7:7_4 "J for MOON and F for SUN"
+    uid=g7:7_5 ". Respond to the word on the card. Each block contains two cards. There is no time limit. After each response, click Continue."
+    uid=g7:7_6 button "Begin block 2"
+help[2]:
+  Run `chrome-devtools-axi click @g7:7_6` to click the "Begin block 2" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

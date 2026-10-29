@@ -1,0 +1,56 @@
+{
+  "schema_version": "1.0",
+  "run_id": "tower-hanoi-attempt-01",
+  "mode": "direct_browser",
+  "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+  "final_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+  "started_at": "2026-10-28T21:33:12.611884+00:00",
+  "ended_at": "2026-10-28T21:44:10.992705+00:00",
+  "status": "blocked",
+  "status_reason": "The preferred CLI supports element-to-element dragging only; task discs and target pegs are all in one canvas. No puzzle move was attempted. A coordinate-input fallback is needed.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-other"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+  },
+  "seed": null,
+  "reproducibility": "Direct model participation; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "unavailable",
+    "paths": [],
+    "reason": "Stopped at instructions before any puzzle move."
+  },
+  "counts": {
+    "response_actions": 0,
+    "native_export_trial_rows": null
+  },
+  "limitations": [
+    "CLI cannot address distinct canvas objects with its drag command.",
+    "Browser bridge initially failed under sandbox; elevated launch succeeded."
+  ],
+  "artifacts_sha256": {
+    "events.jsonl": "aaa9cc603d229614aeb921749a7612aa55d1f72bc9d2b8c4b23c1e06ba26b158",
+    "evidence/01_open.txt": "132870acd315904e0c4aad702a18bb7cb6309049c238e746dd36787d1efc3b6b",
+    "evidence/02_open_retry.txt": "086bd4d4f66cff74e0b3b84864e34d4ebd67be027f2f2269e300239eeb2cfb28",
+    "evidence/03_start.txt": "d0adddde1fcfa7cc00be2ea0888e9402ff6338275a7e81a8ddd73f0853c0ed10",
+    "evidence/04_instructions.png": "904b6a32c5a949f66424f5d61c07b16477a1ddd31c309edb4f2568d3d2c99d23",
+    "evidence/04_instructions.txt": "c6bdb68c777bb6e1195bf362091558e4bd49c33f72cee07584b0719327f32e77",
+    "evidence/05_instruction_advance.txt": "7411f84d61552eec6afe9eb27e08161c986bc27cc3e1d1a80e1927b048bb1688",
+    "evidence/06_instruction_screen.png": "fd5fdf807b7615ace15538b09761357f9d0b039a7063bbe4182f20c33f599217",
+    "evidence/06_instruction_screen.txt": "7ec616b370abacf494f25384155850e0ae5a3032005b6dbe464550a8d62e77c4",
+    "ontology.json": "ba6f420af3691995f6d030c8c3cdcfd341abc7410937285c824f9138b99962b8",
+    "protocol/SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9",
+    "protocol/artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+    "summary.md": "c97a8856a56fc91787fed562bac17bebf3d84fc56e155a9096454e083a9408d5"
+  }
+}

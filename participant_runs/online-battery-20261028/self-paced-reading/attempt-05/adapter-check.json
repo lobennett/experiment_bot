@@ -1,0 +1,224 @@
+{
+  "passed": true,
+  "policy_unchanged": true,
+  "repair": "Full-frame OCR returned no text for visibly present short word. Fall back to the observed canvas word band only when full-frame OCR is empty. No supplied word/answer vocabulary.",
+  "fixtures": [
+    {
+      "source": "self-paced-reading/attempt-04/evidence/001_frame.png",
+      "expected_from_saved_pixels": "A self-paced reading task. Press space to continue.",
+      "recognized": "A self-paced reading task. Press space to continue.",
+      "passed": true,
+      "duration_ms": 686.4271250087768
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/002_frame.png",
+      "expected_from_saved_pixels": "Press the n key to start see the first word. Then press the n key each time for the following words.",
+      "recognized": "Press the n key to start see the first word. Then press the n key each time for the following words.",
+      "passed": true,
+      "duration_ms": 310.1350420038216
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/003_frame.png",
+      "expected_from_saved_pixels": "John",
+      "recognized": "John",
+      "passed": true,
+      "duration_ms": 280.83891596179456
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/004_frame.png",
+      "expected_from_saved_pixels": "brought",
+      "recognized": "brought",
+      "passed": true,
+      "duration_ms": 275.7842499995604
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/005_frame.png",
+      "expected_from_saved_pixels": "cookies",
+      "recognized": "cookies",
+      "passed": true,
+      "duration_ms": 265.5632080277428
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/006_frame.png",
+      "expected_from_saved_pixels": "for",
+      "recognized": "for",
+      "passed": true,
+      "duration_ms": 276.6230829874985
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/007_frame.png",
+      "expected_from_saved_pixels": "his",
+      "recognized": "his",
+      "passed": true,
+      "duration_ms": 264.7212499869056
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/008_frame.png",
+      "expected_from_saved_pixels": "mother",
+      "recognized": "mother",
+      "passed": true,
+      "duration_ms": 266.0349999787286
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/009_frame.png",
+      "expected_from_saved_pixels": "Well done...just wait until next sentence",
+      "recognized": "Well done...just wait until next sentence",
+      "passed": true,
+      "duration_ms": 277.4993749917485
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/013_frame.png",
+      "expected_from_saved_pixels": "Well done...just wait until next sentence RAIn",
+      "recognized": "Well done...just wait until next sentence RAIn",
+      "passed": true,
+      "duration_ms": 275.778665964026
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/016_frame.png",
+      "expected_from_saved_pixels": "Mary",
+      "recognized": "Mary",
+      "passed": true,
+      "duration_ms": 286.52550000697374
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/017_frame.png",
+      "expected_from_saved_pixels": "cooked",
+      "recognized": "cooked",
+      "passed": true,
+      "duration_ms": 267.83500000601634
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/018_frame.png",
+      "expected_from_saved_pixels": "dinner",
+      "recognized": "dinner",
+      "passed": true,
+      "duration_ms": 261.16320805158466
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/020_frame.png",
+      "expected_from_saved_pixels": "her",
+      "recognized": "her",
+      "passed": true,
+      "duration_ms": 264.45320795755833
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/021_frame.png",
+      "expected_from_saved_pixels": "son",
+      "recognized": "son",
+      "passed": true,
+      "duration_ms": 267.07554201129824
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/029_frame.png",
+      "expected_from_saved_pixels": "Minnie",
+      "recognized": "Minnie",
+      "passed": true,
+      "duration_ms": 261.9841250125319
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/030_frame.png",
+      "expected_from_saved_pixels": "enjoys",
+      "recognized": "enjoys",
+      "passed": true,
+      "duration_ms": 268.04087503114715
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/031_frame.png",
+      "expected_from_saved_pixels": "to",
+      "recognized": "to",
+      "passed": true,
+      "duration_ms": 266.18966698879376
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/032_frame.png",
+      "expected_from_saved_pixels": "spend",
+      "recognized": "spend",
+      "passed": true,
+      "duration_ms": 280.3658340126276
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/033_frame.png",
+      "expected_from_saved_pixels": "time",
+      "recognized": "time",
+      "passed": true,
+      "duration_ms": 271.10179199371487
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/034_frame.png",
+      "expected_from_saved_pixels": "with",
+      "recognized": "with",
+      "passed": true,
+      "duration_ms": 277.5696250027977
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/035_frame.png",
+      "expected_from_saved_pixels": "Mickey",
+      "recognized": "Mickey",
+      "passed": true,
+      "duration_ms": 280.85212502628565
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/042_frame.png",
+      "expected_from_saved_pixels": "Daisy",
+      "recognized": "Daisy",
+      "passed": true,
+      "duration_ms": 256.301874993369
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/043_frame.png",
+      "expected_from_saved_pixels": "likes",
+      "recognized": "likes",
+      "passed": true,
+      "duration_ms": 248.17116698250175
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/044_frame.png",
+      "expected_from_saved_pixels": "gardening",
+      "recognized": "gardening",
+      "passed": true,
+      "duration_ms": 259.85000003129244
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/052_frame.png",
+      "expected_from_saved_pixels": "Clara",
+      "recognized": "Clara",
+      "passed": true,
+      "duration_ms": 245.56429201038554
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/083_frame.png",
+      "expected_from_saved_pixels": "looking",
+      "recognized": "looking",
+      "passed": true,
+      "duration_ms": 257.93670798884705
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/084_frame.png",
+      "expected_from_saved_pixels": "after",
+      "recognized": "after",
+      "passed": true,
+      "duration_ms": 271.75250003347173
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/086_frame.png",
+      "expected_from_saved_pixels": "pets",
+      "recognized": "pets",
+      "passed": true,
+      "duration_ms": 278.75362505437806
+    },
+    {
+      "source": "self-paced-reading/attempt-04/evidence/053_frame.png",
+      "expected_from_saved_pixels": "is",
+      "recognized": "is",
+      "passed": true,
+      "duration_ms": 309.7110000089742
+    },
+    {
+      "source": "tower-hanoi/attempt-02/evidence/001_click_text.png",
+      "expected_from_saved_pixels": "",
+      "recognized": "",
+      "passed": true,
+      "duration_ms": 501.2618750333786
+    }
+  ]
+}

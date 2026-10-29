@@ -1,0 +1,1639 @@
+{
+  "updated_at": "2026-10-29T01:12:54.868905+00:00",
+  "purpose": "Evaluate browser task operation and refine mechanical skill design; no human behavioral validity claim.",
+  "tasks": [
+    {
+      "id": "preview9",
+      "url": "https://deploy.expfactory.org/preview/9/",
+      "coverage": "response interruption",
+      "attempts": [
+        "preview9/attempt-01",
+        "preview9/attempt-02",
+        "preview9/attempt-03"
+      ],
+      "completed_attempts": [
+        "preview9/attempt-03"
+      ],
+      "latest_completed": {
+        "directory": "preview9/attempt-03",
+        "input_url": "https://deploy.expfactory.org/preview/9/",
+        "status": "completed",
+        "status_reason": "Observed Experiment Complete after all three main blocks. Local task completed; automatic remote upload failed as reported by terminal page.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "native_export_rows": 603,
+          "native_export_trial_rows": 192,
+          "native_main_trial_rows": 180,
+          "native_attention_checks": 3,
+          "events": 29
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json",
+            "data/experiment_data.csv"
+          ],
+          "reason": "Original post-completion native JSON/CSV strings from documented read-only jsPsych.data.get() API. Exact returned strings retained."
+        },
+        "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+        "skill_sha256": {
+          "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+          "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+          "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+        },
+        "limitations": [
+          "The public preview reported automatic upload failure; task completion and local export are verified, remote submission is not.",
+          "Practice auto-advanced during initial driver setup/approval; all 12 recorded practice opportunities retained, including initial omissions.",
+          "Two brief text instructions were missed before unexpected-text handoff was added; third was answered correctly.",
+          "One navigation Enter was sent after automatic feedback advance; it is not a task response key and is archived in the executed script. Later navigation checks current prompt first.",
+          "Task block feedback reported slow responses. Native go RT 675\u20131172 ms includes browser transport and policy time; no human validity established.",
+          "Observer representation was checked against earlier square screenshot/geometry; a near-simultaneous followup screenshot had already blanked. All rendered pixel observations are archived.",
+          "Policy authored inline with inherited conversation context; explicit neutral instruction saved but full isolated model-call transcript unavailable.",
+          "Exact model identifier/browser version unknown."
+        ],
+        "started_at": "2026-10-28T21:52:15.953347+00:00",
+        "ended_at": "2026-10-28T22:11:25.558662+00:00",
+        "manifest_sha256": "63dea7032aaa1e31a8cac3f85782ceae5be0a755254c9d973e23d9f7ee045076",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 20, \"relations\": 18, \"events\": 29, \"verified_artifacts\": 62, \"legacy_contract\": true}"
+      },
+      "latest": {
+        "directory": "preview9/attempt-03",
+        "input_url": "https://deploy.expfactory.org/preview/9/",
+        "status": "completed",
+        "status_reason": "Observed Experiment Complete after all three main blocks. Local task completed; automatic remote upload failed as reported by terminal page.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "native_export_rows": 603,
+          "native_export_trial_rows": 192,
+          "native_main_trial_rows": 180,
+          "native_attention_checks": 3,
+          "events": 29
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json",
+            "data/experiment_data.csv"
+          ],
+          "reason": "Original post-completion native JSON/CSV strings from documented read-only jsPsych.data.get() API. Exact returned strings retained."
+        },
+        "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+        "skill_sha256": {
+          "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+          "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+          "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+        },
+        "limitations": [
+          "The public preview reported automatic upload failure; task completion and local export are verified, remote submission is not.",
+          "Practice auto-advanced during initial driver setup/approval; all 12 recorded practice opportunities retained, including initial omissions.",
+          "Two brief text instructions were missed before unexpected-text handoff was added; third was answered correctly.",
+          "One navigation Enter was sent after automatic feedback advance; it is not a task response key and is archived in the executed script. Later navigation checks current prompt first.",
+          "Task block feedback reported slow responses. Native go RT 675\u20131172 ms includes browser transport and policy time; no human validity established.",
+          "Observer representation was checked against earlier square screenshot/geometry; a near-simultaneous followup screenshot had already blanked. All rendered pixel observations are archived.",
+          "Policy authored inline with inherited conversation context; explicit neutral instruction saved but full isolated model-call transcript unavailable.",
+          "Exact model identifier/browser version unknown."
+        ],
+        "started_at": "2026-10-28T21:52:15.953347+00:00",
+        "ended_at": "2026-10-28T22:11:25.558662+00:00",
+        "manifest_sha256": "63dea7032aaa1e31a8cac3f85782ceae5be0a755254c9d973e23d9f7ee045076",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 20, \"relations\": 18, \"events\": 29, \"verified_artifacts\": 62, \"legacy_contract\": true}"
+      }
+    },
+    {
+      "id": "preview10",
+      "url": "https://deploy.expfactory.org/preview/10/",
+      "coverage": "color-based keyed discrimination",
+      "attempts": [
+        "preview10/attempt-01",
+        "preview10/attempt-02",
+        "preview10/attempt-03",
+        "preview10/attempt-04",
+        "preview10/attempt-05",
+        "preview10/attempt-06"
+      ],
+      "completed_attempts": [
+        "preview10/attempt-05"
+      ],
+      "latest_completed": {
+        "directory": "preview10/attempt-05",
+        "input_url": "https://deploy.expfactory.org/preview/10/",
+        "status": "completed",
+        "status_reason": "Observed terminal page",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "policy_response_actions": 124,
+          "agent_events": 532,
+          "native_export_rows": 392,
+          "native_response_trials": 124,
+          "native_practice_trials": 4,
+          "native_test_trials": 120,
+          "native_recorded_responses": 124,
+          "native_correct_responses": 124,
+          "native_omissions": 0,
+          "native_attention_checks": 3,
+          "native_attention_check_responses": 0
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Post-participation read-only jsPsych native export"
+        },
+        "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+        "skill_sha256": {
+          "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+          "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+          "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+        },
+        "limitations": [
+          "Inline authoring inherited full agent context; explicit prompt is archived but not an isolated model generation transcript.",
+          "Inline policy authoring inherited the full agent context; prompt file is explicit instruction, not an isolated model call or complete transcript.",
+          "Original adapter used checkVisibility() default options; explicit opacity/CSS visibility and viewport checks will be required in subsequent adapters.",
+          "Immediate policy responses are not human reaction-time validity; no behavioral tuning or selection was performed.",
+          "Remote upload acknowledgment unconfirmed.",
+          "All three inter-block attention checks were missed (m/e/j responses null). Task completion and trial classification accuracy do not establish acceptable participant data quality."
+        ],
+        "started_at": "2026-10-28T22:04:44.367584+00:00",
+        "ended_at": "2026-10-28T22:14:45.651250+00:00",
+        "manifest_sha256": "683f9c133e4717d65cd96e7acd2499e5332f296b0568379135c885b6654304b3",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 14, \"relations\": 8, \"events\": 532, \"verified_artifacts\": 38, \"legacy_contract\": true}"
+      },
+      "latest": {
+        "directory": "preview10/attempt-06",
+        "input_url": "https://deploy.expfactory.org/preview/10/",
+        "status": "partial",
+        "status_reason": "Stopped without confirmed completion",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "policy_response_actions": 4,
+          "agent_events": 43,
+          "native_export_rows": 25,
+          "native_response_trials": 4,
+          "native_practice_trials": 4,
+          "native_test_trials": 0,
+          "native_recorded_responses": 4,
+          "native_correct_responses": 4,
+          "native_omissions": 0
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Post-participation read-only jsPsych native export"
+        },
+        "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+        "skill_sha256": {
+          "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+          "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+          "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+        },
+        "limitations": [
+          "Inline authoring inherited full agent context; explicit prompt is archived but not an isolated model generation transcript.",
+          "Inline policy authoring inherited the full agent context; prompt file is explicit instruction, not an isolated model call or complete transcript.",
+          "Original adapter used checkVisibility() default options; explicit opacity/CSS visibility and viewport checks will be required in subsequent adapters.",
+          "Immediate policy responses are not human reaction-time validity; no behavioral tuning or selection was performed.",
+          "Remote upload acknowledgment unconfirmed.",
+          "Repeated navigation boundaries reused screenshot/text filenames; complete text progression remains in append-only events. Run was gracefully stopped after practice during adapter review."
+        ],
+        "started_at": "2026-10-28T22:08:18.105156+00:00",
+        "ended_at": "2026-10-28T22:14:24.549779+00:00",
+        "manifest_sha256": "b850d14a996ae614fd528357616547d27a147a79eac643848750fb8ded44e2a3",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"partial\", \"nodes\": 13, \"relations\": 8, \"events\": 43, \"verified_artifacts\": 32, \"legacy_contract\": true}"
+      }
+    },
+    {
+      "id": "tower-hanoi",
+      "url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+      "coverage": "spatial planning and canvas pointer input",
+      "attempts": [
+        "tower-hanoi/attempt-01",
+        "tower-hanoi/attempt-02"
+      ],
+      "completed_attempts": [
+        "tower-hanoi/attempt-02"
+      ],
+      "latest_completed": {
+        "directory": "tower-hanoi/attempt-02",
+        "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+        "status": "completed",
+        "status_reason": "Seven ordinary pointer drags produced the instructed final arrangement; task then automatically displayed native export controls.",
+        "mode": "direct_browser",
+        "counts": {
+          "response_actions": 7,
+          "navigation_actions": 4,
+          "native_export_trial_rows": 7,
+          "events": 14
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/native-export.tsv"
+          ],
+          "reason": "Native Show data table rendered after completion. Exact data substring retained from browser-visible body innerText; complete source text also archived."
+        },
+        "policy_sha256": null,
+        "skill_sha256": {
+          "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+          "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+        },
+        "limitations": [
+          "Second attempt replaces an input transport incapable of canvas coordinate drag; no behavioral results selected.",
+          "Native export text preserves the visible table values and tab/newline separators, not a downloaded file.",
+          "Native cumulative time includes model and tool overhead; no human timing equivalence.",
+          "Exact model and browser versions unavailable.",
+          "Initial sandbox launch of pointer browser failed before page opened; elevated launch succeeded."
+        ],
+        "started_at": "2026-10-28T21:43:44.258159+00:00",
+        "ended_at": "2026-10-28T21:48:48.287616+00:00",
+        "manifest_sha256": "c0047220ee45cd2889159c30b627ef0e958ffe5aa0f0995b8de82cb4f9960d2b",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 10, \"relations\": 8, \"events\": 14, \"verified_artifacts\": 34, \"legacy_contract\": true}"
+      },
+      "latest": {
+        "directory": "tower-hanoi/attempt-02",
+        "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+        "status": "completed",
+        "status_reason": "Seven ordinary pointer drags produced the instructed final arrangement; task then automatically displayed native export controls.",
+        "mode": "direct_browser",
+        "counts": {
+          "response_actions": 7,
+          "navigation_actions": 4,
+          "native_export_trial_rows": 7,
+          "events": 14
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/native-export.tsv"
+          ],
+          "reason": "Native Show data table rendered after completion. Exact data substring retained from browser-visible body innerText; complete source text also archived."
+        },
+        "policy_sha256": null,
+        "skill_sha256": {
+          "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+          "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+        },
+        "limitations": [
+          "Second attempt replaces an input transport incapable of canvas coordinate drag; no behavioral results selected.",
+          "Native export text preserves the visible table values and tab/newline separators, not a downloaded file.",
+          "Native cumulative time includes model and tool overhead; no human timing equivalence.",
+          "Exact model and browser versions unavailable.",
+          "Initial sandbox launch of pointer browser failed before page opened; elevated launch succeeded."
+        ],
+        "started_at": "2026-10-28T21:43:44.258159+00:00",
+        "ended_at": "2026-10-28T21:48:48.287616+00:00",
+        "manifest_sha256": "c0047220ee45cd2889159c30b627ef0e958ffe5aa0f0995b8de82cb4f9960d2b",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 10, \"relations\": 8, \"events\": 14, \"verified_artifacts\": 34, \"legacy_contract\": true}"
+      }
+    },
+    {
+      "id": "paced-reading",
+      "url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "coverage": "self-paced sequential reading",
+      "attempts": [
+        "self-paced-reading/attempt-01",
+        "self-paced-reading/attempt-02",
+        "self-paced-reading/attempt-03",
+        "self-paced-reading/attempt-04",
+        "self-paced-reading/attempt-05"
+      ],
+      "completed_attempts": [
+        "self-paced-reading/attempt-01",
+        "self-paced-reading/attempt-03",
+        "self-paced-reading/attempt-04",
+        "self-paced-reading/attempt-05"
+      ],
+      "latest_completed": {
+        "directory": "self-paced-reading/attempt-05",
+        "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+        "status": "completed",
+        "status_reason": "Frozen OCR policy observed terminal export controls. Recognized 28/28 words in native sequence order.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "events": 63,
+          "policy_key_actions": 34,
+          "observed_word_displays": 28,
+          "native_export_trial_rows": 5,
+          "native_export_word_intervals": 28,
+          "sequence_matched_words": 28,
+          "native_intervals_equal_9999ms": 0
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/native-export.tsv"
+          ],
+          "reason": "Exact visible table innerText after completion and normal Show data click."
+        },
+        "policy_sha256": "9c0a9c7c3c5eab07596e1ac072a7b88df9812fcf84662eb5ef7afe822560f539",
+        "skill_sha256": {
+          "artifacts.md": "0e253e8a389a9b260667599aa341b8e499e69afce44ff0d3c8ab15ae68a65547",
+          "execution.md": "4bf5504e6d198c7b9a66246930efef9e6b5b381ae617fb3dbb4494ded4ed9b45",
+          "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+        },
+        "limitations": [
+          "Policy receives OCR text from current rendered pixels; live responses are generated-program decisions, not per-word LLM comprehension.",
+          "Inline authoring inherited conversation context; does not claim frozen-study prompt isolation.",
+          "OCR timing and input transport contribute to native response times; no timing fidelity to human readers established.",
+          "Data are exact rendered native table text, not a downloaded file."
+        ],
+        "started_at": "2026-10-28T22:28:49.131700+00:00",
+        "ended_at": "2026-10-28T22:29:17.442335+00:00",
+        "manifest_sha256": "44fbb125f9d339b35805665f39a169cdbc64d307850bc9edb112913df5a86688",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 8, \"relations\": 6, \"events\": 63, \"verified_artifacts\": 147, \"legacy_contract\": true}"
+      },
+      "latest": {
+        "directory": "self-paced-reading/attempt-05",
+        "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+        "status": "completed",
+        "status_reason": "Frozen OCR policy observed terminal export controls. Recognized 28/28 words in native sequence order.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "events": 63,
+          "policy_key_actions": 34,
+          "observed_word_displays": 28,
+          "native_export_trial_rows": 5,
+          "native_export_word_intervals": 28,
+          "sequence_matched_words": 28,
+          "native_intervals_equal_9999ms": 0
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/native-export.tsv"
+          ],
+          "reason": "Exact visible table innerText after completion and normal Show data click."
+        },
+        "policy_sha256": "9c0a9c7c3c5eab07596e1ac072a7b88df9812fcf84662eb5ef7afe822560f539",
+        "skill_sha256": {
+          "artifacts.md": "0e253e8a389a9b260667599aa341b8e499e69afce44ff0d3c8ab15ae68a65547",
+          "execution.md": "4bf5504e6d198c7b9a66246930efef9e6b5b381ae617fb3dbb4494ded4ed9b45",
+          "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+        },
+        "limitations": [
+          "Policy receives OCR text from current rendered pixels; live responses are generated-program decisions, not per-word LLM comprehension.",
+          "Inline authoring inherited conversation context; does not claim frozen-study prompt isolation.",
+          "OCR timing and input transport contribute to native response times; no timing fidelity to human readers established.",
+          "Data are exact rendered native table text, not a downloaded file."
+        ],
+        "started_at": "2026-10-28T22:28:49.131700+00:00",
+        "ended_at": "2026-10-28T22:29:17.442335+00:00",
+        "manifest_sha256": "44fbb125f9d339b35805665f39a169cdbc64d307850bc9edb112913df5a86688",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 8, \"relations\": 6, \"events\": 63, \"verified_artifacts\": 147, \"legacy_contract\": true}"
+      }
+    },
+    {
+      "id": "preview5",
+      "url": "https://deploy.expfactory.org/preview/5/",
+      "coverage": "task-history memory",
+      "attempts": [
+        "preview5/attempt-01",
+        "preview5/attempt-02",
+        "preview5/attempt-03",
+        "preview5/attempt-04",
+        "preview5/attempt-05",
+        "preview5/attempt-06",
+        "preview5/attempt-07"
+      ],
+      "completed_attempts": [
+        "preview5/attempt-07"
+      ],
+      "latest_completed": {
+        "directory": "preview5/attempt-07",
+        "input_url": "https://deploy.expfactory.org/preview/5/",
+        "status": "completed",
+        "status_reason": "Observed task thank-you and Experiment Complete terminal state after both practices and ten test blocks. Six attention checks were missed; automatic remote upload failed.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "observed_letter_presentations": 148,
+          "policy_intended_letter_actions": 148,
+          "policy_delivered_letter_actions": 148,
+          "agent_actions": 14,
+          "native_trial_rows": 485,
+          "response_bearing_phases": {
+            "practice_trial": {
+              "opportunities": 13,
+              "responses": 13,
+              "omissions": 0,
+              "native_scored_correct": 13,
+              "native_scored_incorrect": 0,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            },
+            "test_trial": {
+              "opportunities": 135,
+              "responses": 135,
+              "omissions": 0,
+              "native_scored_correct": 135,
+              "native_scored_incorrect": 0,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            },
+            "test_attention_check": {
+              "opportunities": 10,
+              "responses": 4,
+              "omissions": 6,
+              "native_scored_correct": 4,
+              "native_scored_incorrect": 6,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            }
+          }
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Original read-only jsPsych7.3.1 JSON export contains485native rows, including practice, test, attention checks, and end row. Automatic-download CSV was not separately retained."
+        },
+        "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+        "skill_sha256": {
+          "SKILL.md": "4c6d9c6652a5cf3ee3c4b9860d087ab4c5d91adb27bd04509b577a21b2887337",
+          "artifacts.md": "fd4f37e5f478fdacfcd47c925b4abadee41c3cc07babbe6c011939cf4ff3c66f",
+          "execution.md": "1aa4910a719a7de07e9419e4cceccb90e42260b55639086f2f9137f1c858c4ab",
+          "scripts/check_run.py": "2c718fbc7a86922006b5b11f2448cc1dd90c166745cea5b2e82d4130ec7fe19e"
+        },
+        "limitations": [
+          "Full authoring transcript unavailable; inherited context disclosed.",
+          "Frozen participant.py retained; equivalent framing of observed instruction cues/reminders is separately logged.",
+          "Screenshot and OCR latency preserved in native timing.",
+          "Six of ten attention checks were omitted while agent/tool control was delayed; local letter responses continued.",
+          "Completion is operational and includes unsuccessful attention-check participation.",
+          "Automatic remote upload failed; native JSON remains available locally.",
+          "The frozen policy deliberately requested0ms additional waiting; software execution/recognition still consumes time.",
+          "Full model/tool transcript unavailable; inline authoring inherited conversation context."
+        ],
+        "started_at": "2026-10-28T22:49:17.110224+00:00",
+        "ended_at": "2026-10-28T23:07:42.243720+00:00",
+        "manifest_sha256": "c42552035f00d951d0d9d93d6589d2b454fe856e9758a263fff768b65cda8f5a",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 15, \"relations\": 8, \"events\": 995, \"verified_artifacts\": 165, \"legacy_contract\": false}"
+      },
+      "latest": {
+        "directory": "preview5/attempt-07",
+        "input_url": "https://deploy.expfactory.org/preview/5/",
+        "status": "completed",
+        "status_reason": "Observed task thank-you and Experiment Complete terminal state after both practices and ten test blocks. Six attention checks were missed; automatic remote upload failed.",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "observed_letter_presentations": 148,
+          "policy_intended_letter_actions": 148,
+          "policy_delivered_letter_actions": 148,
+          "agent_actions": 14,
+          "native_trial_rows": 485,
+          "response_bearing_phases": {
+            "practice_trial": {
+              "opportunities": 13,
+              "responses": 13,
+              "omissions": 0,
+              "native_scored_correct": 13,
+              "native_scored_incorrect": 0,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            },
+            "test_trial": {
+              "opportunities": 135,
+              "responses": 135,
+              "omissions": 0,
+              "native_scored_correct": 135,
+              "native_scored_incorrect": 0,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            },
+            "test_attention_check": {
+              "opportunities": 10,
+              "responses": 4,
+              "omissions": 6,
+              "native_scored_correct": 4,
+              "native_scored_incorrect": 6,
+              "unknown_correctness": 0,
+              "incorrect_delivered_responses": 0
+            }
+          }
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Original read-only jsPsych7.3.1 JSON export contains485native rows, including practice, test, attention checks, and end row. Automatic-download CSV was not separately retained."
+        },
+        "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+        "skill_sha256": {
+          "SKILL.md": "4c6d9c6652a5cf3ee3c4b9860d087ab4c5d91adb27bd04509b577a21b2887337",
+          "artifacts.md": "fd4f37e5f478fdacfcd47c925b4abadee41c3cc07babbe6c011939cf4ff3c66f",
+          "execution.md": "1aa4910a719a7de07e9419e4cceccb90e42260b55639086f2f9137f1c858c4ab",
+          "scripts/check_run.py": "2c718fbc7a86922006b5b11f2448cc1dd90c166745cea5b2e82d4130ec7fe19e"
+        },
+        "limitations": [
+          "Full authoring transcript unavailable; inherited context disclosed.",
+          "Frozen participant.py retained; equivalent framing of observed instruction cues/reminders is separately logged.",
+          "Screenshot and OCR latency preserved in native timing.",
+          "Six of ten attention checks were omitted while agent/tool control was delayed; local letter responses continued.",
+          "Completion is operational and includes unsuccessful attention-check participation.",
+          "Automatic remote upload failed; native JSON remains available locally.",
+          "The frozen policy deliberately requested0ms additional waiting; software execution/recognition still consumes time.",
+          "Full model/tool transcript unavailable; inline authoring inherited conversation context."
+        ],
+        "started_at": "2026-10-28T22:49:17.110224+00:00",
+        "ended_at": "2026-10-28T23:07:42.243720+00:00",
+        "manifest_sha256": "c42552035f00d951d0d9d93d6589d2b454fe856e9758a263fff768b65cda8f5a",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 15, \"relations\": 8, \"events\": 995, \"verified_artifacts\": 165, \"legacy_contract\": false}"
+      }
+    },
+    {
+      "id": "preview28",
+      "url": "https://deploy.expfactory.org/preview/28/",
+      "coverage": "visual search and spatial perception",
+      "attempts": [
+        "preview28/attempt-01"
+      ],
+      "completed_attempts": [
+        "preview28/attempt-01"
+      ],
+      "latest_completed": {
+        "directory": "preview28/attempt-01",
+        "input_url": "https://deploy.expfactory.org/preview/28/",
+        "status": "completed",
+        "status_reason": "Observed terminal task page",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "policy_response_actions": 196,
+          "events": 834,
+          "native_export_rows": 622,
+          "native_response_trials": 200,
+          "native_practice_trials": 8,
+          "native_test_trials": 192,
+          "native_recorded_responses": 196,
+          "native_omissions": 4,
+          "native_correct_responses": 196,
+          "native_test_correct": 192,
+          "native_attention_checks": 3,
+          "native_attention_checks_correct": 2,
+          "native_correctness_unknown": 4
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Post-participation read-only native export"
+        },
+        "policy_sha256": "b088c11f48c0e4f99a8ce44242847179cb116b17c60bcf860e6e80d045234973",
+        "skill_sha256": {
+          "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+          "execution.md": "0533a435c3e5495ccc2e7d01e87fca222872efec137ff14fdc84d2dc05001872",
+          "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+        },
+        "limitations": [
+          "Inline authoring inherited agent context; not an isolated model generation transcript.",
+          "Task autonomously advanced instruction/practice while inline policy authoring was still underway; all initial omissions are retained.",
+          "First inter-block m instruction was missed; a delayed m was issued during fixation. The later semantic alphabet and literal j prompts received guarded agent input.",
+          "Immediate delay_ms=0 is the frozen policy choice, not demonstrated human reaction-time behavior.",
+          "Task completion and local native export do not confirm remote upload acceptance."
+        ],
+        "started_at": "2026-10-28T22:18:14.455251+00:00",
+        "ended_at": "2026-10-28T22:33:21.335546+00:00",
+        "manifest_sha256": "7a5a53f61028d22f15da243336dc2d6cc4c6282c9a641a311ef84e1e41b24d59",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 11, \"relations\": 5, \"events\": 834, \"verified_artifacts\": 66, \"legacy_contract\": true}"
+      },
+      "latest": {
+        "directory": "preview28/attempt-01",
+        "input_url": "https://deploy.expfactory.org/preview/28/",
+        "status": "completed",
+        "status_reason": "Observed terminal task page",
+        "mode": "generated_visible_policy",
+        "counts": {
+          "policy_response_actions": 196,
+          "events": 834,
+          "native_export_rows": 622,
+          "native_response_trials": 200,
+          "native_practice_trials": 8,
+          "native_test_trials": 192,
+          "native_recorded_responses": 196,
+          "native_omissions": 4,
+          "native_correct_responses": 196,
+          "native_test_correct": 192,
+          "native_attention_checks": 3,
+          "native_attention_checks_correct": 2,
+          "native_correctness_unknown": 4
+        },
+        "data_export": {
+          "status": "available",
+          "paths": [
+            "data/experiment_data.json"
+          ],
+          "reason": "Post-participation read-only native export"
+        },
+        "policy_sha256": "b088c11f48c0e4f99a8ce44242847179cb116b17c60bcf860e6e80d045234973",
+        "skill_sha256": {
+          "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+          "execution.md": "0533a435c3e5495ccc2e7d01e87fca222872efec137ff14fdc84d2dc05001872",
+          "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+        },
+        "limitations": [
+          "Inline authoring inherited agent context; not an isolated model generation transcript.",
+          "Task autonomously advanced instruction/practice while inline policy authoring was still underway; all initial omissions are retained.",
+          "First inter-block m instruction was missed; a delayed m was issued during fixation. The later semantic alphabet and literal j prompts received guarded agent input.",
+          "Immediate delay_ms=0 is the frozen policy choice, not demonstrated human reaction-time behavior.",
+          "Task completion and local native export do not confirm remote upload acceptance."
+        ],
+        "started_at": "2026-10-28T22:18:14.455251+00:00",
+        "ended_at": "2026-10-28T22:33:21.335546+00:00",
+        "manifest_sha256": "7a5a53f61028d22f15da243336dc2d6cc4c6282c9a641a311ef84e1e41b24d59",
+        "artifact_integrity": "verified",
+        "verification": "{\"status\": \"completed\", \"nodes\": 11, \"relations\": 5, \"events\": 834, \"verified_artifacts\": 66, \"legacy_contract\": true}"
+      }
+    }
+  ],
+  "attempts": [
+    {
+      "directory": "preview10/attempt-01",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "partial",
+      "status_reason": "Practice timed stimuli advanced between observation and model-directed key delivery; task reported omissions and repeated practice. Isolated session stopped before main-test completion.",
+      "mode": "direct_browser",
+      "counts": {
+        "native_export_rows": 44,
+        "native_export_response_trials": 9,
+        "native_export_recorded_responses": 1,
+        "native_export_omissions": 8,
+        "native_export_correct_responses": 1,
+        "response_actions": 1,
+        "successful_navigation_actions": 6,
+        "failed_navigation_actions": 1,
+        "events": 20
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Read-only jsPsych native export collected after participation was ended; incomplete session contains practice data."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+        "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+      },
+      "limitations": [
+        "Main test and terminal task completion not reached.",
+        "Stimuli were displayed for 1000 ms and trials accepted responses for 1500 ms according to post-participation native records.",
+        "Single recorded correct response cannot be linked to the earlier screenshot; it is not a valid direct same-trial performance demonstration.",
+        "Task automatically repeated practice within the same session while evidence was being saved.",
+        "Transport plus model inference exceeded useful observation-action interval.",
+        "Exact model identifier and browser version unavailable."
+      ],
+      "started_at": "2026-10-28T21:32:25.123671+00:00",
+      "ended_at": "2026-10-28T21:37:41.346880+00:00",
+      "manifest_sha256": "5af970a096ad10267ed80b819c8e88241c1995b3f9c69faa08ea07b532cba677",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 17, \"relations\": 15, \"events\": 20, \"verified_artifacts\": 30, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview10/attempt-02",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "partial",
+      "status_reason": "Browser run adapter failed with fn is not a function before policy responses could be delivered.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "native_export_rows": 75,
+        "native_export_response_trials": 18,
+        "native_export_recorded_responses": 0
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial native jsPsych export captured after ending attempt."
+      },
+      "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "795a964164a37502803241e1cae90d6e13a9513a48ed065e0d22a2d2ad28b6e4",
+        "SKILL.md": "f6aa0a1ee27b8d0ae204c93c411f8b58608e3ca2c91391944a7cd9128ac58484"
+      },
+      "limitations": [
+        "Browser adapter failed; no policy responses delivered.",
+        "Task progressed automatically during diagnosis.",
+        "No completion or human validity claim.",
+        "Explicit policy prompt is not a complete isolated model generation transcript; authoring inherited agent context."
+      ],
+      "started_at": "2026-10-28T21:38:33.438495+00:00",
+      "ended_at": "2026-10-28T21:50:33.852723+00:00",
+      "manifest_sha256": "e6e7a8fe0b0922f470dcef42f86107803ca3288cc6e7b74e6dfeae61ffeb287b",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 3, \"relations\": 0, \"events\": 18, \"verified_artifacts\": 35, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview10/attempt-03",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "blocked",
+      "status_reason": "CLI could not open or select a blank preflight page; task never opened.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "native_response_trials": 0,
+        "response_actions": 0
+      },
+      "data_export": {
+        "status": "unavailable",
+        "paths": [],
+        "reason": "Task was never opened"
+      },
+      "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+        "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+      },
+      "limitations": [
+        "No task execution: browser preflight failed.",
+        "Explicit policy prompt is not a complete isolated model generation transcript; authoring inherited agent context."
+      ],
+      "started_at": "2026-10-28T21:50:33.857914+00:00",
+      "ended_at": "2026-10-28T21:57:53.477175+00:00",
+      "manifest_sha256": "4d29b5dca1eb67cdba88b33b7c7d554cce0083155b99a29d085040b0a42fa1ff",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"blocked\", \"nodes\": 0, \"relations\": 0, \"events\": 4, \"verified_artifacts\": 20, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview10/attempt-04",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "blocked",
+      "status_reason": "Transport preflight passed, but policy source injection failed before fullscreen/task participation: SyntaxError Unexpected token if.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "response_actions": 0
+      },
+      "data_export": {
+        "status": "unavailable",
+        "paths": [],
+        "reason": "Policy injection failed before task participation; browser closed on process exit."
+      },
+      "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+        "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+      },
+      "limitations": [
+        "Explicit policy prompt is not a complete isolated model generation transcript; authoring inherited agent context."
+      ],
+      "started_at": "2026-10-28T21:57:53.480212+00:00",
+      "ended_at": "2026-10-28T22:04:44.362044+00:00",
+      "manifest_sha256": "a520de311b029c01e3faf238d9daf6eddb301b8143fbf1718e2b9fbb09844879",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"blocked\", \"nodes\": 0, \"relations\": 0, \"events\": 0, \"verified_artifacts\": 13, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview10/attempt-05",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "completed",
+      "status_reason": "Observed terminal page",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "policy_response_actions": 124,
+        "agent_events": 532,
+        "native_export_rows": 392,
+        "native_response_trials": 124,
+        "native_practice_trials": 4,
+        "native_test_trials": 120,
+        "native_recorded_responses": 124,
+        "native_correct_responses": 124,
+        "native_omissions": 0,
+        "native_attention_checks": 3,
+        "native_attention_check_responses": 0
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Post-participation read-only jsPsych native export"
+      },
+      "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+        "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+      },
+      "limitations": [
+        "Inline authoring inherited full agent context; explicit prompt is archived but not an isolated model generation transcript.",
+        "Inline policy authoring inherited the full agent context; prompt file is explicit instruction, not an isolated model call or complete transcript.",
+        "Original adapter used checkVisibility() default options; explicit opacity/CSS visibility and viewport checks will be required in subsequent adapters.",
+        "Immediate policy responses are not human reaction-time validity; no behavioral tuning or selection was performed.",
+        "Remote upload acknowledgment unconfirmed.",
+        "All three inter-block attention checks were missed (m/e/j responses null). Task completion and trial classification accuracy do not establish acceptable participant data quality."
+      ],
+      "started_at": "2026-10-28T22:04:44.367584+00:00",
+      "ended_at": "2026-10-28T22:14:45.651250+00:00",
+      "manifest_sha256": "683f9c133e4717d65cd96e7acd2499e5332f296b0568379135c885b6654304b3",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 14, \"relations\": 8, \"events\": 532, \"verified_artifacts\": 38, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview10/attempt-06",
+      "input_url": "https://deploy.expfactory.org/preview/10/",
+      "status": "partial",
+      "status_reason": "Stopped without confirmed completion",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "policy_response_actions": 4,
+        "agent_events": 43,
+        "native_export_rows": 25,
+        "native_response_trials": 4,
+        "native_practice_trials": 4,
+        "native_test_trials": 0,
+        "native_recorded_responses": 4,
+        "native_correct_responses": 4,
+        "native_omissions": 0
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Post-participation read-only jsPsych native export"
+      },
+      "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+        "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+      },
+      "limitations": [
+        "Inline authoring inherited full agent context; explicit prompt is archived but not an isolated model generation transcript.",
+        "Inline policy authoring inherited the full agent context; prompt file is explicit instruction, not an isolated model call or complete transcript.",
+        "Original adapter used checkVisibility() default options; explicit opacity/CSS visibility and viewport checks will be required in subsequent adapters.",
+        "Immediate policy responses are not human reaction-time validity; no behavioral tuning or selection was performed.",
+        "Remote upload acknowledgment unconfirmed.",
+        "Repeated navigation boundaries reused screenshot/text filenames; complete text progression remains in append-only events. Run was gracefully stopped after practice during adapter review."
+      ],
+      "started_at": "2026-10-28T22:08:18.105156+00:00",
+      "ended_at": "2026-10-28T22:14:24.549779+00:00",
+      "manifest_sha256": "b850d14a996ae614fd528357616547d27a147a79eac643848750fb8ded44e2a3",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 13, \"relations\": 8, \"events\": 43, \"verified_artifacts\": 32, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview28/attempt-01",
+      "input_url": "https://deploy.expfactory.org/preview/28/",
+      "status": "completed",
+      "status_reason": "Observed terminal task page",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "policy_response_actions": 196,
+        "events": 834,
+        "native_export_rows": 622,
+        "native_response_trials": 200,
+        "native_practice_trials": 8,
+        "native_test_trials": 192,
+        "native_recorded_responses": 196,
+        "native_omissions": 4,
+        "native_correct_responses": 196,
+        "native_test_correct": 192,
+        "native_attention_checks": 3,
+        "native_attention_checks_correct": 2,
+        "native_correctness_unknown": 4
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Post-participation read-only native export"
+      },
+      "policy_sha256": "b088c11f48c0e4f99a8ce44242847179cb116b17c60bcf860e6e80d045234973",
+      "skill_sha256": {
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "0533a435c3e5495ccc2e7d01e87fca222872efec137ff14fdc84d2dc05001872",
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+      },
+      "limitations": [
+        "Inline authoring inherited agent context; not an isolated model generation transcript.",
+        "Task autonomously advanced instruction/practice while inline policy authoring was still underway; all initial omissions are retained.",
+        "First inter-block m instruction was missed; a delayed m was issued during fixation. The later semantic alphabet and literal j prompts received guarded agent input.",
+        "Immediate delay_ms=0 is the frozen policy choice, not demonstrated human reaction-time behavior.",
+        "Task completion and local native export do not confirm remote upload acceptance."
+      ],
+      "started_at": "2026-10-28T22:18:14.455251+00:00",
+      "ended_at": "2026-10-28T22:33:21.335546+00:00",
+      "manifest_sha256": "7a5a53f61028d22f15da243336dc2d6cc4c6282c9a641a311ef84e1e41b24d59",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 11, \"relations\": 5, \"events\": 834, \"verified_artifacts\": 66, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-01",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "partial",
+      "status_reason": "Direct attempt missed timed stimuli after browser scripting error; no terminal state observed.",
+      "mode": "direct_browser",
+      "counts": {
+        "observed_response_opportunities": 0,
+        "actions": 4,
+        "native_trial_rows": 54
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial trial-level native export via jsPsych.data.get().json(); documentation https://www.jspsych.org/v7/reference/jspsych-data/"
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+        "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+      },
+      "limitations": [
+        "CLI bridge needs execution outside sandbox.",
+        "page.wait(500) failed with fn is not a function after Enter delivery.",
+        "No individual letters were observed; timed practice continued while tools returned.",
+        "Initial welcome advanced without an observed agent action; other workers confirmed no session use.",
+        "Some event timestamps are archival timestamps; native timing remains unmodified."
+      ],
+      "started_at": "2026-10-28T22:14:21.802410+00:00",
+      "ended_at": "2026-10-28T22:20:37.730313+00:00",
+      "manifest_sha256": "abba98798b55101f0a27d88e4f0d1c836689727343c3cd6e107e006f2607ad35",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 4, \"relations\": 2, \"events\": 11, \"verified_artifacts\": 16, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-02",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "blocked",
+      "status_reason": "Persistent driver stdin reached EOF in non-PTY execution immediately after initial fullscreen capture; no task responses delivered.",
+      "mode": "direct_browser",
+      "counts": {
+        "observed_response_opportunities": 0,
+        "actions": 0,
+        "native_trial_rows": null
+      },
+      "data_export": {
+        "status": "unavailable",
+        "paths": [],
+        "reason": "Browser closed during setup, before any task response."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+        "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+      },
+      "limitations": [
+        "Chromium launch requires sandbox escalation.",
+        "Non-PTY stdin was closed immediately, so driver exited after initial observation."
+      ],
+      "started_at": "2026-10-28T22:20:37.730313+00:00",
+      "ended_at": "2026-10-28T22:23:25.376886+00:00",
+      "manifest_sha256": "4aa18416b8b800eed022292be71a15fd6be46d2043876962899db70f8813e3b5",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"blocked\", \"nodes\": 1, \"relations\": 0, \"events\": 1, \"verified_artifacts\": 11, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-03",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "partial",
+      "status_reason": "At first fixation, persistent reminder text made the frozen policy yield for review; driver stopped observing timed practice. No letter response was delivered.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "observed_response_opportunities": 0,
+        "actions": 4,
+        "native_trial_rows": 29
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial native trial export after participation ended."
+      },
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "skill_sha256": {
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+        "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+      },
+      "limitations": [
+        "Full authoring conversation unavailable; inherited context is explicitly disclosed.",
+        "CLI run wait API failed during direct attempt; standalone persistent Playwright fallback used.",
+        "No human timing or behavioral-validity claim.",
+        "Adapter returned fixation plus reminder text; policy requested review and the synchronous driver left timed practice unattended.",
+        "Instruction pages auto-advanced during policy setup."
+      ],
+      "started_at": "2026-10-28T22:23:25.381862+00:00",
+      "ended_at": "2026-10-28T22:27:21.414182+00:00",
+      "manifest_sha256": "d4bedb04cb528bf32a6a2bb81795813f2d9e287ca4c34b9be9d57c37c3cd73b7",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 4, \"relations\": 0, \"events\": 12, \"verified_artifacts\": 33, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-04",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "partial",
+      "status_reason": "Rendered center letter is absent from DOM text observations; no letter responses. Screenshot proves a lowercase t while text representation contains only reminders.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "observed_response_opportunities": 1,
+        "actions": 5,
+        "native_trial_rows": 54
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial native export after participation ended."
+      },
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "skill_sha256": {
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+        "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+      },
+      "limitations": [
+        "Full authoring transcript unavailable; inherited context explicitly disclosed.",
+        "Exact frozen policy from attempt-03; adapter reminder filtering mechanically repaired from observed screenshot.",
+        "No human timing fidelity claim.",
+        "Letter stimulus is visible in pixels but absent from observer text-node representation.",
+        "One practice block and part of auto-repeated practice proceeded without letter responses."
+      ],
+      "started_at": "2026-10-28T22:27:21.414182+00:00",
+      "ended_at": "2026-10-28T22:30:49.352568+00:00",
+      "manifest_sha256": "4bdaffde7b1582d9c7e83bb2106fe26c912457a7c2a5b3cbb257e5b05226ea4e",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 5, \"relations\": 1, \"events\": 37, \"verified_artifacts\": 40, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-05",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "partial",
+      "status_reason": "Two completed practice rounds produced repeated omission feedback because OCR failed on visible glyphs. Stopped during the automatically started third practice; terminal task state never observed.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "observed_response_opportunities": 16,
+        "policy_intended_actions": 11,
+        "policy_delivered_actions": 11,
+        "agent_navigation_actions": 5,
+        "actions": 16,
+        "native_trial_rows": 69,
+        "native_response_opportunities": 16,
+        "native_recorded_responses": 11
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial trial-level native export: 69 rows, including 16 practice response opportunities and 11 recorded responses; original JSON string saved unmodified."
+      },
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "skill_sha256": {
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+        "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+      },
+      "limitations": [
+        "Full authoring transcript unavailable; inherited context disclosed.",
+        "Frozen participant.py retained exactly from attempt-03.",
+        "Pixel OCR adds computational latency; native timing is not adjusted.",
+        "Vision returned no text for visible g/v screenshots. Empty OCR was initially treated as absence, so observations and sequence history are incomplete.",
+        "Local OCR policy responses do not establish direct per-trial model cognition or human-like behavior.",
+        "Some screenshot captures straddled visible transitions; DOM and image timestamps are not atomic.",
+        "The driver kept running through instruction handoffs and tool yields; automatic practice continuation began a third round before stop delivery."
+      ],
+      "started_at": "2026-10-28T22:30:49.352568+00:00",
+      "ended_at": "2026-10-28T22:38:55.064208+00:00",
+      "manifest_sha256": "650cc4ab7fe9e30f28538d9747c32bd80f126d017f6f2427f69449125a212cc5",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 11, \"relations\": 7, \"events\": 113, \"verified_artifacts\": 75, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview5/attempt-06",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "partial",
+      "status_reason": "Completed delay-1 practice, then newly visible delay-2 cue/reminder wording was unsupported by the perception framing. No delay-2 response was delivered; native export retained.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "observed_response_opportunities": 13,
+        "policy_delivered_actions": 6,
+        "native_trial_rows": 58,
+        "phases": {
+          "practice delay 1": {
+            "opportunities": 6,
+            "responses": 6,
+            "omissions": 0,
+            "known_correct": 6,
+            "known_incorrect": 0,
+            "unknown_correctness": 0
+          },
+          "practice delay 2": {
+            "opportunities": 7,
+            "responses": 0,
+            "omissions": 7,
+            "known_correct": 0,
+            "known_incorrect": 7,
+            "unknown_correctness": 0
+          }
+        }
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial native trial-level export."
+      },
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "skill_sha256": {
+        "SKILL.md": "4c6d9c6652a5cf3ee3c4b9860d087ab4c5d91adb27bd04509b577a21b2887337",
+        "artifacts.md": "fd4f37e5f478fdacfcd47c925b4abadee41c3cc07babbe6c011939cf4ff3c66f",
+        "execution.md": "4bf5504e6d198c7b9a66246930efef9e6b5b381ae617fb3dbb4494ded4ed9b45",
+        "scripts/check_run.py": "2c718fbc7a86922006b5b11f2448cc1dd90c166745cea5b2e82d4130ec7fe19e"
+      },
+      "limitations": [
+        "Full authoring transcript unavailable; inherited context disclosed.",
+        "Participant.py retained unchanged from attempt-03; only perception and transport repaired.",
+        "Fast glyph OCR may change capitalization; task explicitly ignores capitalization.",
+        "Software timing includes screenshot/OCR/browser transport; no human timing fidelity claim.",
+        "New delay-2 instruction wording was observed only after completing delay-1 practice; literal framing failed.",
+        "Instruction transitioned automatically after30seconds while review was ongoing; no delay2 inputs issued."
+      ],
+      "started_at": "2026-10-28T22:42:52.337479+00:00",
+      "ended_at": "2026-10-28T22:49:17.110224+00:00",
+      "manifest_sha256": "b5d7f784e8b25970ed77b8afd5a83b2d509dcf89ff83fdab60f9123a66ef6478",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 6, \"relations\": 2, \"events\": 86, \"verified_artifacts\": 131, \"legacy_contract\": false}"
+    },
+    {
+      "directory": "preview5/attempt-07",
+      "input_url": "https://deploy.expfactory.org/preview/5/",
+      "status": "completed",
+      "status_reason": "Observed task thank-you and Experiment Complete terminal state after both practices and ten test blocks. Six attention checks were missed; automatic remote upload failed.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "observed_letter_presentations": 148,
+        "policy_intended_letter_actions": 148,
+        "policy_delivered_letter_actions": 148,
+        "agent_actions": 14,
+        "native_trial_rows": 485,
+        "response_bearing_phases": {
+          "practice_trial": {
+            "opportunities": 13,
+            "responses": 13,
+            "omissions": 0,
+            "native_scored_correct": 13,
+            "native_scored_incorrect": 0,
+            "unknown_correctness": 0,
+            "incorrect_delivered_responses": 0
+          },
+          "test_trial": {
+            "opportunities": 135,
+            "responses": 135,
+            "omissions": 0,
+            "native_scored_correct": 135,
+            "native_scored_incorrect": 0,
+            "unknown_correctness": 0,
+            "incorrect_delivered_responses": 0
+          },
+          "test_attention_check": {
+            "opportunities": 10,
+            "responses": 4,
+            "omissions": 6,
+            "native_scored_correct": 4,
+            "native_scored_incorrect": 6,
+            "unknown_correctness": 0,
+            "incorrect_delivered_responses": 0
+          }
+        }
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Original read-only jsPsych7.3.1 JSON export contains485native rows, including practice, test, attention checks, and end row. Automatic-download CSV was not separately retained."
+      },
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "skill_sha256": {
+        "SKILL.md": "4c6d9c6652a5cf3ee3c4b9860d087ab4c5d91adb27bd04509b577a21b2887337",
+        "artifacts.md": "fd4f37e5f478fdacfcd47c925b4abadee41c3cc07babbe6c011939cf4ff3c66f",
+        "execution.md": "1aa4910a719a7de07e9419e4cceccb90e42260b55639086f2f9137f1c858c4ab",
+        "scripts/check_run.py": "2c718fbc7a86922006b5b11f2448cc1dd90c166745cea5b2e82d4130ec7fe19e"
+      },
+      "limitations": [
+        "Full authoring transcript unavailable; inherited context disclosed.",
+        "Frozen participant.py retained; equivalent framing of observed instruction cues/reminders is separately logged.",
+        "Screenshot and OCR latency preserved in native timing.",
+        "Six of ten attention checks were omitted while agent/tool control was delayed; local letter responses continued.",
+        "Completion is operational and includes unsuccessful attention-check participation.",
+        "Automatic remote upload failed; native JSON remains available locally.",
+        "The frozen policy deliberately requested0ms additional waiting; software execution/recognition still consumes time.",
+        "Full model/tool transcript unavailable; inline authoring inherited conversation context."
+      ],
+      "started_at": "2026-10-28T22:49:17.110224+00:00",
+      "ended_at": "2026-10-28T23:07:42.243720+00:00",
+      "manifest_sha256": "c42552035f00d951d0d9d93d6589d2b454fe856e9758a263fff768b65cda8f5a",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 15, \"relations\": 8, \"events\": 995, \"verified_artifacts\": 165, \"legacy_contract\": false}"
+    },
+    {
+      "directory": "preview9/attempt-01",
+      "input_url": "https://deploy.expfactory.org/preview/9/",
+      "status": "partial",
+      "status_reason": "Practice advanced faster than direct screenshot/inference/action could respond. Native feedback reported omissions. Participation ended and the task tab was closed; terminal task completion was not reached.",
+      "mode": "direct_browser",
+      "counts": {
+        "visually_identified_response_opportunities": 1,
+        "response_actions": 0,
+        "navigation_actions": 7,
+        "native_export_rows": 55,
+        "native_export_trial_rows": 12,
+        "native_go_trials": 8,
+        "native_go_omissions": 8,
+        "events": 19
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Partial native records captured via documented read-only jsPsych.data.get().json() after ending participation; API documentation https://www.jspsych.org/6.3/core_library/jspsych-data/#jspsychdataget. Exact returned JSON string retained."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+        "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+      },
+      "limitations": [
+        "Partial practice only; no main test or terminal completion.",
+        "Direct tool+model loop missed brief visual stimuli; accessibility text omitted shape identity.",
+        "Practice repeated automatically while post-participation export documentation/capture was performed; this was not an agent-requested restart. All captured rows retained.",
+        "Native timings and answer metadata were read only after participation ended and were not used for responses.",
+        "No actual task response keys delivered; all 8 exported required-response trials were omitted.",
+        "Exact model identifier and browser version unknown.",
+        "Initial stale element reference recovered by a fresh snapshot."
+      ],
+      "started_at": "2026-10-28T21:32:31.019572+00:00",
+      "ended_at": "2026-10-28T21:36:41.073118+00:00",
+      "manifest_sha256": "f3cc90c167a592fd7818a52b5f0081d48e07e7bf0dbaefc8041c45a4813a2e4f",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 16, \"relations\": 14, \"events\": 19, \"verified_artifacts\": 30, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview9/attempt-02",
+      "input_url": "https://deploy.expfactory.org/preview/9/",
+      "status": "partial",
+      "status_reason": "Adapter failure: compound run calls delivered navigation before a later fn-is-not-a-function error. Practice advanced during diagnosis; archived before retry with repaired transport and identical policy.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "native_export_rows": 52,
+        "native_export_trial_rows": 11,
+        "response_actions": 0,
+        "events": 16
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json"
+        ],
+        "reason": "Original partial native jsPsych JSON after abandonment."
+      },
+      "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "795a964164a37502803241e1cae90d6e13a9513a48ed065e0d22a2d2ad28b6e4",
+        "SKILL.md": "f6aa0a1ee27b8d0ae204c93c411f8b58608e3ca2c91391944a7cd9128ac58484"
+      },
+      "limitations": [
+        "No policy trial responses were delivered.",
+        "Practice proceeded automatically during adapter diagnosis.",
+        "New attempt will retain the exact first gate-passing policy; only transport repair changes.",
+        "Policy was authored inline with inherited conversation context, not in an isolated neutral model call."
+      ],
+      "started_at": "2026-10-28T21:38:09.721991+00:00",
+      "ended_at": "2026-10-28T21:51:33.465122+00:00",
+      "manifest_sha256": "c1c0f2a0c835770f39e230295aaebdbeda0584038cebc6735f7dd86886b1de01",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"partial\", \"nodes\": 3, \"relations\": 1, \"events\": 16, \"verified_artifacts\": 38, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "preview9/attempt-03",
+      "input_url": "https://deploy.expfactory.org/preview/9/",
+      "status": "completed",
+      "status_reason": "Observed Experiment Complete after all three main blocks. Local task completed; automatic remote upload failed as reported by terminal page.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "native_export_rows": 603,
+        "native_export_trial_rows": 192,
+        "native_main_trial_rows": 180,
+        "native_attention_checks": 3,
+        "events": 29
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/experiment_data.json",
+          "data/experiment_data.csv"
+        ],
+        "reason": "Original post-completion native JSON/CSV strings from documented read-only jsPsych.data.get() API. Exact returned strings retained."
+      },
+      "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+        "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+      },
+      "limitations": [
+        "The public preview reported automatic upload failure; task completion and local export are verified, remote submission is not.",
+        "Practice auto-advanced during initial driver setup/approval; all 12 recorded practice opportunities retained, including initial omissions.",
+        "Two brief text instructions were missed before unexpected-text handoff was added; third was answered correctly.",
+        "One navigation Enter was sent after automatic feedback advance; it is not a task response key and is archived in the executed script. Later navigation checks current prompt first.",
+        "Task block feedback reported slow responses. Native go RT 675\u20131172 ms includes browser transport and policy time; no human validity established.",
+        "Observer representation was checked against earlier square screenshot/geometry; a near-simultaneous followup screenshot had already blanked. All rendered pixel observations are archived.",
+        "Policy authored inline with inherited conversation context; explicit neutral instruction saved but full isolated model-call transcript unavailable.",
+        "Exact model identifier/browser version unknown."
+      ],
+      "started_at": "2026-10-28T21:52:15.953347+00:00",
+      "ended_at": "2026-10-28T22:11:25.558662+00:00",
+      "manifest_sha256": "63dea7032aaa1e31a8cac3f85782ceae5be0a755254c9d973e23d9f7ee045076",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 20, \"relations\": 18, \"events\": 29, \"verified_artifacts\": 62, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "self-paced-reading/attempt-01",
+      "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "status": "completed",
+      "status_reason": "Five sentence sequences progressed to the native Show data/Copy data controls; completion is confirmed, but some word displays were missed.",
+      "mode": "direct_browser",
+      "counts": {
+        "keyboard_n_commands": 24,
+        "native_export_trial_rows": 5,
+        "native_export_word_intervals": 29,
+        "native_intervals_equal_9999ms": 6,
+        "events": 36
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/native-export.tsv"
+        ],
+        "reason": "Read visible native table after completion and Show data; exact displayed table text retained, with serialized source capture."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "fda9e803a8faa39127a919d31c5ae0bd5c812c687a54f3973e9fafe9c876f87a",
+        "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+      },
+      "limitations": [
+        "Accessibility tree omits canvas words; every available word observation used screenshots.",
+        "Some word displays advanced before the model observed them; completion is not full perceptual coverage.",
+        "Six native intervals equal 9999 ms, consistent with an unannounced per-word deadline; semantics are inferred without reading task source.",
+        "Direct model and browser-tool latency is included in native timing; no human reading-time validity.",
+        "Native export is displayed table text, not a downloaded data file.",
+        "Exact model/browser versions unavailable."
+      ],
+      "started_at": "2026-10-28T21:48:06.769865+00:00",
+      "ended_at": "2026-10-28T21:54:54.452285+00:00",
+      "manifest_sha256": "905caace08aa0e8cdee8cd65d0db98da03d2186e9f2c457eca186d0b1ebeb9f5",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 9, \"relations\": 7, \"events\": 36, \"verified_artifacts\": 77, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "self-paced-reading/attempt-02",
+      "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "status": "blocked",
+      "status_reason": "Transport screenshot preflight tried to capture a hidden initial canvas; browser closed before participation.",
+      "mode": "direct_browser",
+      "counts": {
+        "response_actions": 0
+      },
+      "data_export": {
+        "status": "unavailable",
+        "paths": [],
+        "reason": "No participation; startup screenshot failure."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+        "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+      },
+      "limitations": [
+        "Second attempt reduces observation/input transport overhead; previous completed session retained with missed observations."
+      ],
+      "started_at": "2026-10-28T21:57:49.170072+00:00",
+      "ended_at": "2026-10-28T21:58:44.659938+00:00",
+      "manifest_sha256": "f9826741f3f61190d85721ece3b6c48c43517a1177b4fb3e6c969695bb88a95d",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"blocked\", \"nodes\": 0, \"relations\": 0, \"events\": 0, \"verified_artifacts\": 7, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "self-paced-reading/attempt-03",
+      "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "status": "completed",
+      "status_reason": "Task autonomously reached native export controls while the model/tool loop was delayed; zero word displays were observed. Terminal completion is not successful participation.",
+      "mode": "direct_browser",
+      "counts": {
+        "observed_word_displays": 0,
+        "native_export_trial_rows": 5,
+        "native_export_word_intervals": 29,
+        "native_intervals_equal_9999ms": 29,
+        "events": 6,
+        "n_commands": 1
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/export-0.txt"
+        ],
+        "reason": "Exact visible native table text, captured after Show data."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+        "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+        "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+      },
+      "limitations": [
+        "No stimulus word was seen; all 29 native intervals equal 9999 ms.",
+        "Persistent browser operations took 74\u2013568 ms, but surrounding model/tool round trips stalled beyond display deadlines.",
+        "Terminal completion resulted from autonomous progression and is not evidence of reading performance.",
+        "Attempt-02 startup-only hidden-canvas screenshot failure is retained; this attempt fixed visibility checks.",
+        "Native data are exact rendered table text, not a downloaded file."
+      ],
+      "started_at": "2026-10-28T21:58:46.065403+00:00",
+      "ended_at": "2026-10-28T22:17:08.579011+00:00",
+      "manifest_sha256": "508df7598a8fe83a4f524cef72e500a1a6996416190ae32068cb397ca8712fbf",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 4, \"relations\": 1, \"events\": 6, \"verified_artifacts\": 19, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "self-paced-reading/attempt-04",
+      "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "status": "completed",
+      "status_reason": "Frozen OCR policy observed terminal export controls. Recognized 27/28 words in native sequence order.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "events": 94,
+        "policy_key_actions": 33,
+        "observed_word_displays": 27,
+        "native_export_trial_rows": 5,
+        "native_export_word_intervals": 28,
+        "sequence_matched_words": 27,
+        "native_intervals_equal_9999ms": 1
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/native-export.tsv"
+        ],
+        "reason": "Exact visible table innerText after completion and normal Show data click."
+      },
+      "policy_sha256": "9c0a9c7c3c5eab07596e1ac072a7b88df9812fcf84662eb5ef7afe822560f539",
+      "skill_sha256": {
+        "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+        "execution.md": "0533a435c3e5495ccc2e7d01e87fca222872efec137ff14fdc84d2dc05001872",
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+      },
+      "limitations": [
+        "Policy receives OCR text from current rendered pixels; live responses are generated-program decisions, not per-word LLM comprehension.",
+        "Inline authoring inherited conversation context; does not claim frozen-study prompt isolation.",
+        "OCR timing and input transport contribute to native response times; no timing fidelity to human readers established.",
+        "Data are exact rendered native table text, not a downloaded file."
+      ],
+      "started_at": "2026-10-28T22:20:39.174346+00:00",
+      "ended_at": "2026-10-28T22:21:17.883516+00:00",
+      "manifest_sha256": "7f091cbc83ef73f93907cf3c6b3b9df2bb7bb505e9138f429a5cf377b60edad8",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 8, \"relations\": 6, \"events\": 94, \"verified_artifacts\": 218, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "self-paced-reading/attempt-05",
+      "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+      "status": "completed",
+      "status_reason": "Frozen OCR policy observed terminal export controls. Recognized 28/28 words in native sequence order.",
+      "mode": "generated_visible_policy",
+      "counts": {
+        "events": 63,
+        "policy_key_actions": 34,
+        "observed_word_displays": 28,
+        "native_export_trial_rows": 5,
+        "native_export_word_intervals": 28,
+        "sequence_matched_words": 28,
+        "native_intervals_equal_9999ms": 0
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/native-export.tsv"
+        ],
+        "reason": "Exact visible table innerText after completion and normal Show data click."
+      },
+      "policy_sha256": "9c0a9c7c3c5eab07596e1ac072a7b88df9812fcf84662eb5ef7afe822560f539",
+      "skill_sha256": {
+        "artifacts.md": "0e253e8a389a9b260667599aa341b8e499e69afce44ff0d3c8ab15ae68a65547",
+        "execution.md": "4bf5504e6d198c7b9a66246930efef9e6b5b381ae617fb3dbb4494ded4ed9b45",
+        "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066"
+      },
+      "limitations": [
+        "Policy receives OCR text from current rendered pixels; live responses are generated-program decisions, not per-word LLM comprehension.",
+        "Inline authoring inherited conversation context; does not claim frozen-study prompt isolation.",
+        "OCR timing and input transport contribute to native response times; no timing fidelity to human readers established.",
+        "Data are exact rendered native table text, not a downloaded file."
+      ],
+      "started_at": "2026-10-28T22:28:49.131700+00:00",
+      "ended_at": "2026-10-28T22:29:17.442335+00:00",
+      "manifest_sha256": "44fbb125f9d339b35805665f39a169cdbc64d307850bc9edb112913df5a86688",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 8, \"relations\": 6, \"events\": 63, \"verified_artifacts\": 147, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "tower-hanoi/attempt-01",
+      "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+      "status": "blocked",
+      "status_reason": "The preferred CLI supports element-to-element dragging only; task discs and target pegs are all in one canvas. No puzzle move was attempted. A coordinate-input fallback is needed.",
+      "mode": "direct_browser",
+      "counts": {
+        "response_actions": 0,
+        "native_export_trial_rows": null
+      },
+      "data_export": {
+        "status": "unavailable",
+        "paths": [],
+        "reason": "Stopped at instructions before any puzzle move."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+        "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+      },
+      "limitations": [
+        "CLI cannot address distinct canvas objects with its drag command.",
+        "Browser bridge initially failed under sandbox; elevated launch succeeded."
+      ],
+      "started_at": "2026-10-28T21:33:12.611884+00:00",
+      "ended_at": "2026-10-28T21:44:10.992705+00:00",
+      "manifest_sha256": "d3c1ab6e129c8a002c9d520fdf69c7b4289826afc19936b29c466dcb854d4744",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"blocked\", \"nodes\": 2, \"relations\": 1, \"events\": 6, \"verified_artifacts\": 13, \"legacy_contract\": true}"
+    },
+    {
+      "directory": "tower-hanoi/attempt-02",
+      "input_url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+      "status": "completed",
+      "status_reason": "Seven ordinary pointer drags produced the instructed final arrangement; task then automatically displayed native export controls.",
+      "mode": "direct_browser",
+      "counts": {
+        "response_actions": 7,
+        "navigation_actions": 4,
+        "native_export_trial_rows": 7,
+        "events": 14
+      },
+      "data_export": {
+        "status": "available",
+        "paths": [
+          "data/native-export.tsv"
+        ],
+        "reason": "Native Show data table rendered after completion. Exact data substring retained from browser-visible body innerText; complete source text also archived."
+      },
+      "policy_sha256": null,
+      "skill_sha256": {
+        "artifacts.md": "d0f80cde554b55270d50a52d24b50803c55f34fbf37c8803a0f2124d2f8a03e2",
+        "SKILL.md": "9b7b4c2148ee66a7a7cb3960bb6a52574a3e428ef45448f63ba19ce90f0addc9"
+      },
+      "limitations": [
+        "Second attempt replaces an input transport incapable of canvas coordinate drag; no behavioral results selected.",
+        "Native export text preserves the visible table values and tab/newline separators, not a downloaded file.",
+        "Native cumulative time includes model and tool overhead; no human timing equivalence.",
+        "Exact model and browser versions unavailable.",
+        "Initial sandbox launch of pointer browser failed before page opened; elevated launch succeeded."
+      ],
+      "started_at": "2026-10-28T21:43:44.258159+00:00",
+      "ended_at": "2026-10-28T21:48:48.287616+00:00",
+      "manifest_sha256": "c0047220ee45cd2889159c30b627ef0e958ffe5aa0f0995b8de82cb4f9960d2b",
+      "artifact_integrity": "verified",
+      "verification": "{\"status\": \"completed\", \"nodes\": 10, \"relations\": 8, \"events\": 14, \"verified_artifacts\": 34, \"legacy_contract\": true}"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+page:
+  title: The Experiment Factory
+  refs: 11
+snapshot:
+uid=g13:12_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/9/"
+  uid=g13:14_0 "On some trials, a star will appear around the shape, with or shortly after the shape appears."
+  uid=g13:14_1 "If you see the star, please try your best to "
+  uid=g13:14_2 "withhold your response"
+  uid=g13:14_3 " on that trial."
+  uid=g13:14_4 "If the star appears and you try your best to withhold your response, you will find that you will be able to stop sometimes, but not always."
+  uid=g13:14_5 "Please "
+  uid=g13:14_6 "do not"
+  uid=g13:14_7 " slow down your responses in order to wait for the star. It is equally important to respond quickly on trials without the star as it is to stop on trials with the star."
+  uid=g13:14_8 button "< Previous" disableable disabled
+  uid=g13:14_9 button "Next >"
+help[2]:
+  Run `chrome-devtools-axi click @g13:14_8` to click the "< Previous" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

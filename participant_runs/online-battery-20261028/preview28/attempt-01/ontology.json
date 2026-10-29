@@ -1,0 +1,338 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/28/",
+    "title": "Rectangle target-presence task"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Instructions",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_003_txt",
+        "boundary_004_txt"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "feedback": true,
+        "reminders": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt",
+        "trace"
+      ]
+    },
+    {
+      "id": "test",
+      "kind": "phase",
+      "label": "Test blocks",
+      "attributes": {
+        "blocks": 3,
+        "feedback_reminders_removed": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt",
+        "boundary_010_txt"
+      ]
+    },
+    {
+      "id": "array",
+      "kind": "stimulus",
+      "label": "Rectangle array",
+      "attributes": {
+        "colors": [
+          "black",
+          "white"
+        ],
+        "observed_sample_count": 8
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "live_rectangles_json",
+        "live_rectangles_png"
+      ]
+    },
+    {
+      "id": "target",
+      "kind": "target",
+      "label": "Vertical white rectangle",
+      "attributes": {
+        "color": "white",
+        "orientation": "vertical"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_003_txt",
+        "boundary_003_png"
+      ]
+    },
+    {
+      "id": "present",
+      "kind": "response",
+      "label": "Period key",
+      "attributes": {
+        "key": ".",
+        "meaning": "target present"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt",
+        "boundary_003_txt"
+      ]
+    },
+    {
+      "id": "absent",
+      "kind": "response",
+      "label": "Comma key",
+      "attributes": {
+        "key": ",",
+        "meaning": "target absent"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt",
+        "boundary_003_txt"
+      ]
+    },
+    {
+      "id": "target_rule",
+      "kind": "rule",
+      "label": "Report target presence",
+      "attributes": {
+        "present_if": "A displayed rectangle is white and vertical",
+        "absent_if": "No displayed rectangle is white and vertical"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_003_txt",
+        "boundary_004_txt"
+      ]
+    },
+    {
+      "id": "attention",
+      "kind": "phase",
+      "label": "Inter-block instruction check",
+      "attributes": {
+        "deadline_seconds": 15,
+        "shift_prohibited": true,
+        "observed_prompts": [
+          "Press m",
+          "Second to last English letter"
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_009_txt",
+        "boundary_011_txt"
+      ]
+    },
+    {
+      "id": "completion",
+      "kind": "completion",
+      "label": "Experiment Complete",
+      "attributes": {
+        "remote_upload": "unconfirmed"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "completion",
+        "completion_image"
+      ]
+    },
+    {
+      "id": "native_outcome",
+      "kind": "session_outcome",
+      "label": "Native trial outcomes",
+      "attributes": {
+        "native_export_rows": 622,
+        "native_response_trials": 200,
+        "native_practice_trials": 8,
+        "native_test_trials": 192,
+        "native_recorded_responses": 196,
+        "native_omissions": 4,
+        "native_correct_responses": 196,
+        "native_test_correct": 192,
+        "native_attention_checks": 3,
+        "native_attention_checks_correct": 2,
+        "native_correctness_unknown": 4
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "test",
+      "predicate": "presents",
+      "object": "array",
+      "status": "observed",
+      "evidence_refs": [
+        "live_rectangles_png"
+      ]
+    },
+    {
+      "subject": "target_rule",
+      "predicate": "tests_for",
+      "object": "target",
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_003_txt"
+      ]
+    },
+    {
+      "subject": "target_rule",
+      "predicate": "maps_presence_to",
+      "object": "present",
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt"
+      ]
+    },
+    {
+      "subject": "target_rule",
+      "predicate": "maps_absence_to",
+      "object": "absent",
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_004_txt"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "interleaves",
+      "object": "attention",
+      "status": "observed",
+      "evidence_refs": [
+        "boundary_010_txt",
+        "boundary_011_txt"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "boundary_003_txt",
+      "path": "evidence/boundary-003.txt",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:46.823105+00:00",
+      "description": "boundary-003.txt"
+    },
+    {
+      "id": "boundary_003_png",
+      "path": "evidence/boundary-003.png",
+      "locator": "Full saved file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:18:46.851607+00:00",
+      "description": "boundary-003.png"
+    },
+    {
+      "id": "boundary_004_txt",
+      "path": "evidence/boundary-004.txt",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:19:22.395125+00:00",
+      "description": "boundary-004.txt"
+    },
+    {
+      "id": "live_rectangles_json",
+      "path": "evidence/live-rectangles.json",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:23:16.102620+00:00",
+      "description": "live-rectangles.json"
+    },
+    {
+      "id": "live_rectangles_png",
+      "path": "evidence/live-rectangles.png",
+      "locator": "Full saved file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:23:16.117623+00:00",
+      "description": "live-rectangles.png"
+    },
+    {
+      "id": "boundary_009_txt",
+      "path": "evidence/boundary-009.txt",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:21:57.953885+00:00",
+      "description": "boundary-009.txt"
+    },
+    {
+      "id": "boundary_010_txt",
+      "path": "evidence/boundary-010.txt",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:25:31.170259+00:00",
+      "description": "boundary-010.txt"
+    },
+    {
+      "id": "boundary_011_txt",
+      "path": "evidence/boundary-011.txt",
+      "locator": "Full saved file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:25:56.034992+00:00",
+      "description": "boundary-011.txt"
+    },
+    {
+      "id": "trace",
+      "path": "events.jsonl",
+      "locator": "Append-only observations and actions",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:18:14.455251+00:00",
+      "description": "Live rendered text, geometry, colors, and actual input delivery"
+    },
+    {
+      "id": "native",
+      "path": "data/experiment_data.json",
+      "locator": "Complete native array",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:33:21.335546+00:00",
+      "description": "Unmodified post-session platform export"
+    },
+    {
+      "id": "navigation_miss",
+      "path": "evidence/navigation-miss.md",
+      "locator": "Full note plus command/event trace",
+      "source_type": "agent_report",
+      "observed_at": "2026-10-28T22:33:21.335546+00:00",
+      "description": "Preserved first attention-instruction miss"
+    },
+    {
+      "id": "completion",
+      "path": "evidence/completion.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:33:21.335546+00:00",
+      "description": "Observed terminal task state"
+    },
+    {
+      "id": "completion_image",
+      "path": "evidence/completion.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:33:21.335546+00:00",
+      "description": "Observed terminal task state"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Human behavioral validity",
+      "reason": "No human comparison; the generated policy deliberately requests immediate responses."
+    },
+    {
+      "question": "Remote upload accepted",
+      "reason": "No remote acknowledgment was recorded."
+    }
+  ]
+}

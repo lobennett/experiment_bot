@@ -1,0 +1,14 @@
+page:
+  title: The Experiment Factory
+  refs: 6
+snapshot:
+uid=g28:18_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/9/"
+  uid=g28:29_0 heading "Experiment Complete" level="1"
+  uid=g28:29_1 "Failed to automatically upload results. Please upload the csv file that was automatically downloaded here:"
+  uid=g28:29_2 LineBreak "
+"
+  uid=g28:29_3 link "https://deploy.expfactory.org/prolific/participant/result/upload" url="https://deploy.expfactory.org/prolific/participant/result/upload"
+  uid=g28:29_5 "If you are unable to access the above page or run into any issues using it please submit the current prolific study with code "NOCODE" and contact us."
+help[2]:
+  Run `chrome-devtools-axi click @g28:29_3` to click the "https://deploy.expfactory.org/prolific/participant/result/upload" link
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

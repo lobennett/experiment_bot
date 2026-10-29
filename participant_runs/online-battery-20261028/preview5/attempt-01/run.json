@@ -1,0 +1,72 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview5-attempt-01",
+  "mode": "direct_browser",
+  "input_url": "https://deploy.expfactory.org/preview/5/",
+  "final_url": "https://deploy.expfactory.org/preview/5/",
+  "started_at": "2026-10-28T22:14:21.802410+00:00",
+  "ended_at": "2026-10-28T22:20:37.730313+00:00",
+  "status": "partial",
+  "status_reason": "Direct attempt missed timed stimuli after browser scripting error; no terminal state observed.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null,
+    "reported_family": "GPT-6, from developer description; exact runtime identifier unavailable"
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview5"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+  },
+  "seed": null,
+  "reproducibility": "Direct agent session; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Partial trial-level native export via jsPsych.data.get().json(); documentation https://www.jspsych.org/v7/reference/jspsych-data/"
+  },
+  "submission": {
+    "status": "unconfirmed",
+    "reason": null
+  },
+  "counts": {
+    "observed_response_opportunities": 0,
+    "actions": 4,
+    "native_trial_rows": 54
+  },
+  "limitations": [
+    "CLI bridge needs execution outside sandbox.",
+    "page.wait(500) failed with fn is not a function after Enter delivery.",
+    "No individual letters were observed; timed practice continued while tools returned.",
+    "Initial welcome advanced without an observed agent action; other workers confirmed no session use.",
+    "Some event timestamps are archival timestamps; native timing remains unmodified."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "1b212bb967c5b9d3b4dbfadebb197a658c29e8b6516f0b933a9649290221dae1",
+    "events.jsonl": "1519663ff574ce13c4366eb9cdbed72109c73dbb614b6180a5962c1d4686c237",
+    "evidence/001-fullscreen.txt": "17d3fe4a471076b038034cd7f14f0c61168694c085e18aeb146ea4a8bd7fb1ff",
+    "evidence/002-welcome.txt": "52a5b39673622add8f9818709c05a6669d7b602b8f9f3cb2f08bebcb22e44afa",
+    "evidence/003-instructions.png": "1c88cb9bcf43ffaa7207b46779ce08605bf27fc8b9838d09613d9f89f1b4ad36",
+    "evidence/003-instructions.txt": "2c72d03342e3f40857e9eb6d1b55eab847db97556b3e41545ddb1e97c99721b1",
+    "evidence/004-practice-instructions.txt": "b4152a42e4dbc3d4e5642228c12c04f496b6eedbbe74bd58c85829447de33c87",
+    "evidence/005-practice-ready.txt": "c2fdcd126d76b1a0d0447c31ae540857ebebae863e19de8f74b86c24fcb03fda",
+    "evidence/006-error.txt": "ce15ecea1d4b81d7f1ff8a1e9e7537f779d48f9c7c02c40822b1d729f3367524",
+    "evidence/007-final-feedback.txt": "069345fbb1f0dbc1965b5eb71ec24bbce6de32194cdd84ba5ada338885f7efc1",
+    "ontology.json": "6953d1ad94322bbb2daa18041ae355ac634a2fb1758df96d6cf8ce32cf64f100",
+    "protocol/SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "protocol/artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "protocol/execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "protocol/scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9",
+    "summary.md": "3fcca788bb97ef70821c3703510e746a0d9be7b34cf49a3d59c16fc984f56524"
+  }
+}

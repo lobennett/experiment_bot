@@ -1,0 +1,30 @@
+{
+  "passed": true,
+  "candidate": 1,
+  "interface_cases": 7,
+  "deterministic_same_seed": true,
+  "randomness": "none; no distinct-seed assertion applicable",
+  "duplicate_frame_suppressed": true,
+  "bounded_policy_trace_ms": 1222.010042052716,
+  "ocr_fixture_checks": [
+    {
+      "file": "self-paced-reading/attempt-01/evidence/05_word.png",
+      "recognized": "Mary",
+      "duration_ms": 615.1987910270691,
+      "source": "saved screenshot pixels"
+    },
+    {
+      "file": "self-paced-reading/attempt-01/evidence/06_word.png",
+      "recognized": "cooked",
+      "duration_ms": 310.61062501976267,
+      "source": "saved screenshot pixels"
+    },
+    {
+      "file": "self-paced-reading/attempt-01/evidence/07_word.png",
+      "recognized": "dinner",
+      "duration_ms": 295.97566701704636,
+      "source": "saved screenshot pixels"
+    }
+  ],
+  "policy_sha256": "9c0a9c7c3c5eab07596e1ac072a7b88df9812fcf84662eb5ef7afe822560f539"
+}

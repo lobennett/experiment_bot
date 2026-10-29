@@ -1,0 +1,101 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview9-attempt-02",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/9/",
+  "final_url": "https://deploy.expfactory.org/preview/9/",
+  "started_at": "2026-10-28T21:38:09.721991+00:00",
+  "ended_at": "2026-10-28T21:51:33.465122+00:00",
+  "status": "partial",
+  "status_reason": "Adapter failure: compound run calls delivered navigation before a later fn-is-not-a-function error. Practice advanced during diagnosis; archived before retry with repaired transport and identical policy.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview9",
+    "version": null
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "795a964164a37502803241e1cae90d6e13a9513a48ed065e0d22a2d2ad28b6e4",
+    "SKILL.md": "f6aa0a1ee27b8d0ae204c93c411f8b58608e3ca2c91391944a7cd9128ac58484"
+  },
+  "seed": {
+    "value": 91028,
+    "scope": "generated policy local choices"
+  },
+  "reproducibility": "Direct agent decisions are not deterministically replayable.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Original partial native jsPsych JSON after abandonment."
+  },
+  "counts": {
+    "native_export_rows": 52,
+    "native_export_trial_rows": 11,
+    "response_actions": 0,
+    "events": 16
+  },
+  "limitations": [
+    "No policy trial responses were delivered.",
+    "Practice proceeded automatically during adapter diagnosis.",
+    "New attempt will retain the exact first gate-passing policy; only transport repair changes.",
+    "Policy was authored inline with inherited conversation context, not in an isolated neutral model call."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "cde94986c304e9a82845868fd056c9c48d8863175dbd4f5299739132f482ab66",
+    "events.jsonl": "ba38d8f2f5188663cf3d997fd36014b7c4ab0a4f9468ec57629ce916a17f77f4",
+    "evidence/01_open.txt": "8d9ff232b19a3b3b97ea97acf53bbec31d21000a78b127d0e330a5eabb9a0794",
+    "evidence/02_fullscreen.txt": "233570b75c4579456d08eb99eda250005d392172e4b50e22964111413a2eb7d1",
+    "evidence/03_fullscreen_selector.txt": "bb6f162e8c5d5ac69892957c132d3dcb7e88fb9d69ca2575ead8cb774b18d019",
+    "evidence/04_next.txt": "726e37b172283403938e917277d9a61736e3a2ea79e5195ad38450a223003621",
+    "evidence/05_refresh.txt": "939a0dd9bef9e62be75ab5f9a83bb540e25c460630f28953ccc2de1d880f1d9f",
+    "evidence/06_begin.txt": "35a9e3c3e48a383a264ca80a0fd9b6aca272d2fc2513b8e2c6ad96e70e13bb6e",
+    "evidence/06_next.txt": "7a5a76969742876e0713e1736575bdb4967addbd37e882157855802a9c27ca2a",
+    "evidence/07_instructions_next.txt": "1b7c82015a3f163f4877da648471bc1786f6494252dd69957928c6833f8b35ec",
+    "evidence/07_ready.txt": "83ea93878d9fa10f4a64c25261733f442b6d28b6136b13b6a7509b60048ceea9",
+    "evidence/08_instructions_next.txt": "36744c45741d1bcd411abca3da66db232cde20d45a34e687e2758f8429cb81e9",
+    "evidence/08_renderer_interface.txt": "ed3f9142bf876b573af6124b5fe7c6646da13ad6106effe03547134a31289240",
+    "evidence/09_visual_verification.txt": "726e37b172283403938e917277d9a61736e3a2ea79e5195ad38450a223003621",
+    "evidence/10_verification.png": "9c09123b70fedd9a2924caed557844af4ee9fe99fe82b6f95ffd1c53f4d9c21e",
+    "evidence/10_verification_screenshot.txt": "c1241e764cce06eb2008d67e3d3df325af6c6d422a0331272899739d94bf4dee",
+    "evidence/11_after_ambiguous_input.txt": "f902af21d0d1d738ba56160190f086c4aea01282fdcf132de9c3c31f22907714",
+    "evidence/12_visual_verification_fixed.txt": "2c8fe1fa0e9ce3044dfc410ba1b9ae071bc136b6c42b75764362c5c9558cf047",
+    "evidence/13_verification.png": "a6de630e4f880b09cba8ed773d2040706f63a265edbafe1286967de93ed0b9da",
+    "evidence/13_verification_screenshot.txt": "2b21816609bfd2ab839df408a8d531a78c8fd1818c3cd0154e81fb40ea4ac5b4",
+    "evidence/14_native_export.txt": "266d2545d33bd7acb19df2931d3759ce877ff02b99de0f028aa5ca4efb8dde48",
+    "evidence/15_pages.txt": "9ab1bce36ba2251aa6adce40be6a9db0877af1fbc76090683063f2e2380b51a8",
+    "evidence/16_close.txt": "ea688a4d691d2127935dd83081cea93b6ff11ac36ad7b18fef1d80b23fb23069",
+    "ontology.json": "6ca51131b08ec5c2be901cd1ba7d40f5a1423df83a55191608af007ca0e5360c",
+    "operate.py": "e771317da54e5ebd4ba3b3d8d9782fc671798a2f48045150c02b6e3b959269ab",
+    "policy/authoring-prompt.md": "5b57e2281cc8e2a4f849058fef717b65c9e3ea351aff27068641fbe4f6046fe1",
+    "policy/gate-report.json": "9740f4dab1ad45cf073b127cc83bb974d53227bfe7dbcd7288d06183705c5a43",
+    "policy/gate.cjs": "0664dbc9b7962cfc69c875d3ec88033a81084915a40bc681f37b77e38f731c19",
+    "policy/navigate.js": "92dd67160e1a29fdaea50b716a31b40516594da314f224c2c20ac51af33bdb29",
+    "policy/next.js": "69b4ab90bf4718f87a4d5653481025a38c6acec551fe385857fc5ae1839120d2",
+    "policy/observe.js": "79db94415ababd704e84a76bc0088c076a7667eb367e1587410be9969e444aab",
+    "policy/participant.js": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+    "policy/verify-visible-fixed.js": "44d982904bd8cd0d83ffa5090d20a9dfb8f23b692eb6c3cb6629d570f76dad06",
+    "policy/verify-visible.js": "c88c70c9d494cee51a811ef34173ea0b442ae0c966f450003ab956824ba4414f",
+    "protocol/SKILL.md": "f6aa0a1ee27b8d0ae204c93c411f8b58608e3ca2c91391944a7cd9128ac58484",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "795a964164a37502803241e1cae90d6e13a9513a48ed065e0d22a2d2ad28b6e4",
+    "summary.md": "27d7d555fdcd19a36ebb4ecd5313ef88c3dacf1487c4db584514d5ef5fabf58c"
+  },
+  "parent_attempt": "../attempt-01",
+  "policy_path": "policy/participant.js",
+  "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+  "authoring_prompt_path": "policy/authoring-prompt.md",
+  "gate_report_path": "policy/gate-report.json",
+  "observation_interface": "current visible image pixels/geometry and rendered text through page.eval",
+  "input_delivery": "chrome-devtools-axi run page.press / page.click normal browser input",
+  "authoring_context": "inherited_agent_context",
+  "authoring_transcript": "Explicit authoring prompt saved; full isolated model-call transcript unavailable. Inline policy author inherited conversation and prior attempt context."
+}

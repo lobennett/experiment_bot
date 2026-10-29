@@ -1,0 +1,753 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": "The Experiment Factory"
+  },
+  "nodes": [
+    {
+      "id": "comparison",
+      "kind": "rule",
+      "label": "Case-insensitive delayed letter comparison",
+      "attributes": {
+        "instruction_delays": [
+          1,
+          2
+        ],
+        "mismatch_key": ",",
+        "match_key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "004-instructions"
+      ]
+    },
+    {
+      "id": "practice1",
+      "kind": "phase",
+      "label": "Practice delay1",
+      "attributes": {
+        "first_trial_response": "mismatch",
+        "feedback_and_reminders": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "005-practice-instructions"
+      ]
+    },
+    {
+      "id": "fixation",
+      "kind": "stimulus",
+      "label": "Central fixation cross",
+      "attributes": {
+        "text": "+",
+        "reminders_top_left": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "007-practice-start"
+      ]
+    },
+    {
+      "id": "practice2",
+      "kind": "phase",
+      "label": "Practice delay2",
+      "attributes": {
+        "first_two_trials": "mismatch",
+        "delay": 2
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "practice2-instructions"
+      ]
+    },
+    {
+      "id": "test1",
+      "kind": "phase",
+      "label": "Test delay1",
+      "attributes": {
+        "delay": 1
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-111"
+      ]
+    },
+    {
+      "id": "key_check",
+      "kind": "rule",
+      "label": "Additional instructed key response",
+      "attributes": {
+        "required_key": "t",
+        "do_not_press_shift": true,
+        "automatic_advance_seconds": 15,
+        "response_issuer": "agent"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "009-test-start",
+        "010-key-check-response"
+      ]
+    },
+    {
+      "id": "test_blocks",
+      "kind": "phase",
+      "label": "Ten test blocks",
+      "attributes": {
+        "instruction_total_blocks": 10,
+        "completed_observed": 1,
+        "next_delay": 2,
+        "boundary_timeout_seconds": 30
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-197"
+      ]
+    },
+    {
+      "id": "alphabet_check",
+      "kind": "rule",
+      "label": "Third English letter instruction",
+      "attributes": {
+        "prompt": "Press the key for the third letter of the English alphabet.",
+        "agent_response": "c",
+        "timeout_seconds": 15
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "011-block2-start",
+        "012-check2-response"
+      ]
+    },
+    {
+      "id": "letter_pixels",
+      "kind": "stimulus",
+      "label": "Letter images at screen center",
+      "attributes": {
+        "source": "visible screenshot ROI",
+        "case_ignored_per_instruction": true,
+        "raw_roi": [
+          520,
+          350,
+          240,
+          200
+        ],
+        "viewport": [
+          1280,
+          900
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "event-trace",
+        "004-instructions"
+      ]
+    },
+    {
+      "id": "block_progression",
+      "kind": "phase",
+      "label": "Ten completed test blocks",
+      "attributes": {
+        "count": 10,
+        "delays_observed": [
+          1,
+          2
+        ],
+        "practice_completed_first": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native",
+        "review-991"
+      ]
+    },
+    {
+      "id": "all_checks",
+      "kind": "rule",
+      "label": "One additional instruction check per test block",
+      "attributes": {
+        "observed_count": 10,
+        "deadline_seconds": 15,
+        "no_shift": true,
+        "forms": [
+          "specified key",
+          "English alphabet position"
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native",
+        "009-test-start",
+        "011-block2-start",
+        "review-899"
+      ]
+    },
+    {
+      "id": "timing",
+      "kind": "timing",
+      "label": "Native task timings",
+      "attributes": {
+        "practice_and_test_letter_display_ms": 1000,
+        "letter_response_window_ms": 1500,
+        "fixation_ms": 500,
+        "instruction_check_ms": 15000,
+        "block_feedback_ms": 30000
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    },
+    {
+      "id": "completion",
+      "kind": "completion",
+      "label": "Experiment Complete",
+      "attributes": {
+        "terminal_observed": true,
+        "task_thankyou_observed": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-991",
+        "020-completion",
+        "terminal-image"
+      ]
+    },
+    {
+      "id": "submission",
+      "kind": "completion",
+      "label": "Automatic result upload failed",
+      "attributes": {
+        "remote_receipt": false,
+        "manual_upload_link_shown": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "020-completion",
+        "terminal-image"
+      ]
+    },
+    {
+      "id": "check_omissions",
+      "kind": "feedback",
+      "label": "Six instruction checks omitted",
+      "attributes": {
+        "observed_checks": 10,
+        "recorded_responses": 4,
+        "omissions": 6,
+        "delivered_response_errors": 0
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "practice1",
+      "predicate": "uses",
+      "object": "comparison",
+      "status": "observed",
+      "evidence_refs": [
+        "005-practice-instructions"
+      ]
+    },
+    {
+      "subject": "practice2",
+      "predicate": "follows",
+      "object": "practice1",
+      "status": "observed",
+      "evidence_refs": [
+        "practice2-instructions"
+      ]
+    },
+    {
+      "subject": "test1",
+      "predicate": "follows",
+      "object": "practice2",
+      "status": "observed",
+      "evidence_refs": [
+        "review-111"
+      ]
+    },
+    {
+      "subject": "test1",
+      "predicate": "begins_with",
+      "object": "key_check",
+      "status": "observed",
+      "evidence_refs": [
+        "009-test-start"
+      ]
+    },
+    {
+      "subject": "test_blocks",
+      "predicate": "presents",
+      "object": "letter_pixels",
+      "status": "observed",
+      "evidence_refs": [
+        "event-trace"
+      ]
+    },
+    {
+      "subject": "test_blocks",
+      "predicate": "includes",
+      "object": "all_checks",
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    },
+    {
+      "subject": "completion",
+      "predicate": "follows",
+      "object": "block_progression",
+      "status": "observed",
+      "evidence_refs": [
+        "native",
+        "review-991"
+      ]
+    },
+    {
+      "subject": "submission",
+      "predicate": "follows",
+      "object": "completion",
+      "status": "observed",
+      "evidence_refs": [
+        "020-completion"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "001-initial",
+      "path": "evidence/001-initial.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:49:45.890551+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "003-welcome",
+      "path": "evidence/003-welcome.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:49:55.794756+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "004-instructions",
+      "path": "evidence/004-instructions.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:00.031023+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "005-practice-instructions",
+      "path": "evidence/005-practice-instructions.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:05.854281+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "006-practice-ready",
+      "path": "evidence/006-practice-ready.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:10.944835+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "007-practice-start",
+      "path": "evidence/007-practice-start.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:16.671527+00:00",
+      "description": "Current attempt visible observation and matching screenshot"
+    },
+    {
+      "id": "practice2-instructions",
+      "path": "evidence/review-58.json",
+      "locator": "text and perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:35.467621+00:00",
+      "description": "Delay2 instruction plus separately recorded equivalent normalized cue"
+    },
+    {
+      "id": "review-111",
+      "path": "evidence/review-111.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:51:03.400564+00:00",
+      "description": "Test transition or additional key instruction observed during live run"
+    },
+    {
+      "id": "009-test-start",
+      "path": "evidence/009-test-start.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:51:19.057696+00:00",
+      "description": "Test transition or additional key instruction observed during live run"
+    },
+    {
+      "id": "010-key-check-response",
+      "path": "evidence/010-key-check-response.json",
+      "locator": "text and visible parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:51:26.190476+00:00",
+      "description": "Test transition or additional key instruction observed during live run"
+    },
+    {
+      "id": "review-197",
+      "path": "evidence/review-197.json",
+      "locator": "text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:51:56.667623+00:00",
+      "description": "Block-boundary cue or additional instruction prompt"
+    },
+    {
+      "id": "011-block2-start",
+      "path": "evidence/011-block2-start.json",
+      "locator": "text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:52:16.262058+00:00",
+      "description": "Block-boundary cue or additional instruction prompt"
+    },
+    {
+      "id": "012-check2-response",
+      "path": "evidence/012-check2-response.json",
+      "locator": "text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:52:22.523364+00:00",
+      "description": "Block-boundary cue or additional instruction prompt"
+    },
+    {
+      "id": "002-after-fullscreen",
+      "path": "evidence/002-after-fullscreen.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:49:49.858451+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "008-delay2-start",
+      "path": "evidence/008-delay2-start.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:41.226225+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "013-block3-start",
+      "path": "evidence/013-block3-start.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:53:10.437165+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "014-check3-response",
+      "path": "evidence/014-check3-response.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:53:16.719403+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "015-block4-start",
+      "path": "evidence/015-block4-start.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:54:03.479508+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "016-check4-response",
+      "path": "evidence/016-check4-response.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:54:11.161070+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "018-current-after-transport-stall",
+      "path": "evidence/018-current-after-transport-stall.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:00:54.575626+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "020-completion",
+      "path": "evidence/020-completion.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:04:08.692582+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-10",
+      "path": "evidence/review-10.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:10.987935+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-113",
+      "path": "evidence/review-113.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:51:19.098121+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-17",
+      "path": "evidence/review-17.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:18.732777+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-199",
+      "path": "evidence/review-199.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:52:16.303421+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-290",
+      "path": "evidence/review-290.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:52:58.650213+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-292",
+      "path": "evidence/review-292.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:53:10.480227+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-32",
+      "path": "evidence/review-32.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:23.798739+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-374",
+      "path": "evidence/review-374.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:53:47.476374+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-376",
+      "path": "evidence/review-376.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:54:03.525020+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-40",
+      "path": "evidence/review-40.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:27.994190+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-466",
+      "path": "evidence/review-466.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:54:46.858877+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-467",
+      "path": "evidence/review-467.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:55:16.873780+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-48",
+      "path": "evidence/review-48.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:32.040408+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-551",
+      "path": "evidence/review-551.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:56:08.801613+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-552",
+      "path": "evidence/review-552.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:56:38.809627+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-58",
+      "path": "evidence/review-58.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:35.467621+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-642",
+      "path": "evidence/review-642.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:57:31.658277+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-643",
+      "path": "evidence/review-643.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:58:01.661971+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-727",
+      "path": "evidence/review-727.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:58:49.800941+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-728",
+      "path": "evidence/review-728.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:59:19.801334+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-8",
+      "path": "evidence/review-8.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:50:05.906375+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-816",
+      "path": "evidence/review-816.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:00:13.355529+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-817",
+      "path": "evidence/review-817.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:00:43.349306+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-898",
+      "path": "evidence/review-898.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:01:28.896034+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-899",
+      "path": "evidence/review-899.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:01:58.888945+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-991",
+      "path": "evidence/review-991.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:02:50.354635+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-993",
+      "path": "evidence/review-993.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:03:06.409263+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "review-994",
+      "path": "evidence/review-994.json",
+      "locator": "text, parts, and separate perception_projection",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:03:15.416021+00:00",
+      "description": "Live visible observation; matching full screenshot saved"
+    },
+    {
+      "id": "native",
+      "path": "data/experiment_data.json",
+      "locator": "all485 rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T23:04:08.748146+00:00",
+      "description": "Original read-only jsPsych7.3.1 native export after terminal task state"
+    },
+    {
+      "id": "event-trace",
+      "path": "events.jsonl",
+      "locator": "continuous visible observations and actions",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T23:07:42.243720+00:00",
+      "description": "Every recorded observation/action with raw pixel artifact references and canonical cue projection where used"
+    },
+    {
+      "id": "terminal-image",
+      "path": "evidence/020-completion.png",
+      "locator": "completion and failed-upload messages",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T23:04:08.692582+00:00",
+      "description": "Inspected terminal screenshot confirms local completion and failed automatic upload"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Exact reason for delayed operator-command servicing?",
+      "reason": "The agent tool calls returned late enough for several15s checks to expire. The driver remained active and stale Enter commands were skipped; full tool transport telemetry is unavailable."
+    },
+    {
+      "question": "Whether manual upload would succeed for this public preview?",
+      "reason": "Automatic upload explicitly failed. No Prolific participant details were supplied, and the external participant-upload form was not used."
+    },
+    {
+      "question": "Behavioral resemblance to humans?",
+      "reason": "No human comparison was performed; the frozen policy deliberately requests immediate responses and native timings include perception/transport."
+    }
+  ]
+}

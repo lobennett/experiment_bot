@@ -1,0 +1,116 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://www.psytoolkit.org/library/experiment_tower_hanoi.html",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "task",
+      "kind": "task",
+      "label": "Tower of Hanoi",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "e_04_instructions_image"
+      ]
+    },
+    {
+      "id": "rule",
+      "kind": "rule",
+      "label": "Move discs to the third peg",
+      "attributes": {
+        "one_disc_at_a_time": true,
+        "larger_on_smaller_allowed": false,
+        "response": "mouse drag"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "e_06_instruction_screen_image"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "rule",
+      "predicate": "governs",
+      "object": "task",
+      "status": "observed",
+      "evidence_refs": [
+        "e_06_instruction_screen_image"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "e_01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:12.612944+00:00",
+      "description": "Browser open result"
+    },
+    {
+      "id": "e_02_open_retry",
+      "path": "evidence/02_open_retry.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:33:58.654000+00:00",
+      "description": "Browser open result"
+    },
+    {
+      "id": "e_03_start",
+      "path": "evidence/03_start.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:06.302774+00:00",
+      "description": "Browser click result"
+    },
+    {
+      "id": "e_04_instructions",
+      "path": "evidence/04_instructions.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:12.049739+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_04_instructions_image",
+      "path": "evidence/04_instructions.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:34:12.049739+00:00",
+      "description": "Participant-visible screen"
+    },
+    {
+      "id": "e_05_instruction_advance",
+      "path": "evidence/05_instruction_advance.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:26.052425+00:00",
+      "description": "Browser click result"
+    },
+    {
+      "id": "e_06_instruction_screen",
+      "path": "evidence/06_instruction_screen.txt",
+      "locator": "full tool snapshot",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:34:27.597888+00:00",
+      "description": "Browser screenshot result"
+    },
+    {
+      "id": "e_06_instruction_screen_image",
+      "path": "evidence/06_instruction_screen.png",
+      "locator": "whole screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:34:27.597888+00:00",
+      "description": "Participant-visible screen"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "What end-of-task data is exported?",
+      "reason": "Stopped before first puzzle move."
+    }
+  ]
+}

@@ -1,0 +1,499 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/10/",
+    "title": "Ink-color response task"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Task instructions",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "feedback_and_reminders": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace",
+        "native"
+      ]
+    },
+    {
+      "id": "test",
+      "kind": "phase",
+      "label": "Test",
+      "attributes": {
+        "feedback_and_reminders_removed": true,
+        "observed_trials": 120
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace",
+        "native"
+      ]
+    },
+    {
+      "id": "stimulus",
+      "kind": "stimulus",
+      "label": "Colored word",
+      "attributes": {
+        "words": [
+          "red",
+          "blue",
+          "green"
+        ],
+        "task_relevant_feature": "displayed ink color"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "rule_red",
+      "kind": "rule",
+      "label": "red ink response",
+      "attributes": {
+        "condition": "visible ink is red",
+        "response": ",",
+        "scope": "task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "key_red",
+      "kind": "response",
+      "label": ", key",
+      "attributes": {
+        "key": ","
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "rule_blue",
+      "kind": "rule",
+      "label": "blue ink response",
+      "attributes": {
+        "condition": "visible ink is blue",
+        "response": ".",
+        "scope": "task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "key_blue",
+      "kind": "response",
+      "label": ". key",
+      "attributes": {
+        "key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "rule_green",
+      "kind": "rule",
+      "label": "green ink response",
+      "attributes": {
+        "condition": "visible ink is green",
+        "response": "/",
+        "scope": "task instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "key_green",
+      "kind": "response",
+      "label": "/ key",
+      "attributes": {
+        "key": "/"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "timing",
+      "kind": "timing",
+      "label": "Native recorded timing",
+      "attributes": {
+        "stimulus_duration_ms": [
+          1000
+        ],
+        "trial_duration_ms": [
+          1500
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    },
+    {
+      "id": "instruction_guard",
+      "kind": "feedback",
+      "label": "Instruction-reading guard",
+      "attributes": {
+        "message": "Read through instructions too quickly; repeat instructions"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "id": "outcome",
+      "kind": "session_status",
+      "label": "completed",
+      "attributes": {
+        "responses": 124,
+        "response_trials": 124
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native",
+        "trace"
+      ]
+    },
+    {
+      "id": "completion",
+      "kind": "completion",
+      "label": "Experiment Complete",
+      "attributes": {
+        "remote_upload": "attempting; acknowledgment not confirmed"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "completion",
+        "completion_image"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "practice",
+      "predicate": "presents",
+      "object": "stimulus",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "stimulus",
+      "predicate": "has_timing",
+      "object": "timing",
+      "status": "observed",
+      "evidence_refs": [
+        "native"
+      ]
+    },
+    {
+      "subject": "rule_red",
+      "predicate": "applies_to",
+      "object": "stimulus",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "rule_red",
+      "predicate": "requires_response",
+      "object": "key_red",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "rule_blue",
+      "predicate": "applies_to",
+      "object": "stimulus",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "rule_blue",
+      "predicate": "requires_response",
+      "object": "key_blue",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "rule_green",
+      "predicate": "applies_to",
+      "object": "stimulus",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    },
+    {
+      "subject": "rule_green",
+      "predicate": "requires_response",
+      "object": "key_green",
+      "status": "observed",
+      "evidence_refs": [
+        "trace"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "trace",
+      "path": "events.jsonl",
+      "locator": "UTC-ordered observation and action events",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:04:44.367584+00:00",
+      "description": "Full participant-visible trace, with computed color and geometry"
+    },
+    {
+      "id": "native",
+      "path": "data/experiment_data.json",
+      "locator": "Full native array; practice_trial/test_trial rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:14:45.651250+00:00",
+      "description": "Unmodified platform export collected after participation ended"
+    },
+    {
+      "id": "boundary_01_image",
+      "path": "evidence/boundary-01.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:24.189171+00:00",
+      "description": "boundary-01.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_01_text",
+      "path": "evidence/boundary-01.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:23.431422+00:00",
+      "description": "boundary-01.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_02_image",
+      "path": "evidence/boundary-02.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:27.316647+00:00",
+      "description": "boundary-02.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_02_text",
+      "path": "evidence/boundary-02.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:27.263716+00:00",
+      "description": "boundary-02.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_03_image",
+      "path": "evidence/boundary-03.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:29.398577+00:00",
+      "description": "boundary-03.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_03_text",
+      "path": "evidence/boundary-03.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:29.356185+00:00",
+      "description": "boundary-03.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_04_image",
+      "path": "evidence/boundary-04.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:31.491511+00:00",
+      "description": "boundary-04.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_04_text",
+      "path": "evidence/boundary-04.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:31.457095+00:00",
+      "description": "boundary-04.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_05_image",
+      "path": "evidence/boundary-05.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:06:33.579201+00:00",
+      "description": "boundary-05.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_05_text",
+      "path": "evidence/boundary-05.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:33.539717+00:00",
+      "description": "boundary-05.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_06_image",
+      "path": "evidence/boundary-06.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:35.634495+00:00",
+      "description": "boundary-06.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_06_text",
+      "path": "evidence/boundary-06.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:08:35.611967+00:00",
+      "description": "boundary-06.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_07_image",
+      "path": "evidence/boundary-07.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:48.791709+00:00",
+      "description": "boundary-07.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_07_text",
+      "path": "evidence/boundary-07.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:08:48.757858+00:00",
+      "description": "boundary-07.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_08_image",
+      "path": "evidence/boundary-08.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:10:47.569318+00:00",
+      "description": "boundary-08.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_08_text",
+      "path": "evidence/boundary-08.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:10:47.527655+00:00",
+      "description": "boundary-08.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_09_image",
+      "path": "evidence/boundary-09.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:12:46.725751+00:00",
+      "description": "boundary-09.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_09_text",
+      "path": "evidence/boundary-09.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:12:46.694144+00:00",
+      "description": "boundary-09.txt (capture file timestamp)"
+    },
+    {
+      "id": "boundary_10_image",
+      "path": "evidence/boundary-10.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:14:42.284562+00:00",
+      "description": "boundary-10.png (capture file timestamp)"
+    },
+    {
+      "id": "boundary_10_text",
+      "path": "evidence/boundary-10.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:14:42.267011+00:00",
+      "description": "boundary-10.txt (capture file timestamp)"
+    },
+    {
+      "id": "completion_image",
+      "path": "evidence/completion.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:14:45.650648+00:00",
+      "description": "completion.png (capture file timestamp)"
+    },
+    {
+      "id": "completion",
+      "path": "evidence/completion.txt",
+      "locator": "Full file",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:14:45.651103+00:00",
+      "description": "completion.txt (capture file timestamp)"
+    },
+    {
+      "id": "stimulus_1_image",
+      "path": "evidence/stimulus-1.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:38.189670+00:00",
+      "description": "stimulus-1.png (capture file timestamp)"
+    },
+    {
+      "id": "stimulus_2_image",
+      "path": "evidence/stimulus-2.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:38.237654+00:00",
+      "description": "stimulus-2.png (capture file timestamp)"
+    },
+    {
+      "id": "stimulus_3_image",
+      "path": "evidence/stimulus-3.png",
+      "locator": "Full file",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:38.303870+00:00",
+      "description": "stimulus-3.png (capture file timestamp)"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Was the remote upload accepted?",
+      "reason": "Terminal page showed attempting to upload; no server acknowledgement was observed."
+    },
+    {
+      "question": "Does this program resemble human behavior?",
+      "reason": "This is an operational evaluation; native RT is preserved and no human comparison was performed."
+    }
+  ]
+}

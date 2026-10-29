@@ -1,0 +1,231 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/9/",
+    "title": "Shape responses with star withholding"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Instructions",
+      "attributes": {
+        "mapping": "circle comma; square period; star withhold"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "prior_06_begin",
+        "prior_07_instructions_next"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice started",
+      "attributes": {
+        "completion": false
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "11_after_ambiguous_input",
+        "native_data"
+      ]
+    },
+    {
+      "id": "adapter_failure",
+      "kind": "constraint",
+      "label": "Installed run API mismatch",
+      "attributes": {
+        "message": "fn is not a function",
+        "cause": "page.wait numeric argument and raw selector-click use unsupported evaluation function payloads; press may have delivered before later error"
+      },
+      "status": "inferred",
+      "evidence_refs": [
+        "04_next",
+        "09_visual_verification",
+        "11_after_ambiguous_input",
+        "12_visual_verification_fixed"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "instructions",
+      "predicate": "precedes",
+      "object": "practice",
+      "status": "observed",
+      "evidence_refs": [
+        "07_ready",
+        "11_after_ambiguous_input"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:43:53.522098+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "02_fullscreen",
+      "path": "evidence/02_fullscreen.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:45:10.535837+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "03_fullscreen_selector",
+      "path": "evidence/03_fullscreen_selector.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:05.031093+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "04_next",
+      "path": "evidence/04_next.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:21.448524+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "05_refresh",
+      "path": "evidence/05_refresh.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:41.320804+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "06_next",
+      "path": "evidence/06_next.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:48:56.956109+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "07_ready",
+      "path": "evidence/07_ready.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:03.331154+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "08_renderer_interface",
+      "path": "evidence/08_renderer_interface.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:05.505377+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "09_visual_verification",
+      "path": "evidence/09_visual_verification.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:38.310180+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "10_verification_screenshot",
+      "path": "evidence/10_verification_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:39.951294+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "11_after_ambiguous_input",
+      "path": "evidence/11_after_ambiguous_input.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:49:50.061131+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "12_visual_verification_fixed",
+      "path": "evidence/12_visual_verification_fixed.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:32.158415+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "13_verification_screenshot",
+      "path": "evidence/13_verification_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:33.407903+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "14_native_export",
+      "path": "evidence/14_native_export.txt",
+      "locator": "entire output",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:50:38.900627+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "15_pages",
+      "path": "evidence/15_pages.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:50:39.943125+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "16_close",
+      "path": "evidence/16_close.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:51:32.586885+00:00",
+      "description": "Tool result; errors retained including ambiguous action delivery"
+    },
+    {
+      "id": "prior_06_begin",
+      "path": "evidence/06_begin.txt",
+      "locator": "complete instruction text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:38:09.721991+00:00",
+      "description": "Previously observed instructions copied from attempt-01; acquisition time is in that run"
+    },
+    {
+      "id": "prior_07_instructions_next",
+      "path": "evidence/07_instructions_next.txt",
+      "locator": "complete instruction text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:38:09.721991+00:00",
+      "description": "Previously observed instructions copied from attempt-01; acquisition time is in that run"
+    },
+    {
+      "id": "prior_08_instructions_next",
+      "path": "evidence/08_instructions_next.txt",
+      "locator": "complete instruction text",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:38:09.721991+00:00",
+      "description": "Previously observed instructions copied from attempt-01; acquisition time is in that run"
+    },
+    {
+      "id": "native_data",
+      "path": "data/experiment_data.json",
+      "locator": "all recorded rows",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:51:33.464837+00:00",
+      "description": "Partial native export after abandonment"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Could frozen policy complete the task with repaired adapter?",
+      "reason": "Policy never delivered a trial response; adapter failed first."
+    }
+  ]
+}

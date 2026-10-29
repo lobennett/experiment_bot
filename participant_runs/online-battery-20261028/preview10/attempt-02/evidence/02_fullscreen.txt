@@ -1,0 +1,3 @@
+error: "Stale ref @g11:1_2: from snapshot generation 11, current is 13. Re-snapshot to get fresh refs."
+code: STALE_REF
+help[1]: "Run `chrome-devtools-axi snapshot` to capture current refs, then retry the action"

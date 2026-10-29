@@ -1,0 +1,113 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview5-attempt-04",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/5/",
+  "final_url": "https://deploy.expfactory.org/preview/5/",
+  "started_at": "2026-10-28T22:27:21.414182+00:00",
+  "ended_at": "2026-10-28T22:30:49.352568+00:00",
+  "status": "partial",
+  "status_reason": "Rendered center letter is absent from DOM text observations; no letter responses. Screenshot proves a lowercase t while text representation contains only reminders.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null,
+    "reported_family": "GPT-6, from developer description; exact runtime identifier unavailable"
+  },
+  "browser": {
+    "tool": "Playwright Python",
+    "engine": "Chromium",
+    "isolated_context": true,
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "input_delivery": "page.keyboard.press and get_by_role click",
+    "observation": "visible text-node ranges, computed visibility and geometry; screenshot checked"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+  },
+  "reproducibility": "Direct agent session; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Partial native export after participation ended."
+  },
+  "submission": {
+    "status": "unconfirmed",
+    "reason": null
+  },
+  "counts": {
+    "observed_response_opportunities": 1,
+    "actions": 5,
+    "native_trial_rows": 54
+  },
+  "limitations": [
+    "Full authoring transcript unavailable; inherited context explicitly disclosed.",
+    "Exact frozen policy from attempt-03; adapter reminder filtering mechanically repaired from observed screenshot.",
+    "No human timing fidelity claim.",
+    "Letter stimulus is visible in pixels but absent from observer text-node representation.",
+    "One practice block and part of auto-repeated practice proceeded without letter responses."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "4d3940cc906693c93086096a78a4e655b5ff6d19a80773c044b800e0f8159b3d",
+    "events.jsonl": "8244c15046a8cecfd75bcbdf7a94fb65eb76face029d17f07ce4bbdc5aee01be",
+    "evidence/001-initial.json": "24caa2849aa7e5bae0ea8d65a78d499ee9d67b94e866533d6842e22509f911bf",
+    "evidence/001-initial.png": "032e165b3677d049654b7e8cf1beb3c325b6f6beeee803b5caf74bdfd99cc91f",
+    "evidence/002-after-fullscreen.json": "dc21f748dec7aa6ab05e8f222407f3ec4eb99ef1857d79d80833ad08960e07e9",
+    "evidence/002-after-fullscreen.png": "a1ce84accce9a84c03a7ba9a2a2d89f37011bf249bccae390890ec45c2e8f73e",
+    "evidence/003-welcome.json": "44922285e9111ee4b787204773d5dbca6b49ba33758d6bc429ad5acf92d2fc68",
+    "evidence/003-welcome.png": "8789de24c3b4dc06bf0134a371381851612441b4a9e0757576a6d7549c3ebfd6",
+    "evidence/004-instructions.json": "3ffc76baa0b13518ffad0de8b11f28e9f2cf32ec74ddd87d7ecd9d9efbe9dd3e",
+    "evidence/004-instructions.png": "93d5e46d2146b482e019f4d5781c764bff2838235580d41e52949e9e67a99faf",
+    "evidence/005-practice-instructions.json": "4e4825213ddc63d8e9ea47b142fc64ac4661737ff8e8175bf702fe60dcb95c9f",
+    "evidence/005-practice-instructions.png": "ad58cf075741117fb17b89b2986b37e528c7cd7f5e8b4ca4dee8602af19ccedc",
+    "evidence/006-practice-ready.json": "6a71f322e16bd346bb07b6a6f3a8eff5b9e47f1014acb34178102389134ef36d",
+    "evidence/006-practice-ready.png": "0209e7b1ded83d4453e1007229375af1daeb95d8740397204ee41ac81664d2e3",
+    "evidence/007-practice-start.json": "e9d866c929e2cf529f0e26abb5fdbddd894e6527fc48e8d16f4ddd00596d4928",
+    "evidence/007-practice-start.png": "9a74d837628d804dce1b79619c5115d76354760e179e327449bf9a9d413cb58c",
+    "evidence/008-stimulus-diagnostic.json": "d961ecf6ac0e3242b8ac9f6940351a088763c3529635d07fac27686e0c113c8f",
+    "evidence/008-stimulus-diagnostic.png": "ef5e73f2026fe54a2c996dae11c166e1ec3ed0d2f8647b84cefd6562879f1fb1",
+    "evidence/009-current.json": "a3469ad938e43b5c9abd7aba9b78d9717b36a557c23167d7bb16d3be096f6863",
+    "evidence/009-current.png": "8a89b44d24dd86afde66cafe2c5e7fb17ba22948e7d93cf36b9b0d926bc232a2",
+    "evidence/export-metadata.json": "50740811c9cda50edb8a3c3404d60d069532700623e6e342821d8eadeb85f3f0",
+    "evidence/review-36.json": "f72dce99bae9ec2e763db4858a75c51f8841c1363c3396ad2c610a8f8c3ba898",
+    "evidence/review-36.png": "ef5e73f2026fe54a2c996dae11c166e1ec3ed0d2f8647b84cefd6562879f1fb1",
+    "evidence/review-8.json": "7ae931fd254e3c103b8d7a857a1e98d7b47a53d34c611b41d0a767fcc7df96ee",
+    "evidence/review-8.png": "ad58cf075741117fb17b89b2986b37e528c7cd7f5e8b4ca4dee8602af19ccedc",
+    "ontology.json": "3ce6f80f03a6bb13a5d3abd6267d6f3d96e9602ed8819cb2788a478f1148bb89",
+    "policy/__pycache__/participant.cpython-312.pyc": "21ea7ebdeae3a6c39e3c10d68cfe7d6ea08e26a2244c045c7ffff2c2b85cf18b",
+    "policy/__pycache__/participant.cpython-314.pyc": "2b412a166cd372a15ff69b32808317f01c2f646b6338522a1e86b1951726cdd2",
+    "policy/adapter-fixtures.json": "ef985f11d36e2fd78e0fc843e789b0be47621186a6fc4a1eeb53cb3963d10cda",
+    "policy/adapter-repair.json": "51e9f0002bab577f8b9b11c91c99a5294dc10d17f1ecb6bc2ed9c7e623b75149",
+    "policy/authoring-prompt.md": "b681693c34a969b29e9c4c9d8d4765686da27b12268d9cc9a354d45b03d3d6c7",
+    "policy/driver-before-repair.py": "34da3ee1eb860061e51eb32d9159cd21322879058d3b25195e4311e78b4fa0dd",
+    "policy/driver.py": "dc88795ac24e50f3492c5d0d6202ce741ee585fcb389ca06c91fa225019266c9",
+    "policy/gate-report.json": "eb0c3f6b03dcd8e799bede694900ba7bd6696bac143d7b18d1faf4d64be6fb10",
+    "policy/participant.py": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+    "protocol/SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "protocol/artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "protocol/execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "protocol/scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9",
+    "summary.md": "de27e385054c0e92578dc0ecbaf72094a8043caa3ce6e38700fb1ddded822f6b"
+  },
+  "parent_attempt": "../attempt-03",
+  "full_transcript_path": null,
+  "seed": {
+    "value": 5,
+    "scope": "policy decisions; deterministic without random choices"
+  },
+  "authoring_context": "inherited_agent_context",
+  "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+  "policy_path": "policy/participant.py",
+  "authoring_prompt_path": "policy/authoring-prompt.md",
+  "gate_report_path": "policy/gate-report.json"
+}

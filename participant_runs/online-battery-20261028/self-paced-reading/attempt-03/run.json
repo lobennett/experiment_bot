@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "run_id": "self-paced-reading-attempt-03",
+  "mode": "direct_browser",
+  "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+  "final_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+  "started_at": "2026-10-28T21:58:46.065403+00:00",
+  "ended_at": "2026-10-28T22:17:08.579011+00:00",
+  "status": "completed",
+  "status_reason": "Task autonomously reached native export controls while the model/tool loop was delayed; zero word displays were observed. Terminal completion is not successful participation.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "Playwright ordinary mouse/keyboard input",
+    "session": "eb-other-pointer",
+    "viewport": {
+      "width": 1200,
+      "height": 900
+    }
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+  },
+  "seed": null,
+  "reproducibility": "Direct model participation; no deterministic replay claim.",
+  "completion_evidence_refs": [
+    "003_key_image",
+    "004_click_text_image"
+  ],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/export-0.txt"
+    ],
+    "reason": "Exact visible native table text, captured after Show data."
+  },
+  "counts": {
+    "observed_word_displays": 0,
+    "native_export_trial_rows": 5,
+    "native_export_word_intervals": 29,
+    "native_intervals_equal_9999ms": 29,
+    "events": 6,
+    "n_commands": 1
+  },
+  "limitations": [
+    "No stimulus word was seen; all 29 native intervals equal 9999 ms.",
+    "Persistent browser operations took 74\u2013568 ms, but surrounding model/tool round trips stalled beyond display deadlines.",
+    "Terminal completion resulted from autonomous progression and is not evidence of reading performance.",
+    "Attempt-02 startup-only hidden-canvas screenshot failure is retained; this attempt fixed visibility checks.",
+    "Native data are exact rendered table text, not a downloaded file."
+  ],
+  "artifacts_sha256": {
+    "data/export-0.txt": "37acff0741757475ff5320dc017f3c7bab2e5d66fe7a1dd7854e996d0833a4d6",
+    "events.jsonl": "68be6ff323e10195ff815f71bd872f0a44d2bd689c0b479c774426cdbac46438",
+    "evidence/000_observe.png": "2b3e805a8ff366a60faffd3ef87b578436db4175d48be6544df20f36db2fe884",
+    "evidence/000_observe.txt": "fb2166ddb2efc52a62de9a2489fe30ab73207342539099bff6a30a74a2a3d22e",
+    "evidence/001_click_text.png": "14b8cdc33b3aa22242271f055770a6f07e7f7b3a26d2d7a94fb8e248cc6e363c",
+    "evidence/001_click_text.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/002_key.png": "936ecaac02241f9b2e724c5ecc4a0eb042059218e475aed4f10320fbb6250874",
+    "evidence/002_key.txt": "e1a34f47beee9e187d81a4a24b875fcbe4230751bdba3a35947759ffa137cde7",
+    "evidence/003_key.png": "14ef338c07e43233d949bf92df859892115bfb81e9d8e26ab780de4312b41ba9",
+    "evidence/003_key.txt": "496b57047d7acab4397e06ff6f530c6774338899343f6a482f35b9d1d7d6349c",
+    "evidence/004_click_text.png": "8070992d745712ba4d03afb93a16443c8e5aeb72343d20de8275a2862f4b0599",
+    "evidence/004_click_text.txt": "bf092d3428e54f385b817a1cb6bfdb0f737cc8b8b1f4b78b7e83aad9d88d67cf",
+    "evidence/005_export.png": "8070992d745712ba4d03afb93a16443c8e5aeb72343d20de8275a2862f4b0599",
+    "evidence/005_export.txt": "bf092d3428e54f385b817a1cb6bfdb0f737cc8b8b1f4b78b7e83aad9d88d67cf",
+    "ontology.json": "98f4119236caf27b8563246c67259e7d2498b1144f51ded5288609136d8ac392",
+    "protocol/SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "summary.md": "827f38b16b2e8637d232c9f8ab2a4dec91f4165093d11f0d817bf526fdcc0674"
+  },
+  "parent_attempt": "../attempt-01"
+}

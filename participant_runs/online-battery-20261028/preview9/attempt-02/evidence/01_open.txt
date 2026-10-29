@@ -1,0 +1,11 @@
+page:
+  title: The Experiment Factory
+  url: "https://deploy.expfactory.org/preview/9/"
+  refs: 3
+snapshot:
+uid=g12:12_0 RootWebArea "The Experiment Factory" url="https://deploy.expfactory.org/preview/9/"
+  uid=g12:12_1 "The experiment will switch to full screen mode when you press the button below"
+  uid=g12:12_2 button "Continue"
+help[2]:
+  Run `chrome-devtools-axi click @g12:12_2` to click the "Continue" button
+  Use `chrome-devtools-axi eval <expr>` for JS expressions. For multi-statement code, pass a function: `eval "() => { ...; return result }"`

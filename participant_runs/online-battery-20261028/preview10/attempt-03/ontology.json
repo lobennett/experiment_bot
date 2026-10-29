@@ -1,0 +1,49 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/10/",
+    "title": null
+  },
+  "nodes": [],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "01_probe_page",
+      "path": "evidence/01_probe_page.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:55:10.262103+00:00",
+      "description": "01_probe_page"
+    },
+    {
+      "id": "02_probe_page",
+      "path": "evidence/02_probe_page.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:55:31.694630+00:00",
+      "description": "02_probe_page"
+    },
+    {
+      "id": "03_adapter_probe",
+      "path": "evidence/03_adapter_probe.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:55:32.667086+00:00",
+      "description": "03_adapter_probe"
+    },
+    {
+      "id": "04_wait_bug_probe",
+      "path": "evidence/04_wait_bug_probe.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:55:33.491550+00:00",
+      "description": "04_wait_bug_probe"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Task operation",
+      "reason": "Browser transport could not select or open even a blank preflight page; task never opened."
+    }
+  ]
+}

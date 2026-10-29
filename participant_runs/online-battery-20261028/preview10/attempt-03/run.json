@@ -1,0 +1,76 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview10-attempt-03",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/10/",
+  "final_url": "https://deploy.expfactory.org/preview/10/",
+  "started_at": "2026-10-28T21:50:33.857914+00:00",
+  "ended_at": "2026-10-28T21:57:53.477175+00:00",
+  "status": "blocked",
+  "status_reason": "CLI could not open or select a blank preflight page; task never opened.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview10"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+    "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+  },
+  "seed": {
+    "value": null,
+    "scope": "Policy uses no randomness; deterministic given observation history."
+  },
+  "reproducibility": "Policy is deterministic given visible observation history; live browser timing and task randomization are not deterministically replayed.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "unavailable",
+    "paths": [],
+    "reason": "Task was never opened"
+  },
+  "counts": {
+    "native_response_trials": 0,
+    "response_actions": 0
+  },
+  "limitations": [
+    "No task execution: browser preflight failed.",
+    "Explicit policy prompt is not a complete isolated model generation transcript; authoring inherited agent context."
+  ],
+  "artifacts_sha256": {
+    "events.jsonl": "418c475b218ed2725887e0157784ff3520e4c05289f69041e9ede4b65bd6d5b2",
+    "evidence/01_probe_page.txt": "7b55ddf15959ed1844bc3b45649d182a4b642f3cd2de9a008444d2ea7c9e83ed",
+    "evidence/02_probe_page.txt": "7b55ddf15959ed1844bc3b45649d182a4b642f3cd2de9a008444d2ea7c9e83ed",
+    "evidence/03_adapter_probe.txt": "7b55ddf15959ed1844bc3b45649d182a4b642f3cd2de9a008444d2ea7c9e83ed",
+    "evidence/04_wait_bug_probe.txt": "7b55ddf15959ed1844bc3b45649d182a4b642f3cd2de9a008444d2ea7c9e83ed",
+    "ontology.json": "45f5e387bc99b0daf6376605b4502013f78a956f27214d9579964ed1256a12e1",
+    "policy/adapter.js": "6271bdd02729308f74f02978cf145fda3c8bdb27649ae6a5ddf24476775974ee",
+    "policy/authoring_prompt.md": "86c99d64ef2e9d885b0501e534a6d846abaa2e58dc6ca9f7d7e273d94e090cac",
+    "policy/begin.js": "004c4bd32b3fd2e3ff0bf178cd031c28fbe909ec82742e26a65b96acfb6172e3",
+    "policy/broken_wait_probe.js": "09d97ff56834cdd1f95466ae25d5a02a29907e39447845931131a883de345686",
+    "policy/gate.cjs": "7b701212cf4edb7de8ce6f4b650da567d247c94b49feca98fe346dc3690df99d",
+    "policy/gate.json": "c79248d3fec4fa0d1f0d877f0d7fc45af0d709c340afb73960516900398e02be",
+    "policy/participant.js": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+    "policy/probe.js": "d6869232b0803372ea3a43a92ac71a9254495efa8f931f4a415fab7be9961080",
+    "policy/segment.js": "268c840d55fc0e515b4fbb7e0789b266b08c8b4fac245117888ba0f1313ba147",
+    "protocol/SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+    "record.py": "e7bb7c75a5ede55bbfa96d56faeae7aaef86ccf9a0cd5e31ea257c1914fd747c",
+    "summary.md": "74461765ae17b1690365e8f6d99fd77077aaa22961f42751e4c5158f75c48e96"
+  },
+  "parent_attempt": "../attempt-02",
+  "policy_path": "policy/participant.js",
+  "authoring_prompt_path": "policy/authoring_prompt.md",
+  "gate_report_path": "policy/gate.json",
+  "input_delivery": "chrome-devtools-axi run page.press (browser keyboard input)",
+  "observation_interface": "Visible rendered text, computed color, geometry and displayed DOM boundary; no task state or native data during participation.",
+  "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+  "authoring_context": "inherited_agent_context",
+  "authoring_transcript_path": null
+}

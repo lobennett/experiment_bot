@@ -1,0 +1,32 @@
+{
+  "passed": true,
+  "input_fixture": "../attempt-04/evidence/009-current.png",
+  "ROI": {
+    "x": 520,
+    "y": 350,
+    "width": 240,
+    "height": 200,
+    "viewport": [
+      1280,
+      900
+    ]
+  },
+  "upscale_factor": 4,
+  "letter_t": {
+    "read": "t",
+    "confidence": 1
+  },
+  "blank": {
+    "read": []
+  },
+  "fixation": {
+    "read": "+",
+    "confidence": 1
+  },
+  "helper_scope": "generic macOS Vision OCR, no task vocabulary",
+  "sandbox_failure": "Vision failed inside sandbox on all three fixtures; same helper passed outside sandbox",
+  "handoff_repair": "New instruction notifications continue observation; actions remain policy-controlled. Agent navigation checks visible Enter prompt immediately before input.",
+  "driver_sha256": "fcad1aed35d8b6af0f62e92562bb55a57dc1b52824aff81102c589e9892bfe95",
+  "ocr_source_sha256": "93b586e8582868e5a5cbdded5a315b795c2a50d3b81c133e8761206af1ab8632",
+  "participant_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793"
+}

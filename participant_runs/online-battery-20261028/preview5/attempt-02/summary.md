@@ -1,0 +1,1 @@
+Synthetic participant setup only. The driver closed when stdin reached EOF after the [initial fullscreen prompt](evidence/001-initial.json). No task input was delivered. No native data export was available. The adapter will be retried in a PTY in a separate attempt.

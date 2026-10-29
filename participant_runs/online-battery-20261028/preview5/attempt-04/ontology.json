@@ -1,0 +1,194 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "mapping",
+      "kind": "rule",
+      "label": "Case-insensitive comparison with earlier letter",
+      "attributes": {
+        "delays": [
+          1,
+          2
+        ],
+        "match_key": ".",
+        "mismatch_key": ","
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "004-instructions"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice delay 1",
+      "attributes": {
+        "first_response": "mismatch"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "005-practice-instructions"
+      ]
+    },
+    {
+      "id": "fixation",
+      "kind": "stimulus",
+      "label": "Fixation plus reminders",
+      "attributes": {
+        "text": "+"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "007-practice-start"
+      ]
+    },
+    {
+      "id": "letter",
+      "kind": "stimulus",
+      "label": "Pixel-rendered letter",
+      "attributes": {
+        "visible_letter": "t",
+        "dom_text_absent": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "pixel-letter"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Practice feedback with automatic advance",
+      "attributes": {
+        "seconds": 30
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "review-36"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "practice",
+      "predicate": "presents",
+      "object": "letter",
+      "status": "observed",
+      "evidence_refs": [
+        "pixel-letter"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "001-initial",
+      "path": "evidence/001-initial.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:27:26.995924+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "002-after-fullscreen",
+      "path": "evidence/002-after-fullscreen.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:27:51.022716+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "003-welcome",
+      "path": "evidence/003-welcome.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:02.090000+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "004-instructions",
+      "path": "evidence/004-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:09.868624+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "005-practice-instructions",
+      "path": "evidence/005-practice-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:17.083308+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "006-practice-ready",
+      "path": "evidence/006-practice-ready.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:28.469203+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "007-practice-start",
+      "path": "evidence/007-practice-start.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:34.574814+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "008-stimulus-diagnostic",
+      "path": "evidence/008-stimulus-diagnostic.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:29:16.667420+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "009-current",
+      "path": "evidence/009-current.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:29:28.255593+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "review-36",
+      "path": "evidence/review-36.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:52.912963+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "review-8",
+      "path": "evidence/review-8.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:28:17.136477+00:00",
+      "description": "Visible-text observation; corresponding screenshot saved"
+    },
+    {
+      "id": "pixel-letter",
+      "path": "evidence/009-current.png",
+      "locator": "center at x640,y450",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:30:49.352568+00:00",
+      "description": "Screenshot shows lowercase t absent from DOM text observation"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Exact rendering mechanism of letters?",
+      "reason": "Only participant-visible screenshot and DOM text inspected; no source used."
+    },
+    {
+      "question": "Test phases and later delay cues?",
+      "reason": "No test phase observed."
+    }
+  ]
+}

@@ -1,0 +1,145 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/5/",
+    "title": null
+  },
+  "nodes": [
+    {
+      "id": "mapping",
+      "kind": "rule",
+      "label": "Case-insensitive delayed letter comparison",
+      "attributes": {
+        "delays": [
+          1,
+          2
+        ],
+        "mismatch_key": ",",
+        "match_key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "004-instructions"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "delay": 1,
+        "first_response": "mismatch"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "005-practice-instructions"
+      ]
+    },
+    {
+      "id": "fixation",
+      "kind": "stimulus",
+      "label": "Fixation plus reminders",
+      "attributes": {
+        "fixation": "+",
+        "reminders_visible": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "006-practice-start"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Practice repetition after missed responses",
+      "attributes": {
+        "automatic_advance_seconds": 30
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "007-partial-final"
+      ]
+    }
+  ],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "001-initial",
+      "path": "evidence/001-initial.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:23:31.501311+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "002-after-fullscreen",
+      "path": "evidence/002-after-fullscreen.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:23:39.950062+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "003-welcome",
+      "path": "evidence/003-welcome.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:24:06.174460+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "004-instructions",
+      "path": "evidence/004-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:24:12.826185+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "005-practice-instructions",
+      "path": "evidence/005-practice-instructions.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:24:22.189192+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "006-practice-start",
+      "path": "evidence/006-practice-start.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:25:44.230240+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "007-partial-final",
+      "path": "evidence/007-partial-final.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:26:26.904391+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "review-11",
+      "path": "evidence/review-11.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:25:44.264677+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    },
+    {
+      "id": "review-9",
+      "path": "evidence/review-9.json",
+      "locator": "text and parts",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:25:23.256948+00:00",
+      "description": "Participant-visible browser observation; matching screenshot saved"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Later test timing and cues?",
+      "reason": "Attempt ended in practice."
+    }
+  ]
+}

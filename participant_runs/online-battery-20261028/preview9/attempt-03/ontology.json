@@ -1,0 +1,731 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/9/",
+    "title": "Shape responses with star withholding"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Instructions",
+      "attributes": {
+        "displayed_duration_minutes": 10,
+        "active_fullscreen_required": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "04_welcome",
+        "06_instructions"
+      ]
+    },
+    {
+      "id": "circle",
+      "kind": "stimulus",
+      "label": "Circle",
+      "attributes": {
+        "basis": "instruction plus rendered image pixel classifier"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "segment_001"
+      ]
+    },
+    {
+      "id": "square",
+      "kind": "stimulus",
+      "label": "Square",
+      "attributes": {
+        "basis": "instruction plus rendered image pixel classifier"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "segment_001"
+      ]
+    },
+    {
+      "id": "comma",
+      "kind": "response",
+      "label": "Comma key",
+      "attributes": {
+        "key": ","
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions"
+      ]
+    },
+    {
+      "id": "period",
+      "kind": "response",
+      "label": "Period key",
+      "attributes": {
+        "key": "."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions"
+      ]
+    },
+    {
+      "id": "circle_rule",
+      "kind": "rule",
+      "label": "Circle maps to comma",
+      "attributes": {
+        "scope": "shape-response task"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions"
+      ]
+    },
+    {
+      "id": "square_rule",
+      "kind": "rule",
+      "label": "Square maps to period",
+      "attributes": {
+        "scope": "shape-response task"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions"
+      ]
+    },
+    {
+      "id": "star",
+      "kind": "stimulus",
+      "label": "Star around shape",
+      "attributes": {
+        "can_appear": "with or after the shape"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_star_instruction"
+      ]
+    },
+    {
+      "id": "withhold",
+      "kind": "response",
+      "label": "Withhold response",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "07_star_instruction"
+      ]
+    },
+    {
+      "id": "star_rule",
+      "kind": "rule",
+      "label": "Try to withhold when star appears",
+      "attributes": {
+        "instruction": "do not slow to wait for star"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "07_star_instruction"
+      ]
+    },
+    {
+      "id": "practice",
+      "kind": "phase",
+      "label": "Practice",
+      "attributes": {
+        "feedback_and_reminders": true,
+        "native_rows": 12,
+        "initial_misses": "practice auto-advanced during driver setup/approval before sustained policy loop"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "08_practice_instruction",
+        "segment_001",
+        "native_data"
+      ]
+    },
+    {
+      "id": "test",
+      "kind": "phase",
+      "label": "Main test",
+      "attributes": {
+        "blocks": 3,
+        "native_trial_rows": 180,
+        "feedback_and_reminders_removed": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "10_after_practice",
+        "segment_005",
+        "segment_008",
+        "native_data"
+      ]
+    },
+    {
+      "id": "fixation",
+      "kind": "stimulus",
+      "label": "Fixation cross",
+      "attributes": {
+        "text": "+"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "12_block1_feedback",
+        "13_text_instruction"
+      ]
+    },
+    {
+      "id": "feedback",
+      "kind": "feedback",
+      "label": "Block feedback",
+      "attributes": {
+        "automatic_advance_seconds": 30,
+        "observed_message": "responding too slowly"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "segment_005",
+        "segment_008"
+      ]
+    },
+    {
+      "id": "text_check",
+      "kind": "phase",
+      "label": "Brief text instruction",
+      "attributes": {
+        "automatic_advance_seconds": 15,
+        "examples": [
+          "second letter of the English alphabet",
+          "p key"
+        ],
+        "native_checks": 3,
+        "missed": 2,
+        "answered": 1
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "image_11_main",
+        "segment_009",
+        "13_text_instruction",
+        "native_data"
+      ]
+    },
+    {
+      "id": "p_key",
+      "kind": "response",
+      "label": "P key",
+      "attributes": {
+        "key": "p"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "segment_009",
+        "13_text_instruction"
+      ]
+    },
+    {
+      "id": "text_rule",
+      "kind": "rule",
+      "label": "Respond to the current textual key instruction",
+      "attributes": {
+        "scope": "brief text-instruction screen",
+        "requires_agent_handoff": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "segment_009",
+        "13_text_instruction"
+      ]
+    },
+    {
+      "id": "timing",
+      "kind": "timing",
+      "label": "Native shape presentation timing",
+      "attributes": {
+        "stimulus_duration_ms": [
+          1000
+        ],
+        "trial_duration_ms": [
+          1500
+        ],
+        "source": "post-completion export"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "id": "complete",
+      "kind": "completion",
+      "label": "Experiment Complete",
+      "attributes": {
+        "terminal_screen_observed": true
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "14_terminal",
+        "image_15_terminal",
+        "16_finish"
+      ]
+    },
+    {
+      "id": "upload",
+      "kind": "outcome",
+      "label": "Automatic upload failed",
+      "attributes": {
+        "local_data_available": true,
+        "manual_upload_performed": false,
+        "reason": "public preview terminal page reports automatic upload failure; no Prolific identity supplied"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "14_terminal",
+        "native_data"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "circle_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "square_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "instructions",
+      "predicate": "describes",
+      "object": "star_rule",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "circle_rule",
+      "predicate": "matches",
+      "object": "circle",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "circle_rule",
+      "predicate": "requires",
+      "object": "comma",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "square_rule",
+      "predicate": "matches",
+      "object": "square",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "square_rule",
+      "predicate": "requires",
+      "object": "period",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "star_rule",
+      "predicate": "matches",
+      "object": "star",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "star_rule",
+      "predicate": "requires",
+      "object": "withhold",
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_star_instruction"
+      ]
+    },
+    {
+      "subject": "practice",
+      "predicate": "precedes",
+      "object": "test",
+      "status": "observed",
+      "evidence_refs": [
+        "10_after_practice"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "presents",
+      "object": "fixation",
+      "status": "observed",
+      "evidence_refs": [
+        "12_block1_feedback"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "has_block_feedback",
+      "object": "feedback",
+      "status": "observed",
+      "evidence_refs": [
+        "segment_005",
+        "segment_008"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "includes",
+      "object": "text_check",
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "subject": "text_rule",
+      "predicate": "applies_in",
+      "object": "text_check",
+      "status": "observed",
+      "evidence_refs": [
+        "segment_009"
+      ]
+    },
+    {
+      "subject": "text_rule",
+      "predicate": "requires",
+      "object": "p_key",
+      "status": "observed",
+      "evidence_refs": [
+        "segment_009",
+        "13_text_instruction"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "has_timing",
+      "object": "timing",
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    },
+    {
+      "subject": "test",
+      "predicate": "ends_at",
+      "object": "complete",
+      "status": "observed",
+      "evidence_refs": [
+        "segment_012",
+        "14_terminal"
+      ]
+    },
+    {
+      "subject": "complete",
+      "predicate": "reports",
+      "object": "upload",
+      "status": "observed",
+      "evidence_refs": [
+        "14_terminal"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:11.096190+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "02_refresh",
+      "path": "evidence/02_refresh.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:26.487307+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "03_fullscreen",
+      "path": "evidence/03_fullscreen.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:32.924261+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "04_welcome",
+      "path": "evidence/04_welcome.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:34.404070+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "05_adapter_probe",
+      "path": "evidence/05_adapter_probe.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:42.979622+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "06_instructions",
+      "path": "evidence/06_instructions.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:44.499770+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "07_star_instruction",
+      "path": "evidence/07_star_instruction.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:48.202010+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "08_practice_instruction",
+      "path": "evidence/08_practice_instruction.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:55:54.866253+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "09_ready",
+      "path": "evidence/09_ready.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:56:46.024923+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_001",
+      "path": "evidence/segment-001.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:57:50.112338+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "10_after_practice",
+      "path": "evidence/10_after_practice.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:58:32.433293+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_002",
+      "path": "evidence/segment-002.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:58:33.494162+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_003",
+      "path": "evidence/segment-003.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:59:24.543318+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_004",
+      "path": "evidence/segment-004.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:00:15.848685+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_005",
+      "path": "evidence/segment-005.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:01:06.550432+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "11_main_screenshot",
+      "path": "evidence/11_main_screenshot.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:01:58.719285+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "12_block1_feedback",
+      "path": "evidence/12_block1_feedback.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:02:08.352657+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_006",
+      "path": "evidence/segment-006.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:02:09.576252+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_007",
+      "path": "evidence/segment-007.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:03:00.538960+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_008",
+      "path": "evidence/segment-008.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:03:51.408571+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_009",
+      "path": "evidence/segment-009.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:04:51.595035+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "13_text_instruction",
+      "path": "evidence/13_text_instruction.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:05:02.104849+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_010",
+      "path": "evidence/segment-010.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:05:03.364831+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_011",
+      "path": "evidence/segment-011.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:05:54.191635+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "segment_012",
+      "path": "evidence/segment-012.jsonl",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:06:44.897429+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "14_terminal",
+      "path": "evidence/14_terminal.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:08:08.998207+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "15_terminal_screenshot",
+      "path": "evidence/15_terminal_screenshot.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:08:10.094891+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "16_finish",
+      "path": "evidence/16_finish.txt",
+      "locator": "all captured records",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T22:08:10.945402+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "17_native_export",
+      "path": "evidence/17_native_export.txt",
+      "locator": "all captured records",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:08:33.792713+00:00",
+      "description": "Participant-visible browser observation/action trace; segment logs include visible image pixel geometry and local policy intentions"
+    },
+    {
+      "id": "image_11_main",
+      "path": "evidence/11_main.png",
+      "locator": "entire screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:01:58.719285+00:00",
+      "description": "Actual task screen"
+    },
+    {
+      "id": "image_15_terminal",
+      "path": "evidence/15_terminal.png",
+      "locator": "entire screenshot",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T22:08:10.094891+00:00",
+      "description": "Actual task screen"
+    },
+    {
+      "id": "native_data",
+      "path": "data/experiment_data.json",
+      "locator": "all rows; trial_id identifies phase/record role",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T22:08:33.792713+00:00",
+      "description": "Exact native jsPsych JSON read after task completion"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Does this policy reproduce human cognitive behavior?",
+      "reason": "No human comparison conducted; transport latency remains in native response times."
+    },
+    {
+      "question": "What task randomization rules generated the sequence?",
+      "reason": "Source and future task state were not inspected."
+    }
+  ]
+}

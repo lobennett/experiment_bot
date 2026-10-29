@@ -1,0 +1,87 @@
+{
+  "url": "https://deploy.expfactory.org/preview/5/",
+  "updated_at": "2026-10-28T23:08:40.335199+00:00",
+  "attempts": [
+    {
+      "attempt": "attempt-01",
+      "mode": "direct_browser",
+      "status": "partial",
+      "reason": "Direct attempt missed timed stimuli after browser scripting error; no terminal state observed.",
+      "data_export": "available",
+      "native_rows": 54,
+      "policy_sha256": null,
+      "manifest_sha256": "abba98798b55101f0a27d88e4f0d1c836689727343c3cd6e107e006f2607ad35",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-02",
+      "mode": "direct_browser",
+      "status": "blocked",
+      "reason": "Persistent driver stdin reached EOF in non-PTY execution immediately after initial fullscreen capture; no task responses delivered.",
+      "data_export": "unavailable",
+      "native_rows": null,
+      "policy_sha256": null,
+      "manifest_sha256": "4aa18416b8b800eed022292be71a15fd6be46d2043876962899db70f8813e3b5",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-03",
+      "mode": "generated_visible_policy",
+      "status": "partial",
+      "reason": "At first fixation, persistent reminder text made the frozen policy yield for review; driver stopped observing timed practice. No letter response was delivered.",
+      "data_export": "available",
+      "native_rows": 29,
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "manifest_sha256": "d4bedb04cb528bf32a6a2bb81795813f2d9e287ca4c34b9be9d57c37c3cd73b7",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-04",
+      "mode": "generated_visible_policy",
+      "status": "partial",
+      "reason": "Rendered center letter is absent from DOM text observations; no letter responses. Screenshot proves a lowercase t while text representation contains only reminders.",
+      "data_export": "available",
+      "native_rows": 54,
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "manifest_sha256": "4bdaffde7b1582d9c7e83bb2106fe26c912457a7c2a5b3cbb257e5b05226ea4e",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-05",
+      "mode": "generated_visible_policy",
+      "status": "partial",
+      "reason": "Two completed practice rounds produced repeated omission feedback because OCR failed on visible glyphs. Stopped during the automatically started third practice; terminal task state never observed.",
+      "data_export": "available",
+      "native_rows": 69,
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "manifest_sha256": "650cc4ab7fe9e30f28538d9747c32bd80f126d017f6f2427f69449125a212cc5",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-06",
+      "mode": "generated_visible_policy",
+      "status": "partial",
+      "reason": "Completed delay-1 practice, then newly visible delay-2 cue/reminder wording was unsupported by the perception framing. No delay-2 response was delivered; native export retained.",
+      "data_export": "available",
+      "native_rows": 58,
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "manifest_sha256": "b5d7f784e8b25970ed77b8afd5a83b2d509dcf89ff83fdab60f9123a66ef6478",
+      "checked": true
+    },
+    {
+      "attempt": "attempt-07",
+      "mode": "generated_visible_policy",
+      "status": "completed",
+      "reason": "Observed task thank-you and Experiment Complete terminal state after both practices and ten test blocks. Six attention checks were missed; automatic remote upload failed.",
+      "data_export": "available",
+      "native_rows": 485,
+      "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+      "manifest_sha256": "c42552035f00d951d0d9d93d6589d2b454fe856e9758a263fff768b65cda8f5a",
+      "checked": true
+    }
+  ],
+  "task_completed": true,
+  "completion_attempt": "attempt-07",
+  "submission": "failed",
+  "offline_ocr_diagnosis_pending": false
+}

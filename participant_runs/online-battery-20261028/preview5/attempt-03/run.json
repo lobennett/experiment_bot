@@ -1,0 +1,106 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview5-attempt-03",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/5/",
+  "final_url": "https://deploy.expfactory.org/preview/5/",
+  "started_at": "2026-10-28T22:23:25.381862+00:00",
+  "ended_at": "2026-10-28T22:27:21.414182+00:00",
+  "status": "partial",
+  "status_reason": "At first fixation, persistent reminder text made the frozen policy yield for review; driver stopped observing timed practice. No letter response was delivered.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null,
+    "reported_family": "GPT-6, from developer description; exact runtime identifier unavailable"
+  },
+  "browser": {
+    "tool": "Playwright Python",
+    "engine": "Chromium",
+    "isolated_context": true,
+    "viewport": {
+      "width": 1280,
+      "height": 900
+    },
+    "input_delivery": "page.keyboard.press and get_by_role click",
+    "observation": "visible text-node ranges, computed visibility and geometry; screenshot checked"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9"
+  },
+  "reproducibility": "Direct agent session; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Partial native trial export after participation ended."
+  },
+  "submission": {
+    "status": "unconfirmed",
+    "reason": null
+  },
+  "counts": {
+    "observed_response_opportunities": 0,
+    "actions": 4,
+    "native_trial_rows": 29
+  },
+  "limitations": [
+    "Full authoring conversation unavailable; inherited context is explicitly disclosed.",
+    "CLI run wait API failed during direct attempt; standalone persistent Playwright fallback used.",
+    "No human timing or behavioral-validity claim.",
+    "Adapter returned fixation plus reminder text; policy requested review and the synchronous driver left timed practice unattended.",
+    "Instruction pages auto-advanced during policy setup."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "d41dd045a7082dbcc681077655e090a92cdec62fbf83ac05684e21ea6fd59f80",
+    "events.jsonl": "a294136c324229f227f33642ec62cacac65184092634330b5e055ffadb623bfa",
+    "evidence/001-initial.json": "ffa37df1e588848028765c1135c04cba35d74d908bb35fa658a8389110830cfe",
+    "evidence/001-initial.png": "032e165b3677d049654b7e8cf1beb3c325b6f6beeee803b5caf74bdfd99cc91f",
+    "evidence/002-after-fullscreen.json": "1b8833193a006762b7c72bf2ed3b2d0351c940831e2c89c116c76da56d676df9",
+    "evidence/002-after-fullscreen.png": "a1ce84accce9a84c03a7ba9a2a2d89f37011bf249bccae390890ec45c2e8f73e",
+    "evidence/003-welcome.json": "5e66a065a8ce9fc54c608145a5bf07edb1e47d3ef7bd29ba02aa6c55c237a675",
+    "evidence/003-welcome.png": "8789de24c3b4dc06bf0134a371381851612441b4a9e0757576a6d7549c3ebfd6",
+    "evidence/004-instructions.json": "50a3b2d79ea900930ef7e3471564bb9aa0aafa90e7c6af89b580c484cfe7d216",
+    "evidence/004-instructions.png": "93d5e46d2146b482e019f4d5781c764bff2838235580d41e52949e9e67a99faf",
+    "evidence/005-practice-instructions.json": "d40eed7b4e111d1044c1577d6c19864e06fbdaa54336ba5db1fb5830b5512723",
+    "evidence/005-practice-instructions.png": "ad58cf075741117fb17b89b2986b37e528c7cd7f5e8b4ca4dee8602af19ccedc",
+    "evidence/006-practice-start.json": "405741a257d0f0f3f7de45318777e26f965d55fc2ab93699f61868dc5f8c82cc",
+    "evidence/006-practice-start.png": "9a74d837628d804dce1b79619c5115d76354760e179e327449bf9a9d413cb58c",
+    "evidence/007-partial-final.json": "91c46683dde4000487d6a5aa18b943cf0da2ee26b89494a757c95c9468170559",
+    "evidence/007-partial-final.png": "ef5e73f2026fe54a2c996dae11c166e1ec3ed0d2f8647b84cefd6562879f1fb1",
+    "evidence/export-metadata.json": "8ea0f070ba6b0b27cb0cd996d38ccb0e72cc408b14a857d297407fed1d4eacdf",
+    "evidence/review-11.json": "eca2d69a172ff3ad24180298b03d6496c0f17d4ea15e687f0cc9293419fc1072",
+    "evidence/review-11.png": "9a74d837628d804dce1b79619c5115d76354760e179e327449bf9a9d413cb58c",
+    "evidence/review-9.json": "d3a6235edc3734aa6fd50e51cafce014971308578b0bbc53ae4144429aec37e4",
+    "evidence/review-9.png": "0209e7b1ded83d4453e1007229375af1daeb95d8740397204ee41ac81664d2e3",
+    "ontology.json": "74c437d270c1181c6079dfd22baaa0e4194dc1ff728e9d7b0d83968c11d15ac3",
+    "policy/__pycache__/participant.cpython-312.pyc": "4c083a59f730736b4e720fe78716c196af7830b3f130c84302952ae8b4ce7356",
+    "policy/adapter-fixtures.json": "a5bd4b9183c3d3e5cbbe216ba32f484ee68a75104092b80dec0025228b4d8896",
+    "policy/authoring-prompt.md": "b681693c34a969b29e9c4c9d8d4765686da27b12268d9cc9a354d45b03d3d6c7",
+    "policy/driver.py": "34da3ee1eb860061e51eb32d9159cd21322879058d3b25195e4311e78b4fa0dd",
+    "policy/gate-report.json": "eb0c3f6b03dcd8e799bede694900ba7bd6696bac143d7b18d1faf4d64be6fb10",
+    "policy/participant.py": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+    "protocol/SKILL.md": "fd47e7be0d047a0363757772324e43e60a893669cc470fb824fbbd827670f066",
+    "protocol/artifacts.md": "5fffb0f850bae988398b4802f0a37f797e252eb105116a6a61622ad3a4db6f1f",
+    "protocol/execution.md": "1daec55e213c392f2b5972b6098811161074d1d3ef2e52991819347860e6d24e",
+    "protocol/scripts/check_run.py": "0f45380acbdb73676595697005fd0ff8654e664dd7d6b444e5921f7465d403e9",
+    "summary.md": "ac895316167d858f706107f4156e4ef7af27d6ab479282e7c885d12ca90f1578"
+  },
+  "parent_attempt": "../attempt-01",
+  "full_transcript_path": null,
+  "seed": {
+    "value": 5,
+    "scope": "policy decisions; deterministic without random choices"
+  },
+  "authoring_context": "inherited_agent_context",
+  "policy_sha256": "fdaf649f5517ee4bb08dee83a443b4d7078161f0d4337424ab47b2f63ea54793",
+  "policy_path": "policy/participant.py",
+  "authoring_prompt_path": "policy/authoring-prompt.md",
+  "gate_report_path": "policy/gate-report.json"
+}

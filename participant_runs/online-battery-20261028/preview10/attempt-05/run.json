@@ -1,0 +1,119 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview10-attempt-05",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/10/",
+  "final_url": "https://deploy.expfactory.org/preview/10/",
+  "started_at": "2026-10-28T22:04:44.367584+00:00",
+  "ended_at": "2026-10-28T22:14:45.651250+00:00",
+  "status": "completed",
+  "status_reason": "Observed terminal page",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "Playwright Python",
+    "isolation": "Dedicated Chromium launch; unique temporary profile",
+    "version": "155.0.8059.80"
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+  },
+  "seed": {
+    "value": null,
+    "scope": "Policy uses no randomness; deterministic given observation history."
+  },
+  "reproducibility": "Policy is deterministic given visible observation history; live browser timing and task randomization are not deterministically replayed.",
+  "completion_evidence_refs": [
+    "completion",
+    "completion_image"
+  ],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json"
+    ],
+    "reason": "Post-participation read-only jsPsych native export"
+  },
+  "counts": {
+    "policy_response_actions": 124,
+    "agent_events": 532,
+    "native_export_rows": 392,
+    "native_response_trials": 124,
+    "native_practice_trials": 4,
+    "native_test_trials": 120,
+    "native_recorded_responses": 124,
+    "native_correct_responses": 124,
+    "native_omissions": 0,
+    "native_attention_checks": 3,
+    "native_attention_check_responses": 0
+  },
+  "limitations": [
+    "Inline authoring inherited full agent context; explicit prompt is archived but not an isolated model generation transcript.",
+    "Inline policy authoring inherited the full agent context; prompt file is explicit instruction, not an isolated model call or complete transcript.",
+    "Original adapter used checkVisibility() default options; explicit opacity/CSS visibility and viewport checks will be required in subsequent adapters.",
+    "Immediate policy responses are not human reaction-time validity; no behavioral tuning or selection was performed.",
+    "Remote upload acknowledgment unconfirmed.",
+    "All three inter-block attention checks were missed (m/e/j responses null). Task completion and trial classification accuracy do not establish acceptable participant data quality."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.json": "201482515b92cdf80af742795a222d540d8d87e2b50fc67dccef66e77fce123c",
+    "driver.py": "adea693549d7367556d92199d2e1370cb11868bd4954d0313d626ad8dedcf15c",
+    "events.jsonl": "403fe6e66d73368c2d5f1da837cb61e26d40a0baf234bcc22536b43506dd0e72",
+    "evidence/boundary-01.png": "852da6784b337553946b160d793ec7b4a6c1692b43cc8c663fceaa92cdfaa3bc",
+    "evidence/boundary-01.txt": "429c3010e80b4180e4529b5508a36392fa51916c4bdfa1cae24f097e6db67b3e",
+    "evidence/boundary-02.png": "ec54ebff6fccb2fded19406d8c5f00b6f2e700661fa23221424b47b6da1915c5",
+    "evidence/boundary-02.txt": "b8c475dcd2b8ec3b33d2e365954b4ecd29fcb8ceca55afbd82bdbfcf4d22a3ed",
+    "evidence/boundary-03.png": "261714a5497f4110e12f6e9b09dec38b72e93ad39f7aae5494cdb4b7b52ffb78",
+    "evidence/boundary-03.txt": "fecbc4f26a38782fe3b5ff42de381f4f03eb46801b601299c39de3fdcbea105a",
+    "evidence/boundary-04.png": "ebe8c30c8ab197e0477148432259bb6b4f8cab8e3830bd0f1938fccb7d7e25c7",
+    "evidence/boundary-04.txt": "d478cd5c41bb9c337439989cd9e6d943cc135e1e0c0aae104b5e4b153afb55f7",
+    "evidence/boundary-05.png": "cfde06162b8408435281423c9b66c2b25bc8397a87db937f31850519c15c7d74",
+    "evidence/boundary-05.txt": "fb0a75d4adcc3aa7dc1d7df55f6dea2cf144f8afa94a77eb9f30e7d5eef008e2",
+    "evidence/boundary-06.png": "c0583339534cc9e6c95a2bda26021e06589da023bd1a3b8b0cadccfff485509e",
+    "evidence/boundary-06.txt": "c2fdcd126d76b1a0d0447c31ae540857ebebae863e19de8f74b86c24fcb03fda",
+    "evidence/boundary-07.png": "1cbdeea8a529b63fc98b4356a0fb94a8caf55bba147ce244ad126093e0d5ee98",
+    "evidence/boundary-07.txt": "ab056de621ff56b54a549fe7ffb218a8b2cafef347a089301e734e310043a9af",
+    "evidence/boundary-08.png": "bd153d29f2136f2f7cd1fbc9151ce8c44745254034231a0925c3240ee7c18bf4",
+    "evidence/boundary-08.txt": "933224e5ff2e239bed7fd13e7b15f2f84bb75c801b1f2598512c309c6cde6b37",
+    "evidence/boundary-09.png": "a62f11e0cce81dafb53b3d4ca3dd86f4b4460ad48b47e2debd51ad5ef5c9d41e",
+    "evidence/boundary-09.txt": "4b8676b09bef7f90dcbe22e2c5e700362dde8f4b6f0f69a10735f0d4f1cc5a90",
+    "evidence/boundary-10.png": "a20fd9830eb5b155fae7be3a87721105766ecfa5835792c729abd6d14db58483",
+    "evidence/boundary-10.txt": "8141932e3441ab766c07d66ebe7f34b9032b2fb4a0b67b15e543c78c54e002c5",
+    "evidence/completion.png": "878b92cf96c60e05e3abc28e490861a76089cb6a70baac9334519cf33c406a3f",
+    "evidence/completion.txt": "089d9451cc998c522a7b861d12016751bd2cdb6fc1e31c8cc64458a71f43bdd8",
+    "evidence/stimulus-1.png": "84f8e433d9fade6ce51574c6f951f85a1f22baaf5ef59e1f0eee9221704ee9c3",
+    "evidence/stimulus-2.png": "84f8e433d9fade6ce51574c6f951f85a1f22baaf5ef59e1f0eee9221704ee9c3",
+    "evidence/stimulus-3.png": "84f8e433d9fade6ce51574c6f951f85a1f22baaf5ef59e1f0eee9221704ee9c3",
+    "ontology.json": "a6ee4f10d61a2c973ded3b728c194cc18f1613abc4a347dbdcd28223e2db0db4",
+    "policy/adapter_gate.json": "b8a31d4c3e29c2ac04f224f3362854cfa97e9c32c624afa1768b81326402d04f",
+    "policy/authoring_prompt.md": "86c99d64ef2e9d885b0501e534a6d846abaa2e58dc6ca9f7d7e273d94e090cac",
+    "policy/gate.cjs": "7b701212cf4edb7de8ce6f4b650da567d247c94b49feca98fe346dc3690df99d",
+    "policy/gate.json": "c79248d3fec4fa0d1f0d877f0d7fc45af0d709c340afb73960516900398e02be",
+    "policy/participant.js": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+    "protocol/SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "summary.md": "d16c64d9058a178032c3ce595d9096ca420c42d4d6c137e92afef7630b576b45"
+  },
+  "parent_attempt": "../attempt-04",
+  "policy_path": "policy/participant.js",
+  "authoring_prompt_path": "policy/authoring_prompt.md",
+  "gate_report_path": "policy/gate.json",
+  "input_delivery": "Playwright page.keyboard.press",
+  "observation_interface": "Visible rendered text, computed color, geometry and displayed DOM boundary; no task state or native data during participation.",
+  "policy_sha256": "70a4958379c7c5fe8e6037f1a1b4419ccfa67cf5f35144c3aa0614824d8b48c4",
+  "authoring_context": "inherited_agent_context",
+  "adapter_sha256": "adea693549d7367556d92199d2e1370cb11868bd4954d0313d626ad8dedcf15c",
+  "authoring_transcript_path": null,
+  "native_rt_summary_ms": {
+    "min": 6,
+    "median": 19.0,
+    "max": 49
+  }
+}

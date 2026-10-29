@@ -1,0 +1,1 @@
+console.log(JSON.stringify({function_form:await page.eval(()=>location.href),string_form:await page.eval('location.href')})); await page.press('Shift'); await new Promise(r=>setTimeout(r,20)); console.log(JSON.stringify({press_and_host_wait:'passed'}));

@@ -1,0 +1,144 @@
+import sys,json,time,datetime,hashlib,traceback,select,subprocess,io,re
+from PIL import Image
+from pathlib import Path
+from playwright.sync_api import sync_playwright
+R=Path(__file__).resolve().parents[1]
+URL='https://deploy.expfactory.org/preview/5/'
+def now():return datetime.datetime.now(datetime.timezone.utc).isoformat()
+ocr_process=subprocess.Popen([str(R/'policy/ocr')],stdin=subprocess.PIPE,stdout=subprocess.PIPE,text=True)
+ocr_cache={}
+last_pixel=None
+pixel_epoch=0
+ix=0
+def event(kind,obs=None,action=None,outcome=None,evidence_refs=None):
+ global ix
+ ix+=1
+ e={'index':ix,'at':now(),'kind':kind,'phase_id':None,'trial_id':None,'observation':obs,'action':action,'outcome':outcome,'evidence_refs':evidence_refs or [],'timing':{'clock':'system UTC and browser performance.now','not_native_rt':True}}
+ with (R/'events.jsonl').open('a') as f:f.write(json.dumps(e)+'\n')
+ return e
+OBSERVER='''() => {
+ const ids=new WeakMap(); let next=0;
+ function visible(el,rect){
+   for(let e=el;e;e=e.parentElement){const s=getComputedStyle(e);if(s.display==='none'||s.visibility!=='visible'||Number(s.opacity)===0)return false;}
+   if(!rect||rect.width<=0||rect.height<=0||rect.bottom<=0||rect.right<=0||rect.top>=innerHeight||rect.left>=innerWidth)return false;
+   const x=Math.max(0,Math.min(innerWidth-1,rect.x+rect.width/2)),y=Math.max(0,Math.min(innerHeight-1,rect.y+rect.height/2));
+   const top=document.elementFromPoint(x,y); return !!top&&(top===el||top.contains(el)||el.contains(top));
+ }
+ return () => {
+   const walker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT); const parts=[];let n;
+   while(n=walker.nextNode()) {const txt=n.textContent.trim();if(!txt)continue;const el=n.parentElement;if(!el||['SCRIPT','STYLE','NOSCRIPT'].includes(el.tagName))continue;
+     const range=document.createRange();range.selectNodeContents(n);const rect=range.getBoundingClientRect();if(!visible(el,rect))continue;
+     if(!ids.has(n))ids.set(n,++next);
+     parts.push({text:txt,token:ids.get(n),rect:{x:rect.x,y:rect.y,width:rect.width,height:rect.height},tag:el.tagName});
+   }
+   const media=[...document.querySelectorAll('img,canvas,svg')].filter(el=>visible(el,el.getBoundingClientRect())).map(el=>{if(!ids.has(el))ids.set(el,++next);const r=el.getBoundingClientRect();return {tag:el.tagName,token:ids.get(el),rect:{x:r.x,y:r.y,width:r.width,height:r.height}}});
+   const buttons=[...document.querySelectorAll('button,input[type=button],input[type=submit]')].filter(el=>visible(el,el.getBoundingClientRect())).map(el=>({text:el.innerText||el.value,disabled:el.disabled}));
+   return {url:location.href,title:document.title,at_browser_ms:performance.now(),media,parts,text:parts.map(p=>p.text).join(' '),buttons,viewport:{width:innerWidth,height:innerHeight}};
+ };
+}'''
+pw=sync_playwright().start();browser=pw.chromium.launch(headless=True);context=browser.new_context(viewport={'width':1280,'height':900});page=context.new_page()
+page.goto(URL);handle=page.evaluate_handle(OBSERVER)
+policy=None
+last=None
+start=time.monotonic()
+def observe():
+ global last,last_pixel,pixel_epoch
+ o=handle.evaluate('(read)=>read()'); o['observed_at']=now()
+ if o['url']!=URL:raise RuntimeError('URL changed: '+o['url'])
+ o=pixel_read(o)
+ o['perception_projection']=project(o)['perception_projection']
+ signature=json.dumps([o['text'],[p['token'] for p in o['parts']],o['perception_projection']['rules_sha256']])
+ if signature!=last:
+  event('observation',o);last=signature
+ return o
+from perception import project
+
+def pixel_read(o):
+ global last_pixel,pixel_epoch
+ frame_text=project(o)['text'].strip()
+ if o['buttons'] or frame_text:
+  last_pixel=None
+  return o
+ # Center ROI is grounded in attempt-04/evidence/009-current.png and 007-practice-start.png.
+ raw=page.screenshot(clip={'x':520,'y':350,'width':240,'height':200})
+ sha=hashlib.sha256(raw).hexdigest()
+ if sha!=last_pixel:pixel_epoch+=1;last_pixel=sha
+ path=R/'evidence'/('pixel-'+sha[:16]+'.png')
+ if sha not in ocr_cache:
+  raw_path=R/'evidence'/('raw-pixel-'+sha[:16]+'.png');raw_path.write_bytes(raw)
+  im=Image.open(io.BytesIO(raw));im.resize((960,800)).save(path)
+  ocr_process.stdin.write(str(path)+'\n');ocr_process.stdin.flush()
+  result=json.loads(ocr_process.stdout.readline())
+  result['raw_screenshot_path']=str(raw_path.relative_to(R));result['transform']={'source_viewport':[1280,900],'raw_roi':[520,350,240,200],'resize':[960,800],'ocr_crop_in_resized':[320,250,320,320],'crop_origin':'top-left'}
+  gray=im.convert('L');low,high=gray.getextrema();result['nonblank_contrast']=high-low;ocr_cache[sha]=result
+  (path.with_suffix('.json')).write_text(json.dumps(result,indent=2))
+ result=ocr_cache[sha];o['pixel_evidence']=str(path.relative_to(R));o['ocr']=result
+ parts=result.get('parts',[])
+ texts=[z['candidates'][0]['text'] for z in parts if z.get('candidates')]
+ if not texts and result.get('nonblank_contrast',0)>5:
+  texts=['UNREAD_VISIBLE_GLYPH']
+ if texts:
+  recognized=' '.join(texts)
+  # Pixel appearance epoch plus visible element identity distinguish repeated glyphs.
+  media='-'.join(str(z['token']) for z in o.get('media',[]))
+  token='pixel:'+str(pixel_epoch)+':'+media
+  o['parts'].append({'text':recognized,'token':token,'rect':{'x':520,'y':350,'width':240,'height':200},'tag':'PIXEL_OCR'})
+  o['text']=' '.join(z['text'] for z in o['parts'])
+ return o
+
+def capture(label):
+ o=observe();name='evidence/'+label
+ (R/(name+'.json')).write_text(json.dumps(o,indent=2));page.screenshot(path=str(R/(name+'.png')))
+ print(json.dumps({'capture':label,'observation':o}),flush=True)
+def command(c):
+ global policy,handle
+ op=c['op']
+ if op=='observe':capture(c.get('label','capture'))
+ elif op=='click':
+  o=observe();target=c['text'];assert any(b['text']==target and not b['disabled'] for b in o['buttons']),o
+  page.get_by_role('button',name=target,exact=True).click();event('action',action={'type':'click','target':target},outcome='delivered');capture(c.get('label','after-click'))
+ elif op=='key':
+  o=observe()
+  if c['key']=='Enter' and not re.search(r'press\s+enter',o['text'],re.I):
+   print(json.dumps({'skipped_stale_navigation':o['text']}),flush=True);return True
+  page.keyboard.press(c['key']);event('action',obs=o,action={'type':'key','value':c['key'],'issuer':'agent'},outcome='delivered');capture(c.get('label','after-key'))
+ elif op=='start':
+  from participant import Participant
+  if policy is None:policy=Participant(5)
+  limit=time.monotonic()+c.get('seconds',1200);last_progress=0;reviewed=set()
+  while time.monotonic()<limit:
+   if select.select([sys.stdin],[],[],0)[0]:
+    incoming=sys.stdin.readline().strip()
+    if incoming:
+     control=json.loads(incoming)
+     if control['op']=='stop':break
+     if control['op'] not in ['start','end']:command(control)
+   o=observe();a=policy.decide(project(o))
+   if a['type']=='review':
+    sig=tuple(str(p['token']) for p in o['parts'])
+    if sig not in reviewed:
+     reviewed.add(sig);capture('review-'+str(ix))
+    time.sleep(.02);continue
+   if a['type']=='key':
+    fresh=observe()
+    if a['token'] not in [p['token'] for p in fresh['parts']]:event('error',obs=fresh,action=a,outcome='stale action cancelled');continue
+    event('action',obs=o,action={**a,'issuer':'policy','delivery':'intended'})
+    page.keyboard.press(a['key']);event('action',action={**a,'issuer':'policy','delivery':'actual'},outcome='delivered')
+   if time.monotonic()-last_progress>10:print(json.dumps({'progress':True,'events':ix,'policy_responses':policy.responses,'text':o['text']}),flush=True);last_progress=time.monotonic()
+   time.sleep(.02)
+  else: print(json.dumps({'operational_limit':'loop time limit'}),flush=True)
+ elif op=='export':
+  (R/'data/experiment_data.json').write_text(page.evaluate('jsPsych.data.get().json()'))
+  (R/'evidence/export-metadata.json').write_text(json.dumps({'at':now(),'version':page.evaluate('jsPsych.version()'),'api':'jsPsych.data.get().json()','documentation':'https://www.jspsych.org/v7/reference/jspsych-data/'},indent=2))
+  print(json.dumps({'exported':True}),flush=True)
+ elif op=='fixtures':
+  f=context.new_page();f.set_content('<div style="position:absolute;left:10px;top:10px">VISIBLE</div><div style="display:none">DISPLAY</div><div style="visibility:hidden">VISIBILITY</div><div style="opacity:0">OPACITY</div><div style="position:absolute;top:2000px">OFFSCREEN</div><div style="position:absolute;left:10px;top:100px">OCCLUDED</div><div style="position:absolute;left:0;top:95px;width:200px;height:50px;background:black"></div>');h=f.evaluate_handle(OBSERVER);o=h.evaluate('(read)=>read()');assert o['text']=='VISIBLE',o;f.close();(R/'policy/adapter-fixtures.json').write_text(json.dumps({'passed':True,'observation':o,'checked':['visible','display:none','visibility:hidden','opacity:0','offscreen','occluded']},indent=2));print(json.dumps({'fixtures':'passed'}),flush=True)
+ elif op=='end':return False
+ return True
+capture('001-initial')
+for line in sys.stdin:
+ try:
+  if not command(json.loads(line)):break
+ except Exception as e:
+  event('error',outcome=repr(e));print(json.dumps({'error':repr(e),'traceback':traceback.format_exc()}),flush=True)
+ocr_process.terminate();browser.close();pw.stop()

@@ -1,0 +1,683 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "file:///private/tmp/behavioral-participant-validation/index.html",
+    "title": "Signal Cards \u2014 local skill check"
+  },
+  "nodes": [
+    {
+      "id": "block_1_instructions",
+      "kind": "phase",
+      "label": "Block 1 instructions",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "block_1",
+      "kind": "phase",
+      "label": "Block 1",
+      "attributes": {
+        "instructed_cards": 2
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "response_f",
+      "kind": "response",
+      "label": "F key",
+      "attributes": {
+        "input_channel": "keyboard",
+        "key": "F"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "response_j",
+      "kind": "response",
+      "label": "J key",
+      "attributes": {
+        "input_channel": "keyboard",
+        "key": "J"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "continue",
+      "kind": "response",
+      "label": "Continue button",
+      "attributes": {
+        "input_channel": "pointer"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "block_1_map",
+      "kind": "rule",
+      "label": "Block 1 word-to-key mapping",
+      "attributes": {
+        "scope": "block_1",
+        "conditions": [
+          {
+            "word": "MOON",
+            "key": "F"
+          },
+          {
+            "word": "SUN",
+            "key": "J"
+          }
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "timing_instructions",
+      "kind": "timing",
+      "label": "No time limit",
+      "attributes": {
+        "scope": "instructions",
+        "statement": "There is no time limit."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "flow_instructions",
+      "kind": "rule",
+      "label": "Response then Continue",
+      "attributes": {
+        "instruction": "After each response, click Continue."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "id": "block_2_instructions",
+      "kind": "phase",
+      "label": "Block 2 instructions",
+      "attributes": {},
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "id": "block_2",
+      "kind": "phase",
+      "label": "Block 2",
+      "attributes": {
+        "instructed_cards": 2
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "id": "block_2_map",
+      "kind": "rule",
+      "label": "Block 2 word-to-key mapping",
+      "attributes": {
+        "scope": "block_2",
+        "conditions": [
+          {
+            "word": "MOON",
+            "key": "J"
+          },
+          {
+            "word": "SUN",
+            "key": "F"
+          }
+        ]
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "id": "card_b1_1",
+      "kind": "stimulus",
+      "label": "Block 1, card 1: MOON",
+      "attributes": {
+        "block": 1,
+        "card_position": 1,
+        "word": "MOON",
+        "presentation": "word on bordered card; screenshot required because accessibility snapshot omitted the word"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "image_03_card_1_screenshot"
+      ]
+    },
+    {
+      "id": "feedback_b1_1",
+      "kind": "feedback",
+      "label": "Correct feedback after block 1 card 1",
+      "attributes": {
+        "message": "Response recorded; Correct."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_04_card_1_response"
+      ]
+    },
+    {
+      "id": "card_b1_2",
+      "kind": "stimulus",
+      "label": "Block 1, card 2: SUN",
+      "attributes": {
+        "block": 1,
+        "card_position": 2,
+        "word": "SUN",
+        "presentation": "word on bordered card; screenshot required because accessibility snapshot omitted the word"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "image_06_card_2_screenshot"
+      ]
+    },
+    {
+      "id": "feedback_b1_2",
+      "kind": "feedback",
+      "label": "Correct feedback after block 1 card 2",
+      "attributes": {
+        "message": "Response recorded; Correct."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_07_card_2_response"
+      ]
+    },
+    {
+      "id": "card_b2_1",
+      "kind": "stimulus",
+      "label": "Block 2, card 1: MOON",
+      "attributes": {
+        "block": 2,
+        "card_position": 1,
+        "word": "MOON",
+        "presentation": "word on bordered card; screenshot required because accessibility snapshot omitted the word"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "image_10_card_1_screenshot"
+      ]
+    },
+    {
+      "id": "feedback_b2_1",
+      "kind": "feedback",
+      "label": "Correct feedback after block 2 card 1",
+      "attributes": {
+        "message": "Response recorded; Correct."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_11_card_1_response"
+      ]
+    },
+    {
+      "id": "card_b2_2",
+      "kind": "stimulus",
+      "label": "Block 2, card 2: SUN",
+      "attributes": {
+        "block": 2,
+        "card_position": 2,
+        "word": "SUN",
+        "presentation": "word on bordered card; screenshot required because accessibility snapshot omitted the word"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "image_13_card_2_screenshot"
+      ]
+    },
+    {
+      "id": "feedback_b2_2",
+      "kind": "feedback",
+      "label": "Correct feedback after block 2 card 2",
+      "attributes": {
+        "message": "Response recorded; Correct."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_14_card_2_response"
+      ]
+    },
+    {
+      "id": "completion",
+      "kind": "completion",
+      "label": "Task complete",
+      "attributes": {
+        "message": "All four responses were recorded locally. No submission is required."
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "ev_15_completion",
+        "image_16_completion_screenshot"
+      ]
+    },
+    {
+      "id": "native_data",
+      "kind": "data_export",
+      "label": "Native JSON export",
+      "attributes": {
+        "format": "json",
+        "trial_rows": 4,
+        "fields": [
+          "block",
+          "trial",
+          "stimulus",
+          "key",
+          "correct",
+          "rt_ms"
+        ],
+        "timing_field": "rt_ms",
+        "timing_origin": "platform native export; underlying clock implementation was not inspected"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_export",
+        "ev_15_completion"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "subject": "block_1_map",
+      "predicate": "applies_in",
+      "object": "block_1",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "subject": "block_1_map",
+      "predicate": "permits",
+      "object": "response_f",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "subject": "block_1_map",
+      "predicate": "permits",
+      "object": "response_j",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "subject": "flow_instructions",
+      "predicate": "uses",
+      "object": "continue",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_01_instructions"
+      ]
+    },
+    {
+      "subject": "block_2_map",
+      "predicate": "applies_in",
+      "object": "block_2",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "subject": "block_2_map",
+      "predicate": "permits",
+      "object": "response_f",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "subject": "block_2_map",
+      "predicate": "permits",
+      "object": "response_j",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "subject": "block_1",
+      "predicate": "presents",
+      "object": "card_b1_1",
+      "status": "observed",
+      "evidence_refs": [
+        "image_03_card_1_screenshot"
+      ]
+    },
+    {
+      "subject": "feedback_b1_1",
+      "predicate": "follows_response_to",
+      "object": "card_b1_1",
+      "status": "observed",
+      "evidence_refs": [
+        "image_03_card_1_screenshot",
+        "ev_04_card_1_response"
+      ]
+    },
+    {
+      "subject": "block_1",
+      "predicate": "presents",
+      "object": "card_b1_2",
+      "status": "observed",
+      "evidence_refs": [
+        "image_06_card_2_screenshot"
+      ]
+    },
+    {
+      "subject": "feedback_b1_2",
+      "predicate": "follows_response_to",
+      "object": "card_b1_2",
+      "status": "observed",
+      "evidence_refs": [
+        "image_06_card_2_screenshot",
+        "ev_07_card_2_response"
+      ]
+    },
+    {
+      "subject": "block_2",
+      "predicate": "presents",
+      "object": "card_b2_1",
+      "status": "observed",
+      "evidence_refs": [
+        "image_10_card_1_screenshot"
+      ]
+    },
+    {
+      "subject": "feedback_b2_1",
+      "predicate": "follows_response_to",
+      "object": "card_b2_1",
+      "status": "observed",
+      "evidence_refs": [
+        "image_10_card_1_screenshot",
+        "ev_11_card_1_response"
+      ]
+    },
+    {
+      "subject": "block_2",
+      "predicate": "presents",
+      "object": "card_b2_2",
+      "status": "observed",
+      "evidence_refs": [
+        "image_13_card_2_screenshot"
+      ]
+    },
+    {
+      "subject": "feedback_b2_2",
+      "predicate": "follows_response_to",
+      "object": "card_b2_2",
+      "status": "observed",
+      "evidence_refs": [
+        "image_13_card_2_screenshot",
+        "ev_14_card_2_response"
+      ]
+    },
+    {
+      "subject": "block_1",
+      "predicate": "followed_by_instructions",
+      "object": "block_2_instructions",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_07_card_2_response",
+        "ev_08_instructions"
+      ]
+    },
+    {
+      "subject": "block_2",
+      "predicate": "followed_by",
+      "object": "completion",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_14_card_2_response",
+        "ev_15_completion"
+      ]
+    },
+    {
+      "subject": "completion",
+      "predicate": "offers",
+      "object": "native_data",
+      "status": "observed",
+      "evidence_refs": [
+        "ev_15_completion",
+        "native_export"
+      ]
+    }
+  ],
+  "evidence": [
+    {
+      "id": "ev_01_instructions",
+      "path": "evidence/01_instructions.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:23:28.180153+00:00",
+      "description": "01 instructions browser output"
+    },
+    {
+      "id": "ev_02_begin",
+      "path": "evidence/02_begin.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:23:49.409975+00:00",
+      "description": "02 begin browser output"
+    },
+    {
+      "id": "ev_03_card_1_screenshot",
+      "path": "evidence/03_card_1_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:23:56.265070+00:00",
+      "description": "03 card 1 screenshot browser output"
+    },
+    {
+      "id": "ev_04_card_1_response",
+      "path": "evidence/04_card_1_response.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:24:07.132683+00:00",
+      "description": "04 card 1 response browser output"
+    },
+    {
+      "id": "ev_05_card_2",
+      "path": "evidence/05_card_2.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:24:20.245349+00:00",
+      "description": "05 card 2 browser output"
+    },
+    {
+      "id": "ev_06_card_2_screenshot",
+      "path": "evidence/06_card_2_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:24:24.128380+00:00",
+      "description": "06 card 2 screenshot browser output"
+    },
+    {
+      "id": "ev_07_card_2_response",
+      "path": "evidence/07_card_2_response.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:24:32.857825+00:00",
+      "description": "07 card 2 response browser output"
+    },
+    {
+      "id": "ev_08_instructions",
+      "path": "evidence/08_instructions.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:24:41.944410+00:00",
+      "description": "08 instructions browser output"
+    },
+    {
+      "id": "ev_09_begin",
+      "path": "evidence/09_begin.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:04.408975+00:00",
+      "description": "09 begin browser output"
+    },
+    {
+      "id": "ev_10_card_1_screenshot",
+      "path": "evidence/10_card_1_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:06.109307+00:00",
+      "description": "10 card 1 screenshot browser output"
+    },
+    {
+      "id": "ev_11_card_1_response",
+      "path": "evidence/11_card_1_response.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:20.238788+00:00",
+      "description": "11 card 1 response browser output"
+    },
+    {
+      "id": "ev_12_card_2",
+      "path": "evidence/12_card_2.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:41.154710+00:00",
+      "description": "12 card 2 browser output"
+    },
+    {
+      "id": "ev_13_card_2_screenshot",
+      "path": "evidence/13_card_2_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:42.523973+00:00",
+      "description": "13 card 2 screenshot browser output"
+    },
+    {
+      "id": "ev_14_card_2_response",
+      "path": "evidence/14_card_2_response.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:48.516263+00:00",
+      "description": "14 card 2 response browser output"
+    },
+    {
+      "id": "ev_15_completion",
+      "path": "evidence/15_completion.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:25:55.518069+00:00",
+      "description": "15 completion browser output"
+    },
+    {
+      "id": "ev_16_completion_screenshot",
+      "path": "evidence/16_completion_screenshot.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:26:10.125388+00:00",
+      "description": "16 completion screenshot browser output"
+    },
+    {
+      "id": "ev_17_native_export",
+      "path": "evidence/17_native_export.txt",
+      "locator": "entire output",
+      "source_type": "visible_text",
+      "observed_at": "2026-10-28T21:26:39.273710+00:00",
+      "description": "17 native export browser output"
+    },
+    {
+      "id": "image_03_card_1_screenshot",
+      "path": "evidence/03_card_1.png",
+      "locator": "whole screenshot; card or completion text in upper viewport",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:23:56.265070+00:00",
+      "description": "Visible 03 card 1 screenshot"
+    },
+    {
+      "id": "image_06_card_2_screenshot",
+      "path": "evidence/06_card_2.png",
+      "locator": "whole screenshot; card or completion text in upper viewport",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:24:24.128380+00:00",
+      "description": "Visible 06 card 2 screenshot"
+    },
+    {
+      "id": "image_10_card_1_screenshot",
+      "path": "evidence/10_card_1.png",
+      "locator": "whole screenshot; card or completion text in upper viewport",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:25:06.109307+00:00",
+      "description": "Visible 10 card 1 screenshot"
+    },
+    {
+      "id": "image_13_card_2_screenshot",
+      "path": "evidence/13_card_2.png",
+      "locator": "whole screenshot; card or completion text in upper viewport",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:25:42.523973+00:00",
+      "description": "Visible 13 card 2 screenshot"
+    },
+    {
+      "id": "image_16_completion_screenshot",
+      "path": "evidence/16_completion.png",
+      "locator": "whole screenshot; card or completion text in upper viewport",
+      "source_type": "screenshot",
+      "observed_at": "2026-10-28T21:26:10.125388+00:00",
+      "description": "Visible 16 completion screenshot"
+    },
+    {
+      "id": "native_export",
+      "path": "data/native_export.json",
+      "locator": "trials array and completed field",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:26:39.273710+00:00",
+      "description": "Exact UTF-8 text of the visible native export panel after completion, with four trial-level rows and original rt_ms values."
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Was the card order randomized?",
+      "reason": "Neither participant instructions nor this one observed sequence establish randomization.",
+      "related_ids": [
+        "block_1",
+        "block_2"
+      ]
+    },
+    {
+      "question": "What clock and onset definition generated native rt_ms?",
+      "reason": "The page identifies original trial-level response times; source and hidden state were deliberately not inspected.",
+      "related_ids": [
+        "native_data"
+      ]
+    },
+    {
+      "question": "Does this run reproduce human behavior or satisfy timing fidelity?",
+      "reason": "This four-card untimed synthetic fixture only tests browser operation and evidence capture."
+    }
+  ]
+}

@@ -1,0 +1,143 @@
+{
+  "schema_version": "1.0",
+  "run_id": "preview9-attempt-03",
+  "mode": "generated_visible_policy",
+  "input_url": "https://deploy.expfactory.org/preview/9/",
+  "final_url": "https://deploy.expfactory.org/preview/9/",
+  "started_at": "2026-10-28T21:52:15.953347+00:00",
+  "ended_at": "2026-10-28T22:11:25.558662+00:00",
+  "status": "completed",
+  "status_reason": "Observed Experiment Complete after all three main blocks. Local task completed; automatic remote upload failed as reported by terminal page.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "chrome-devtools-axi",
+    "session": "eb-preview9",
+    "version": null
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+    "SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5"
+  },
+  "seed": {
+    "value": 91028,
+    "scope": "generated policy local choices"
+  },
+  "reproducibility": "Frozen policy source/hash and seed are preserved; policy state/RNG persisted in agent-owned page object across segments. Live website and transport timings are not deterministic.",
+  "completion_evidence_refs": [
+    "14_terminal",
+    "image_15_terminal",
+    "16_finish"
+  ],
+  "data_export": {
+    "status": "available",
+    "paths": [
+      "data/experiment_data.json",
+      "data/experiment_data.csv"
+    ],
+    "reason": "Original post-completion native JSON/CSV strings from documented read-only jsPsych.data.get() API. Exact returned strings retained."
+  },
+  "counts": {
+    "native_export_rows": 603,
+    "native_export_trial_rows": 192,
+    "native_main_trial_rows": 180,
+    "native_attention_checks": 3,
+    "events": 29
+  },
+  "limitations": [
+    "The public preview reported automatic upload failure; task completion and local export are verified, remote submission is not.",
+    "Practice auto-advanced during initial driver setup/approval; all 12 recorded practice opportunities retained, including initial omissions.",
+    "Two brief text instructions were missed before unexpected-text handoff was added; third was answered correctly.",
+    "One navigation Enter was sent after automatic feedback advance; it is not a task response key and is archived in the executed script. Later navigation checks current prompt first.",
+    "Task block feedback reported slow responses. Native go RT 675\u20131172 ms includes browser transport and policy time; no human validity established.",
+    "Observer representation was checked against earlier square screenshot/geometry; a near-simultaneous followup screenshot had already blanked. All rendered pixel observations are archived.",
+    "Policy authored inline with inherited conversation context; explicit neutral instruction saved but full isolated model-call transcript unavailable.",
+    "Exact model identifier/browser version unknown."
+  ],
+  "artifacts_sha256": {
+    "data/experiment_data.csv": "d739675c71daf2143950f78f65921292587f3e42fbd4ae73215435f66cf47f98",
+    "data/experiment_data.json": "acee764641257a82ecec702652dbf4e634517176b6c52339be29b91901b29df6",
+    "drive.py": "05a3edd81aeab8b43cde518fded7f277759f2d19a5a9b32fd89d42460d3a4fe8",
+    "events.jsonl": "40581f3232581491937c61469c6c266c131034d5a0aa4d07122d3c60c7b4cd5f",
+    "evidence/01_open.txt": "11b675c3e609b3fa32281b62a24529d4c90101d8164aaa2bb0bddb577eb092f0",
+    "evidence/02_refresh.txt": "66285bc1e1d4153ef4155a7c3ec281ffff7e68a9af03a75867eb7531ba36b56c",
+    "evidence/03_fullscreen.txt": "e77053bb5de82e00dc2aeb5f4d1cc82379f463547d3720968dfde6bbe1aa48f8",
+    "evidence/04_welcome.txt": "a1b7381b015f29fe665951640484a686203226b9c30d929a79f56b2f172f9dbd",
+    "evidence/05_adapter_probe.txt": "e468dd88b97c8240f310d0729ba15af3cb2de0d6ff9ac810e39182e43b5d11c1",
+    "evidence/06_instructions.txt": "2b6b847bfc73e9ee426159c4f78b02eccaaeab5fba945b658e8f8283dd3511d4",
+    "evidence/07_star_instruction.txt": "c3ae384c7c9c45f2fd9dab9d04ba4e8e0d0d13211f9f53f0f1011ff65e8dd4fd",
+    "evidence/08_practice_instruction.txt": "2ac19a3f47ae480cf5bb0343d90c38bc81256a8c3f9086ae0bac76f17e041e24",
+    "evidence/09_ready.txt": "0196de20b0f917148a3fff28cc8adac8e9ab27f1a1488b00703a47270ac2fac3",
+    "evidence/10_after_practice.txt": "e0dcf7da1b10b3eb7603a2bfcfc91fec69878e0a11ab2023495c75c20b952bf4",
+    "evidence/11_main.png": "e851fc9ab76de85b6ea26e3675f2c7d1c9c4e34009313a7e614cc841ae5cbddd",
+    "evidence/11_main_screenshot.txt": "e35b7353835869d3b265f870f5c1e51d470281fbe4b7617718615bf668b71896",
+    "evidence/12_block1_feedback.txt": "a583f8a522b33f32aaa4ff07be2726774e61ee6d8e9f7ae52ee0c1b8c1c09989",
+    "evidence/13_text_instruction.txt": "ee04cde717e2a38bf2137ef366cdac56259c9e2734b01fa742ced8b7fe9470a4",
+    "evidence/14_terminal.txt": "2fe143b09822672a402c7ff981a5b4e878b2831bd2e27212cac73b08aa4a6c33",
+    "evidence/15_terminal.png": "2ca32b1a1015a7da9c7b643dea7bf786e35956d85ca9b555523f2a0c99a985f1",
+    "evidence/15_terminal_screenshot.txt": "fdca7fa4f7ae982404aad48fe5520c3d88b981a0844988b87954e84099db199a",
+    "evidence/16_finish.txt": "6c6be070d9674c04a77c30d3c92025321cb6f029c4e4519c4b8af4b0056cb6c7",
+    "evidence/17_native_export.txt": "e4399327312b03a142b928e1074ce33c4591768f1a8dab56495323fbc4715a51",
+    "evidence/segment-001.jsonl": "c1539497be06f46955192727b7d3d780eb58f059a20d7958c63c8785aba4333b",
+    "evidence/segment-002.jsonl": "e8cebe420d921bf44ce37d38e6d079bcacb8300a0b10f6e36e7939d296390024",
+    "evidence/segment-003.jsonl": "38adb2bcaf552502a37655737adef9cf8c0885a66c92289ed43cf68ee6c1a644",
+    "evidence/segment-004.jsonl": "772099790ba7ce7984c59a221a01e241ddc10bd45bb826a1a5cb4727b6ddceb8",
+    "evidence/segment-005.jsonl": "5e888c26aa2d7b4a919f801cd58bbcc5640e618d6040ce445eac9fe34fd7648c",
+    "evidence/segment-006.jsonl": "9c00f0f6e7f461fabb84fcf7cabb4d5ea965ba3c80a6fe55d4bc1955260dce44",
+    "evidence/segment-007.jsonl": "e2e3b77d54cf701d473b0b8842de6abd405672585540aa42482662f79609201a",
+    "evidence/segment-008.jsonl": "c3b41c893b2c4480a9f65d891e87c3b7512467528c4a4275c2e1877ab8d5184e",
+    "evidence/segment-009.jsonl": "8192b0156c3af42be701ab6ca78a36769f1dd01b6577ba81d64b89261a131f72",
+    "evidence/segment-010.jsonl": "36545daf3d3da4f862cced1931724f4de1db506fd73e0d2a1491e313eff434bd",
+    "evidence/segment-011.jsonl": "48ac736b12da139521f2fe7e25e6d30418a58b4e887fd27ab7351aae5795acf5",
+    "evidence/segment-012.jsonl": "29683b4fdbff5df78ecd2a1a89e9626c6506e9f624c877a47c9a48d4f3fb1089",
+    "observed-results.json": "0edde9d40463e8f170107756dcb38216148deee35f84644c1393ccc0dfc24291",
+    "ontology.json": "774ca61bd714b53f7b5cd47ac719b69c4a8bb96dc15c49274e6d6a9a6ddae6ce",
+    "operate.py": "e771317da54e5ebd4ba3b3d8d9782fc671798a2f48045150c02b6e3b959269ab",
+    "policy/adapter-probe.js": "8fdafda3c6a01c3f8438dd78f87a8224d778be7508f79f2c95abfc033b1fef54",
+    "policy/adapter-repair.json": "21544d524464d1497799d609ece615e222f46529b0801762cc38c1612a2f2f23",
+    "policy/adapter-unexpected-text.json": "593be207eedd130d78d1907dfcba1683b22cea632dd0eee1d084ca3ba195c7c2",
+    "policy/authoring-prompt.md": "5b57e2281cc8e2a4f849058fef717b65c9e3ea351aff27068641fbe4f6046fe1",
+    "policy/executed-segment-001.js": "831daa6dea6c6752d542050e1b00d75a66497887f1a54cc55c6ac310755a0eab",
+    "policy/executed-segment-002.js": "831daa6dea6c6752d542050e1b00d75a66497887f1a54cc55c6ac310755a0eab",
+    "policy/executed-segment-003.js": "6a184f33baed284cb598b90a2bbbe07af5710b2b51daaac136b7fd5cde76ddf0",
+    "policy/executed-segment-004.js": "6a184f33baed284cb598b90a2bbbe07af5710b2b51daaac136b7fd5cde76ddf0",
+    "policy/executed-segment-005.js": "6a184f33baed284cb598b90a2bbbe07af5710b2b51daaac136b7fd5cde76ddf0",
+    "policy/executed-segment-006.js": "831daa6dea6c6752d542050e1b00d75a66497887f1a54cc55c6ac310755a0eab",
+    "policy/executed-segment-007.js": "6a184f33baed284cb598b90a2bbbe07af5710b2b51daaac136b7fd5cde76ddf0",
+    "policy/executed-segment-008.js": "6a184f33baed284cb598b90a2bbbe07af5710b2b51daaac136b7fd5cde76ddf0",
+    "policy/executed-segment-009.js": "f0a8358f4ee5d911b2a35215dbf359060f14b1e3443e182c81f56404fd502b44",
+    "policy/executed-segment-010.js": "0faa39b0880028d91dce4cc921a12676e2718769b8f90955e59883772f900726",
+    "policy/executed-segment-011.js": "0faa39b0880028d91dce4cc921a12676e2718769b8f90955e59883772f900726",
+    "policy/executed-segment-012.js": "0faa39b0880028d91dce4cc921a12676e2718769b8f90955e59883772f900726",
+    "policy/gate-report.json": "9740f4dab1ad45cf073b127cc83bb974d53227bfe7dbcd7288d06183705c5a43",
+    "policy/gate.cjs": "0664dbc9b7962cfc69c875d3ec88033a81084915a40bc681f37b77e38f731c19",
+    "policy/participant.js": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+    "policy/segment.js": "61dca2cb55db883564195dc1bc091f84bab21125ab3c3e24fe6233034d876744",
+    "protocol/SKILL.md": "f5034cdc342dbd844f16a8a0402cbc158c460fa28d2d501c8e7a23f33d6d85e5",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "d1f282a86c5c7ae96bf784ebf331e2746e5c4f1753e7a01ff0a5e5cc530e3fd5",
+    "summary.md": "1caa1769447d1c5aae2ce348f46f9dbbac14c45c22134a5b944e16e86069d792"
+  },
+  "parent_attempt": "../attempt-02",
+  "policy_path": "policy/participant.js",
+  "policy_sha256": "16b32b5387d38572df68e792e22c42491fe2949eb74e700a155af37823f1c769",
+  "authoring_prompt_path": "policy/authoring-prompt.md",
+  "gate_report_path": "policy/gate-report.json",
+  "observation_interface": "current visible image pixels/geometry and rendered text through page.eval",
+  "input_delivery": "chrome-devtools-axi run page.press / page.click normal browser input",
+  "authoring_context": "inherited_agent_context",
+  "authoring_transcript": "Explicit authoring prompt saved; full isolated model-call transcript unavailable. Inline policy author inherited conversation and prior attempt context.",
+  "submission": {
+    "status": "failed_automatic_upload",
+    "attempted_by": "platform",
+    "manual_upload_performed": false,
+    "evidence_refs": [
+      "14_terminal"
+    ]
+  }
+}

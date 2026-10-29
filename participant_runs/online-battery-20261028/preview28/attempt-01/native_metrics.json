@@ -1,0 +1,44 @@
+{
+  "counts": {
+    "native_export_rows": 622,
+    "native_response_trials": 200,
+    "native_practice_trials": 8,
+    "native_test_trials": 192,
+    "native_recorded_responses": 196,
+    "native_omissions": 4,
+    "native_correct_responses": 196,
+    "native_test_correct": 192,
+    "native_attention_checks": 3,
+    "native_attention_checks_correct": 2,
+    "native_correctness_unknown": 4
+  },
+  "rt_ms": {
+    "min": 5,
+    "median": 19.0,
+    "max": 41
+  },
+  "attention_checks": [
+    {
+      "trial_index": 39,
+      "response": null,
+      "correct_response": "m",
+      "correct": 0,
+      "rt": null
+    },
+    {
+      "trial_index": 233,
+      "response": "y",
+      "correct_response": "y",
+      "correct": 1,
+      "rt": 10289
+    },
+    {
+      "trial_index": 427,
+      "response": "j",
+      "correct_response": "j",
+      "correct": 1,
+      "rt": 10915
+    }
+  ],
+  "intended_policy_delay_ms": 0
+}

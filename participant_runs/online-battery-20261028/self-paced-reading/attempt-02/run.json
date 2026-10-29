@@ -1,0 +1,53 @@
+{
+  "schema_version": "1.0",
+  "run_id": "self-paced-reading-attempt-02",
+  "mode": "direct_browser",
+  "input_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+  "final_url": "https://www.psytoolkit.org/library/experiment_pacedreading1.html",
+  "started_at": "2026-10-28T21:57:49.170072+00:00",
+  "ended_at": "2026-10-28T21:58:44.659938+00:00",
+  "status": "blocked",
+  "status_reason": "Transport screenshot preflight tried to capture a hidden initial canvas; browser closed before participation.",
+  "model": {
+    "provider": "OpenAI",
+    "model": null,
+    "version": null
+  },
+  "browser": {
+    "tool": "Playwright ordinary mouse/keyboard input",
+    "session": "eb-other-pointer",
+    "viewport": {
+      "width": 1200,
+      "height": 900
+    }
+  },
+  "observation_boundary": "participant_visible",
+  "skill_sha256": {
+    "artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359"
+  },
+  "seed": null,
+  "reproducibility": "Direct model participation; no deterministic replay claim.",
+  "completion_evidence_refs": [],
+  "data_export": {
+    "status": "unavailable",
+    "paths": [],
+    "reason": "No participation; startup screenshot failure."
+  },
+  "counts": {
+    "response_actions": 0
+  },
+  "limitations": [
+    "Second attempt reduces observation/input transport overhead; previous completed session retained with missed observations."
+  ],
+  "artifacts_sha256": {
+    "events.jsonl": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "evidence/startup-error.txt": "9be89863e7c31f8de974e5c7e040363c4b6cca239d03d1f6ccfdc91d4235b3ca",
+    "ontology.json": "60d969c0f21c6094a7c04ca330a6a8b9eea516bf4005fe490f5c85b1858de620",
+    "protocol/SKILL.md": "ddf79b014706ab76a4d16c3eb21d1675b1f4999419d8f3c8214fc452ca98f359",
+    "protocol/artifacts.md": "7d080ff26b71bb3ec47f291370fd1046ce28c652c9e8da457d3273abe6357748",
+    "protocol/execution.md": "8553abfa4b6f9c578c1275c9e7645cfe49d9b16b7967f1e748c6cf4b2bd34d77",
+    "summary.md": "870e68de99e11ce175c172b1011835ff366c2c166410b8d9a22660926f2779ac"
+  }
+}

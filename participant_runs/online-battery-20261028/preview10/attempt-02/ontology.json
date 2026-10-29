@@ -1,0 +1,212 @@
+{
+  "schema_version": "1.0",
+  "task": {
+    "url": "https://deploy.expfactory.org/preview/10/",
+    "title": "Ink-color response task"
+  },
+  "nodes": [
+    {
+      "id": "instructions",
+      "kind": "phase",
+      "label": "Ink-color task instructions",
+      "attributes": {
+        "red": ",",
+        "blue": ".",
+        "green": "/"
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "06_instructions",
+        "07_instruction_render"
+      ]
+    },
+    {
+      "id": "transport_failure",
+      "kind": "limitation",
+      "label": "Local browser loop failed",
+      "attributes": {
+        "message": "fn is not a function",
+        "policy_responses_delivered": 0
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "15_practice_segment"
+      ]
+    },
+    {
+      "id": "partial",
+      "kind": "session_status",
+      "label": "Partial session",
+      "attributes": {
+        "native_rows": 75,
+        "response_trials": 18,
+        "responses": 0
+      },
+      "status": "observed",
+      "evidence_refs": [
+        "native_data"
+      ]
+    }
+  ],
+  "relations": [],
+  "evidence": [
+    {
+      "id": "01_open",
+      "path": "evidence/01_open.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:43:53.192035+00:00",
+      "description": "01_open"
+    },
+    {
+      "id": "02_fullscreen",
+      "path": "evidence/02_fullscreen.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:08.093869+00:00",
+      "description": "02_fullscreen"
+    },
+    {
+      "id": "03_welcome",
+      "path": "evidence/03_welcome.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:09.161690+00:00",
+      "description": "03_welcome"
+    },
+    {
+      "id": "04_fullscreen",
+      "path": "evidence/04_fullscreen.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:17.813028+00:00",
+      "description": "04_fullscreen"
+    },
+    {
+      "id": "05_welcome",
+      "path": "evidence/05_welcome.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:19.355860+00:00",
+      "description": "05_welcome"
+    },
+    {
+      "id": "06_instructions",
+      "path": "evidence/06_instructions.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:27.045034+00:00",
+      "description": "06_instructions"
+    },
+    {
+      "id": "07_instruction_render",
+      "path": "evidence/07_instruction_render.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:28.298010+00:00",
+      "description": "07_instruction_render"
+    },
+    {
+      "id": "08_instructions_image",
+      "path": "evidence/08_instructions_image.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:44:29.292784+00:00",
+      "description": "08_instructions_image"
+    },
+    {
+      "id": "09_practice_info",
+      "path": "evidence/09_practice_info.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:45:16.584431+00:00",
+      "description": "09_practice_info"
+    },
+    {
+      "id": "10_ready",
+      "path": "evidence/10_ready.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:46:24.290404+00:00",
+      "description": "10_ready"
+    },
+    {
+      "id": "11_nav_dom",
+      "path": "evidence/11_nav_dom.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:46:35.930591+00:00",
+      "description": "11_nav_dom"
+    },
+    {
+      "id": "12_current",
+      "path": "evidence/12_current.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:46:42.011833+00:00",
+      "description": "12_current"
+    },
+    {
+      "id": "13_practice_segment",
+      "path": "evidence/13_practice_segment.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:47:04.377585+00:00",
+      "description": "13_practice_segment"
+    },
+    {
+      "id": "14_after_bridge_failure",
+      "path": "evidence/14_after_bridge_failure.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:47:44.877880+00:00",
+      "description": "14_after_bridge_failure"
+    },
+    {
+      "id": "15_practice_segment",
+      "path": "evidence/15_practice_segment.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:48:02.487124+00:00",
+      "description": "15_practice_segment"
+    },
+    {
+      "id": "16_string_probe",
+      "path": "evidence/16_string_probe.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:48:34.708239+00:00",
+      "description": "16_string_probe"
+    },
+    {
+      "id": "17_partial_export",
+      "path": "evidence/17_partial_export.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:49:13.053268+00:00",
+      "description": "17_partial_export"
+    },
+    {
+      "id": "18_session_stop",
+      "path": "evidence/18_session_stop.txt",
+      "locator": "Entire tool output",
+      "source_type": "browser_tool",
+      "observed_at": "2026-10-28T21:49:14.187934+00:00",
+      "description": "18_session_stop"
+    },
+    {
+      "id": "native_data",
+      "path": "data/experiment_data.json",
+      "locator": "Full array",
+      "source_type": "native_export",
+      "observed_at": "2026-10-28T21:49:13.053268+00:00",
+      "description": "Unmodified partial platform export after ending participation"
+    }
+  ],
+  "unknowns": [
+    {
+      "question": "Could the gated policy complete this task with a working adapter?",
+      "reason": "The browser run failed before delivering a policy response."
+    }
+  ]
+}
